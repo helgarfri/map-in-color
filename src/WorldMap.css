@@ -41,10 +41,12 @@
  */
 .landxx
 {
-	fill: #c0c0c0;
 	stroke: #ffffff;
 	stroke-width: 0.5;
 	fill-rule: evenodd;
+	fill: #c0c0c0;
+	
+	
 }
 
 /*
@@ -53,7 +55,7 @@
  */
 .coastxx
 {
-	stroke-width: 0.2;
+	stroke-width: 0.5;
 }
 
 
@@ -152,3 +154,7 @@
  * }
  *
  */
+
+ .legend-title-map{
+	font-size: 24px;
+ }

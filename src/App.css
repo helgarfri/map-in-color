@@ -2,11 +2,12 @@
   text-align: center;
 }
 
-.class {
+.legend {
   display: flex;
-  margin: 30px;
+  flex-direction: column;
+  margin: 0px;
   border: 3px solid black;
-  height: 400px;
+  height: fit-content;
   align-items: center;
 
   
@@ -14,33 +15,87 @@
   
 }
 
-.class-sidemenu {
-  border: 3px solid black;
-  height: 400px;
+.nav-button {
+  background-color: #c0c0c05d;
+  border: 2px solid black;
+  border-radius: 10px 10px 0px 0px;
+  height: 60px;
+  width: auto;
+  max-width: 140px;
+  min-width: 140px;
+  cursor: pointer;
+  transform: all 0.3;
+  
+}
 
+.nav-button:hover {
+  background-color: white
+}
+
+.nav-button.active {
+  background-color: white;
+}
+
+.nav-button.active:hover {
+  background-color: white
 }
 
 
-.class-editor {
+
+
+
+.clicked {
+  background-color: white;
+}
+
+.class-items {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  margin-bottom: 0px;
+  padding-left: 1%;
+}
+
+.legend-title {
+  margin: 10px;
+  font-size: 25px;
+  border: none;
+  font-weight: bold;
+}
+
+.legend-set {
+  display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 400px;
+  height: fit-content;
+  margin: 30px;
+  
+}
+
+.state-selector {
+  display: flex;
+  flex-direction: row;
 }
 
 .continents {
-  display: flex;
-  flex-direction: column;
-  background-color: rgba(128, 128, 128, 0.301);
-  max-width: 240px;
-}
-
-
-
-
-.select-colors {
-  width: 100px;
+  text-align: center;
+  padding: 10px;
+ 
   
 }
+
+.countries {
+  background-color: rgba(128, 128, 128, 0.301);
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  
+}
+
+li {
+  list-style: none;
+}
+
+
+
