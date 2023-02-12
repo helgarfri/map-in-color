@@ -1,8 +1,8 @@
-import "./WorldStates"
-import "./Countries"
-import "./Legend-1"
-import './Legend-2'
-import './Navigator'
+import "./components/WorldStates"
+import "./components/Countries"
+import "./components/Legend-1"
+import './components/Legend-2'
+import './components/Navigator'
 
 
 

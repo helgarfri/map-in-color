@@ -1,4 +1,4 @@
-import './world-states.svg'
+import '../world-states.svg'
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from './Countries';
 import React, { Component, useEffect, useState } from 'react';

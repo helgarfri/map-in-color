@@ -1,10 +1,9 @@
-import './App.css';
-import WorldMap from './WorldStates';
-import './WorldMap.css'
-import Navigator from './Navigator';
+import './components/App.css';
+import WorldMap from './components/WorldStates';
+import './components/WorldMap.css'
+import Navigator from './components/Navigator';
 import { useState } from 'react';
-import './WorldStates'
-import './Countries'
+import './components/WorldStates'
 
 
 
