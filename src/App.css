@@ -60,7 +60,17 @@
   font-size: 25px;
   border: none;
   font-weight: bold;
+  display: flex;
+  flex-direction: column;
 }
+
+.legend-show {
+  font-size: 14px;
+  text-align: left;
+  margin-left: 12px;
+  font-weight: 400;
+}
+
 
 .legend-set {
   display: flex;

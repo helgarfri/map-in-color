@@ -20,7 +20,11 @@ function Legend1({
     legend1ColorValue, 
     setLegend1ColorValue, 
     legend1TitleValue, 
-    handleTitle1ValueChange }) {
+    handleTitle1ValueChange,
+    showLabel1,
+    setShowLabel1
+    
+}) {
 
 
     
@@ -38,10 +42,14 @@ function Legend1({
 
     const handleTitle1Change = (event) => {
         handleTitle1ValueChange(event.target.value)
+
+        
     }
 
+   
     
-    
+
+
 
 
     
@@ -50,7 +58,6 @@ function Legend1({
             return null
         } 
 
-        
         
     return(
         <div>
@@ -62,12 +69,27 @@ function Legend1({
                     <div className='legend-title'>
                         
                         <input 
-                            value={legend1TitleValue}  
+                            value={legend1TitleValue && legend1TitleValue !== "Legend 1" ? legend1TitleValue : ""}  
                             className='legend-title' 
                             placeholder="Legend's Title" 
                             onChange={handleTitle1Change}
                             type='text'
                             ></input>
+
+                        
+                        <div className='legend-show'>
+                            <input 
+                                type='checkbox'
+                                onChange={(e) => setShowLabel1(e.target.checked)}
+                                checked={showLabel1}
+                                >
+
+                            </input>
+                            <label>Show on map</label>
+                        </div>
+                        
+                        
+
                     </div>
 
 
@@ -82,6 +104,7 @@ function Legend1({
                    
                     
                 </div>
+
                 
                     <Countries
                     legend1ColorValue={legend1ColorValue}

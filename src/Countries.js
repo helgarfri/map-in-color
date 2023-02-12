@@ -31,9 +31,6 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
     }
   }, [legend, legend1CountryValue, legend2CountryValue]);
 
-      console.log(legend1CountryValue)
-      console.log(legend2CountryValue)
-      console.log(legend)
 
     
       const handleChange = (event) => {

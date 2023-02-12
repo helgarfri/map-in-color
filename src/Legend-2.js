@@ -19,7 +19,11 @@ function Legend2({
     legend2ColorValue, 
     setLegend2ColorValue, 
     legend2TitleValue, 
-    handleTitle2ValueChange }) {
+    handleTitle2ValueChange,
+    showLabel2,
+    setShowLabel2
+
+}) {
 
     
 
@@ -58,12 +62,23 @@ function Legend2({
                     <div className='legend-title'>
                         
                         <input 
-                            value={legend2TitleValue}  
+                            value={legend2TitleValue && legend2TitleValue !== "Legend 2" ? legend2TitleValue : ""}  
                             className='legend-title' 
                             placeholder="Legend's Title" 
                             onChange={handleTitle2Change}
                             type='text'
                             ></input>
+
+                            <div className='legend-show'>
+                            <input 
+                                type='checkbox'
+                                onChange={(e) => setShowLabel2(e.target.checked)}
+                                checked={showLabel2}
+                                >
+
+                            </input>
+                            <label>Show on map</label>
+                        </div>
                     </div>
 
 

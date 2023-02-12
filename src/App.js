@@ -13,9 +13,11 @@ import './Countries'
 function App() {
 
 
-  const [legend1TitleValue, setLegend1TitleValue] = useState('')
-  const [legend2TitleValue, setLegend2TitleValue] =useState('')
+  const [legend1TitleValue, setLegend1TitleValue] = useState('Legend 1')
+  const [legend2TitleValue, setLegend2TitleValue] =useState('Legend 2')
   
+  const [ showLabel1, setShowLabel1 ] = useState()
+  const [ showLabel2, setShowLabel2 ] = useState()
 
   const [legend1ColorValue, setLegend1ColorValue] = useState('#000000')
   const [legend2ColorValue, setLegend2ColorValue] = useState('#000000')
@@ -35,9 +37,11 @@ function App() {
       <WorldMap 
           legend1TitleValue={legend1TitleValue}
           legend2TitleValue={legend2TitleValue}
+        
           
-          
-          
+          showLabel1={showLabel1}
+          showLabel2={showLabel2}
+
           legend1ColorValue={legend1ColorValue}
           legend2ColorValue={legend2ColorValue}
           setLegend1ColorValue={setLegend1ColorValue}
@@ -53,6 +57,14 @@ function App() {
           legend2ColorValue={legend2ColorValue}
           setLegend1ColorValue={setLegend1ColorValue}
           setLegend2ColorValue={setLegend2ColorValue}
+
+          showLabel1={showLabel1}
+          setShowLabel1={setShowLabel1}
+          showLabel2={showLabel2}
+          setShowLabel2={setShowLabel2}
+
+
+      
 
 
       />

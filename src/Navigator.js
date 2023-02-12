@@ -14,7 +14,13 @@ function Navigator({
     legend1ColorValue, 
     legend2ColorValue, 
     setLegend1ColorValue, 
-    setLegend2ColorValue }) {
+    setLegend2ColorValue,
+    showLabel1,
+    setShowLabel1,
+    showLabel2,
+    setShowLabel2
+
+}) {
   
     const [ activeLegend, setActiveLegend ] = useState('legend1');
 
@@ -22,7 +28,7 @@ function Navigator({
     const [ activeButton, setActiveButton ] = useState(1)
 
     
-    const [legend1CountryValue, setLegend1CountryValue] = useState([]);
+    const [legend1CountryValue, setLegend1CountryValue] = useState('');
 
     const [legend2CountryValue, setLegend2CountryValue] = useState('')
 
@@ -48,13 +54,13 @@ function Navigator({
                     
                 <NavButton 
                     onClick={handleButton1Click} 
-                    label={legend1TitleValue}
+                    label={legend1TitleValue && legend1TitleValue !== "" ? legend1TitleValue : "Legend 1"}
                     active={activeButton === 1}
                     />
 
                 <NavButton 
                     onClick={handleButton2Click} 
-                    label={legend2TitleValue}
+                    label={legend2TitleValue && legend2TitleValue !== "" ? legend2TitleValue : "Legend 2"}
                     active={activeButton === 2}
                     
                     />
@@ -71,7 +77,10 @@ function Navigator({
                     
                     legend1TitleValue={legend1TitleValue}
                     handleTitle1ValueChange={handleTitle1ValueChange}
+                    showLabel1={showLabel1}
+                    setShowLabel1={setShowLabel1}
 
+                 
 
                 />
 
@@ -85,6 +94,9 @@ function Navigator({
                     setLegend2CountryValue={setLegend2CountryValue}
                     legend2TitleValue={legend2TitleValue}
                     handleTitle2ValueChange={handleTitle2ValueChange}
+
+                    showLabel2={showLabel2}
+                    setShowLabel2={setShowLabel2}
                     
                    
                    
