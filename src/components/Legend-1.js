@@ -15,7 +15,13 @@ function Legend1({
     setLegend1CountryValue, 
     legend2CountryValue,
     setLegend2CountryValue,
-    
+    legend3CountryValue,
+    setLegend3CountryValue,
+    legend4CountryValue,
+    setLegend4CountryValue,
+    legend5CountryValue,
+    setLegend5CountryValue,
+
 
     activeLegend, 
     legend1ColorValue, 
@@ -26,7 +32,7 @@ function Legend1({
     setShowLabel1
     
 }) {
-
+    
 
     
    
@@ -48,7 +54,7 @@ function Legend1({
     }
 
    
-    
+   
 
 
 
@@ -70,7 +76,7 @@ function Legend1({
                     <div className='legend-title'>
                         
                         <input 
-                            value={legend1TitleValue && legend1TitleValue !== "Legend 1" ? legend1TitleValue : ""}  
+                            value={legend1TitleValue  !== "Legend 1" ? legend1TitleValue : ""}  
                             className='legend-title' 
                             placeholder="Legend's Title" 
                             onChange={handleTitle1Change}
@@ -99,7 +105,7 @@ function Legend1({
                         color={legend1ColorValue}
                         value={legend1ColorValue}
                         onChangeComplete={handleColorChange} 
-                        
+                        style={{color: 'white'}}
                         />
                     
                    
@@ -111,10 +117,22 @@ function Legend1({
                     legend1ColorValue={legend1ColorValue}
                     setLegend1ColorValue={setLegend1ColorValue}
                     legend={1}
+                    
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
+                    
                     legend2CountryValue={legend2CountryValue}
                     setLegend2CountryValue={setLegend2CountryValue}
+                    
+                    legend3CountryValue={legend3CountryValue}
+                    setLegend3CountryValue={setLegend3CountryValue}
+
+                    legend4CountryValue={legend4CountryValue}
+                    setLegend4CountryValue={setLegend4CountryValue}
+
+                    legend5CountryValue={legend5CountryValue}
+                    setLegend5CountryValue={setLegend5CountryValue}
+
 
                 
                     

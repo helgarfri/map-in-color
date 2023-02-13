@@ -3,17 +3,34 @@ import { useState } from "react"
 
 function WorldMap({
 	legend1TitleValue, 
-	legend1ColorValue, 
 	legend2TitleValue, 
+	legend3TitleValue,
+	legend4TitleValue,
+	legend5TitleValue,
+
+
+
+	legend1ColorValue, 
 	legend2ColorValue,
+	legend3ColorValue,
+	legend4ColorValue,
+	legend5ColorValue,
+
+
+	
+	
 	showLabel1,
-	showLabel2
+	showLabel2,
+	showLabel3,
+	showLabel4,
+	showLabel5,
+
+
 
 
 }) {
 
 
-	
 
     return(
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2754 1398 " version="1.1" width="95%" height="auto">
@@ -3114,15 +3131,31 @@ function WorldMap({
 	</g>
 
 
-	<g id="legend1Label" style={{display: showLabel1 ? 'block': 'none'}}>
+	<g style={{display: showLabel1 ? 'block': 'none'}}>
 		<circle id="legend1Dot" cx="185" cy="742" r="10" fill={legend1ColorValue} ></circle>
   		<text className="legend-title-map" x="200" y="750" width="500" height="150">{legend1TitleValue}</text>
 	</g>
 
-	<g id="legend2Label" style={{display: showLabel2 ? 'block': 'none'}}>
+	<g style={{display: showLabel2 ? 'block': 'none'}}>
 		<circle cx="185" cy="782" r="10" fill={legend2ColorValue}></circle>
 		<text className="legend-title-map" x="200" y="790" width="500" height="150">{legend2TitleValue}</text>
 	</g>
+
+	<g style={{display: showLabel3 ? 'block': 'none'}}>
+		<circle cx="185" cy="822" r="10" fill={legend3ColorValue}></circle>
+		<text className="legend-title-map" x="200" y="830" width="500" height="150">{legend3TitleValue}</text>
+	</g>
+
+	<g style={{display: showLabel4 ? 'block': 'none'}}>
+		<circle cx="185" cy="862" r="10" fill={legend4ColorValue}></circle>
+		<text className="legend-title-map" x="200" y="870" width="500" height="150">{legend4TitleValue}</text>
+	</g>
+
+	<g style={{display: showLabel5 ? 'block': 'none'}}>
+		<circle cx="185" cy="902" r="10" fill={legend5ColorValue}></circle>
+		<text className="legend-title-map" x="200" y="910" width="500" height="150">{legend5TitleValue}</text>
+	</g>
+
 
 
 
