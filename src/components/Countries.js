@@ -2,7 +2,21 @@ import './App.css'
 import './Navigator'
 import { useEffect, useState } from 'react';
 
-function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, legend1CountryValue, setLegend1CountryValue, legend2CountryValue, setLegend2CountryValue  }) {
+
+
+
+function Countries({ 
+    legend1ColorValue, 
+    legend2ColorValue, 
+    legend, 
+    legend1CountryValue, 
+    setLegend1CountryValue, 
+    legend2CountryValue, 
+    setLegend2CountryValue,
+    legend1ContinentValue,
+    setLegend1ContinentValue,
+
+}) {
 
    
   useEffect(() => {
@@ -41,6 +55,10 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
           } else {
             setLegend1CountryValue([...legend1CountryValue, selectedOption]);
           }
+            
+
+          
+
         } else if (legend === 2) {
           if (legend2CountryValue.includes(selectedOption)) {
             setLegend2CountryValue(legend2CountryValue.filter((o) => o !== selectedOption));
@@ -48,9 +66,15 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
             setLegend2CountryValue([...legend2CountryValue, selectedOption]);
           }
         }
-        
+
+
+       
       };
 
+      
+
+
+    
       
     return(
       <div className="state-selector">
@@ -61,10 +85,9 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
 
           <li>
                <div className="continents">
-                      <input
-                          type='checkbox'/>
+                    <img className='con-icon' src='../assets/africa.png'></img>
 
-                   <label>Africa</label>
+                    <label className='con-label'>Africa</label>
               </div>         
           </li>
 
@@ -893,10 +916,9 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
 
       <li>
                <div className="continents">
-                      <input
-                          type='checkbox'/>
+                    <img className='con-icon' src='../assets/asia.png'></img>
 
-                   <label>Asia</label>
+                    <label className='con-label'>Asia</label>
               </div>         
           </li>
 
@@ -1634,12 +1656,13 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
           
 
           <li>
-               <div className="continents">
-                      <input
-                          type='checkbox'/>
+              
+                    <div className="continents">
+                            <img className='con-icon' src='../assets/europe.png'></img>
 
-                   <label>Europe</label>
-              </div>         
+                            <label className='con-label'>Europe</label>
+                    </div>
+                   
           </li>
 
             
@@ -2320,12 +2343,11 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
           
 
       <li>
-               <div className="continents">
-                      <input
-                          type='checkbox'/>
+                    <div className="continents">
+                            <img className='con-icon' src='../assets/north-america.png'></img>
 
-                   <label>North America</label>
-              </div>         
+                            <label className='con-label'>North America</label>
+                    </div>    
           </li>
 
         
@@ -2968,12 +2990,11 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
           
 
       <li>
-               <div className="continents">
-                      <input
-                          type='checkbox'/>
+                    <div className="continents">
+                            <img className='con-icon' src='../assets/south-america.png'></img>
 
-                   <label>South America</label>
-              </div>         
+                            <label className='con-label'>South America</label>
+                    </div>      
           </li>
 
         
@@ -3209,7 +3230,10 @@ function Countries({ legend1ColorValue, legend2ColorValue, legend, legendValue, 
       <li>
                <div className="continents">
                       <input
-                          type='checkbox'/>
+                          type='checkbox'
+                          className='continent'
+                          
+                          />
 
                    <label>Oceana</label>
               </div>         

@@ -3,7 +3,7 @@ import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from './Countries';
 import React, { Component, useEffect, useState } from 'react';
 import './Navigator'
-import { TwitterPicker, SketchPicker } from 'react-color'
+import { CompactPicker, SketchPicker } from 'react-color'
 import Navigator from './Navigator';
 
 
@@ -16,6 +16,7 @@ function Legend1({
     legend2CountryValue,
     setLegend2CountryValue,
     
+
     activeLegend, 
     legend1ColorValue, 
     setLegend1ColorValue, 
@@ -85,7 +86,7 @@ function Legend1({
                                 >
 
                             </input>
-                            <label>Show on map</label>
+                            <label>Show label on map</label>
                         </div>
                         
                         
@@ -93,7 +94,7 @@ function Legend1({
                     </div>
 
 
-                    <TwitterPicker 
+                    <CompactPicker 
                         className='color-picker'
                         color={legend1ColorValue}
                         value={legend1ColorValue}
@@ -114,6 +115,8 @@ function Legend1({
                     setLegend1CountryValue={setLegend1CountryValue}
                     legend2CountryValue={legend2CountryValue}
                     setLegend2CountryValue={setLegend2CountryValue}
+
+                
                     
 
                 />

@@ -88,24 +88,43 @@
   flex-direction: row;
 }
 
-.continents {
-  text-align: center;
-  padding: 10px;
- 
-  
-}
+
 
 .countries {
-  background-color: rgba(128, 128, 128, 0.301);
+  background-color: #444444;
   display: flex;
   flex-direction: column;
   text-align: left;
+  color:white
   
 }
+
 
 li {
   list-style: none;
 }
 
+.continents {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  
+  
+}
+
+.con-icon {
+  height: 25px;
+  width: auto;
+ 
+
+}
+
+.con-label {
+  font-weight: bold;
+  margin-top: 2px;
+  margin-left: 4px
+ 
+}
 
 

@@ -32,6 +32,9 @@ function Navigator({
 
     const [legend2CountryValue, setLegend2CountryValue] = useState('')
 
+   
+
+
    const handleButton1Click = () => {
     setActiveLegend('legend1')
     setActiveButton(1)
@@ -72,6 +75,9 @@ function Navigator({
                     setLegend1ColorValue={setLegend1ColorValue}
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
+
+
+
                     legend2CountryValue={legend2CountryValue}
                     setLegend2CountryValue={setLegend2CountryValue}
                     
