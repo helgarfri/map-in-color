@@ -4,13 +4,15 @@ import './components/WorldMap.css'
 import Navigator from './components/Navigator';
 import { useState } from 'react';
 import './components/WorldStates'
-
+import Header from './components/Header';
+import Title from './components/Title';
 
 
 
 
 function App() {
 
+  const [mapTitleValue, setMapTitleValue] = useState('')
 
   const [legend1TitleValue, setLegend1TitleValue] = useState('Legend 1')
   const [legend2TitleValue, setLegend2TitleValue] =useState('Legend 2')
@@ -18,7 +20,7 @@ function App() {
   const [legend4TitleValue, setLegend4TitleValue] =useState('Legend 4')
   const [legend5TitleValue, setLegend5TitleValue] =useState('Legend 5')
 
-
+  const [showLabel, setShowLabel] = useState()
   
   const [ showLabel1, setShowLabel1 ] = useState()
   const [ showLabel2, setShowLabel2 ] = useState()
@@ -36,6 +38,9 @@ function App() {
 
  
   
+  const handleMapTitleValueChange = (value) => {
+    setMapTitleValue(value)
+  }
 
 
   const handleTitle1ValueChange = (newValue) => {
@@ -62,7 +67,12 @@ function App() {
 
   return (
     <div className="App">
+
+      <Header/>
       <WorldMap 
+          
+          mapTitleValue={mapTitleValue}
+          
           legend1TitleValue={legend1TitleValue}
           legend2TitleValue={legend2TitleValue}
           legend3TitleValue={legend3TitleValue}
@@ -70,7 +80,7 @@ function App() {
           legend5TitleValue={legend5TitleValue}
 
 
-        
+          showLabel={showLabel}
           
           showLabel1={showLabel1}
           showLabel2={showLabel2}
@@ -87,6 +97,11 @@ function App() {
 
 
         />
+    <Title
+      handleMapTitleValueChange={handleMapTitleValueChange}
+      mapTitleValue={mapTitleValue}
+    />
+
       <Navigator 
           legend1TitleValue={legend1TitleValue}
           legend2TitleValue={legend2TitleValue}

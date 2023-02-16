@@ -156,5 +156,15 @@
  */
 
  .legend-title-map{
-	font-size: 24px;
+	font-size: 26px;
+	letter-spacing: 1.3px;
+	font-weight: 500;
+	
  }
+
+ .title-map {
+	font-size: 26px;
+	letter-spacing: 1.3px;
+	font-weight: 500;
+	font-weight: 600;
+}

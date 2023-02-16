@@ -25,6 +25,9 @@ function WorldMap({
 	showLabel4,
 	showLabel5,
 
+	showLabel,
+	mapTitleValue
+
 
 
 
@@ -33,7 +36,7 @@ function WorldMap({
 
 
     return(
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2754 1398 " version="1.1" width="95%" height="auto">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2754 1398 " version="1.1" width="90%" height="auto">
 	<title>World Map</title>
 	<style id="style_css_sheet" type="text/css"></style>
 	
@@ -3130,31 +3133,36 @@ function WorldMap({
 		<circle id="tk_" class="circlexx tk" r="6" cy="779.579" cx="2738.51"/>
 	</g>
 
+	<g>
+			<text className="title-map" x="175" y="710" width="500" height="150">{mapTitleValue}</text>
+		</g>
 
 	<g style={{display: showLabel1 ? 'block': 'none'}}>
-		<circle id="legend1Dot" cx="185" cy="742" r="10" fill={legend1ColorValue} ></circle>
+		<circle className="legend-dot-map" cx="180" cy="741" r="10" fill={legend1ColorValue} ></circle>
   		<text className="legend-title-map" x="200" y="750" width="500" height="150">{legend1TitleValue}</text>
 	</g>
 
 	<g style={{display: showLabel2 ? 'block': 'none'}}>
-		<circle cx="185" cy="782" r="10" fill={legend2ColorValue}></circle>
+		<circle className="legend-dot-map"  cx="180" cy="781" r="10" fill={legend2ColorValue}></circle>
 		<text className="legend-title-map" x="200" y="790" width="500" height="150">{legend2TitleValue}</text>
 	</g>
 
 	<g style={{display: showLabel3 ? 'block': 'none'}}>
-		<circle cx="185" cy="822" r="10" fill={legend3ColorValue}></circle>
+		<circle className="legend-dot-map" cx="180" cy="821" r="10" fill={legend3ColorValue}></circle>
 		<text className="legend-title-map" x="200" y="830" width="500" height="150">{legend3TitleValue}</text>
 	</g>
 
 	<g style={{display: showLabel4 ? 'block': 'none'}}>
-		<circle cx="185" cy="862" r="10" fill={legend4ColorValue}></circle>
+		<circle className="legend-dot-map"  cx="180" cy="861" r="10" fill={legend4ColorValue}></circle>
 		<text className="legend-title-map" x="200" y="870" width="500" height="150">{legend4TitleValue}</text>
 	</g>
 
 	<g style={{display: showLabel5 ? 'block': 'none'}}>
-		<circle cx="185" cy="902" r="10" fill={legend5ColorValue}></circle>
+		<circle className="legend-dot-map"  cx="180" cy="901" r="10" fill={legend5ColorValue}></circle>
 		<text className="legend-title-map" x="200" y="910" width="500" height="150">{legend5TitleValue}</text>
 	</g>
+
+
 
 
 

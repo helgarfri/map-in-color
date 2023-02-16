@@ -7,7 +7,6 @@ import { CompactPicker, SketchPicker } from 'react-color'
 import Navigator from './Navigator';
 
 
-
  
 
 function Legend1({
@@ -69,8 +68,6 @@ function Legend1({
     return(
         <div>
             <div className='legend'>
-
-
                 <div className='legend-set'>
                     
                     <div className='legend-title'>
@@ -105,7 +102,7 @@ function Legend1({
                         color={legend1ColorValue}
                         value={legend1ColorValue}
                         onChangeComplete={handleColorChange} 
-                        style={{color: 'white'}}
+                        
                         />
                     
                    

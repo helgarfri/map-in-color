@@ -1,52 +1,67 @@
 .App {
   text-align: center;
+  background-color: #343a40;
 }
 
 .legend {
   display: flex;
   flex-direction: column;
   margin: 0px;
-  border: 3px solid #555555;
+  border: 3px solid #f8f9fa;
   height: fit-content;
   align-items: center;
-  background-color: #555555;
+  background-color: #f8f9fa;
 
   
   
   
 }
 
+.header {
+  height: 40px;
+  width: 100%;
+  background-color: #212529;
+}
+
 .nav-button {
-  background-color: #5555553b;
+  
+  background-color: #495057;
   border: none;
   border-radius: 15px 15px 0px 0px;
   height: 30px;
-  width: auto;
-  color:black;
-  min-width: 140px;
+  color:white;
   cursor: pointer;
-  transform: all 0.3;
   font-size: 10px;
+  flex: 1;
+  transition: all 0.3s;
+  width: 100%;
+  max-width: 100%;
+  
+  
+
 
   
 }
 
 .nav-button:hover {
-  background-color: #55555567
+  background-color: #f8f9fa6c;
+  color: black;
 }
 
 .nav-button.active {
-  background-color: #555555;
-  color:white
+  background-color: #f8f9fa;
+  color:black
 }
 
 .nav-button.active:hover {
-  background-color: #555555
+  background-color: #f8f9fa
 }
 
 .color-picker {
-  background-color: #444444;
+  background-color: #e9ecef;
   color: white;
+  border: #e9ecef solid 5px;
+  
   
 }
 
@@ -60,32 +75,49 @@
   display: flex;
   flex-direction: row;
   margin-bottom: 0px;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
   padding-left: 2%;
   padding-right: 2%;
 }
 
+.map-title {
+  margin: 10px;
+  font-size: 20px;
+  border: none;
+  font-weight: bold;
+  flex-direction: column;
+  color: white;
+  background-color: #343a40;
+  border-radius: 10px;
+  padding-left: 4px;
+  text-align: center;
+  
+  
+}
 
 
 .legend-title {
   margin: 10px;
-  font-size: 25px;
+  font-size: 20px;
   border: none;
   font-weight: bold;
   display: flex;
   flex-direction: column;
-  color: white;
+  color: black;
   
 }
 
 input.legend-title {
-  background-color: #868686;
+  background-color: #f8f9fa;
   border-radius: 5px;
   padding-left: 7px;
+  height: 30px ;
+  border: 3px solid #e9ecef;
 }
 
 .legend-show {
-  font-size: 14px;
+  font-size: 12px;
   text-align: left;
   margin-left: 12px;
   font-weight: 400;
@@ -111,11 +143,11 @@ input.legend-title {
 
 
 .countries {
-  background-color: #444444;
+  background-color: #e9ecef;
   display: flex;
   flex-direction: column;
   text-align: left;
-  color:white
+  color:black
   
 }
 
@@ -130,7 +162,7 @@ input.legend-title {
 }
 
 .oceana {
-  background-color: #5a5a5a;
+  background-color: #dee2e6;
 }
 
 

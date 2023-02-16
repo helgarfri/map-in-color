@@ -4857,9 +4857,31 @@ function Countries({
         
           </ul>
 
+        
       </div>
-          
-       
+          <ul>
+            <li>
+            <input 
+                      type='checkbox' 
+                      value='aq'
+                      name='' 
+                      className="country"
+                      onChange={handleChange}
+                      checked={
+                        legend === 1 ? legend1CountryValue.includes('aq') : 
+                        legend === 2 ? legend2CountryValue.includes('aq') : 
+                        legend === 3 ? legend3CountryValue.includes('aq') : 
+                        legend === 4 ? legend4CountryValue.includes('aq') :
+                        legend5CountryValue.includes('aq')    
+                    }                            
+                      
+                      >
+                      
+                  </input>
+                  <label className='country-label'>Antarctica</label>
+            </li>
+          </ul>
+      
       </div>
 
       

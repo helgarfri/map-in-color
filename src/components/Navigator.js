@@ -114,42 +114,60 @@ function Navigator({
     return(
 
         <div>
-            <nav className='legend-nav'>
-                <ul className='class-items'>
-                    
+            <ul className='class-items'>
+              
+                <li className='nav-button '>
                 <NavButton 
                     onClick={handleButton1Click} 
                     label={legend1TitleValue && legend1TitleValue !== "" ? legend1TitleValue : "Legend 1"}
                     active={activeButton === 1}
+                    
                     />
 
+                </li>    
+                
+                <li className='nav-button '>
                 <NavButton 
                     onClick={handleButton2Click} 
                     label={legend2TitleValue && legend2TitleValue !== "" ? legend2TitleValue : "Legend 2"}
                     active={activeButton === 2}
                     
+                    
                     />
-
+                </li>
+                
+                <li className='nav-button '>
                 <NavButton 
                     onClick={handleButton3Click} 
                     label={legend3TitleValue && legend3TitleValue !== "" ? legend3TitleValue : "Legend 3"}
                     active={activeButton === 3}
                     
+                    
                     />
-
-                <NavButton 
+                </li>
+                
+                 <li className='nav-button '>
+                 <NavButton 
                     onClick={handleButton4Click} 
                     label={legend4TitleValue && legend4TitleValue !== "" ? legend4TitleValue : "Legend 4"}
                     active={activeButton === 4}
                     
+                    
                     />
-
-                <NavButton 
+                </li>
+                
+                 <li className='nav-button '>
+                 <NavButton 
                     onClick={handleButton5Click} 
                     label={legend5TitleValue && legend5TitleValue !== "" ? legend5TitleValue : "Legend 5"}
                     active={activeButton === 5}
                     
+                    
                     />
+                </li>
+                
+
+        
 
                 </ul>
                 <Legend1
@@ -324,7 +342,7 @@ function Navigator({
                 />
 
                 
-            </nav>
+            
 
         
             
