@@ -1,25 +1,22 @@
 import { useState } from "react";
 
-function MapSettings({ handleDownloadClickPNG, handleDownloadClickJPEG, selectedRes, setSelectedRes }) {
+function MapSettings({ 
+    handleDownloadClickPNG, 
+    handleDownloadClickJPEG, 
+    selectedRes, 
+    setSelectedRes,
+   
+}) {
 
     const handleOptionChange = (event) => {
         setSelectedRes(event.target.value);
       }
 
+  
+
     return(
         <div className="settings">
-			<div className="map-settings">
-                <div>
-                <input type='checkbox' className="settings-checkbox"></input>
-                <label className="settings-label">Show microstates</label>
-
-                </div>
-                <div>
-                <input type='checkbox' className="settings-checkbox"></input>
-                <label className="settings-label">Show labels on states</label>
-                </div>
-                
-            </div>
+			
 
             <div className="map-download">
                 <div className="download-format">

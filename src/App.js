@@ -35,7 +35,7 @@ function App() {
   const [legend4ColorValue, setLegend4ColorValue] = useState('#000000')
   const [legend5ColorValue, setLegend5ColorValue] = useState('#000000')
 
-  
+  const [ showMicroStates, setShowMicroStates ] = useState()
 
   const [selectedRes, setSelectedRes] = useState('13.33');
 
@@ -101,6 +101,9 @@ function App() {
 
           selectedRes={selectedRes}
           setSelectedRes={setSelectedRes}
+
+          showMicroStates={showMicroStates}
+          setShowMicroStates={setShowMicroStates}
 
 
         />
