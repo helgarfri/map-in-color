@@ -35,8 +35,12 @@ function App() {
   const [legend4ColorValue, setLegend4ColorValue] = useState('#000000')
   const [legend5ColorValue, setLegend5ColorValue] = useState('#000000')
 
+  
 
- 
+  const [selectedRes, setSelectedRes] = useState('13.33');
+
+    
+
   
   const handleMapTitleValueChange = (value) => {
     setMapTitleValue(value)
@@ -94,6 +98,9 @@ function App() {
           legend3ColorValue={legend3ColorValue}
           legend4ColorValue={legend4ColorValue}
           legend5ColorValue={legend5ColorValue}
+
+          selectedRes={selectedRes}
+          setSelectedRes={setSelectedRes}
 
 
         />

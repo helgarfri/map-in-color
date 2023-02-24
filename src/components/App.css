@@ -206,3 +206,87 @@ li {
 }
 
 
+.settings {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin-bottom: 5px;
+}
+
+.map-settings {
+  flex-direction: column;
+  display: flex;
+  text-align: left;
+}
+
+.settings-title {
+  color: white;
+  font-size: 9px;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  align-items: center;
+  display: flex;
+}
+
+.settings-checkbox {
+  height: 10px;
+  margin: 1px;
+}
+
+.settings-label{
+  color: white;
+  font-size: 9px;
+}
+
+.settings-button {
+  background-color: #495057;
+  border: none;
+  border-radius: 15px ;
+  height: 15px;
+  color:white;
+  cursor: pointer;
+  font-size: 8px;
+  transition: all 0.3s;
+  margin-top: 1px;
+  margin-bottom: 0px;
+  margin-left: 3px;
+  
+}
+
+.settings-button:hover {
+  background-color: white;
+  color: black;
+}
+
+.settings-button.active {
+  background-color: #f8f9fa;
+  color:black
+}
+
+.settings-button.active:hover {
+  background-color: #f8f9fa
+}
+
+.map-download {
+  display: flex;
+  flex-direction: column;
+  
+  
+  
+  
+}
+
+.download-format {
+  display: flex;
+  flex-direction: row;
+  margin-top: 5px;
+}
+
+.settings-label-r {
+  color: white;
+  font-size: 7px;
+}
+
+.settings-radio {
+  height: 8px;
+}

@@ -1,5 +1,6 @@
 import { useRef } from "react"
 import html2canvas from "html2canvas";
+import MapSettings from "./MapSettings";
 
 
 function WorldMap({
@@ -26,18 +27,20 @@ function WorldMap({
 	showLabel4,
 	showLabel5,
 
-	showLabel,
-	mapTitleValue
+	mapTitleValue,
 
+	selectedRes,
+	setSelectedRes,
 
 
 
 }) {
+	console.log(selectedRes)
 
-	function handleDownloadClick() {
+	function handleDownloadClickPNG() {
 		const svgElement = document.getElementById("worldMap");
 	  
-		html2canvas(svgElement, {scale: 13}).then((canvas) => {
+		html2canvas(svgElement, {scale: selectedRes}).then((canvas) => {
 		  const pngUrl = canvas.toDataURL("image/png");
 		  const downloadLink = document.createElement("a");
 		  downloadLink.download = "my-map.png";
@@ -46,9 +49,26 @@ function WorldMap({
 		});
 	  }
 
+	  function handleDownloadClickJPEG() {
+		const svgElement = document.getElementById("worldMap");
+	  
+		html2canvas(svgElement, { scale: selectedRes }).then((canvas) => {
+		  const jpegUrl = canvas.toDataURL("image/jpeg", 1.0);
+		  const downloadLink = document.createElement("a");
+		  downloadLink.download = "my-map.jpeg";
+		  downloadLink.href = jpegUrl;
+		  downloadLink.click();
+		});
+	  }
+
     return(
 		<div >
-			<button  onClick={handleDownloadClick}>download</button>
+			<MapSettings
+				handleDownloadClickPNG={handleDownloadClickPNG}
+				handleDownloadClickJPEG={handleDownloadClickJPEG}
+				selectedRes={selectedRes}
+				setSelectedRes={setSelectedRes}
+			/>
 <div id="worldMap"  >
 <svg  viewBox="0 0 2754 1398 " version="1.1" width="90%" height="auto">
 	<title>World Map</title>
