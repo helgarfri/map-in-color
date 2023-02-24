@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useRef } from "react"
+import html2canvas from "html2canvas";
 
 
 function WorldMap({
@@ -33,12 +34,24 @@ function WorldMap({
 
 }) {
 
-
+	function handleDownloadClick() {
+		const svgElement = document.getElementById("worldMap");
+	  
+		html2canvas(svgElement, {scale: 13}).then((canvas) => {
+		  const pngUrl = canvas.toDataURL("image/png");
+		  const downloadLink = document.createElement("a");
+		  downloadLink.download = "my-map.png";
+		  downloadLink.href = pngUrl;
+		  downloadLink.click();
+		});
+	  }
 
     return(
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2754 1398 " version="1.1" width="90%" height="auto">
+		<div >
+			<button  onClick={handleDownloadClick}>download</button>
+<div id="worldMap"  >
+<svg  viewBox="0 0 2754 1398 " version="1.1" width="90%" height="auto">
 	<title>World Map</title>
-	<style id="style_css_sheet" type="text/css"></style>
 	
 	
 
@@ -3170,8 +3183,9 @@ function WorldMap({
 </svg>
 
 
-  
-   
+</div>
+</div>
+
 
 
        
