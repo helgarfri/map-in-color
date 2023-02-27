@@ -1,12 +1,150 @@
 import './UsMap.css'
+import html2canvas from 'html2canvas';
+import MapSettings from '../MapSettings';
 
 
 
-function UsMap() {
+
+function UsMap({
+    mapTitleValue,
+
+    legend1TitleValue, 
+    legend2TitleValue, 
+    legend3TitleValue,
+    legend4TitleValue,
+    legend5TitleValue,
+    legend6TitleValue,
+    legend7TitleValue,
+    legend8TitleValue,
+  
+
+    legend1ColorValue, 
+    legend2ColorValue,
+    legend3ColorValue,
+    legend4ColorValue,
+    legend5ColorValue,
+    legend6ColorValue,
+    legend7ColorValue,
+    legend8ColorValue,
+
+    numItems,
+
+    selectedRes,
+    setSelectedRes
+    
+  
+}) {
+
+  function handleDownloadClickPNG() {
+		const svgElement = document.getElementById("usMap");
+	  
+		html2canvas(svgElement, {scale: selectedRes}).then((canvas) => {
+		  const pngUrl = canvas.toDataURL("image/png");
+		  const downloadLink = document.createElement("a");
+		  downloadLink.download = "my-map.png";
+		  downloadLink.href = pngUrl;
+		  downloadLink.click();
+		});
+	  }
+
+	  function handleDownloadClickJPEG() {
+		const svgElement = document.getElementById("usMap");
+	  
+		html2canvas(svgElement, { scale: selectedRes }).then((canvas) => {
+		  const jpegUrl = canvas.toDataURL("image/jpeg", 1.0);
+		  const downloadLink = document.createElement("a");
+		  downloadLink.download = "my-map.jpeg";
+		  downloadLink.href = jpegUrl;
+		  downloadLink.click();
+		});
+	  }
+
+
+  const legendGroups = [
+		{
+		  color: legend1ColorValue,
+		  title: legend1TitleValue
+		},
+		{
+		  color: legend2ColorValue,
+		  title: legend2TitleValue
+		},
+		{
+		  color: legend3ColorValue,
+		  title: legend3TitleValue
+		},
+		{
+		  color: legend4ColorValue,
+		  title: legend4TitleValue
+		},
+		{
+		  color: legend5ColorValue,
+		  title: legend5TitleValue
+		},
+
+		{
+			color: legend6ColorValue,
+			title: legend6TitleValue
+		  },
+
+		{
+			color: legend7ColorValue,
+			title: legend7TitleValue
+		},
+
+		  {
+			  color: legend8ColorValue,
+			  title: legend8TitleValue
+			}
+	  ];
+	  console.log(legend1TitleValue)
+	  const groups = [];
+	  
+	  for (let i = 0; i < numItems; i++) {
+		const circleStyle = {
+		  fill: legendGroups[i].color,
+		  cx: 880,
+		  cy: 375 + 22 * i,
+		  r: 5
+		};
+		const textStyle = {
+		  x: 890,
+		  y: 379.25 + 22 * i,
+		  width: 500,
+		  height: 150
+		};
+		groups.push(
+		  <g style={{display: `block`}}>
+			<circle className="legend-dot-map" {...circleStyle}></circle>
+			<text className="legend-title-map-us" {...textStyle}>{legendGroups[i].title}</text>
+		  </g>
+		);
+	  
+		for (let j = i + 1; j < numItems; j++) {
+		  groups.push(
+			<g style={{display: `none`}}>
+			  <circle className="legend-dot-map" {...circleStyle}></circle>
+			  <text className="legend-title-map" {...textStyle}>{legendGroups[i].title}</text>
+			</g>
+		  );
+		}
+	  }
     return(
         <div>
-<svg xmlns="http://www.w3.org/2000/svg" className='svg-us' viewBox='0 0 959 593' width="80%" height="auto"><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
-  <title>Blank map of the United States, territories not included</title>
+          <MapSettings
+				handleDownloadClickPNG={handleDownloadClickPNG}
+				handleDownloadClickJPEG={handleDownloadClickJPEG}
+				selectedRes={selectedRes}
+				setSelectedRes={setSelectedRes}
+			/>
+
+<div className='map-background'>
+
+
+<div id='usMap' >
+
+<svg xmlns="http://www.w3.org/2000/svg"  className='svg-us' viewBox='0 0 1100 593' width="95%" height="auto"><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
+  <title>United States</title>
 <defs>
 
 </defs>
@@ -280,11 +418,19 @@ function UsMap() {
 
 
 
-<path className="separator1" fill="none" d="m 215,493 v 55 l 36,45 m -251,-168 h 147 l 68,68 h 85 l 54,54 v 46"/>
 
-<rect className='legends' x="810" y="380" width="150" height="200" />
+<text>
+    <tspan className='title-map-us' x="870" y='340' dy="1.2em" >{mapTitleValue}</tspan>
+  </text>
+
+  {groups}
+
+
+
 
 </svg>
+</div>
+</div>
         </div>
     )
 }

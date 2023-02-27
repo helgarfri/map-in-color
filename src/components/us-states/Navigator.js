@@ -2,8 +2,14 @@ import React, { useState, Component } from 'react'
 import '../App.css'
 
 import NavButton from '../NavButton'
-import Legend1 from './Legend-1';
-
+import Legend1 from './legends/Legend-1';
+import Legend2 from './legends/Legend-2';
+import Legend3 from './legends/Legend-3';
+import Legend4 from './legends/Legend-4';
+import Legend5 from './legends/Legend-5';
+import Legend6 from './legends/Legend-6';
+import Legend7 from './legends/Legend-7';
+import Legend8 from './legends/Legend-8';
 
 
 function Navigator({ 
@@ -55,7 +61,7 @@ function Navigator({
 
 
 
-
+    
 
 
     numItems,
@@ -185,6 +191,294 @@ function Navigator({
                  
 
                 />
+
+                <Legend2
+                    activeLegend={activeLegend}
+                    // color value
+                   legend2ColorValue = {legend2ColorValue}
+                   setLegend2ColorValue={setLegend2ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend2TitleValue={legend2TitleValue}
+                   handleTitle2ValueChange={handleTitle2ValueChange}
+
+                 
+
+                />
+
+                  <Legend3
+                    activeLegend={activeLegend}
+                    // color value
+                   legend3ColorValue = {legend3ColorValue}
+                   setLegend3ColorValue={setLegend3ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend3TitleValue={legend3TitleValue}
+                   handleTitle3ValueChange={handleTitle3ValueChange}
+
+                 
+
+                />
+
+                  <Legend4
+                    activeLegend={activeLegend}
+                    // color value
+                   legend4ColorValue = {legend4ColorValue}
+                   setLegend4ColorValue={setLegend4ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend4TitleValue={legend4TitleValue}
+                   handleTitle4ValueChange={handleTitle4ValueChange}
+
+                 
+
+                />
+                
+
+                <Legend5
+                    activeLegend={activeLegend}
+                    // color value
+                   legend5ColorValue = {legend5ColorValue}
+                   setLegend5ColorValue={setLegend5ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend5TitleValue={legend5TitleValue}
+                   handleTitle5ValueChange={handleTitle5ValueChange}
+
+                 
+
+                />
+
+
+
+                  <Legend6
+                    activeLegend={activeLegend}
+                    // color value
+                   legend6ColorValue = {legend6ColorValue}
+                   setLegend6ColorValue={setLegend6ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend6TitleValue={legend6TitleValue}
+                   handleTitle6ValueChange={handleTitle6ValueChange}
+
+                 
+
+                />
+
+                  <Legend7
+                    activeLegend={activeLegend}
+                    // color value
+                   legend7ColorValue = {legend7ColorValue}
+                   setLegend7ColorValue={setLegend7ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend7TitleValue={legend7TitleValue}
+                   handleTitle7ValueChange={handleTitle7ValueChange}
+
+                 
+
+                />
+
+
+                  <Legend8
+                    activeLegend={activeLegend}
+                    // color value
+                   legend8ColorValue = {legend8ColorValue}
+                   setLegend8ColorValue={setLegend8ColorValue}
+                   
+                   // states value
+                    legend1StatesValue={legend1StatesValue}
+                    setLegend1StatesValue={setLegend1StatesValue}
+    
+                    legend2StatesValue={legend2StatesValue}
+                    setLegend2StatesValue={setLegend2StatesValue}
+
+                    legend3StatesValue={legend3StatesValue}
+                    setLegend3StatesValue={setLegend3StatesValue}
+
+                    legend4StatesValue={legend4StatesValue}
+                    setLegend4StatesValue={setLegend4StatesValue}
+
+                    legend5StatesValue={legend5StatesValue}
+                    setLegend5StatesValue={setLegend5StatesValue}
+
+                    legend6StatesValue={legend6StatesValue}
+                    setLegend6StatesValue={setLegend6StatesValue}
+
+                    legend7StatesValue={legend7StatesValue}
+                    setLegend7StatesValue={setLegend7StatesValue}
+
+                    legend8StatesValue={legend8StatesValue}
+                    setLegend8StatesValue={setLegend8StatesValue}
+
+
+                   // legend title
+                   legend8TitleValue={legend8TitleValue}
+                   handleTitle8ValueChange={handleTitle8ValueChange}
+
+                 
+
+                />
+
+
+
+
 
             
 

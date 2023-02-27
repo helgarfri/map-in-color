@@ -52,7 +52,6 @@
   padding:3px;
   position: absolute;
   display: none;
-  transition: max-height 0.2s ease-in-out;
   overflow: hidden;
   max-height: 0;
   

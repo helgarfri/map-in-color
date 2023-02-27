@@ -1,18 +1,17 @@
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
-import React, { Component, useEffect, useState } from 'react';
-import './Navigator'
-import { CompactPicker, SketchPicker } from 'react-color'
-import Navigator from './Navigator';
-import States from './States';
+import React from 'react';
+import '../Navigator'
+import { CompactPicker } from 'react-color'
+import States from '../States';
 
 
  
 
-function Legend1({
+function Legend5({
     activeLegend,
-    handleTitle1Change,
-    legend1ColorValue,
-    setLegend1ColorValue,
+    
+    legend5ColorValue,
+    setLegend5ColorValue,
     
     legend1StatesValue,
     setLegend1StatesValue,
@@ -36,30 +35,34 @@ function Legend1({
     setLegend7StatesValue,
 
     legend8StatesValue,
-    setLegend8StatesValue
+    setLegend8StatesValue,
+
+
+    handleTitle5ValueChange
+
     
 }) {
     
-console.log(legend1ColorValue)
+console.log(legend5ColorValue)
     const handleColorChange = (color) =>{
-        setLegend1ColorValue(color.hex)
-        for (var i = 0; i < legend1StatesValue.length; i++) {
-            const id = legend1StatesValue[i];
+        setLegend5ColorValue(color.hex)
+        for (var i = 0; i < legend5StatesValue.length; i++) {
+            const id = legend5StatesValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
     }
-   
-      
+
+    const handleTitle5Change = (event) => {
+        handleTitle5ValueChange(event.target.value)
+
+        
+    }
 
    
-   
-
-
-
 
     
     
-        if (activeLegend !== 1) {
+        if (activeLegend !== 5) {
             return null
         } 
 
@@ -74,7 +77,7 @@ console.log(legend1ColorValue)
                         <input 
                             className='legend-title' 
                             placeholder="Click to add title" 
-                            onChange={handleTitle1Change}
+                            onChange={handleTitle5Change}
                             type='text'
                             ></input>
 
@@ -87,8 +90,8 @@ console.log(legend1ColorValue)
 
                     <CompactPicker 
                         className='color-picker'
-                        color={legend1ColorValue}
-                        value={legend1ColorValue}
+                        color={legend5ColorValue}
+                        value={legend5ColorValue}
                         onChangeComplete={handleColorChange} 
                         
                         />
@@ -103,7 +106,10 @@ console.log(legend1ColorValue)
             </div>
             
             <States
-                legend={1}
+                legend={5}
+
+                    legend5ColorValue={legend5ColorValue}
+
 
                     legend1StatesValue={legend1StatesValue}
                     setLegend1StatesValue={setLegend1StatesValue}
@@ -130,7 +136,7 @@ console.log(legend1ColorValue)
                     setLegend8StatesValue={setLegend8StatesValue}
 
 
-                    legend1ColorValue={legend1ColorValue}
+                  
 
             />
             
@@ -141,4 +147,4 @@ console.log(legend1ColorValue)
    
 }
 
-export default Legend1
+export default Legend5

@@ -56,11 +56,11 @@ function UnitedStates({
     handleMapTitleValueChange
 }) {
 
-    
+    console.log(legend1TitleValue)
     return(
 
         <div>
-            <MapSettings/>
+
             
             <UsMap
             mapTitleValue={mapTitleValue}
@@ -86,7 +86,7 @@ function UnitedStates({
             legend6ColorValue={legend6ColorValue}
             legend7ColorValue={legend7ColorValue}
             legend8ColorValue={legend8ColorValue}
-  
+        
   
   
   
@@ -97,6 +97,7 @@ function UnitedStates({
   
             numItems={numItems}
             setNumItems={setNumItems}
+
             />
 
             <Title
@@ -107,12 +108,38 @@ function UnitedStates({
 
             <Navigator
             handleTitle1ValueChange={handleTitle1ValueChange}
+            handleTitle2ValueChange={handleTitle2ValueChange}
+            handleTitle3ValueChange={handleTitle3ValueChange}
+            handleTitle4ValueChange={handleTitle4ValueChange}
+            handleTitle5ValueChange={handleTitle5ValueChange}
+            handleTitle6ValueChange={handleTitle6ValueChange}
+            handleTitle7ValueChange={handleTitle7ValueChange}
+            handleTitle8ValueChange={handleTitle8ValueChange}
+
 
             legend1ColorValue={legend1ColorValue}
+            legend2ColorValue={legend2ColorValue}
+            legend3ColorValue={legend3ColorValue}
+            legend4ColorValue={legend4ColorValue}
+            legend5ColorValue={legend5ColorValue}
+            legend6ColorValue={legend6ColorValue}
+            legend7ColorValue={legend7ColorValue}
+            legend8ColorValue={legend8ColorValue}
+
+
             setLegend1ColorValue={setLegend1ColorValue}
+            setLegend2ColorValue={setLegend2ColorValue}
+            setLegend3ColorValue={setLegend3ColorValue}
+            setLegend4ColorValue={setLegend4ColorValue}
+            setLegend5ColorValue={setLegend5ColorValue}
+            setLegend6ColorValue={setLegend6ColorValue}
+            setLegend7ColorValue={setLegend7ColorValue}
+            setLegend8ColorValue={setLegend8ColorValue}
 
             numItems={numItems}
             setNumItems={setNumItems}
+
+        
             
             />
         </div>
