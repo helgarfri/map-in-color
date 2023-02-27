@@ -1,7 +1,6 @@
-import '../world-states.svg'
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from './Countries';
-import React, { Component, useEffect, useState } from 'react';
+import React, { Component, useState } from 'react';
 import './Navigator'
 import { CompactPicker, SketchPicker } from 'react-color'
 import Navigator from './Navigator';
@@ -10,7 +9,7 @@ import Navigator from './Navigator';
 
  
 
-function Legend5({
+function Legend2({
     legend1CountryValue, 
     setLegend1CountryValue, 
     legend2CountryValue,
@@ -21,42 +20,50 @@ function Legend5({
     setLegend4CountryValue,
     legend5CountryValue,
     setLegend5CountryValue,
+    legend6CountryValue,
+    setLegend6CountryValue,
+    legend7CountryValue,
+    setLegend7CountryValue,
+    legend8CountryValue,
+    setLegend8CountryValue,
+
+
 
     activeLegend, 
-    legend5ColorValue, 
-    setLegend5ColorValue, 
-    legend5TitleValue, 
-    handleTitle5ValueChange,
-    showLabel5,
-    setShowLabel5
-    
+    legend2ColorValue, 
+    setLegend2ColorValue, 
+    legend2TitleValue, 
+    handleTitle2ValueChange,
+  
+
 }) {
 
-
     
+
+
+
    
-      
 
     const handleColorChange = (color) =>{
-        setLegend5ColorValue(color.hex)
-        for (var i = 0; i < legend5CountryValue.length; i++) {
-            const id = legend5CountryValue[i];
+        setLegend2ColorValue(color.hex)
+        for (var i = 0; i < legend2CountryValue.length; i++) {
+            const id = legend2CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
+
+    }
+
+    const handleTitle2Change = (event) => {
+        handleTitle2ValueChange(event.target.value)
     }
 
 
-    const handleTitle5Change = (event) => {
-        handleTitle5ValueChange(event.target.value)
-
+   
+    if (activeLegend !== 2) {
+        return null
+    } 
         
-    }
-
-
-        if (activeLegend !== 'legend5') {
-            return null
-        } 
-
+        
         
     return(
         <div>
@@ -68,34 +75,20 @@ function Legend5({
                     <div className='legend-title'>
                         
                         <input 
-                            value={legend5TitleValue  !== "Legend 5" ? legend5TitleValue : ""}  
                             className='legend-title' 
-                            placeholder="Legend's Title" 
-                            onChange={handleTitle5Change}
+                            placeholder="Click to add title" 
+                            onChange={handleTitle2Change}
                             type='text'
                             ></input>
 
-                        
-                        <div className='legend-show'>
-                            <input 
-                                type='checkbox'
-                                onChange={(e) => setShowLabel5(e.target.checked)}
-                                checked={showLabel5}
-                                >
-
-                            </input>
-                            <label>Show label on map</label>
-                        </div>
-                        
-                        
-
+                          
                     </div>
 
 
                     <CompactPicker 
                         className='color-picker'
-                        color={legend5ColorValue}
-                        value={legend5ColorValue}
+                        color={legend2ColorValue}
+                        value={legend2ColorValue}
                         onChangeComplete={handleColorChange} 
                         
                         />
@@ -103,12 +96,11 @@ function Legend5({
                    
                     
                 </div>
-
-                
+             
                     <Countries
-                    legend5ColorValue={legend5ColorValue}
-                    setLegend5ColorValue={setLegend5ColorValue}
-                    legend={5}
+                    legend2ColorValue={legend2ColorValue}
+                    setLegend2ColorValue={setLegend2ColorValue}
+                    legend={2}
                     
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
@@ -125,12 +117,23 @@ function Legend5({
                     legend5CountryValue={legend5CountryValue}
                     setLegend5CountryValue={setLegend5CountryValue}
 
+                    legend6CountryValue={legend6CountryValue}
+                    setLegend6CountryValue={setLegend6CountryValue}
 
-                
+                    legend7CountryValue={legend7CountryValue}
+                    setLegend7CountryValue={setLegend7CountryValue}
+
+                    legend8CountryValue={legend8CountryValue}
+                    setLegend8CountryValue={setLegend8CountryValue}
+
+                    
                     
 
+
+                    
+                    
                 />
-               
+              
                 
             </div>
             
@@ -141,4 +144,4 @@ function Legend5({
    
 }
 
-export default Legend5
+export default Legend2

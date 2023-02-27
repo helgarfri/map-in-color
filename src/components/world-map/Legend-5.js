@@ -1,4 +1,3 @@
-import '../world-states.svg'
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from './Countries';
 import React, { Component, useEffect, useState } from 'react';
@@ -10,7 +9,7 @@ import Navigator from './Navigator';
 
  
 
-function Legend4({
+function Legend5({
     legend1CountryValue, 
     setLegend1CountryValue, 
     legend2CountryValue,
@@ -21,14 +20,19 @@ function Legend4({
     setLegend4CountryValue,
     legend5CountryValue,
     setLegend5CountryValue,
+    legend6CountryValue,
+    setLegend6CountryValue,
+    legend7CountryValue,
+    setLegend7CountryValue,
+    legend8CountryValue,
+    setLegend8CountryValue,
 
     activeLegend, 
-    legend4ColorValue, 
-    setLegend4ColorValue, 
-    legend4TitleValue, 
-    handleTitle4ValueChange,
-    showLabel4,
-    setShowLabel4
+    legend5ColorValue, 
+    setLegend5ColorValue, 
+    legend5TitleValue, 
+    handleTitle5ValueChange,
+   
     
 }) {
 
@@ -38,29 +42,22 @@ function Legend4({
       
 
     const handleColorChange = (color) =>{
-        setLegend4ColorValue(color.hex)
-        for (var i = 0; i < legend4CountryValue.length; i++) {
-            const id = legend4CountryValue[i];
+        setLegend5ColorValue(color.hex)
+        for (var i = 0; i < legend5CountryValue.length; i++) {
+            const id = legend5CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
     }
 
 
-    const handleTitle4Change = (event) => {
-        handleTitle4ValueChange(event.target.value)
+    const handleTitle5Change = (event) => {
+        handleTitle5ValueChange(event.target.value)
 
         
     }
 
-   
-    
 
-
-
-
-    
-    
-        if (activeLegend !== 'legend4') {
+        if (activeLegend !== 5) {
             return null
         } 
 
@@ -75,25 +72,14 @@ function Legend4({
                     <div className='legend-title'>
                         
                         <input 
-                            value={legend4TitleValue  !== "Legend 4" ? legend4TitleValue : ""}  
                             className='legend-title' 
-                            placeholder="Legend's Title" 
-                            onChange={handleTitle4Change}
+                            placeholder="Click to add title" 
+                            onChange={handleTitle5Change}
                             type='text'
                             ></input>
 
                         
-                        <div className='legend-show'>
-                            <input 
-                                type='checkbox'
-                                onChange={(e) => setShowLabel4(e.target.checked)}
-                                checked={showLabel4}
-                                >
-
-                            </input>
-                            <label>Show label on map</label>
-                        </div>
-                        
+                     
                         
 
                     </div>
@@ -101,8 +87,8 @@ function Legend4({
 
                     <CompactPicker 
                         className='color-picker'
-                        color={legend4ColorValue}
-                        value={legend4ColorValue}
+                        color={legend5ColorValue}
+                        value={legend5ColorValue}
                         onChangeComplete={handleColorChange} 
                         
                         />
@@ -113,9 +99,9 @@ function Legend4({
 
                 
                     <Countries
-                    legend4ColorValue={legend4ColorValue}
-                    setLegend4ColorValue={setLegend4ColorValue}
-                    legend={4}
+                    legend5ColorValue={legend5ColorValue}
+                    setLegend5ColorValue={setLegend5ColorValue}
+                    legend={5}
                     
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
@@ -131,6 +117,16 @@ function Legend4({
 
                     legend5CountryValue={legend5CountryValue}
                     setLegend5CountryValue={setLegend5CountryValue}
+
+                    legend6CountryValue={legend6CountryValue}
+                    setLegend6CountryValue={setLegend6CountryValue}
+
+                    legend7CountryValue={legend7CountryValue}
+                    setLegend7CountryValue={setLegend7CountryValue}
+
+                    legend8CountryValue={legend8CountryValue}
+                    setLegend8CountryValue={setLegend8CountryValue}
+
 
 
                 
@@ -148,4 +144,4 @@ function Legend4({
    
 }
 
-export default Legend4
+export default Legend5

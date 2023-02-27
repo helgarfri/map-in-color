@@ -1,0 +1,32 @@
+.state-map {
+    fill:#c0c0c0
+}                        /* default color for all states not specified below */
+.borders {
+    stroke:#FFFFFF; stroke-width:1
+}    /* color and width of borders between states */
+.dccircle {
+    display:yes
+}                      /* set display to yes to show the circle for the District of Columbia, or none to hide it */
+
+.separator1 {
+    stroke:#B0B0B0; stroke-width:2
+
+} 
+
+.svg-us {
+    background-color: white;
+    border: #c0c0c0 10px solid;
+}
+
+.legends {
+    fill:none;
+
+}
+/* color and width of lines around Alaska and Hawaii */
+
+/* Individual states can be colored as follows:
+.ks,.mt,.pa {fill:#0000FF}
+.ca,.de {fill:#FF0000}
+In this example, Kansas, Montana and Pennsylvania are colored blue, and California and Delaware are colored red.
+Place this code in the empty space below. */
+

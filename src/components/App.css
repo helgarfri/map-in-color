@@ -23,11 +23,15 @@
   background-color: #212529;
   display: flex;
   justify-content: center;
+  align-items: center;
   
 }
 
 .logo {
-  height: 50px;
+  height: 40px;
+  position: relative;
+  float: left;
+  
 }
 
 .logo-title {
@@ -35,13 +39,39 @@
   color: white;
 }
 
-.nav-button {
+.header {
+  color: white;
+}
+
+
+
+.header-dropdown {
+  color: white;
+  background-color: #747f8a;
+  font-size: 12px;
+  padding:3px;
+  position: absolute;
+  display: none;
+  transition: max-height 0.2s ease-in-out;
+  overflow: hidden;
+  max-height: 0;
   
+}
+
+li:hover > .header-dropdown {
+  display: block;
+  max-height: 1000px;
+  
+}
+
+
+
+.nav-button {
   background-color: #495057;
   border: none;
   border-radius: 15px 15px 0px 0px;
   height: 30px;
-  color:white;
+  color: white;
   cursor: pointer;
   font-size: 10px;
   flex: 1;
@@ -50,10 +80,9 @@
   max-width: 100%;
   
   
-
-
-  
 }
+
+
 
 .nav-button:hover {
   background-color: #f8f9fa6c;
@@ -61,14 +90,13 @@
 }
 
 .nav-button.active {
-  background-color: #f8f9fa;
+  background-color: #f8f9faf1;
   color:black
 }
 
 .nav-button.active:hover {
   background-color: #f8f9fa
 }
-
 .color-picker {
   background-color: #e9ecef;
   color: white;
@@ -89,8 +117,10 @@
   margin-bottom: 0px;
   justify-content: space-between;
   align-items: center;
-  padding-left: 2%;
-  padding-right: 2%;
+  padding-right: 8px;
+  padding-left: 0px;
+  
+  
 }
 
 .map-title {
@@ -146,30 +176,72 @@ input.legend-title {
   margin: 30px;
   
 }
-
-.state-selector {
-  display: flex;
-  flex-direction: row;
-}
-
-
-
 .countries {
   background-color: #e9ecef;
   display: flex;
   flex-direction: column;
   text-align: left;
-  color:black
+  color:black;
   
 }
 
-.country-label {
-  font-size: 12px;
-  padding-top: 5px;
+
+.state-selector {
+  display: flex;
+  flex-direction: row;
+  background-color: #e9ecef;
+  text-align: left;
+  justify-content: center;
 }
 
-.country {
-  height: 12px;
+.state-selector-us{
+  display: flex;
+  flex-direction: column;
+  background-color: #e9ecef;
+  text-align: left;
+  justify-content: center;
+}
+
+
+
+.letter {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+
+
+.all-states ul {
+  display: flex;
+  list-style: none;
+  flex-wrap: wrap;
+  flex-direction: column;
+  height: 270px;
+
+
+ 
+
+
+}
+
+.all-states li {
+  flex: 1 0 auto;
+  margin-top: 5px;
+}
+
+.country-label {
+  font-size: 10px;
+}
+
+.state-label {
+  font-size: 14px;
+}
+
+
+
+
+.country  {
+  height: 10px;
  
 }
 
@@ -182,17 +254,31 @@ li {
   list-style: none;
 }
 
+.countries li {
+  display: flex;
+  align-items: center;
+}
+
+.states li {
+  display: flex;
+  align-items: center;
+}
+
+
+
+
 .continents {
   text-align: center;
   display: flex;
-  justify-content: center;
-  margin-top: 20px;
+  align-items: center;  
+  margin-top: 0px;
+  margin-bottom: 10px;
   
   
 }
 
 .con-icon {
-  height: 25px;
+  height: 19px;
   width: auto;
  
 
@@ -200,8 +286,8 @@ li {
 
 .con-label {
   font-weight: bold;
-  margin-top: 2px;
-  margin-left: 4px
+  margin-left: 4px;
+  font-size: 12px;
  
 }
 
@@ -289,4 +375,80 @@ li {
 
 .settings-radio {
   height: 8px;
+}
+
+.remove-button {
+  background-color: #747f8a;
+  border: none;
+  border-radius: 15px ;
+  color:white;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  float: right;
+  width: 15px;
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.remove-button:hover {
+  background-color: #747f8a91;
+}
+
+.remove-button.active {
+  background-color: #f8f9fa;
+  color:black
+}
+
+.remove-button.active:hover {
+  background-color: #f8f9fa
+}
+
+.remove-img {
+  height: 10px;
+  display: flex;
+  align-items: center;
+  
+}
+
+.add-button {
+  background-color: #747f8a;
+  border: none;
+  border-radius: 15px ;
+  color:white;
+  cursor: pointer;
+  transition: all 0.8s;
+  display: flex;
+  float: right;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+
+
+}
+
+.add-button:hover {
+  background-color: #4e565e;
+}
+
+.add-button:active{
+  background-color: rgb(255, 255, 255);
+  transition:  1s ease;
+}
+
+
+
+
+
+.add-img {
+  height: 15px;
+  display: flex;
+  align-items: center;
+  
 }

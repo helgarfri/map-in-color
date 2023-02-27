@@ -1,4 +1,4 @@
-import './App.css'
+import '../App.css'
 import './Navigator'
 import { useEffect, useState } from 'react';
 
@@ -13,12 +13,22 @@ function Countries({
     legend3ColorValue,
     legend4ColorValue,
     legend5ColorValue,
+    legend6ColorValue,
+    legend7ColorValue,
+    legend8ColorValue,
+
+
      
     legend1CountryValue, 
     legend2CountryValue, 
     legend3CountryValue,
     legend4CountryValue,
     legend5CountryValue,
+    legend6CountryValue,
+    legend7CountryValue,
+    legend8CountryValue,
+
+
 
 
     setLegend1CountryValue,
@@ -26,6 +36,12 @@ function Countries({
     setLegend3CountryValue,
     setLegend4CountryValue,
     setLegend5CountryValue,
+    setLegend6CountryValue,
+    setLegend7CountryValue,
+    setLegend8CountryValue,
+
+
+
 
 
 }) {
@@ -35,7 +51,15 @@ function Countries({
     // get a list of all the countries
     const allCountryIds = document.getElementsByClassName("country");
     
-    if (legend === 1 || legend === 2 || legend === 3 || legend === 4 || legend === 5) {
+    if (
+        legend === 1 || 
+        legend === 2 || 
+        legend === 3 || 
+        legend === 4 || 
+        legend === 5 || 
+        legend === 6 || 
+        legend === 7 ||
+        legend === 8) {
       
       for (var i = 0; i < legend1CountryValue.length; i++) {
         const id = legend1CountryValue[i];
@@ -61,6 +85,23 @@ function Countries({
         const id = legend5CountryValue[i];
         document.getElementById(id).style.fill = legend5ColorValue;
       }
+
+      for (var i = 0; i < legend6CountryValue.length; i++) {
+        const id = legend6CountryValue[i];
+        document.getElementById(id).style.fill = legend6ColorValue;
+      }
+
+      for (var i = 0; i < legend7CountryValue.length; i++) {
+        const id = legend7CountryValue[i];
+        document.getElementById(id).style.fill = legend7ColorValue;
+      }
+
+      for (var i = 0; i < legend8CountryValue.length; i++) {
+        const id = legend8CountryValue[i];
+        document.getElementById(id).style.fill = legend8ColorValue;
+      }
+      
+      
       
       
       
@@ -73,7 +114,12 @@ function Countries({
             !legend2CountryValue.includes(id) && 
             !legend3CountryValue.includes(id) && 
             !legend4CountryValue.includes(id) &&
-            !legend5CountryValue.includes(id)
+            !legend5CountryValue.includes(id) &&
+            !legend6CountryValue.includes(id) &&
+            !legend7CountryValue.includes(id) &&
+            !legend8CountryValue.includes(id)
+
+
             ) {
           document.getElementById(id).style.fill = "#c0c0c0";
         }
@@ -85,7 +131,12 @@ function Countries({
     legend2CountryValue, 
     legend3CountryValue, 
     legend4CountryValue,
-    legend5CountryValue
+    legend5CountryValue,
+    legend6CountryValue,
+    legend7CountryValue,
+    legend8CountryValue,
+
+
 ]);
 
     
@@ -133,11 +184,34 @@ function Countries({
               setLegend5CountryValue([...legend5CountryValue, selectedOption]);
             }
 
-        }
-       
-      };
+        } 
 
-      
+        else if (legend === 6) {
+            if (legend6CountryValue.includes(selectedOption)) {
+              setLegend6CountryValue(legend6CountryValue.filter((o) => o !== selectedOption));
+            } else {
+              setLegend6CountryValue([...legend6CountryValue, selectedOption]);
+            }
+       
+      } 
+      else if (legend === 7) {
+        if (legend7CountryValue.includes(selectedOption)) {
+          setLegend7CountryValue(legend7CountryValue.filter((o) => o !== selectedOption));
+        } else {
+          setLegend7CountryValue([...legend7CountryValue, selectedOption]);
+        }
+   
+  }  else if (legend === 8) {
+    if (legend8CountryValue.includes(selectedOption)) {
+      setLegend8CountryValue(legend8CountryValue.filter((o) => o !== selectedOption));
+    } else {
+      setLegend8CountryValue([...legend8CountryValue, selectedOption]);
+    }
+
+};
+
+
+    }
 
 
     
@@ -149,6 +223,11 @@ function Countries({
           
           
 
+         
+
+        
+
+          <ul>
           <li>
                <div className="continents">
                     <img className='con-icon' src='../assets/africa.png'></img>
@@ -156,10 +235,6 @@ function Countries({
                     <label className='con-label'>Africa</label>
               </div>         
           </li>
-
-        
-
-          <ul>
                   
               <li>
                   <input  
@@ -174,7 +249,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('dz') : 
                         legend === 3 ? legend3CountryValue.includes('dz') : 
                         legend === 4 ? legend4CountryValue.includes('dz') :
-                        legend5CountryValue.includes('dz')
+                        legend === 5 ? legend5CountryValue.includes('dz') :
+                        legend === 6 ? legend6CountryValue.includes('dz') :
+                        legend === 7 ? legend7CountryValue.includes('dz') :
+                        legend8CountryValue.includes('dz')
                     }
                       >
                   </input>
@@ -192,7 +270,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ao') : 
                         legend === 3 ? legend3CountryValue.includes('ao') : 
                         legend === 4 ? legend4CountryValue.includes('ao') :
-                        legend5CountryValue.includes('ao')
+                        legend === 5 ? legend5CountryValue.includes('ao') :
+                        legend === 6 ? legend6CountryValue.includes('ao') :
+                        legend === 7 ? legend7CountryValue.includes('ao') :
+                        legend8CountryValue.includes('ao')
                     }
 
                       
@@ -216,7 +297,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bj') : 
                         legend === 3 ? legend3CountryValue.includes('bj') : 
                         legend === 4 ? legend4CountryValue.includes('bj') :
-                        legend5CountryValue.includes('bj')
+                        legend === 5 ? legend5CountryValue.includes('bj') :
+                        legend === 6 ? legend6CountryValue.includes('bj') :
+                        legend === 7 ? legend7CountryValue.includes('bj') :
+                        legend8CountryValue.includes('bj')
                     }
                       
                       
@@ -237,7 +321,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bw') : 
                         legend === 3 ? legend3CountryValue.includes('bw') : 
                         legend === 4 ? legend4CountryValue.includes('bw') :
-                        legend5CountryValue.includes('bw')
+                        legend === 5 ? legend5CountryValue.includes('bw') :
+                        legend === 6 ? legend6CountryValue.includes('bw') :
+                        legend === 7 ? legend7CountryValue.includes('bw') :
+                        legend8CountryValue.includes('bw')
                     }
                       
                       
@@ -258,7 +345,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bf') : 
                         legend === 3 ? legend3CountryValue.includes('bf') : 
                         legend === 4 ? legend4CountryValue.includes('bf') :
-                        legend5CountryValue.includes('bf')
+                        legend === 5 ? legend5CountryValue.includes('bf') :
+                        legend === 6 ? legend6CountryValue.includes('bf') :
+                        legend === 7 ? legend7CountryValue.includes('bf') :
+                        legend8CountryValue.includes('bf')
                     }
                       
                       
@@ -279,7 +369,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bi') : 
                         legend === 3 ? legend3CountryValue.includes('bi') : 
                         legend === 4 ? legend4CountryValue.includes('bi') :
-                        legend5CountryValue.includes('bi')
+                        legend === 5 ? legend5CountryValue.includes('bi') :
+                        legend === 6 ? legend6CountryValue.includes('bi') :
+                        legend === 7 ? legend7CountryValue.includes('bi') :
+                        legend8CountryValue.includes('bi')
                     }                            
                       
                       
@@ -300,7 +393,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cv') : 
                     legend === 3 ? legend3CountryValue.includes('cv') : 
                     legend === 4 ? legend4CountryValue.includes('cv') :
-                    legend5CountryValue.includes('cv')
+                    legend === 5 ? legend5CountryValue.includes('cv') :
+                    legend === 6 ? legend6CountryValue.includes('cv') :
+                    legend === 7 ? legend7CountryValue.includes('cv') :
+                    legend8CountryValue.includes('cv')
                 }                            
                   
                       >
@@ -320,7 +416,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cm') : 
                     legend === 3 ? legend3CountryValue.includes('cm') : 
                     legend === 4 ? legend4CountryValue.includes('cm') :
-                    legend5CountryValue.includes('cm')
+                    legend === 5 ? legend5CountryValue.includes('cm') :
+                    legend === 6 ? legend6CountryValue.includes('cm') :
+                    legend === 7 ? legend7CountryValue.includes('cm') :
+                    legend8CountryValue.includes('cm')
                 }                            
                   
                       >
@@ -340,7 +439,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cf') : 
                     legend === 3 ? legend3CountryValue.includes('cf') : 
                     legend === 4 ? legend4CountryValue.includes('cf') :
-                    legend5CountryValue.includes('cf')
+                    legend === 5 ? legend5CountryValue.includes('cf') :
+                    legend === 6 ? legend6CountryValue.includes('cf') :
+                    legend === 7 ? legend7CountryValue.includes('cf') :
+                    legend8CountryValue.includes('cf')
                 }                            
                   
                       >
@@ -361,7 +463,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('td') : 
                     legend === 3 ? legend3CountryValue.includes('td') : 
                     legend === 4 ? legend4CountryValue.includes('td') :
-                    legend5CountryValue.includes('td')
+                    legend === 5 ? legend5CountryValue.includes('td') :
+                    legend === 6 ? legend6CountryValue.includes('td') :
+                    legend === 7 ? legend7CountryValue.includes('td') :
+                    legend8CountryValue.includes('td')
                 }                            
                   
                       >
@@ -382,7 +487,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('km') : 
                     legend === 3 ? legend3CountryValue.includes('km') : 
                     legend === 4 ? legend4CountryValue.includes('km') :
-                    legend5CountryValue.includes('km')
+                    legend === 5 ? legend5CountryValue.includes('km') :
+                    legend === 6 ? legend6CountryValue.includes('km') :
+                    legend === 7 ? legend7CountryValue.includes('km') :
+                    legend8CountryValue.includes('km')
                 }                            
                   
                       >
@@ -403,7 +511,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cg') : 
                     legend === 3 ? legend3CountryValue.includes('cg') : 
                     legend === 4 ? legend4CountryValue.includes('cg') :
-                    legend5CountryValue.includes('cg')
+                    legend === 5 ? legend5CountryValue.includes('cg') :
+                    legend === 6 ? legend6CountryValue.includes('cg') :
+                    legend === 7 ? legend7CountryValue.includes('cg') :
+                    legend8CountryValue.includes('cg')
                 }                            
                   
                       >
@@ -424,7 +535,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ci') : 
                     legend === 3 ? legend3CountryValue.includes('ci') : 
                     legend === 4 ? legend4CountryValue.includes('ci') :
-                    legend5CountryValue.includes('ci')
+                    legend === 5 ? legend5CountryValue.includes('ci') :
+                    legend === 6 ? legend6CountryValue.includes('ci') :
+                    legend === 7 ? legend7CountryValue.includes('ci') :
+                    legend8CountryValue.includes('ci')
                 }                            
                   
                       >
@@ -445,7 +559,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('dj') : 
                     legend === 3 ? legend3CountryValue.includes('dj') : 
                     legend === 4 ? legend4CountryValue.includes('dj') :
-                    legend5CountryValue.includes('dj')
+                    legend === 5 ? legend5CountryValue.includes('dj') :
+                    legend === 6 ? legend6CountryValue.includes('dj') :
+                    legend === 7 ? legend7CountryValue.includes('dj') :
+                    legend8CountryValue.includes('dj')
                 }                            
                   
                       >
@@ -466,7 +583,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cd') : 
                     legend === 3 ? legend3CountryValue.includes('cd') : 
                     legend === 4 ? legend4CountryValue.includes('cd') :
-                    legend5CountryValue.includes('cd')
+                    legend === 5 ? legend5CountryValue.includes('cd') :
+                    legend === 6 ? legend6CountryValue.includes('cd') :
+                    legend === 7 ? legend7CountryValue.includes('cd') :
+                    legend8CountryValue.includes('cd')
                 }                            
                   
                       >
@@ -487,7 +607,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('eg') : 
                     legend === 3 ? legend3CountryValue.includes('eg') : 
                     legend === 4 ? legend4CountryValue.includes('eg') :
-                    legend5CountryValue.includes('eg')
+                    legend === 5 ? legend5CountryValue.includes('eg') :
+                    legend === 6 ? legend6CountryValue.includes('eg') :
+                    legend === 7 ? legend7CountryValue.includes('eg') :
+                    legend8CountryValue.includes('eg')
                 }                            
                   
                       >
@@ -508,7 +631,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('gq') : 
                     legend === 3 ? legend3CountryValue.includes('gq') : 
                     legend === 4 ? legend4CountryValue.includes('gq') :
-                    legend5CountryValue.includes('gq')
+                    legend === 5 ? legend5CountryValue.includes('gq') :
+                    legend === 6 ? legend6CountryValue.includes('gq') :
+                    legend === 7 ? legend7CountryValue.includes('gq') :
+                    legend8CountryValue.includes('gq')
                 }                            
                   
                       >
@@ -529,7 +655,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('er') : 
                     legend === 3 ? legend3CountryValue.includes('er') : 
                     legend === 4 ? legend4CountryValue.includes('er') :
-                    legend5CountryValue.includes('er')
+                    legend === 5 ? legend5CountryValue.includes('er') :
+                    legend === 6 ? legend6CountryValue.includes('er') :
+                    legend === 7 ? legend7CountryValue.includes('er') :
+                    legend8CountryValue.includes('er')
                 }                            
                   
                       >
@@ -550,7 +679,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sz') : 
                     legend === 3 ? legend3CountryValue.includes('sz') : 
                     legend === 4 ? legend4CountryValue.includes('sz') :
-                    legend5CountryValue.includes('sz')
+                    legend === 5 ? legend5CountryValue.includes('sz') :
+                    legend === 6 ? legend6CountryValue.includes('sz') :
+                    legend === 7 ? legend7CountryValue.includes('sz') :
+                    legend8CountryValue.includes('sz')
                 }                            
                   
                       >
@@ -571,7 +703,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('et') : 
                     legend === 3 ? legend3CountryValue.includes('et') : 
                     legend === 4 ? legend4CountryValue.includes('et') :
-                    legend5CountryValue.includes('et')
+                    legend === 5 ? legend5CountryValue.includes('et') :
+                    legend === 6 ? legend6CountryValue.includes('et') :
+                    legend === 7 ? legend7CountryValue.includes('et') :
+                    legend8CountryValue.includes('et')
                 }                            
                   
                       >
@@ -592,7 +727,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ga') : 
                     legend === 3 ? legend3CountryValue.includes('ga') : 
                     legend === 4 ? legend4CountryValue.includes('ga') :
-                    legend5CountryValue.includes('ga')
+                    legend === 5 ? legend5CountryValue.includes('ga') :
+                    legend === 6 ? legend6CountryValue.includes('ga') :
+                    legend === 7 ? legend7CountryValue.includes('ga') :
+                    legend8CountryValue.includes('ga')
                 }                            
                   
                       >
@@ -613,7 +751,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('gm') : 
                     legend === 3 ? legend3CountryValue.includes('gm') : 
                     legend === 4 ? legend4CountryValue.includes('gm') :
-                    legend5CountryValue.includes('gm')
+                    legend === 5 ? legend5CountryValue.includes('gm') :
+                    legend === 6 ? legend6CountryValue.includes('gm') :
+                    legend === 7 ? legend7CountryValue.includes('gm') :
+                    legend8CountryValue.includes('gm')
                 }                            
                   
                       >
@@ -634,7 +775,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('gh') : 
                     legend === 3 ? legend3CountryValue.includes('gh') : 
                     legend === 4 ? legend4CountryValue.includes('gh') :
-                    legend5CountryValue.includes('gh')
+                    legend === 5 ? legend5CountryValue.includes('gh') :
+                    legend === 6 ? legend6CountryValue.includes('gh') :
+                    legend === 7 ? legend7CountryValue.includes('gh') :
+                    legend8CountryValue.includes('gh')
                 }                            
                   
                       >
@@ -655,7 +799,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('gn') : 
                     legend === 3 ? legend3CountryValue.includes('gn') : 
                     legend === 4 ? legend4CountryValue.includes('gn') :
-                    legend5CountryValue.includes('gn')
+                    legend === 5 ? legend5CountryValue.includes('gn') :
+                    legend === 6 ? legend6CountryValue.includes('gn') :
+                    legend === 7 ? legend7CountryValue.includes('gn') :
+                    legend8CountryValue.includes('gn')
                 }                            
                   
                       >
@@ -676,7 +823,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('gw') : 
                     legend === 3 ? legend3CountryValue.includes('gw') : 
                     legend === 4 ? legend4CountryValue.includes('gw') :
-                    legend5CountryValue.includes('gw')
+                    legend === 5 ? legend5CountryValue.includes('gw') :
+                    legend === 6 ? legend6CountryValue.includes('gw') :
+                    legend === 7 ? legend7CountryValue.includes('gw') :
+                    legend8CountryValue.includes('gw')
                 }                            
                   
                       >
@@ -697,7 +847,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ke') : 
                     legend === 3 ? legend3CountryValue.includes('ke') : 
                     legend === 4 ? legend4CountryValue.includes('ke') :
-                    legend5CountryValue.includes('ke')
+                    legend === 5 ? legend5CountryValue.includes('ke') :
+                    legend === 6 ? legend6CountryValue.includes('ke') :
+                    legend === 7 ? legend7CountryValue.includes('ke') :
+                    legend8CountryValue.includes('ke')
                 }                            
                   
                       >
@@ -718,7 +871,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ls') : 
                     legend === 3 ? legend3CountryValue.includes('ls') : 
                     legend === 4 ? legend4CountryValue.includes('ls') :
-                    legend5CountryValue.includes('ls')
+                    legend === 5 ? legend5CountryValue.includes('ls') :
+                    legend === 6 ? legend6CountryValue.includes('ls') :
+                    legend === 7 ? legend7CountryValue.includes('ls') :
+                    legend8CountryValue.includes('ls')
                 }                            
                   
                       >
@@ -739,7 +895,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('lr') : 
                     legend === 3 ? legend3CountryValue.includes('lr') : 
                     legend === 4 ? legend4CountryValue.includes('lr') :
-                    legend5CountryValue.includes('lr')
+                    legend === 5 ? legend5CountryValue.includes('lr') :
+                    legend === 6 ? legend6CountryValue.includes('lr') :
+                    legend === 7 ? legend7CountryValue.includes('lr') :
+                    legend8CountryValue.includes('lr')
                 }                            
                   
                       >
@@ -760,7 +919,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ly') : 
                     legend === 3 ? legend3CountryValue.includes('ly') : 
                     legend === 4 ? legend4CountryValue.includes('ly') :
-                    legend5CountryValue.includes('ly')
+                    legend === 5 ? legend5CountryValue.includes('ly') :
+                    legend === 6 ? legend6CountryValue.includes('ly') :
+                    legend === 7 ? legend7CountryValue.includes('ly') :
+                    legend8CountryValue.includes('ly')
                 }                            
                   
                       >
@@ -781,7 +943,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mg') : 
                     legend === 3 ? legend3CountryValue.includes('mg') : 
                     legend === 4 ? legend4CountryValue.includes('mg') :
-                    legend5CountryValue.includes('mg')
+                    legend === 5 ? legend5CountryValue.includes('mg') :
+                    legend === 6 ? legend6CountryValue.includes('mg') :
+                    legend === 7 ? legend7CountryValue.includes('mg') :
+                    legend8CountryValue.includes('mg')
                 }                            
                   
                       >
@@ -802,7 +967,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mw') : 
                     legend === 3 ? legend3CountryValue.includes('mw') : 
                     legend === 4 ? legend4CountryValue.includes('mw') :
-                    legend5CountryValue.includes('mw')
+                    legend === 5 ? legend5CountryValue.includes('mw') :
+                    legend === 6 ? legend6CountryValue.includes('mw') :
+                    legend === 7 ? legend7CountryValue.includes('mw') :
+                    legend8CountryValue.includes('mw')
                 }                            
                   
                       >
@@ -823,7 +991,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ml') : 
                     legend === 3 ? legend3CountryValue.includes('ml') : 
                     legend === 4 ? legend4CountryValue.includes('ml') :
-                    legend5CountryValue.includes('ml')
+                    legend === 5 ? legend5CountryValue.includes('ml') :
+                    legend === 6 ? legend6CountryValue.includes('ml') :
+                    legend === 7 ? legend7CountryValue.includes('ml') :
+                    legend8CountryValue.includes('ml')
                 }                            
                   
                       >
@@ -844,7 +1015,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mr') : 
                     legend === 3 ? legend3CountryValue.includes('mr') : 
                     legend === 4 ? legend4CountryValue.includes('mr') :
-                    legend5CountryValue.includes('mr')
+                    legend === 5 ? legend5CountryValue.includes('mr') :
+                    legend === 6 ? legend6CountryValue.includes('mr') :
+                    legend === 7 ? legend7CountryValue.includes('mr') :
+                    legend8CountryValue.includes('mr')
                 }                            
                   
                       >
@@ -865,7 +1039,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mu') : 
                     legend === 3 ? legend3CountryValue.includes('mu') : 
                     legend === 4 ? legend4CountryValue.includes('mu') :
-                    legend5CountryValue.includes('mu')
+                    legend === 5 ? legend5CountryValue.includes('mu') :
+                    legend === 6 ? legend6CountryValue.includes('mu') :
+                    legend === 7 ? legend7CountryValue.includes('mu') :
+                    legend8CountryValue.includes('mu')
                 }                            
                   
                       >
@@ -886,7 +1063,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ma') : 
                     legend === 3 ? legend3CountryValue.includes('ma') : 
                     legend === 4 ? legend4CountryValue.includes('ma') :
-                    legend5CountryValue.includes('ma')
+                    legend === 5 ? legend5CountryValue.includes('ma') :
+                    legend === 6 ? legend6CountryValue.includes('ma') :
+                    legend === 7 ? legend7CountryValue.includes('ma') :
+                    legend8CountryValue.includes('ma')
                 }                            
                   
                       >
@@ -907,7 +1087,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mz') : 
                     legend === 3 ? legend3CountryValue.includes('mz') : 
                     legend === 4 ? legend4CountryValue.includes('mz') :
-                    legend5CountryValue.includes('mz')
+                    legend === 5 ? legend5CountryValue.includes('mz') :
+                    legend === 6 ? legend6CountryValue.includes('mz') :
+                    legend === 7 ? legend7CountryValue.includes('mz') :
+                    legend8CountryValue.includes('mz')
                 }                            
                   
                       >
@@ -928,7 +1111,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('na') : 
                     legend === 3 ? legend3CountryValue.includes('na') : 
                     legend === 4 ? legend4CountryValue.includes('na') :
-                    legend5CountryValue.includes('na')
+                    legend === 5 ? legend5CountryValue.includes('na') :
+                    legend === 6 ? legend6CountryValue.includes('na') :
+                    legend === 7 ? legend7CountryValue.includes('na') :
+                    legend8CountryValue.includes('na')
                 }                            
                   
                       >
@@ -949,7 +1135,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ne') : 
                     legend === 3 ? legend3CountryValue.includes('ne') : 
                     legend === 4 ? legend4CountryValue.includes('ne') :
-                    legend5CountryValue.includes('ne')
+                    legend === 5 ? legend5CountryValue.includes('ne') :
+                    legend === 6 ? legend6CountryValue.includes('ne') :
+                    legend === 7 ? legend7CountryValue.includes('ne') :
+                    legend8CountryValue.includes('ne')
                 }                            
                   
                       >
@@ -970,7 +1159,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ng') : 
                     legend === 3 ? legend3CountryValue.includes('ng') : 
                     legend === 4 ? legend4CountryValue.includes('ng') :
-                    legend5CountryValue.includes('ng')
+                    legend === 5 ? legend5CountryValue.includes('ng') :
+                    legend === 6 ? legend6CountryValue.includes('ng') :
+                    legend === 7 ? legend7CountryValue.includes('ng') :
+                    legend8CountryValue.includes('ng')
                 }                            
                   
                       >
@@ -991,7 +1183,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('rw') : 
                     legend === 3 ? legend3CountryValue.includes('rw') : 
                     legend === 4 ? legend4CountryValue.includes('rw') :
-                    legend5CountryValue.includes('rw')
+                    legend === 5 ? legend5CountryValue.includes('rw') :
+                    legend === 6 ? legend6CountryValue.includes('rw') :
+                    legend === 7 ? legend7CountryValue.includes('rw') :
+                    legend8CountryValue.includes('rw')
                 }                            
                   
                       >
@@ -1013,7 +1208,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('st') : 
                     legend === 3 ? legend3CountryValue.includes('st') : 
                     legend === 4 ? legend4CountryValue.includes('st') :
-                    legend5CountryValue.includes('st')
+                    legend === 5 ? legend5CountryValue.includes('st') :
+                    legend === 6 ? legend6CountryValue.includes('st') :
+                    legend === 7 ? legend7CountryValue.includes('st') :
+                    legend8CountryValue.includes('st')
                 }                            
                   
                       >
@@ -1034,7 +1232,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sn') : 
                     legend === 3 ? legend3CountryValue.includes('sn') : 
                     legend === 4 ? legend4CountryValue.includes('sn') :
-                    legend5CountryValue.includes('sn')
+                    legend === 5 ? legend5CountryValue.includes('sn') :
+                    legend === 6 ? legend6CountryValue.includes('sn') :
+                    legend === 7 ? legend7CountryValue.includes('sn') :
+                    legend8CountryValue.includes('sn')
                 }                            
                   
                       >
@@ -1055,7 +1256,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sc') : 
                     legend === 3 ? legend3CountryValue.includes('sc') : 
                     legend === 4 ? legend4CountryValue.includes('sc') :
-                    legend5CountryValue.includes('sc')
+                    legend === 5 ? legend5CountryValue.includes('sc') :
+                    legend === 6 ? legend6CountryValue.includes('sc') :
+                    legend === 7 ? legend7CountryValue.includes('sc') :
+                    legend8CountryValue.includes('sc')
                 }                            
                   
                       >
@@ -1076,7 +1280,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sl') : 
                     legend === 3 ? legend3CountryValue.includes('sl') : 
                     legend === 4 ? legend4CountryValue.includes('sl') :
-                    legend5CountryValue.includes('sl')
+                    legend === 5 ? legend5CountryValue.includes('sl') :
+                    legend === 6 ? legend6CountryValue.includes('sl') :
+                    legend === 7 ? legend7CountryValue.includes('sl') :
+                    legend8CountryValue.includes('sl')
                 }                            
                   
                       >
@@ -1097,7 +1304,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('so') : 
                     legend === 3 ? legend3CountryValue.includes('so') : 
                     legend === 4 ? legend4CountryValue.includes('so') :
-                    legend5CountryValue.includes('so')
+                    legend === 5 ? legend5CountryValue.includes('so') :
+                    legend === 6 ? legend6CountryValue.includes('so') :
+                    legend === 7 ? legend7CountryValue.includes('so') :
+                    legend8CountryValue.includes('so')
                 }                            
                   
                       >
@@ -1118,7 +1328,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('za') : 
                     legend === 3 ? legend3CountryValue.includes('za') : 
                     legend === 4 ? legend4CountryValue.includes('za') :
-                    legend5CountryValue.includes('za')
+                    legend === 5 ? legend5CountryValue.includes('za') :
+                    legend === 6 ? legend6CountryValue.includes('za') :
+                    legend === 7 ? legend7CountryValue.includes('za') :
+                    legend8CountryValue.includes('za')
                 }                            
                   
                       >
@@ -1139,7 +1352,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ss') : 
                     legend === 3 ? legend3CountryValue.includes('ss') : 
                     legend === 4 ? legend4CountryValue.includes('ss') :
-                    legend5CountryValue.includes('ss')
+                    legend === 5 ? legend5CountryValue.includes('ss') :
+                    legend === 6 ? legend6CountryValue.includes('ss') :
+                    legend === 7 ? legend7CountryValue.includes('ss') :
+                    legend8CountryValue.includes('ss')
                 }                            
                   
                       >
@@ -1160,7 +1376,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sd') : 
                     legend === 3 ? legend3CountryValue.includes('sd') : 
                     legend === 4 ? legend4CountryValue.includes('sd') :
-                    legend5CountryValue.includes('sd')
+                    legend === 5 ? legend5CountryValue.includes('sd') :
+                    legend === 6 ? legend6CountryValue.includes('sd') :
+                    legend === 7 ? legend7CountryValue.includes('sd') :
+                    legend8CountryValue.includes('sd')
                 }                            
                   
                       >
@@ -1181,7 +1400,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tz') : 
                     legend === 3 ? legend3CountryValue.includes('tz') : 
                     legend === 4 ? legend4CountryValue.includes('tz') :
-                    legend5CountryValue.includes('tz')
+                    legend === 5 ? legend5CountryValue.includes('tz') :
+                    legend === 6 ? legend6CountryValue.includes('tz') :
+                    legend === 7 ? legend7CountryValue.includes('tz') :
+                    legend8CountryValue.includes('tz')
                 }                            
                   
                       >
@@ -1202,7 +1424,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tg') : 
                     legend === 3 ? legend3CountryValue.includes('tg') : 
                     legend === 4 ? legend4CountryValue.includes('tg') :
-                    legend5CountryValue.includes('tg')
+                    legend === 5 ? legend5CountryValue.includes('tg') :
+                    legend === 6 ? legend6CountryValue.includes('tg') :
+                    legend === 7 ? legend7CountryValue.includes('tg') :
+                    legend8CountryValue.includes('tg')
                 }                            
                   
                       >
@@ -1223,7 +1448,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tn') : 
                     legend === 3 ? legend3CountryValue.includes('tn') : 
                     legend === 4 ? legend4CountryValue.includes('tn') :
-                    legend5CountryValue.includes('tn')
+                    legend === 5 ? legend5CountryValue.includes('tn') :
+                    legend === 6 ? legend6CountryValue.includes('tn') :
+                    legend === 7 ? legend7CountryValue.includes('tn') :
+                    legend8CountryValue.includes('tn')
                 }                            
                   
                       >
@@ -1244,7 +1472,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ug') : 
                     legend === 3 ? legend3CountryValue.includes('ug') : 
                     legend === 4 ? legend4CountryValue.includes('ug') :
-                    legend5CountryValue.includes('ug')
+                    legend === 5 ? legend5CountryValue.includes('ug') :
+                    legend === 6 ? legend6CountryValue.includes('ug') :
+                    legend === 7 ? legend7CountryValue.includes('ug') :
+                    legend8CountryValue.includes('ug')
                 }                            
                   
                       >
@@ -1265,7 +1496,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('zm') : 
                     legend === 3 ? legend3CountryValue.includes('zm') : 
                     legend === 4 ? legend4CountryValue.includes('zm') :
-                    legend5CountryValue.includes('zm')
+                    legend === 5 ? legend5CountryValue.includes('zm') :
+                    legend === 6 ? legend6CountryValue.includes('zm') :
+                    legend === 7 ? legend7CountryValue.includes('zm') :
+                    legend8CountryValue.includes('zm')
                 }                            
                   
                       >
@@ -1286,7 +1520,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('zw') : 
                     legend === 3 ? legend3CountryValue.includes('zw') : 
                     legend === 4 ? legend4CountryValue.includes('zw') :
-                    legend5CountryValue.includes('zw')
+                    legend === 5 ? legend5CountryValue.includes('zw') :
+                    legend === 6 ? legend6CountryValue.includes('zw') :
+                    legend === 7 ? legend7CountryValue.includes('zw') :
+                    legend8CountryValue.includes('zw')
                 }                            
                   
                       >
@@ -1304,17 +1541,19 @@ function Countries({
           
           
 
-      <li>
+      
+
+        
+
+          <ul>
+
+          <li>
                <div className="continents">
                     <img className='con-icon' src='../assets/asia.png'></img>
 
                     <label className='con-label'>Asia</label>
               </div>         
           </li>
-
-        
-
-          <ul>
                   
               <li>
                   <input 
@@ -1328,7 +1567,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('af') : 
                         legend === 3 ? legend3CountryValue.includes('af') : 
                         legend === 4 ? legend4CountryValue.includes('af') :
-                        legend5CountryValue.includes('af')
+                        legend === 5 ? legend5CountryValue.includes('af') :
+                        legend === 6 ? legend6CountryValue.includes('af') :
+                        legend === 7 ? legend7CountryValue.includes('af') :
+                        legend8CountryValue.includes('af')
                     }                            
                       
                       >
@@ -1349,7 +1591,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('am') : 
                         legend === 3 ? legend3CountryValue.includes('am') : 
                         legend === 4 ? legend4CountryValue.includes('am') :
-                        legend5CountryValue.includes('am')
+                        legend === 5 ? legend5CountryValue.includes('am') :
+                        legend === 6 ? legend6CountryValue.includes('am') :
+                        legend === 7 ? legend7CountryValue.includes('am') :
+                        legend8CountryValue.includes('am')
                     }                            
                       
                       >
@@ -1372,7 +1617,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('az') : 
                         legend === 3 ? legend3CountryValue.includes('az') : 
                         legend === 4 ? legend4CountryValue.includes('az') :
-                        legend5CountryValue.includes('az')
+                        legend === 5 ? legend5CountryValue.includes('az') :
+                        legend === 6 ? legend6CountryValue.includes('az') :
+                        legend === 7 ? legend7CountryValue.includes('az') :
+                        legend8CountryValue.includes('az')
                     }                            
                       
                       >
@@ -1393,7 +1641,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bh') : 
                         legend === 3 ? legend3CountryValue.includes('bh') : 
                         legend === 4 ? legend4CountryValue.includes('bh') :
-                        legend5CountryValue.includes('bh')
+                        legend === 5 ? legend5CountryValue.includes('bh') :
+                        legend === 6 ? legend6CountryValue.includes('bh') :
+                        legend === 7 ? legend7CountryValue.includes('bh') :
+                        legend8CountryValue.includes('bh')
                     }                            
                       
                       >
@@ -1414,7 +1665,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bd') : 
                         legend === 3 ? legend3CountryValue.includes('bd') : 
                         legend === 4 ? legend4CountryValue.includes('bd') :
-                        legend5CountryValue.includes('bd')
+                        legend === 5 ? legend5CountryValue.includes('bd') :
+                        legend === 6 ? legend6CountryValue.includes('bd') :
+                        legend === 7 ? legend7CountryValue.includes('bd') :
+                        legend8CountryValue.includes('bd')
                     }                            
                       
                       >
@@ -1435,7 +1689,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bt') : 
                         legend === 3 ? legend3CountryValue.includes('bt') : 
                         legend === 4 ? legend4CountryValue.includes('bt') :
-                        legend5CountryValue.includes('bt')
+                        legend === 5 ? legend5CountryValue.includes('bt') :
+                        legend === 6 ? legend6CountryValue.includes('bt') :
+                        legend === 7 ? legend7CountryValue.includes('bt') :
+                        legend8CountryValue.includes('bt')
                     }                            
                       
                       >
@@ -1456,7 +1713,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('bn') : 
                     legend === 3 ? legend3CountryValue.includes('bn') : 
                     legend === 4 ? legend4CountryValue.includes('bn') :
-                    legend5CountryValue.includes('bn')
+                    legend === 5 ? legend5CountryValue.includes('bn') :
+                    legend === 6 ? legend6CountryValue.includes('bn') :
+                    legend === 7 ? legend7CountryValue.includes('bn') :
+                    legend8CountryValue.includes('bn')
                 }                            
                   
                       >
@@ -1477,7 +1737,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('kh') : 
                     legend === 3 ? legend3CountryValue.includes('kh') : 
                     legend === 4 ? legend4CountryValue.includes('kh') :
-                    legend5CountryValue.includes('kh')
+                    legend === 5 ? legend5CountryValue.includes('kh') :
+                    legend === 6 ? legend6CountryValue.includes('kh') :
+                    legend === 7 ? legend7CountryValue.includes('kh') :
+                    legend8CountryValue.includes('kh')
                 }                            
                   
                       >
@@ -1498,7 +1761,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cn') : 
                     legend === 3 ? legend3CountryValue.includes('cn') : 
                     legend === 4 ? legend4CountryValue.includes('cn') :
-                    legend5CountryValue.includes('cn')
+                    legend === 5 ? legend5CountryValue.includes('cn') :
+                    legend === 6 ? legend6CountryValue.includes('cn') :
+                    legend === 7 ? legend7CountryValue.includes('cn') :
+                    legend8CountryValue.includes('cn')
                 }                            
                   
                       >
@@ -1519,7 +1785,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('cy') : 
                     legend === 3 ? legend3CountryValue.includes('cy') : 
                     legend === 4 ? legend4CountryValue.includes('cy') :
-                    legend5CountryValue.includes('cy')
+                    legend === 5 ? legend5CountryValue.includes('cy') :
+                    legend === 6 ? legend6CountryValue.includes('cy') :
+                    legend === 7 ? legend7CountryValue.includes('cy') :
+                    legend8CountryValue.includes('cy')
                 }                            
                   
                       >
@@ -1540,7 +1809,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ge') : 
                     legend === 3 ? legend3CountryValue.includes('ge') : 
                     legend === 4 ? legend4CountryValue.includes('ge') :
-                    legend5CountryValue.includes('ge')
+                    legend === 5 ? legend5CountryValue.includes('ge') :
+                    legend === 6 ? legend6CountryValue.includes('ge') :
+                    legend === 7 ? legend7CountryValue.includes('ge') :
+                    legend8CountryValue.includes('ge')
                 }                            
                   
                       >
@@ -1561,7 +1833,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('in') : 
                     legend === 3 ? legend3CountryValue.includes('in') : 
                     legend === 4 ? legend4CountryValue.includes('in') :
-                    legend5CountryValue.includes('in')
+                    legend === 5 ? legend5CountryValue.includes('in') :
+                    legend === 6 ? legend6CountryValue.includes('in') :
+                    legend === 7 ? legend7CountryValue.includes('in') :
+                    legend8CountryValue.includes('in')
                 }                            
                   
                       >
@@ -1582,7 +1857,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('id') : 
                     legend === 3 ? legend3CountryValue.includes('id') : 
                     legend === 4 ? legend4CountryValue.includes('id') :
-                    legend5CountryValue.includes('id')
+                    legend === 5 ? legend5CountryValue.includes('id') :
+                    legend === 6 ? legend6CountryValue.includes('id') :
+                    legend === 7 ? legend7CountryValue.includes('id') :
+                    legend8CountryValue.includes('id')
                 }                            
                   
                       >
@@ -1603,7 +1881,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ir') : 
                     legend === 3 ? legend3CountryValue.includes('ir') : 
                     legend === 4 ? legend4CountryValue.includes('ir') :
-                    legend5CountryValue.includes('ir')
+                    legend === 5 ? legend5CountryValue.includes('ir') :
+                    legend === 6 ? legend6CountryValue.includes('ir') :
+                    legend === 7 ? legend7CountryValue.includes('ir') :
+                    legend8CountryValue.includes('ir')
                 }                            
                   
                       >
@@ -1624,7 +1905,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('iq') : 
                     legend === 3 ? legend3CountryValue.includes('iq') : 
                     legend === 4 ? legend4CountryValue.includes('iq') :
-                    legend5CountryValue.includes('iq')
+                    legend === 5 ? legend5CountryValue.includes('iq') :
+                    legend === 6 ? legend6CountryValue.includes('iq') :
+                    legend === 7 ? legend7CountryValue.includes('iq') :
+                    legend8CountryValue.includes('iq')
                 }                            
                   
                       >
@@ -1645,7 +1929,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('il') : 
                     legend === 3 ? legend3CountryValue.includes('il') : 
                     legend === 4 ? legend4CountryValue.includes('il') :
-                    legend5CountryValue.includes('il')
+                    legend === 5 ? legend5CountryValue.includes('il') :
+                    legend === 6 ? legend6CountryValue.includes('il') :
+                    legend === 7 ? legend7CountryValue.includes('il') :
+                    legend8CountryValue.includes('il')
                 }                            
                   
                       >
@@ -1666,7 +1953,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('jp') : 
                     legend === 3 ? legend3CountryValue.includes('jp') : 
                     legend === 4 ? legend4CountryValue.includes('jp') :
-                    legend5CountryValue.includes('jp')
+                    legend === 5 ? legend5CountryValue.includes('jp') :
+                    legend === 6 ? legend6CountryValue.includes('jp') :
+                    legend === 7 ? legend7CountryValue.includes('jp') :
+                    legend8CountryValue.includes('jp')
                 }                            
                   
                       >
@@ -1687,7 +1977,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('jo') : 
                     legend === 3 ? legend3CountryValue.includes('jo') : 
                     legend === 4 ? legend4CountryValue.includes('jo') :
-                    legend5CountryValue.includes('jo')
+                    legend === 5 ? legend5CountryValue.includes('jo') :
+                    legend === 6 ? legend6CountryValue.includes('jo') :
+                    legend === 7 ? legend7CountryValue.includes('jo') :
+                    legend8CountryValue.includes('jo')
                 }                            
                   
                       >
@@ -1708,7 +2001,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('kz') : 
                     legend === 3 ? legend3CountryValue.includes('kz') : 
                     legend === 4 ? legend4CountryValue.includes('kz') :
-                    legend5CountryValue.includes('kz')
+                    legend === 5 ? legend5CountryValue.includes('kz') :
+                    legend === 6 ? legend6CountryValue.includes('kz') :
+                    legend === 7 ? legend7CountryValue.includes('kz') :
+                    legend8CountryValue.includes('kz')
                 }                            
                   
                       >
@@ -1729,7 +2025,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('kw') : 
                     legend === 3 ? legend3CountryValue.includes('kw') : 
                     legend === 4 ? legend4CountryValue.includes('kw') :
-                    legend5CountryValue.includes('kw')
+                    legend === 5 ? legend5CountryValue.includes('kw') :
+                    legend === 6 ? legend6CountryValue.includes('kw') :
+                    legend === 7 ? legend7CountryValue.includes('kw') :
+                    legend8CountryValue.includes('kw')
                 }                            
                   
                       >
@@ -1750,7 +2049,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('kg') : 
                     legend === 3 ? legend3CountryValue.includes('kg') : 
                     legend === 4 ? legend4CountryValue.includes('kg') :
-                    legend5CountryValue.includes('kg')
+                    legend === 5 ? legend5CountryValue.includes('kg') :
+                    legend === 6 ? legend6CountryValue.includes('kg') :
+                    legend === 7 ? legend7CountryValue.includes('kg') :
+                    legend8CountryValue.includes('kg')
                 }                            
                   
                       >
@@ -1771,7 +2073,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('la') : 
                     legend === 3 ? legend3CountryValue.includes('la') : 
                     legend === 4 ? legend4CountryValue.includes('la') :
-                    legend5CountryValue.includes('la')
+                    legend === 5 ? legend5CountryValue.includes('la') :
+                    legend === 6 ? legend6CountryValue.includes('la') :
+                    legend === 7 ? legend7CountryValue.includes('la') :
+                    legend8CountryValue.includes('la')
                 }                            
                   
                       >
@@ -1792,7 +2097,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('lb') : 
                     legend === 3 ? legend3CountryValue.includes('lb') : 
                     legend === 4 ? legend4CountryValue.includes('lb') :
-                    legend5CountryValue.includes('lb')
+                    legend === 5 ? legend5CountryValue.includes('lb') :
+                    legend === 6 ? legend6CountryValue.includes('lb') :
+                    legend === 7 ? legend7CountryValue.includes('lb') :
+                    legend8CountryValue.includes('lb')
                 }                            
                   
                       >
@@ -1813,7 +2121,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('my') : 
                     legend === 3 ? legend3CountryValue.includes('my') : 
                     legend === 4 ? legend4CountryValue.includes('my') :
-                    legend5CountryValue.includes('my')
+                    legend === 5 ? legend5CountryValue.includes('my') :
+                    legend === 6 ? legend6CountryValue.includes('my') :
+                    legend === 7 ? legend7CountryValue.includes('my') :
+                    legend8CountryValue.includes('my')
                 }                            
                   
                       >
@@ -1834,7 +2145,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mv') : 
                     legend === 3 ? legend3CountryValue.includes('mv') : 
                     legend === 4 ? legend4CountryValue.includes('mv') :
-                    legend5CountryValue.includes('mv')
+                    legend === 5 ? legend5CountryValue.includes('mv') :
+                    legend === 6 ? legend6CountryValue.includes('mv') :
+                    legend === 7 ? legend7CountryValue.includes('mv') :
+                    legend8CountryValue.includes('mv')
                 }                            
                   
                       >
@@ -1855,7 +2169,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mn') : 
                     legend === 3 ? legend3CountryValue.includes('mn') : 
                     legend === 4 ? legend4CountryValue.includes('mn') :
-                    legend5CountryValue.includes('mn')
+                    legend === 5 ? legend5CountryValue.includes('mn') :
+                    legend === 6 ? legend6CountryValue.includes('mn') :
+                    legend === 7 ? legend7CountryValue.includes('mn') :
+                    legend8CountryValue.includes('mn')
                 }                            
                   
                       >
@@ -1876,7 +2193,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('mm') : 
                     legend === 3 ? legend3CountryValue.includes('mm') : 
                     legend === 4 ? legend4CountryValue.includes('mm') :
-                    legend5CountryValue.includes('mm')
+                    legend === 5 ? legend5CountryValue.includes('mm') :
+                    legend === 6 ? legend6CountryValue.includes('mm') :
+                    legend === 7 ? legend7CountryValue.includes('mm') :
+                    legend8CountryValue.includes('mm')
                 }                            
                   
                       >
@@ -1897,7 +2217,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('np') : 
                     legend === 3 ? legend3CountryValue.includes('np') : 
                     legend === 4 ? legend4CountryValue.includes('np') :
-                    legend5CountryValue.includes('np')
+                    legend === 5 ? legend5CountryValue.includes('np') :
+                    legend === 6 ? legend6CountryValue.includes('np') :
+                    legend === 7 ? legend7CountryValue.includes('np') :
+                    legend8CountryValue.includes('np')
                 }                            
                   
                       >
@@ -1918,7 +2241,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('kp') : 
                     legend === 3 ? legend3CountryValue.includes('kp') : 
                     legend === 4 ? legend4CountryValue.includes('kp') :
-                    legend5CountryValue.includes('kp')
+                    legend === 5 ? legend5CountryValue.includes('kp') :
+                    legend === 6 ? legend6CountryValue.includes('kp') :
+                    legend === 7 ? legend7CountryValue.includes('kp') :
+                    legend8CountryValue.includes('kp')
                 }                            
                   
                       >
@@ -1939,7 +2265,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('om') : 
                     legend === 3 ? legend3CountryValue.includes('om') : 
                     legend === 4 ? legend4CountryValue.includes('om') :
-                    legend5CountryValue.includes('om')
+                    legend === 5 ? legend5CountryValue.includes('om') :
+                    legend === 6 ? legend6CountryValue.includes('om') :
+                    legend === 7 ? legend7CountryValue.includes('om') :
+                    legend8CountryValue.includes('om')
                 }                            
                   
                       >
@@ -1960,7 +2289,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('pk') : 
                     legend === 3 ? legend3CountryValue.includes('pk') : 
                     legend === 4 ? legend4CountryValue.includes('pk') :
-                    legend5CountryValue.includes('pk')
+                    legend === 5 ? legend5CountryValue.includes('pk') :
+                    legend === 6 ? legend6CountryValue.includes('pk') :
+                    legend === 7 ? legend7CountryValue.includes('pk') :
+                    legend8CountryValue.includes('pk')
                 }                            
                   
                       >
@@ -1981,7 +2313,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ps') : 
                     legend === 3 ? legend3CountryValue.includes('ps') : 
                     legend === 4 ? legend4CountryValue.includes('ps') :
-                    legend5CountryValue.includes('ps')    
+                    legend === 5 ? legend5CountryValue.includes('ps') :
+                    legend === 6 ? legend6CountryValue.includes('ps') :
+                    legend === 7 ? legend7CountryValue.includes('ps') :
+                    legend8CountryValue.includes('ps')    
                 }                            
                   
                       >
@@ -2002,7 +2337,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ph') : 
                     legend === 3 ? legend3CountryValue.includes('ph') : 
                     legend === 4 ? legend4CountryValue.includes('ph') :
-                    legend5CountryValue.includes('ph')    
+                    legend === 5 ? legend5CountryValue.includes('ph') :
+                    legend === 6 ? legend6CountryValue.includes('ph') :
+                    legend === 7 ? legend7CountryValue.includes('ph') :
+                    legend8CountryValue.includes('ph')    
                 }                            
                   
                       >
@@ -2023,7 +2361,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('qa') : 
                     legend === 3 ? legend3CountryValue.includes('qa') : 
                     legend === 4 ? legend4CountryValue.includes('qa') :
-                    legend5CountryValue.includes('qa')    
+                    legend === 5 ? legend5CountryValue.includes('qa') :
+                    legend === 6 ? legend6CountryValue.includes('qa') :
+                    legend === 7 ? legend7CountryValue.includes('qa') :
+                    legend8CountryValue.includes('qa')    
                 }                            
                   
                       >
@@ -2044,7 +2385,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sa') : 
                     legend === 3 ? legend3CountryValue.includes('sa') : 
                     legend === 4 ? legend4CountryValue.includes('sa') :
-                    legend5CountryValue.includes('sa')    
+                    legend === 5 ? legend5CountryValue.includes('sa') :
+                    legend === 6 ? legend6CountryValue.includes('sa') :
+                    legend === 7 ? legend7CountryValue.includes('sa') :
+                    legend8CountryValue.includes('sa')    
                 }                            
                   
                       >
@@ -2065,7 +2409,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sg') : 
                     legend === 3 ? legend3CountryValue.includes('sg') : 
                     legend === 4 ? legend4CountryValue.includes('sg') :
-                    legend5CountryValue.includes('sg')    
+                    legend === 5 ? legend5CountryValue.includes('sg') :
+                    legend === 6 ? legend6CountryValue.includes('sg') :
+                    legend === 7 ? legend7CountryValue.includes('sg') :
+                    legend8CountryValue.includes('sg')    
                 }                            
                   
                       >
@@ -2086,7 +2433,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('kr') : 
                     legend === 3 ? legend3CountryValue.includes('kr') : 
                     legend === 4 ? legend4CountryValue.includes('kr') :
-                    legend5CountryValue.includes('kr')    
+                    legend === 5 ? legend5CountryValue.includes('kr') :
+                    legend === 6 ? legend6CountryValue.includes('kr') :
+                    legend === 7 ? legend7CountryValue.includes('kr') :
+                    legend8CountryValue.includes('kr')    
                 }                            
                   
                       >
@@ -2107,7 +2457,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('lk') : 
                     legend === 3 ? legend3CountryValue.includes('lk') : 
                     legend === 4 ? legend4CountryValue.includes('lk') :
-                    legend5CountryValue.includes('lk')    
+                    legend === 5 ? legend5CountryValue.includes('lk') :
+                    legend === 6 ? legend6CountryValue.includes('lk') :
+                    legend === 7 ? legend7CountryValue.includes('lk') :
+                    legend8CountryValue.includes('lk')    
                 }                            
                   
                       >
@@ -2129,7 +2482,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('sy') : 
                     legend === 3 ? legend3CountryValue.includes('sy') : 
                     legend === 4 ? legend4CountryValue.includes('sy') :
-                    legend5CountryValue.includes('sy')    
+                    legend === 5 ? legend5CountryValue.includes('sy') :
+                    legend === 6 ? legend6CountryValue.includes('sy') :
+                    legend === 7 ? legend7CountryValue.includes('sy') :
+                    legend8CountryValue.includes('sy')    
                 }                            
                   
                       >
@@ -2150,7 +2506,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tw') : 
                     legend === 3 ? legend3CountryValue.includes('tw') : 
                     legend === 4 ? legend4CountryValue.includes('tw') :
-                    legend5CountryValue.includes('tw')    
+                    legend === 5 ? legend5CountryValue.includes('tw') :
+                    legend === 6 ? legend6CountryValue.includes('tw') :
+                    legend === 7 ? legend7CountryValue.includes('tw') :
+                    legend8CountryValue.includes('tw')    
                 }                            
                   
                       >
@@ -2171,7 +2530,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tj') : 
                     legend === 3 ? legend3CountryValue.includes('tj') : 
                     legend === 4 ? legend4CountryValue.includes('tj') :
-                    legend5CountryValue.includes('tj')    
+                    legend === 5 ? legend5CountryValue.includes('tj') :
+                    legend === 6 ? legend6CountryValue.includes('tj') :
+                    legend === 7 ? legend7CountryValue.includes('tj') :
+                    legend8CountryValue.includes('tj')    
                 }                            
                   
                       >
@@ -2192,7 +2554,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('th') : 
                     legend === 3 ? legend3CountryValue.includes('th') : 
                     legend === 4 ? legend4CountryValue.includes('th') :
-                    legend5CountryValue.includes('th')    
+                    legend === 5 ? legend5CountryValue.includes('th') :
+                    legend === 6 ? legend6CountryValue.includes('th') :
+                    legend === 7 ? legend7CountryValue.includes('th') :
+                    legend8CountryValue.includes('th')    
                 }                            
                   
                       >
@@ -2213,7 +2578,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tl') : 
                     legend === 3 ? legend3CountryValue.includes('tl') : 
                     legend === 4 ? legend4CountryValue.includes('tl') :
-                    legend5CountryValue.includes('tl')    
+                    legend === 5 ? legend5CountryValue.includes('tl') :
+                    legend === 6 ? legend6CountryValue.includes('tl') :
+                    legend === 7 ? legend7CountryValue.includes('tl') :
+                    legend8CountryValue.includes('tl')    
                 }                            
                   
                       >
@@ -2234,7 +2602,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tr') : 
                     legend === 3 ? legend3CountryValue.includes('tr') : 
                     legend === 4 ? legend4CountryValue.includes('tr') :
-                    legend5CountryValue.includes('tr')    
+                    legend === 5 ? legend5CountryValue.includes('tr') :
+                    legend === 6 ? legend6CountryValue.includes('tr') :
+                    legend === 7 ? legend7CountryValue.includes('tr') :
+                    legend8CountryValue.includes('tr')    
                 }                            
                   
                       >
@@ -2255,7 +2626,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('tm') : 
                     legend === 3 ? legend3CountryValue.includes('tm') : 
                     legend === 4 ? legend4CountryValue.includes('tm') :
-                    legend5CountryValue.includes('tm')    
+                    legend === 5 ? legend5CountryValue.includes('tm') :
+                    legend === 6 ? legend6CountryValue.includes('tm') :
+                    legend === 7 ? legend7CountryValue.includes('tm') :
+                    legend8CountryValue.includes('tm')    
                 }                            
                   
                       >
@@ -2276,7 +2650,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ae') : 
                     legend === 3 ? legend3CountryValue.includes('ae') : 
                     legend === 4 ? legend4CountryValue.includes('ae') :
-                    legend5CountryValue.includes('ae')    
+                    legend === 5 ? legend5CountryValue.includes('ae') :
+                    legend === 6 ? legend6CountryValue.includes('ae') :
+                    legend === 7 ? legend7CountryValue.includes('ae') :
+                    legend8CountryValue.includes('ae')    
                 }                            
                   
                       >
@@ -2297,7 +2674,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('uz') : 
                     legend === 3 ? legend3CountryValue.includes('uz') : 
                     legend === 4 ? legend4CountryValue.includes('uz') :
-                    legend5CountryValue.includes('uz')    
+                    legend === 5 ? legend5CountryValue.includes('uz') :
+                    legend === 6 ? legend6CountryValue.includes('uz') :
+                    legend === 7 ? legend7CountryValue.includes('uz') :
+                    legend8CountryValue.includes('uz')    
                 }                            
                   
                       >
@@ -2318,7 +2698,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('vn') : 
                     legend === 3 ? legend3CountryValue.includes('vn') : 
                     legend === 4 ? legend4CountryValue.includes('vn') :
-                    legend5CountryValue.includes('vn')    
+                    legend === 5 ? legend5CountryValue.includes('vn') :
+                    legend === 6 ? legend6CountryValue.includes('vn') :
+                    legend === 7 ? legend7CountryValue.includes('vn') :
+                    legend8CountryValue.includes('vn')    
                 }                            
                   
                       >
@@ -2339,7 +2722,10 @@ function Countries({
                     legend === 2 ? legend2CountryValue.includes('ye') : 
                     legend === 3 ? legend3CountryValue.includes('ye') : 
                     legend === 4 ? legend4CountryValue.includes('ye') :
-                    legend5CountryValue.includes('ye')    
+                    legend === 5 ? legend5CountryValue.includes('ye') :
+                    legend === 6 ? legend6CountryValue.includes('ye') :
+                    legend === 7 ? legend7CountryValue.includes('ye') :
+                    legend8CountryValue.includes('ye')    
                 }                            
                   
                       >
@@ -2354,20 +2740,20 @@ function Countries({
           
           
 
-          <li>
-              
-                    <div className="continents">
-                            <img className='con-icon' src='../assets/europe.png'></img>
-
-                            <label className='con-label'>Europe</label>
-                    </div>
-                   
-          </li>
 
             
 
               <ul>
                       
+          <li>
+              
+              <div className="continents">
+                      <img className='con-icon' src='../assets/europe.png'></img>
+
+                      <label className='con-label'>Europe</label>
+              </div>
+             
+    </li>
                   <li>
                       <input 
                           type='checkbox' 
@@ -2380,7 +2766,10 @@ function Countries({
                             legend === 2 ? legend2CountryValue.includes('al') : 
                             legend === 3 ? legend3CountryValue.includes('al') : 
                             legend === 4 ? legend4CountryValue.includes('al') :
-                            legend5CountryValue.includes('al')    
+                            legend === 5 ? legend5CountryValue.includes('al') :
+                            legend === 6 ? legend6CountryValue.includes('al') :
+                            legend === 7 ? legend7CountryValue.includes('al') :
+                            legend8CountryValue.includes('al')    
                         }                            
                           
                       >
@@ -2401,7 +2790,10 @@ function Countries({
                             legend === 2 ? legend2CountryValue.includes('ad') : 
                             legend === 3 ? legend3CountryValue.includes('ad') : 
                             legend === 4 ? legend4CountryValue.includes('ad') :
-                            legend5CountryValue.includes('ad')    
+                            legend === 5 ? legend5CountryValue.includes('ad') :
+                            legend === 6 ? legend6CountryValue.includes('ad') :
+                            legend === 7 ? legend7CountryValue.includes('ad') :
+                            legend8CountryValue.includes('ad')    
                         }                            
                           
                       >
@@ -2424,7 +2816,10 @@ function Countries({
                             legend === 2 ? legend2CountryValue.includes('at') : 
                             legend === 3 ? legend3CountryValue.includes('at') : 
                             legend === 4 ? legend4CountryValue.includes('at') :
-                            legend5CountryValue.includes('at')    
+                            legend === 5 ? legend5CountryValue.includes('at') :
+                            legend === 6 ? legend6CountryValue.includes('at') :
+                            legend === 7 ? legend7CountryValue.includes('at') :
+                            legend8CountryValue.includes('at')    
                         }                            
                           
                       >
@@ -2445,7 +2840,10 @@ function Countries({
                             legend === 2 ? legend2CountryValue.includes('by') : 
                             legend === 3 ? legend3CountryValue.includes('by') : 
                             legend === 4 ? legend4CountryValue.includes('by') :
-                            legend5CountryValue.includes('by')    
+                            legend === 5 ? legend5CountryValue.includes('by') :
+                            legend === 6 ? legend6CountryValue.includes('by') :
+                            legend === 7 ? legend7CountryValue.includes('by') :
+                            legend8CountryValue.includes('by')    
                         }                            
                           
                       >
@@ -2466,7 +2864,10 @@ function Countries({
                             legend === 2 ? legend2CountryValue.includes('be') : 
                             legend === 3 ? legend3CountryValue.includes('be') : 
                             legend === 4 ? legend4CountryValue.includes('be') :
-                            legend5CountryValue.includes('be')    
+                            legend === 5 ? legend5CountryValue.includes('be') :
+                            legend === 6 ? legend6CountryValue.includes('be') :
+                            legend === 7 ? legend7CountryValue.includes('be') :
+                            legend8CountryValue.includes('be')    
                         }                            
                           
                       >
@@ -2487,7 +2888,10 @@ function Countries({
                             legend === 2 ? legend2CountryValue.includes('ba') : 
                             legend === 3 ? legend3CountryValue.includes('ba') : 
                             legend === 4 ? legend4CountryValue.includes('ba') :
-                            legend5CountryValue.includes('ba')    
+                            legend === 5 ? legend5CountryValue.includes('ba') :
+                            legend === 6 ? legend6CountryValue.includes('ba') :
+                            legend === 7 ? legend7CountryValue.includes('ba') :
+                            legend8CountryValue.includes('ba')    
                         }                            
                           
                       >
@@ -2508,7 +2912,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bg') : 
                         legend === 3 ? legend3CountryValue.includes('bg') : 
                         legend === 4 ? legend4CountryValue.includes('bg') :
-                        legend5CountryValue.includes('bg')    
+                        legend === 5 ? legend5CountryValue.includes('bg') :
+                        legend === 6 ? legend6CountryValue.includes('bg') :
+                        legend === 7 ? legend7CountryValue.includes('bg') :
+                        legend8CountryValue.includes('bg')    
                     }                            
                       
                       >
@@ -2529,7 +2936,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('hr') : 
                         legend === 3 ? legend3CountryValue.includes('hr') : 
                         legend === 4 ? legend4CountryValue.includes('hr') :
-                        legend5CountryValue.includes('hr')    
+                        legend === 5 ? legend5CountryValue.includes('hr') :
+                        legend === 6 ? legend6CountryValue.includes('hr') :
+                        legend === 7 ? legend7CountryValue.includes('hr') :
+                        legend8CountryValue.includes('hr')    
                     }                            
                       
                       >
@@ -2550,7 +2960,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('cz') : 
                         legend === 3 ? legend3CountryValue.includes('cz') : 
                         legend === 4 ? legend4CountryValue.includes('cz') :
-                        legend5CountryValue.includes('cz')    
+                        legend === 5 ? legend5CountryValue.includes('cz') :
+                        legend === 6 ? legend6CountryValue.includes('cz') :
+                        legend === 7 ? legend7CountryValue.includes('cz') :
+                        legend8CountryValue.includes('cz')    
                     }                            
                       
                       >
@@ -2571,7 +2984,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('dk') : 
                         legend === 3 ? legend3CountryValue.includes('dk') : 
                         legend === 4 ? legend4CountryValue.includes('dk') :
-                        legend5CountryValue.includes('dk')    
+                        legend === 5 ? legend5CountryValue.includes('dk') :
+                        legend === 6 ? legend6CountryValue.includes('dk') :
+                        legend === 7 ? legend7CountryValue.includes('dk') :
+                        legend8CountryValue.includes('dk')    
                     }                            
                       
                       >
@@ -2592,7 +3008,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ee') : 
                         legend === 3 ? legend3CountryValue.includes('ee') : 
                         legend === 4 ? legend4CountryValue.includes('ee') :
-                        legend5CountryValue.includes('ee')    
+                        legend === 5 ? legend5CountryValue.includes('ee') :
+                        legend === 6 ? legend6CountryValue.includes('ee') :
+                        legend === 7 ? legend7CountryValue.includes('ee') :
+                        legend8CountryValue.includes('ee')    
                     }                            
                       
                       >
@@ -2613,7 +3032,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('fo') : 
                         legend === 3 ? legend3CountryValue.includes('fo') : 
                         legend === 4 ? legend4CountryValue.includes('fo') :
-                        legend5CountryValue.includes('fo')    
+                        legend === 5 ? legend5CountryValue.includes('fo') :
+                        legend === 6 ? legend6CountryValue.includes('fo') :
+                        legend === 7 ? legend7CountryValue.includes('fo') :
+                        legend8CountryValue.includes('fo')    
                     }                            
                       
                       >
@@ -2634,7 +3056,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('fi') : 
                         legend === 3 ? legend3CountryValue.includes('fi') : 
                         legend === 4 ? legend4CountryValue.includes('fi') :
-                        legend5CountryValue.includes('fi')    
+                        legend === 5 ? legend5CountryValue.includes('fi') :
+                        legend === 6 ? legend6CountryValue.includes('fi') :
+                        legend === 7 ? legend7CountryValue.includes('fi') :
+                        legend8CountryValue.includes('fi')    
                     }                            
                       
                       >
@@ -2655,7 +3080,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('fr') : 
                         legend === 3 ? legend3CountryValue.includes('fr') : 
                         legend === 4 ? legend4CountryValue.includes('fr') :
-                        legend5CountryValue.includes('fr')    
+                        legend === 5 ? legend5CountryValue.includes('fr') :
+                        legend === 6 ? legend6CountryValue.includes('fr') :
+                        legend === 7 ? legend7CountryValue.includes('fr') :
+                        legend8CountryValue.includes('fr')    
                     }                            
                       
                       >
@@ -2676,7 +3104,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('de') : 
                         legend === 3 ? legend3CountryValue.includes('de') : 
                         legend === 4 ? legend4CountryValue.includes('de') :
-                        legend5CountryValue.includes('de')    
+                        legend === 5 ? legend5CountryValue.includes('de') :
+                        legend === 6 ? legend6CountryValue.includes('de') :
+                        legend === 7 ? legend7CountryValue.includes('de') :
+                        legend8CountryValue.includes('de')    
                     }                            
                       
                       >
@@ -2697,7 +3128,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gr') : 
                         legend === 3 ? legend3CountryValue.includes('gr') : 
                         legend === 4 ? legend4CountryValue.includes('gr') :
-                        legend5CountryValue.includes('gr')    
+                        legend === 5 ? legend5CountryValue.includes('gr') :
+                        legend === 6 ? legend6CountryValue.includes('gr') :
+                        legend === 7 ? legend7CountryValue.includes('gr') :
+                        legend8CountryValue.includes('gr')    
                     }                            
                       
                       >
@@ -2718,7 +3152,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('hu') : 
                         legend === 3 ? legend3CountryValue.includes('hu') : 
                         legend === 4 ? legend4CountryValue.includes('hu') :
-                        legend5CountryValue.includes('hu')    
+                        legend === 5 ? legend5CountryValue.includes('hu') :
+                        legend === 6 ? legend6CountryValue.includes('hu') :
+                        legend === 7 ? legend7CountryValue.includes('hu') :
+                        legend8CountryValue.includes('hu')    
                     }                            
                       
                       >
@@ -2739,7 +3176,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('is') : 
                         legend === 3 ? legend3CountryValue.includes('is') : 
                         legend === 4 ? legend4CountryValue.includes('is') :
-                        legend5CountryValue.includes('is')    
+                        legend === 5 ? legend5CountryValue.includes('is') :
+                        legend === 6 ? legend6CountryValue.includes('is') :
+                        legend === 7 ? legend7CountryValue.includes('is') :
+                        legend8CountryValue.includes('is')    
                     }                            
                       
                       >
@@ -2760,7 +3200,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ie') : 
                         legend === 3 ? legend3CountryValue.includes('ie') : 
                         legend === 4 ? legend4CountryValue.includes('ie') :
-                        legend5CountryValue.includes('ie')    
+                        legend === 5 ? legend5CountryValue.includes('ie') :
+                        legend === 6 ? legend6CountryValue.includes('ie') :
+                        legend === 7 ? legend7CountryValue.includes('ie') :
+                        legend8CountryValue.includes('ie')    
                     }                            
                       
                       >
@@ -2781,7 +3224,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('it') : 
                         legend === 3 ? legend3CountryValue.includes('it') : 
                         legend === 4 ? legend4CountryValue.includes('it') :
-                        legend5CountryValue.includes('it')    
+                        legend === 5 ? legend5CountryValue.includes('it') :
+                        legend === 6 ? legend6CountryValue.includes('it') :
+                        legend === 7 ? legend7CountryValue.includes('it') :
+                        legend8CountryValue.includes('it')    
                     }                            
                       
                       >
@@ -2802,7 +3248,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('lv') : 
                         legend === 3 ? legend3CountryValue.includes('lv') : 
                         legend === 4 ? legend4CountryValue.includes('lv') :
-                        legend5CountryValue.includes('lv')    
+                        legend === 5 ? legend5CountryValue.includes('lv') :
+                        legend === 6 ? legend6CountryValue.includes('lv') :
+                        legend === 7 ? legend7CountryValue.includes('lv') :
+                        legend8CountryValue.includes('lv')    
                     }                            
                       
                       >
@@ -2823,7 +3272,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('li') : 
                         legend === 3 ? legend3CountryValue.includes('li') : 
                         legend === 4 ? legend4CountryValue.includes('li') :
-                        legend5CountryValue.includes('li')    
+                        legend === 5 ? legend5CountryValue.includes('li') :
+                        legend === 6 ? legend6CountryValue.includes('li') :
+                        legend === 7 ? legend7CountryValue.includes('li') :
+                        legend8CountryValue.includes('li')    
                     }                            
                       
                       >
@@ -2844,7 +3296,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('lt') : 
                         legend === 3 ? legend3CountryValue.includes('lt') : 
                         legend === 4 ? legend4CountryValue.includes('lt') :
-                        legend5CountryValue.includes('lt')    
+                        legend === 5 ? legend5CountryValue.includes('lt') :
+                        legend === 6 ? legend6CountryValue.includes('lt') :
+                        legend === 7 ? legend7CountryValue.includes('lt') :
+                        legend8CountryValue.includes('lt')    
                     }                            
                       
                       >
@@ -2865,7 +3320,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('lu') : 
                         legend === 3 ? legend3CountryValue.includes('lu') : 
                         legend === 4 ? legend4CountryValue.includes('lu') :
-                        legend5CountryValue.includes('lu')    
+                        legend === 5 ? legend5CountryValue.includes('lu') :
+                        legend === 6 ? legend6CountryValue.includes('lu') :
+                        legend === 7 ? legend7CountryValue.includes('lu') :
+                        legend8CountryValue.includes('lu')    
                     }                            
                       
                       >
@@ -2886,7 +3344,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mt') : 
                         legend === 3 ? legend3CountryValue.includes('mt') : 
                         legend === 4 ? legend4CountryValue.includes('mt') :
-                        legend5CountryValue.includes('mt')    
+                        legend === 5 ? legend5CountryValue.includes('mt') :
+                        legend === 6 ? legend6CountryValue.includes('mt') :
+                        legend === 7 ? legend7CountryValue.includes('mt') :
+                        legend8CountryValue.includes('mt')    
                     }                            
                       
                       >
@@ -2907,7 +3368,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('md') : 
                         legend === 3 ? legend3CountryValue.includes('md') : 
                         legend === 4 ? legend4CountryValue.includes('md') :
-                        legend5CountryValue.includes('md')    
+                        legend === 5 ? legend5CountryValue.includes('md') :
+                        legend === 6 ? legend6CountryValue.includes('md') :
+                        legend === 7 ? legend7CountryValue.includes('md') :
+                        legend8CountryValue.includes('md')    
                     }                            
                       
                       >
@@ -2928,7 +3392,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mc') : 
                         legend === 3 ? legend3CountryValue.includes('mc') : 
                         legend === 4 ? legend4CountryValue.includes('mc') :
-                        legend5CountryValue.includes('mc')    
+                        legend === 5 ? legend5CountryValue.includes('mc') :
+                        legend === 6 ? legend6CountryValue.includes('mc') :
+                        legend === 7 ? legend7CountryValue.includes('mc') :
+                        legend8CountryValue.includes('mc')    
                     }                            
                       
                       >
@@ -2949,7 +3416,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('me') : 
                         legend === 3 ? legend3CountryValue.includes('me') : 
                         legend === 4 ? legend4CountryValue.includes('me') :
-                        legend5CountryValue.includes('me')    
+                        legend === 5 ? legend5CountryValue.includes('me') :
+                        legend === 6 ? legend6CountryValue.includes('me') :
+                        legend === 7 ? legend7CountryValue.includes('me') :
+                        legend8CountryValue.includes('me')    
                     }                            
                       
                       >
@@ -2970,7 +3440,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('nl') : 
                         legend === 3 ? legend3CountryValue.includes('nl') : 
                         legend === 4 ? legend4CountryValue.includes('nl') :
-                        legend5CountryValue.includes('nl')    
+                        legend === 5 ? legend5CountryValue.includes('nl') :
+                        legend === 6 ? legend6CountryValue.includes('nl') :
+                        legend === 7 ? legend7CountryValue.includes('nl') :
+                        legend8CountryValue.includes('nl')    
                     }                            
                       
                       >
@@ -2991,7 +3464,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mk') : 
                         legend === 3 ? legend3CountryValue.includes('mk') : 
                         legend === 4 ? legend4CountryValue.includes('mk') :
-                        legend5CountryValue.includes('mk')    
+                        legend === 5 ? legend5CountryValue.includes('mk') :
+                        legend === 6 ? legend6CountryValue.includes('mk') :
+                        legend === 7 ? legend7CountryValue.includes('mk') :
+                        legend8CountryValue.includes('mk')    
                     }                            
                       
                       >
@@ -3012,7 +3488,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('no') : 
                         legend === 3 ? legend3CountryValue.includes('no') : 
                         legend === 4 ? legend4CountryValue.includes('no') :
-                        legend5CountryValue.includes('no')    
+                        legend === 5 ? legend5CountryValue.includes('no') :
+                        legend === 6 ? legend6CountryValue.includes('no') :
+                        legend === 7 ? legend7CountryValue.includes('no') :
+                        legend8CountryValue.includes('no')    
                     }                            
                       
                       >
@@ -3033,7 +3512,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pl') : 
                         legend === 3 ? legend3CountryValue.includes('pl') : 
                         legend === 4 ? legend4CountryValue.includes('pl') :
-                        legend5CountryValue.includes('pl')    
+                        legend === 5 ? legend5CountryValue.includes('pl') :
+                        legend === 6 ? legend6CountryValue.includes('pl') :
+                        legend === 7 ? legend7CountryValue.includes('pl') :
+                        legend8CountryValue.includes('pl')    
                     }                            
                       
                       >
@@ -3054,7 +3536,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pt') : 
                         legend === 3 ? legend3CountryValue.includes('pt') : 
                         legend === 4 ? legend4CountryValue.includes('pt') :
-                        legend5CountryValue.includes('pt')    
+                        legend === 5 ? legend5CountryValue.includes('pt') :
+                        legend === 6 ? legend6CountryValue.includes('pt') :
+                        legend === 7 ? legend7CountryValue.includes('pt') :
+                        legend8CountryValue.includes('pt')    
                     }                            
                       
                       >
@@ -3075,7 +3560,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ro') : 
                         legend === 3 ? legend3CountryValue.includes('ro') : 
                         legend === 4 ? legend4CountryValue.includes('ro') :
-                        legend5CountryValue.includes('ro')    
+                        legend === 5 ? legend5CountryValue.includes('ro') :
+                        legend === 6 ? legend6CountryValue.includes('ro') :
+                        legend === 7 ? legend7CountryValue.includes('ro') :
+                        legend8CountryValue.includes('ro')    
                     }                            
                       
                       >
@@ -3096,7 +3584,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ru') : 
                         legend === 3 ? legend3CountryValue.includes('ru') : 
                         legend === 4 ? legend4CountryValue.includes('ru') :
-                        legend5CountryValue.includes('ru')    
+                        legend === 5 ? legend5CountryValue.includes('ru') :
+                        legend === 6 ? legend6CountryValue.includes('ru') :
+                        legend === 7 ? legend7CountryValue.includes('ru') :
+                        legend8CountryValue.includes('ru')    
                     }                            
                       
                       >
@@ -3117,7 +3608,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('sm') : 
                         legend === 3 ? legend3CountryValue.includes('sm') : 
                         legend === 4 ? legend4CountryValue.includes('sm') :
-                        legend5CountryValue.includes('sm')    
+                        legend === 5 ? legend5CountryValue.includes('sm') :
+                        legend === 6 ? legend6CountryValue.includes('sm') :
+                        legend === 7 ? legend7CountryValue.includes('sm') :
+                        legend8CountryValue.includes('sm')    
                     }                            
                       
                       >
@@ -3138,7 +3632,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('rs') : 
                         legend === 3 ? legend3CountryValue.includes('rs') : 
                         legend === 4 ? legend4CountryValue.includes('rs') :
-                        legend5CountryValue.includes('rs')    
+                        legend === 5 ? legend5CountryValue.includes('rs') :
+                        legend === 6 ? legend6CountryValue.includes('rs') :
+                        legend === 7 ? legend7CountryValue.includes('rs') :
+                        legend8CountryValue.includes('rs')    
                     }                            
                       
                       >
@@ -3159,7 +3656,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('sk') : 
                         legend === 3 ? legend3CountryValue.includes('sk') : 
                         legend === 4 ? legend4CountryValue.includes('sk') :
-                        legend5CountryValue.includes('sk')    
+                        legend === 5 ? legend5CountryValue.includes('sk') :
+                        legend === 6 ? legend6CountryValue.includes('sk') :
+                        legend === 7 ? legend7CountryValue.includes('sk') :
+                        legend8CountryValue.includes('sk')    
                     }                            
                       
                       >
@@ -3180,7 +3680,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('si') : 
                         legend === 3 ? legend3CountryValue.includes('si') : 
                         legend === 4 ? legend4CountryValue.includes('si') :
-                        legend5CountryValue.includes('si')    
+                        legend === 5 ? legend5CountryValue.includes('si') :
+                        legend === 6 ? legend6CountryValue.includes('si') :
+                        legend === 7 ? legend7CountryValue.includes('si') :
+                        legend8CountryValue.includes('si')    
                     }                            
                       
                       >
@@ -3201,7 +3704,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('es') : 
                         legend === 3 ? legend3CountryValue.includes('es') : 
                         legend === 4 ? legend4CountryValue.includes('es') :
-                        legend5CountryValue.includes('es')    
+                        legend === 5 ? legend5CountryValue.includes('es') :
+                        legend === 6 ? legend6CountryValue.includes('es') :
+                        legend === 7 ? legend7CountryValue.includes('es') :
+                        legend8CountryValue.includes('es')    
                     }                            
                       
                       >
@@ -3222,7 +3728,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('se') : 
                         legend === 3 ? legend3CountryValue.includes('se') : 
                         legend === 4 ? legend4CountryValue.includes('se') :
-                        legend5CountryValue.includes('se')    
+                        legend === 5 ? legend5CountryValue.includes('se') :
+                        legend === 6 ? legend6CountryValue.includes('se') :
+                        legend === 7 ? legend7CountryValue.includes('se') :
+                        legend8CountryValue.includes('se')    
                     }                            
                       
                       >
@@ -3243,7 +3752,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ch') : 
                         legend === 3 ? legend3CountryValue.includes('ch') : 
                         legend === 4 ? legend4CountryValue.includes('ch') :
-                        legend5CountryValue.includes('ch')    
+                        legend === 5 ? legend5CountryValue.includes('ch') :
+                        legend === 6 ? legend6CountryValue.includes('ch') :
+                        legend === 7 ? legend7CountryValue.includes('ch') :
+                        legend8CountryValue.includes('ch')    
                     }                            
                       
                       >
@@ -3264,7 +3776,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ua') : 
                         legend === 3 ? legend3CountryValue.includes('ua') : 
                         legend === 4 ? legend4CountryValue.includes('ua') :
-                        legend5CountryValue.includes('ua')    
+                        legend === 5 ? legend5CountryValue.includes('ua') :
+                        legend === 6 ? legend6CountryValue.includes('ua') :
+                        legend === 7 ? legend7CountryValue.includes('ua') :
+                        legend8CountryValue.includes('ua')    
                     }                            
                       
                       >
@@ -3285,7 +3800,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gb') : 
                         legend === 3 ? legend3CountryValue.includes('gb') : 
                         legend === 4 ? legend4CountryValue.includes('gb') :
-                        legend5CountryValue.includes('gb')    
+                        legend === 5 ? legend5CountryValue.includes('gb') :
+                        legend === 6 ? legend6CountryValue.includes('gb') :
+                        legend === 7 ? legend7CountryValue.includes('gb') :
+                        legend8CountryValue.includes('gb')    
                     }                            
                       
                       >
@@ -3305,6 +3823,11 @@ function Countries({
           
           
 
+        
+
+          <ul>
+
+
       <li>
                     <div className="continents">
                             <img className='con-icon' src='../assets/north-america.png'></img>
@@ -3313,9 +3836,6 @@ function Countries({
                     </div>    
           </li>
 
-        
-
-          <ul>
 
           <li>
                   <input 
@@ -3329,7 +3849,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ai') : 
                         legend === 3 ? legend3CountryValue.includes('ai') : 
                         legend === 4 ? legend4CountryValue.includes('ai') :
-                        legend5CountryValue.includes('ai')    
+                        legend === 5 ? legend5CountryValue.includes('ai') :
+                        legend === 6 ? legend6CountryValue.includes('ai') :
+                        legend === 7 ? legend7CountryValue.includes('ai') :
+                        legend8CountryValue.includes('ai')    
                     }                            
                       
                       >
@@ -3350,7 +3873,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ag') : 
                         legend === 3 ? legend3CountryValue.includes('ag') : 
                         legend === 4 ? legend4CountryValue.includes('ag') :
-                        legend5CountryValue.includes('ag')    
+                        legend === 5 ? legend5CountryValue.includes('ag') :
+                        legend === 6 ? legend6CountryValue.includes('ag') :
+                        legend === 7 ? legend7CountryValue.includes('ag') :
+                        legend8CountryValue.includes('ag')    
                     }                            
                       
                       >
@@ -3371,7 +3897,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('aw') : 
                         legend === 3 ? legend3CountryValue.includes('aw') : 
                         legend === 4 ? legend4CountryValue.includes('aw') :
-                        legend5CountryValue.includes('aw')    
+                        legend === 5 ? legend5CountryValue.includes('aw') :
+                        legend === 6 ? legend6CountryValue.includes('aw') :
+                        legend === 7 ? legend7CountryValue.includes('aw') :
+                        legend8CountryValue.includes('aw')    
                     }                            
                       
                       >
@@ -3392,7 +3921,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bs') : 
                         legend === 3 ? legend3CountryValue.includes('bs') : 
                         legend === 4 ? legend4CountryValue.includes('bs') :
-                        legend5CountryValue.includes('bs')    
+                        legend === 5 ? legend5CountryValue.includes('bs') :
+                        legend === 6 ? legend6CountryValue.includes('bs') :
+                        legend === 7 ? legend7CountryValue.includes('bs') :
+                        legend8CountryValue.includes('bs')    
                     }                            
                       
                       >
@@ -3415,7 +3947,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bb') : 
                         legend === 3 ? legend3CountryValue.includes('bb') : 
                         legend === 4 ? legend4CountryValue.includes('bb') :
-                        legend5CountryValue.includes('bb')    
+                        legend === 5 ? legend5CountryValue.includes('bb') :
+                        legend === 6 ? legend6CountryValue.includes('bb') :
+                        legend === 7 ? legend7CountryValue.includes('bb') :
+                        legend8CountryValue.includes('bb')    
                     }                            
                       
                       >
@@ -3436,7 +3971,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bz') : 
                         legend === 3 ? legend3CountryValue.includes('bz') : 
                         legend === 4 ? legend4CountryValue.includes('bz') :
-                        legend5CountryValue.includes('bz')    
+                        legend === 5 ? legend5CountryValue.includes('bz') :
+                        legend === 6 ? legend6CountryValue.includes('bz') :
+                        legend === 7 ? legend7CountryValue.includes('bz') :
+                        legend8CountryValue.includes('bz')    
                     }                            
                       
                       >
@@ -3457,7 +3995,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bm') : 
                         legend === 3 ? legend3CountryValue.includes('bm') : 
                         legend === 4 ? legend4CountryValue.includes('bm') :
-                        legend5CountryValue.includes('bm')    
+                        legend === 5 ? legend5CountryValue.includes('bm') :
+                        legend === 6 ? legend6CountryValue.includes('bm') :
+                        legend === 7 ? legend7CountryValue.includes('bm') :
+                        legend8CountryValue.includes('bm')    
                     }                            
                       
                       >
@@ -3478,7 +4019,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bq') : 
                         legend === 3 ? legend3CountryValue.includes('bq') : 
                         legend === 4 ? legend4CountryValue.includes('bq') :
-                        legend5CountryValue.includes('bq')    
+                        legend === 5 ? legend5CountryValue.includes('bq') :
+                        legend === 6 ? legend6CountryValue.includes('bq') :
+                        legend === 7 ? legend7CountryValue.includes('bq') :
+                        legend8CountryValue.includes('bq')    
                     }                            
                       
                       >
@@ -3499,7 +4043,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('vg') : 
                         legend === 3 ? legend3CountryValue.includes('vg') : 
                         legend === 4 ? legend4CountryValue.includes('vg') :
-                        legend5CountryValue.includes('vg')    
+                        legend === 5 ? legend5CountryValue.includes('vg') :
+                        legend === 6 ? legend6CountryValue.includes('vg') :
+                        legend === 7 ? legend7CountryValue.includes('vg') :
+                        legend8CountryValue.includes('vg')    
                     }                            
                       
                       >
@@ -3521,7 +4068,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ca') : 
                         legend === 3 ? legend3CountryValue.includes('ca') : 
                         legend === 4 ? legend4CountryValue.includes('ca') :
-                        legend5CountryValue.includes('ca')    
+                        legend === 5 ? legend5CountryValue.includes('ca') :
+                        legend === 6 ? legend6CountryValue.includes('ca') :
+                        legend === 7 ? legend7CountryValue.includes('ca') :
+                        legend8CountryValue.includes('ca')    
                     }                            
                       
                       >
@@ -3542,7 +4092,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ky') : 
                         legend === 3 ? legend3CountryValue.includes('ky') : 
                         legend === 4 ? legend4CountryValue.includes('ky') :
-                        legend5CountryValue.includes('ky')    
+                        legend === 5 ? legend5CountryValue.includes('ky') :
+                        legend === 6 ? legend6CountryValue.includes('ky') :
+                        legend === 7 ? legend7CountryValue.includes('ky') :
+                        legend8CountryValue.includes('ky')    
                     }                            
                       
                       >
@@ -3564,7 +4117,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('cr') : 
                         legend === 3 ? legend3CountryValue.includes('cr') : 
                         legend === 4 ? legend4CountryValue.includes('cr') :
-                        legend5CountryValue.includes('cr')    
+                        legend === 5 ? legend5CountryValue.includes('cr') :
+                        legend === 6 ? legend6CountryValue.includes('cr') :
+                        legend === 7 ? legend7CountryValue.includes('cr') :
+                        legend8CountryValue.includes('cr')    
                     }                            
                       
                       >
@@ -3586,7 +4142,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('cu') : 
                         legend === 3 ? legend3CountryValue.includes('cu') : 
                         legend === 4 ? legend4CountryValue.includes('cu') :
-                        legend5CountryValue.includes('cu')    
+                        legend === 5 ? legend5CountryValue.includes('cu') :
+                        legend === 6 ? legend6CountryValue.includes('cu') :
+                        legend === 7 ? legend7CountryValue.includes('cu') :
+                        legend8CountryValue.includes('cu')    
                     }                            
                       
                       >
@@ -3607,7 +4166,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('cw') : 
                         legend === 3 ? legend3CountryValue.includes('cw') : 
                         legend === 4 ? legend4CountryValue.includes('cw') :
-                        legend5CountryValue.includes('cw')    
+                        legend === 5 ? legend5CountryValue.includes('cw') :
+                        legend === 6 ? legend6CountryValue.includes('cw') :
+                        legend === 7 ? legend7CountryValue.includes('cw') :
+                        legend8CountryValue.includes('cw')    
                     }                            
                       
                       >
@@ -3628,7 +4190,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('dm') : 
                         legend === 3 ? legend3CountryValue.includes('dm') : 
                         legend === 4 ? legend4CountryValue.includes('dm') :
-                        legend5CountryValue.includes('dm')    
+                        legend === 5 ? legend5CountryValue.includes('dm') :
+                        legend === 6 ? legend6CountryValue.includes('dm') :
+                        legend === 7 ? legend7CountryValue.includes('dm') :
+                        legend8CountryValue.includes('dm')    
                     }                            
                       
                       >
@@ -3649,7 +4214,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('do') : 
                         legend === 3 ? legend3CountryValue.includes('do') : 
                         legend === 4 ? legend4CountryValue.includes('do') :
-                        legend5CountryValue.includes('do')    
+                        legend === 5 ? legend5CountryValue.includes('do') :
+                        legend === 6 ? legend6CountryValue.includes('do') :
+                        legend === 7 ? legend7CountryValue.includes('do') :
+                        legend8CountryValue.includes('do')    
                     }                            
                       
                       >
@@ -3670,7 +4238,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('sv') : 
                         legend === 3 ? legend3CountryValue.includes('sv') : 
                         legend === 4 ? legend4CountryValue.includes('sv') :
-                        legend5CountryValue.includes('sv')    
+                        legend === 5 ? legend5CountryValue.includes('sv') :
+                        legend === 6 ? legend6CountryValue.includes('sv') :
+                        legend === 7 ? legend7CountryValue.includes('sv') :
+                        legend8CountryValue.includes('sv')    
                     }                            
                       
                       >
@@ -3694,7 +4265,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gd') : 
                         legend === 3 ? legend3CountryValue.includes('gd') : 
                         legend === 4 ? legend4CountryValue.includes('gd') :
-                        legend5CountryValue.includes('gd')    
+                        legend === 5 ? legend5CountryValue.includes('gd') :
+                        legend === 6 ? legend6CountryValue.includes('gd') :
+                        legend === 7 ? legend7CountryValue.includes('gd') :
+                        legend8CountryValue.includes('gd')    
                     }                            
                       
                       >
@@ -3715,7 +4289,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gl') : 
                         legend === 3 ? legend3CountryValue.includes('gl') : 
                         legend === 4 ? legend4CountryValue.includes('gl') :
-                        legend5CountryValue.includes('gl')    
+                        legend === 5 ? legend5CountryValue.includes('gl') :
+                        legend === 6 ? legend6CountryValue.includes('gl') :
+                        legend === 7 ? legend7CountryValue.includes('gl') :
+                        legend8CountryValue.includes('gl')    
                     }                            
                       
                       >
@@ -3736,7 +4313,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gp') : 
                         legend === 3 ? legend3CountryValue.includes('gp') : 
                         legend === 4 ? legend4CountryValue.includes('gp') :
-                        legend5CountryValue.includes('gp')    
+                        legend === 5 ? legend5CountryValue.includes('gp') :
+                        legend === 6 ? legend6CountryValue.includes('gp') :
+                        legend === 7 ? legend7CountryValue.includes('gp') :
+                        legend8CountryValue.includes('gp')    
                     }                            
                       
                       >
@@ -3758,7 +4338,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gt') : 
                         legend === 3 ? legend3CountryValue.includes('gt') : 
                         legend === 4 ? legend4CountryValue.includes('gt') :
-                        legend5CountryValue.includes('gt')    
+                        legend === 5 ? legend5CountryValue.includes('gt') :
+                        legend === 6 ? legend6CountryValue.includes('gt') :
+                        legend === 7 ? legend7CountryValue.includes('gt') :
+                        legend8CountryValue.includes('gt')    
                     }                            
                       
                       >
@@ -3779,7 +4362,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ht') : 
                         legend === 3 ? legend3CountryValue.includes('ht') : 
                         legend === 4 ? legend4CountryValue.includes('ht') :
-                        legend5CountryValue.includes('ht')    
+                        legend === 5 ? legend5CountryValue.includes('ht') :
+                        legend === 6 ? legend6CountryValue.includes('ht') :
+                        legend === 7 ? legend7CountryValue.includes('ht') :
+                        legend8CountryValue.includes('ht')    
                     }                            
                       
                       >
@@ -3800,7 +4386,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('hn') : 
                         legend === 3 ? legend3CountryValue.includes('hn') : 
                         legend === 4 ? legend4CountryValue.includes('hn') :
-                        legend5CountryValue.includes('hn')    
+                        legend === 5 ? legend5CountryValue.includes('hn') :
+                        legend === 6 ? legend6CountryValue.includes('hn') :
+                        legend === 7 ? legend7CountryValue.includes('hn') :
+                        legend8CountryValue.includes('hn')    
                     }                            
                       
                       >
@@ -3821,7 +4410,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('jm') : 
                         legend === 3 ? legend3CountryValue.includes('jm') : 
                         legend === 4 ? legend4CountryValue.includes('jm') :
-                        legend5CountryValue.includes('jm')    
+                        legend === 5 ? legend5CountryValue.includes('jm') :
+                        legend === 6 ? legend6CountryValue.includes('jm') :
+                        legend === 7 ? legend7CountryValue.includes('jm') :
+                        legend8CountryValue.includes('jm')    
                     }                            
                       
                       >
@@ -3842,7 +4434,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mq') : 
                         legend === 3 ? legend3CountryValue.includes('mq') : 
                         legend === 4 ? legend4CountryValue.includes('mq') :
-                        legend5CountryValue.includes('mq')    
+                        legend === 5 ? legend5CountryValue.includes('mq') :
+                        legend === 6 ? legend6CountryValue.includes('mq') :
+                        legend === 7 ? legend7CountryValue.includes('mq') :
+                        legend8CountryValue.includes('mq')    
                     }                            
                       
                       >
@@ -3863,7 +4458,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mx') : 
                         legend === 3 ? legend3CountryValue.includes('mx') : 
                         legend === 4 ? legend4CountryValue.includes('mx') :
-                        legend5CountryValue.includes('mx')    
+                        legend === 5 ? legend5CountryValue.includes('mx') :
+                        legend === 6 ? legend6CountryValue.includes('mx') :
+                        legend === 7 ? legend7CountryValue.includes('mx') :
+                        legend8CountryValue.includes('mx')    
                     }                            
                       
                       >
@@ -3884,7 +4482,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ms') : 
                         legend === 3 ? legend3CountryValue.includes('ms') : 
                         legend === 4 ? legend4CountryValue.includes('ms') :
-                        legend5CountryValue.includes('ms')    
+                        legend === 5 ? legend5CountryValue.includes('ms') :
+                        legend === 6 ? legend6CountryValue.includes('ms') :
+                        legend === 7 ? legend7CountryValue.includes('ms') :
+                        legend8CountryValue.includes('ms')    
                     }                            
                       
                       >
@@ -3905,7 +4506,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ni') : 
                         legend === 3 ? legend3CountryValue.includes('ni') : 
                         legend === 4 ? legend4CountryValue.includes('ni') :
-                        legend5CountryValue.includes('ni')    
+                        legend === 5 ? legend5CountryValue.includes('ni') :
+                        legend === 6 ? legend6CountryValue.includes('ni') :
+                        legend === 7 ? legend7CountryValue.includes('ni') :
+                        legend8CountryValue.includes('ni')    
                     }                            
                       
                       >
@@ -3926,7 +4530,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pa') : 
                         legend === 3 ? legend3CountryValue.includes('pa') : 
                         legend === 4 ? legend4CountryValue.includes('pa') :
-                        legend5CountryValue.includes('pa')    
+                        legend === 5 ? legend5CountryValue.includes('pa') :
+                        legend === 6 ? legend6CountryValue.includes('pa') :
+                        legend === 7 ? legend7CountryValue.includes('pa') :
+                        legend8CountryValue.includes('pa')    
                     }                            
                       
                       >
@@ -3947,7 +4554,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pr') : 
                         legend === 3 ? legend3CountryValue.includes('pr') : 
                         legend === 4 ? legend4CountryValue.includes('pr') :
-                        legend5CountryValue.includes('pr')    
+                        legend === 5 ? legend5CountryValue.includes('pr') :
+                        legend === 6 ? legend6CountryValue.includes('pr') :
+                        legend === 7 ? legend7CountryValue.includes('pr') :
+                        legend8CountryValue.includes('pr')    
                     }                            
                       
                       >
@@ -3968,7 +4578,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bl') : 
                         legend === 3 ? legend3CountryValue.includes('bl') : 
                         legend === 4 ? legend4CountryValue.includes('bl') :
-                        legend5CountryValue.includes('bl')    
+                        legend === 5 ? legend5CountryValue.includes('bl') :
+                        legend === 6 ? legend6CountryValue.includes('bl') :
+                        legend === 7 ? legend7CountryValue.includes('bl') :
+                        legend8CountryValue.includes('bl')    
                     }                            
                       
                       >
@@ -3989,7 +4602,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('kn') : 
                         legend === 3 ? legend3CountryValue.includes('kn') : 
                         legend === 4 ? legend4CountryValue.includes('kn') :
-                        legend5CountryValue.includes('kn')    
+                        legend === 5 ? legend5CountryValue.includes('kn') :
+                        legend === 6 ? legend6CountryValue.includes('kn') :
+                        legend === 7 ? legend7CountryValue.includes('kn') :
+                        legend8CountryValue.includes('kn')    
                     }                            
                       
                       >
@@ -4010,7 +4626,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('lc') : 
                         legend === 3 ? legend3CountryValue.includes('lc') : 
                         legend === 4 ? legend4CountryValue.includes('lc') :
-                        legend5CountryValue.includes('lc')    
+                        legend === 5 ? legend5CountryValue.includes('lc') :
+                        legend === 6 ? legend6CountryValue.includes('lc') :
+                        legend === 7 ? legend7CountryValue.includes('lc') :
+                        legend8CountryValue.includes('lc')    
                     }                            
                       
                       >
@@ -4031,7 +4650,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mf') : 
                         legend === 3 ? legend3CountryValue.includes('mf') : 
                         legend === 4 ? legend4CountryValue.includes('mf') :
-                        legend5CountryValue.includes('mf')    
+                        legend === 5 ? legend5CountryValue.includes('mf') :
+                        legend === 6 ? legend6CountryValue.includes('mf') :
+                        legend === 7 ? legend7CountryValue.includes('mf') :
+                        legend8CountryValue.includes('mf')    
                     }                            
                       
                       >
@@ -4052,7 +4674,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pm') : 
                         legend === 3 ? legend3CountryValue.includes('pm') : 
                         legend === 4 ? legend4CountryValue.includes('pm') :
-                        legend5CountryValue.includes('pm')    
+                        legend === 5 ? legend5CountryValue.includes('pm') :
+                        legend === 6 ? legend6CountryValue.includes('pm') :
+                        legend === 7 ? legend7CountryValue.includes('pm') :
+                        legend8CountryValue.includes('pm')    
                     }                            
                       
                       >
@@ -4073,7 +4698,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('vc') : 
                         legend === 3 ? legend3CountryValue.includes('vc') : 
                         legend === 4 ? legend4CountryValue.includes('vc') :
-                        legend5CountryValue.includes('vc')    
+                        legend === 5 ? legend5CountryValue.includes('vc') :
+                        legend === 6 ? legend6CountryValue.includes('vc') :
+                        legend === 7 ? legend7CountryValue.includes('vc') :
+                        legend8CountryValue.includes('vc')    
                     }                            
                       
                       >
@@ -4094,7 +4722,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('sx') : 
                         legend === 3 ? legend3CountryValue.includes('sx') : 
                         legend === 4 ? legend4CountryValue.includes('sx') :
-                        legend5CountryValue.includes('sx')    
+                        legend === 5 ? legend5CountryValue.includes('sx') :
+                        legend === 6 ? legend6CountryValue.includes('sx') :
+                        legend === 7 ? legend7CountryValue.includes('sx') :
+                        legend8CountryValue.includes('sx')    
                     }                            
                       
                       >
@@ -4117,7 +4748,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('tt') : 
                         legend === 3 ? legend3CountryValue.includes('tt') : 
                         legend === 4 ? legend4CountryValue.includes('tt') :
-                        legend5CountryValue.includes('tt')    
+                        legend === 5 ? legend5CountryValue.includes('tt') :
+                        legend === 6 ? legend6CountryValue.includes('tt') :
+                        legend === 7 ? legend7CountryValue.includes('tt') :
+                        legend8CountryValue.includes('tt')    
                     }                            
                       
                       >
@@ -4138,7 +4772,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('tc') : 
                         legend === 3 ? legend3CountryValue.includes('tc') : 
                         legend === 4 ? legend4CountryValue.includes('tc') :
-                        legend5CountryValue.includes('tc')    
+                        legend === 5 ? legend5CountryValue.includes('tc') :
+                        legend === 6 ? legend6CountryValue.includes('tc') :
+                        legend === 7 ? legend7CountryValue.includes('tc') :
+                        legend8CountryValue.includes('tc')    
                     }                            
                       
                       >
@@ -4159,7 +4796,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('vi') : 
                         legend === 3 ? legend3CountryValue.includes('vi') : 
                         legend === 4 ? legend4CountryValue.includes('vi') :
-                        legend5CountryValue.includes('vi')    
+                        legend === 5 ? legend5CountryValue.includes('vi') :
+                        legend === 6 ? legend6CountryValue.includes('vi') :
+                        legend === 7 ? legend7CountryValue.includes('vi') :
+                        legend8CountryValue.includes('vi')    
                     }                            
                       
                       >
@@ -4180,7 +4820,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('us') : 
                         legend === 3 ? legend3CountryValue.includes('us') : 
                         legend === 4 ? legend4CountryValue.includes('us') :
-                        legend5CountryValue.includes('us')    
+                        legend === 5 ? legend5CountryValue.includes('us') :
+                        legend === 6 ? legend6CountryValue.includes('us') :
+                        legend === 7 ? legend7CountryValue.includes('us') :
+                        legend8CountryValue.includes('us')    
                     }                            
                       
                       >
@@ -4198,7 +4841,11 @@ function Countries({
           
           
 
-      <li>
+     
+        
+
+          <ul>
+          <li>
                     <div className="continents">
                             <img className='con-icon' src='../assets/south-america.png'></img>
 
@@ -4206,9 +4853,6 @@ function Countries({
                     </div>      
           </li>
 
-        
-
-          <ul>
 
           <li>
                   <input 
@@ -4222,7 +4866,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ar') : 
                         legend === 3 ? legend3CountryValue.includes('ar') : 
                         legend === 4 ? legend4CountryValue.includes('ar') :
-                        legend5CountryValue.includes('ar')    
+                        legend === 5 ? legend5CountryValue.includes('ar') :
+                        legend === 6 ? legend6CountryValue.includes('ar') :
+                        legend === 7 ? legend7CountryValue.includes('ar') :
+                        legend8CountryValue.includes('ar')    
                     }                            
                       
                       >
@@ -4243,7 +4890,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('bo') : 
                         legend === 3 ? legend3CountryValue.includes('bo') : 
                         legend === 4 ? legend4CountryValue.includes('bo') :
-                        legend5CountryValue.includes('bo')    
+                        legend === 5 ? legend5CountryValue.includes('bo') :
+                        legend === 6 ? legend6CountryValue.includes('bo') :
+                        legend === 7 ? legend7CountryValue.includes('bo') :
+                        legend8CountryValue.includes('bo')    
                     }                            
                       
                       >
@@ -4264,7 +4914,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('br') : 
                         legend === 3 ? legend3CountryValue.includes('br') : 
                         legend === 4 ? legend4CountryValue.includes('br') :
-                        legend5CountryValue.includes('br')    
+                        legend === 5 ? legend5CountryValue.includes('br') :
+                        legend === 6 ? legend6CountryValue.includes('br') :
+                        legend === 7 ? legend7CountryValue.includes('br') :
+                        legend8CountryValue.includes('br')    
                     }                            
                       
                       >
@@ -4285,7 +4938,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('cl') : 
                         legend === 3 ? legend3CountryValue.includes('cl') : 
                         legend === 4 ? legend4CountryValue.includes('cl') :
-                        legend5CountryValue.includes('cl')    
+                        legend === 5 ? legend5CountryValue.includes('cl') :
+                        legend === 6 ? legend6CountryValue.includes('cl') :
+                        legend === 7 ? legend7CountryValue.includes('cl') :
+                        legend8CountryValue.includes('cl')    
                     }                            
                       
                       >
@@ -4308,7 +4964,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('co') : 
                         legend === 3 ? legend3CountryValue.includes('co') : 
                         legend === 4 ? legend4CountryValue.includes('co') :
-                        legend5CountryValue.includes('co')    
+                        legend === 5 ? legend5CountryValue.includes('co') :
+                        legend === 6 ? legend6CountryValue.includes('co') :
+                        legend === 7 ? legend7CountryValue.includes('co') :
+                        legend8CountryValue.includes('co')    
                     }                            
                       
                       >
@@ -4329,7 +4988,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ec') : 
                         legend === 3 ? legend3CountryValue.includes('ec') : 
                         legend === 4 ? legend4CountryValue.includes('ec') :
-                        legend5CountryValue.includes('ec')    
+                        legend === 5 ? legend5CountryValue.includes('ec') :
+                        legend === 6 ? legend6CountryValue.includes('ec') :
+                        legend === 7 ? legend7CountryValue.includes('ec') :
+                        legend8CountryValue.includes('ec')    
                     }                            
                       
                       >
@@ -4350,7 +5012,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('fk') : 
                         legend === 3 ? legend3CountryValue.includes('fk') : 
                         legend === 4 ? legend4CountryValue.includes('fk') :
-                        legend5CountryValue.includes('fk')    
+                        legend === 5 ? legend5CountryValue.includes('fk') :
+                        legend === 6 ? legend6CountryValue.includes('fk') :
+                        legend === 7 ? legend7CountryValue.includes('fk') :
+                        legend8CountryValue.includes('fk')    
                     }                            
                       
                       >
@@ -4371,7 +5036,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gf') : 
                         legend === 3 ? legend3CountryValue.includes('gf') : 
                         legend === 4 ? legend4CountryValue.includes('gf') :
-                        legend5CountryValue.includes('gf')    
+                        legend === 5 ? legend5CountryValue.includes('gf') :
+                        legend === 6 ? legend6CountryValue.includes('gf') :
+                        legend === 7 ? legend7CountryValue.includes('gf') :
+                        legend8CountryValue.includes('gf')    
                     }                            
                       
                       >
@@ -4392,7 +5060,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('gy') : 
                         legend === 3 ? legend3CountryValue.includes('gy') : 
                         legend === 4 ? legend4CountryValue.includes('gy') :
-                        legend5CountryValue.includes('gy')    
+                        legend === 5 ? legend5CountryValue.includes('gy') :
+                        legend === 6 ? legend6CountryValue.includes('gy') :
+                        legend === 7 ? legend7CountryValue.includes('gy') :
+                        legend8CountryValue.includes('gy')    
                     }                            
                       
                       >
@@ -4414,7 +5085,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('py') : 
                         legend === 3 ? legend3CountryValue.includes('py') : 
                         legend === 4 ? legend4CountryValue.includes('py') :
-                        legend5CountryValue.includes('py')    
+                        legend === 5 ? legend5CountryValue.includes('py') :
+                        legend === 6 ? legend6CountryValue.includes('py') :
+                        legend === 7 ? legend7CountryValue.includes('py') :
+                        legend8CountryValue.includes('py')    
                     }                            
                       
                       >
@@ -4435,7 +5109,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pe') : 
                         legend === 3 ? legend3CountryValue.includes('pe') : 
                         legend === 4 ? legend4CountryValue.includes('pe') :
-                        legend5CountryValue.includes('pe')    
+                        legend === 5 ? legend5CountryValue.includes('pe') :
+                        legend === 6 ? legend6CountryValue.includes('pe') :
+                        legend === 7 ? legend7CountryValue.includes('pe') :
+                        legend8CountryValue.includes('pe')    
                     }                            
                       
                       >
@@ -4457,7 +5134,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('sr') : 
                         legend === 3 ? legend3CountryValue.includes('sr') : 
                         legend === 4 ? legend4CountryValue.includes('sr') :
-                        legend5CountryValue.includes('sr')    
+                        legend === 5 ? legend5CountryValue.includes('sr') :
+                        legend === 6 ? legend6CountryValue.includes('sr') :
+                        legend === 7 ? legend7CountryValue.includes('sr') :
+                        legend8CountryValue.includes('sr')    
                     }                            
                       
                       >
@@ -4479,7 +5159,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('uy') : 
                         legend === 3 ? legend3CountryValue.includes('uy') : 
                         legend === 4 ? legend4CountryValue.includes('uy') :
-                        legend5CountryValue.includes('uy')    
+                        legend === 5 ? legend5CountryValue.includes('uy') :
+                        legend === 6 ? legend6CountryValue.includes('uy') :
+                        legend === 7 ? legend7CountryValue.includes('uy') :
+                        legend8CountryValue.includes('uy')    
                     }                            
                       
                       >
@@ -4500,7 +5183,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ve') : 
                         legend === 3 ? legend3CountryValue.includes('ve') : 
                         legend === 4 ? legend4CountryValue.includes('ve') :
-                        legend5CountryValue.includes('ve')    
+                        legend === 5 ? legend5CountryValue.includes('ve') :
+                        legend === 6 ? legend6CountryValue.includes('ve') :
+                        legend === 7 ? legend7CountryValue.includes('ve') :
+                        legend8CountryValue.includes('ve')    
                     }                            
                       
                       >
@@ -4520,7 +5206,11 @@ function Countries({
           
           
 
-      <li>
+  
+        
+
+          <ul>
+          <li>
                 <div className="continents" >
                     <img className='con-icon' src='../assets/australia.png'></img>
 
@@ -4528,9 +5218,6 @@ function Countries({
                 </div>           
           </li>
 
-        
-
-          <ul>
 
           <li>
                   <input 
@@ -4544,7 +5231,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('au') : 
                         legend === 3 ? legend3CountryValue.includes('au') : 
                         legend === 4 ? legend4CountryValue.includes('au') :
-                        legend5CountryValue.includes('au')    
+                        legend === 5 ? legend5CountryValue.includes('au') :
+                        legend === 6 ? legend6CountryValue.includes('au') :
+                        legend === 7 ? legend7CountryValue.includes('au') :
+                        legend8CountryValue.includes('au')    
                     }                            
                       
                       >
@@ -4565,7 +5255,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('fj') : 
                         legend === 3 ? legend3CountryValue.includes('fj') : 
                         legend === 4 ? legend4CountryValue.includes('fj') :
-                        legend5CountryValue.includes('fj')    
+                        legend === 5 ? legend5CountryValue.includes('fj') :
+                        legend === 6 ? legend6CountryValue.includes('fj') :
+                        legend === 7 ? legend7CountryValue.includes('fj') :
+                        legend8CountryValue.includes('fj')    
                     }                            
                       
                       >
@@ -4586,7 +5279,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ki') : 
                         legend === 3 ? legend3CountryValue.includes('ki') : 
                         legend === 4 ? legend4CountryValue.includes('ki') :
-                        legend5CountryValue.includes('ki')    
+                        legend === 5 ? legend5CountryValue.includes('ki') :
+                        legend === 6 ? legend6CountryValue.includes('ki') :
+                        legend === 7 ? legend7CountryValue.includes('ki') :
+                        legend8CountryValue.includes('ki')    
                     }                            
                       
                       >
@@ -4607,7 +5303,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('mh') : 
                         legend === 3 ? legend3CountryValue.includes('mh') : 
                         legend === 4 ? legend4CountryValue.includes('mh') :
-                        legend5CountryValue.includes('mh')    
+                        legend === 5 ? legend5CountryValue.includes('mh') :
+                        legend === 6 ? legend6CountryValue.includes('mh') :
+                        legend === 7 ? legend7CountryValue.includes('mh') :
+                        legend8CountryValue.includes('mh')    
                     }                            
                       
                       >
@@ -4630,7 +5329,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('fm') : 
                         legend === 3 ? legend3CountryValue.includes('fm') : 
                         legend === 4 ? legend4CountryValue.includes('fm') :
-                        legend5CountryValue.includes('fm')    
+                        legend === 5 ? legend5CountryValue.includes('fm') :
+                        legend === 6 ? legend6CountryValue.includes('fm') :
+                        legend === 7 ? legend7CountryValue.includes('fm') :
+                        legend8CountryValue.includes('fm')    
                     }                            
                       
                       >
@@ -4651,7 +5353,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('nr') : 
                         legend === 3 ? legend3CountryValue.includes('nr') : 
                         legend === 4 ? legend4CountryValue.includes('nr') :
-                        legend5CountryValue.includes('nr')    
+                        legend === 5 ? legend5CountryValue.includes('nr') :
+                        legend === 6 ? legend6CountryValue.includes('nr') :
+                        legend === 7 ? legend7CountryValue.includes('nr') :
+                        legend8CountryValue.includes('nr')    
                     }                            
                       
                       >
@@ -4672,7 +5377,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('nc') : 
                         legend === 3 ? legend3CountryValue.includes('nc') : 
                         legend === 4 ? legend4CountryValue.includes('nc') :
-                        legend5CountryValue.includes('nc')    
+                        legend === 5 ? legend5CountryValue.includes('nc') :
+                        legend === 6 ? legend6CountryValue.includes('nc') :
+                        legend === 7 ? legend7CountryValue.includes('nc') :
+                        legend8CountryValue.includes('nc')    
                     }                            
                       
                       >
@@ -4693,7 +5401,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('nz') : 
                         legend === 3 ? legend3CountryValue.includes('nz') : 
                         legend === 4 ? legend4CountryValue.includes('nz') :
-                        legend5CountryValue.includes('nz')    
+                        legend === 5 ? legend5CountryValue.includes('nz') :
+                        legend === 6 ? legend6CountryValue.includes('nz') :
+                        legend === 7 ? legend7CountryValue.includes('nz') :
+                        legend8CountryValue.includes('nz')    
                     }                            
                       
                       >
@@ -4714,7 +5425,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pw') : 
                         legend === 3 ? legend3CountryValue.includes('pw') : 
                         legend === 4 ? legend4CountryValue.includes('pw') :
-                        legend5CountryValue.includes('pw')    
+                        legend === 5 ? legend5CountryValue.includes('pw') :
+                        legend === 6 ? legend6CountryValue.includes('pw') :
+                        legend === 7 ? legend7CountryValue.includes('pw') :
+                        legend8CountryValue.includes('pw')    
                     }                            
                       
                       >
@@ -4735,7 +5449,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('pg') : 
                         legend === 3 ? legend3CountryValue.includes('pg') : 
                         legend === 4 ? legend4CountryValue.includes('pg') :
-                        legend5CountryValue.includes('pg')    
+                        legend === 5 ? legend5CountryValue.includes('pg') :
+                        legend === 6 ? legend6CountryValue.includes('pg') :
+                        legend === 7 ? legend7CountryValue.includes('pg') :
+                        legend8CountryValue.includes('pg')    
                     }                            
                       
                       >
@@ -4757,7 +5474,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('ws') : 
                         legend === 3 ? legend3CountryValue.includes('ws') : 
                         legend === 4 ? legend4CountryValue.includes('ws') :
-                        legend5CountryValue.includes('ws')    
+                        legend === 5 ? legend5CountryValue.includes('ws') :
+                        legend === 6 ? legend6CountryValue.includes('ws') :
+                        legend === 7 ? legend7CountryValue.includes('ws') :
+                        legend8CountryValue.includes('ws')    
                     }                            
                       
                       >
@@ -4778,7 +5498,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('sb') : 
                         legend === 3 ? legend3CountryValue.includes('sb') : 
                         legend === 4 ? legend4CountryValue.includes('sb') :
-                        legend5CountryValue.includes('sb')    
+                        legend === 5 ? legend5CountryValue.includes('sb') :
+                        legend === 6 ? legend6CountryValue.includes('sb') :
+                        legend === 7 ? legend7CountryValue.includes('sb') :
+                        legend8CountryValue.includes('sb')    
                     }                            
                       
                       >
@@ -4800,7 +5523,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('to') : 
                         legend === 3 ? legend3CountryValue.includes('to') : 
                         legend === 4 ? legend4CountryValue.includes('to') :
-                        legend5CountryValue.includes('to')    
+                        legend === 5 ? legend5CountryValue.includes('to') :
+                        legend === 6 ? legend6CountryValue.includes('to') :
+                        legend === 7 ? legend7CountryValue.includes('to') :
+                        legend8CountryValue.includes('to')    
                     }                            
                       
                       >
@@ -4822,7 +5548,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('tv') : 
                         legend === 3 ? legend3CountryValue.includes('tv') : 
                         legend === 4 ? legend4CountryValue.includes('tv') :
-                        legend5CountryValue.includes('tv')    
+                        legend === 5 ? legend5CountryValue.includes('tv') :
+                        legend === 6 ? legend6CountryValue.includes('tv') :
+                        legend === 7 ? legend7CountryValue.includes('tv') :
+                        legend8CountryValue.includes('tv')    
                     }                            
                       
                       >
@@ -4843,7 +5572,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('vu') : 
                         legend === 3 ? legend3CountryValue.includes('vu') : 
                         legend === 4 ? legend4CountryValue.includes('vu') :
-                        legend5CountryValue.includes('vu')    
+                        legend === 5 ? legend5CountryValue.includes('vu') :
+                        legend === 6 ? legend6CountryValue.includes('vu') :
+                        legend === 7 ? legend7CountryValue.includes('vu') :
+                        legend8CountryValue.includes('vu')    
                     }                            
                       
                       >
@@ -4872,7 +5604,10 @@ function Countries({
                         legend === 2 ? legend2CountryValue.includes('aq') : 
                         legend === 3 ? legend3CountryValue.includes('aq') : 
                         legend === 4 ? legend4CountryValue.includes('aq') :
-                        legend5CountryValue.includes('aq')    
+                        legend === 5 ? legend5CountryValue.includes('aq') :
+                        legend === 6 ? legend6CountryValue.includes('aq') :
+                        legend === 7 ? legend7CountryValue.includes('aq') :
+                        legend8CountryValue.includes('aq')    
                     }                            
                       
                       >

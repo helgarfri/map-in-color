@@ -1,10 +1,8 @@
-import '../world-states.svg'
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from './Countries';
 import React, { Component, useEffect, useState } from 'react';
 import './Navigator'
 import { CompactPicker, SketchPicker } from 'react-color'
-import Navigator from './Navigator';
 
 
 
@@ -26,15 +24,22 @@ function Legend3({
     legend5CountryValue,
     setLegend5CountryValue,
 
+    legend6CountryValue,
+    setLegend6CountryValue,
+
+    legend7CountryValue,
+    setLegend7CountryValue,
+
+    legend8CountryValue,
+    setLegend8CountryValue,
+
 
     activeLegend, 
     legend3ColorValue, 
     setLegend3ColorValue, 
     legend3TitleValue, 
     handleTitle3ValueChange,
-    showLabel3,
-    setShowLabel3,
-    
+   
 }) {
 
 
@@ -64,7 +69,7 @@ function Legend3({
 
     
     
-        if (activeLegend !== 'legend3') {
+        if (activeLegend !== 3) {
             return null
         } 
 
@@ -79,24 +84,14 @@ function Legend3({
                     <div className='legend-title'>
                         
                         <input 
-                            value={legend3TitleValue !== "Legend 3" ? legend3TitleValue : ""}  
                             className='legend-title' 
-                            placeholder="Legend's Title" 
+                            placeholder="Click to add title" 
                             onChange={handleTitle3Change}
                             type='text'
                             ></input>
 
                         
-                        <div className='legend-show'>
-                            <input 
-                                type='checkbox'
-                                onChange={(e) => setShowLabel3(e.target.checked)}
-                                checked={showLabel3}
-                                >
-
-                            </input>
-                            <label>Show label on map</label>
-                        </div>
+                      
                         
                         
 
@@ -137,6 +132,16 @@ function Legend3({
 
                     legend5CountryValue={legend5CountryValue}
                     setLegend5CountryValue={setLegend5CountryValue}
+
+                    legend6CountryValue={legend6CountryValue}
+                    setLegend6CountryValue={setLegend6CountryValue}
+
+                    legend7CountryValue={legend7CountryValue}
+                    setLegend7CountryValue={setLegend7CountryValue}
+
+                    legend8CountryValue={legend8CountryValue}
+                    setLegend8CountryValue={setLegend8CountryValue}
+
 
                 
                     

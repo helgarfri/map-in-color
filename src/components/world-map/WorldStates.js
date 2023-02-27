@@ -1,14 +1,18 @@
 import { useRef } from "react"
 import html2canvas from "html2canvas";
-import MapSettings from "./MapSettings";
+import MapSettings from '../MapSettings'
 
-
-function WorldMap({
+function WorldStates({
 	legend1TitleValue, 
 	legend2TitleValue, 
 	legend3TitleValue,
 	legend4TitleValue,
 	legend5TitleValue,
+	legend6TitleValue,
+	legend7TitleValue,
+	legend8TitleValue,
+
+
 
 
 
@@ -17,25 +21,28 @@ function WorldMap({
 	legend3ColorValue,
 	legend4ColorValue,
 	legend5ColorValue,
+	legend6ColorValue,
+	legend7ColorValue,
+	legend8ColorValue,
+
+
 
 
 	
-	
-	showLabel1,
-	showLabel2,
-	showLabel3,
-	showLabel4,
-	showLabel5,
 
 	mapTitleValue,
 
 	selectedRes,
 	setSelectedRes,
 
+	numItems,
 
 
-}) {
-	console.log(selectedRes)
+
+}) 
+
+
+{
 
 	function handleDownloadClickPNG() {
 		const svgElement = document.getElementById("worldMap");
@@ -59,6 +66,77 @@ function WorldMap({
 		  downloadLink.href = jpegUrl;
 		  downloadLink.click();
 		});
+	  }
+
+
+	  const legendGroups = [
+		{
+		  color: legend1ColorValue,
+		  title: legend1TitleValue
+		},
+		{
+		  color: legend2ColorValue,
+		  title: legend2TitleValue
+		},
+		{
+		  color: legend3ColorValue,
+		  title: legend3TitleValue
+		},
+		{
+		  color: legend4ColorValue,
+		  title: legend4TitleValue
+		},
+		{
+		  color: legend5ColorValue,
+		  title: legend5TitleValue
+		},
+
+		{
+			color: legend6ColorValue,
+			title: legend6TitleValue
+		  },
+
+		{
+			color: legend7ColorValue,
+			title: legend7TitleValue
+		},
+
+		  {
+			  color: legend8ColorValue,
+			  title: legend8TitleValue
+			}
+	  ];
+	  
+	  const groups = [];
+	  
+	  for (let i = 0; i < numItems; i++) {
+		const circleStyle = {
+		  fill: legendGroups[i].color,
+		  cx: 180,
+		  cy: 741 + 40 * i,
+		  r: 10
+		};
+		const textStyle = {
+		  x: 200,
+		  y: 750.5 + 40 * i,
+		  width: 500,
+		  height: 150
+		};
+		groups.push(
+		  <g style={{display: `block`}}>
+			<circle className="legend-dot-map" {...circleStyle}></circle>
+			<text className="legend-title-map" {...textStyle}>{legendGroups[i].title}</text>
+		  </g>
+		);
+	  
+		for (let j = i + 1; j < numItems; j++) {
+		  groups.push(
+			<g style={{display: `none`}}>
+			  <circle className="legend-dot-map" {...circleStyle}></circle>
+			  <text className="legend-title-map" {...textStyle}>{legendGroups[i].title}</text>
+			</g>
+		  );
+		}
 	  }
 
     return(
@@ -3170,32 +3248,7 @@ function WorldMap({
 			<text className="title-map" x="175" y="710" width="500" height="150">{mapTitleValue}</text>
 		</g>
 
-	<g style={{display: showLabel1 ? 'block': 'none'}}>
-		<circle className="legend-dot-map" cx="180" cy="741" r="10" fill={legend1ColorValue} ></circle>
-  		<text className="legend-title-map" x="200" y="750" width="500" height="150">{legend1TitleValue}</text>
-	</g>
-
-	<g style={{display: showLabel2 ? 'block': 'none'}}>
-		<circle className="legend-dot-map"  cx="180" cy="781" r="10" fill={legend2ColorValue}></circle>
-		<text className="legend-title-map" x="200" y="790" width="500" height="150">{legend2TitleValue}</text>
-	</g>
-
-	<g style={{display: showLabel3 ? 'block': 'none'}}>
-		<circle className="legend-dot-map" cx="180" cy="821" r="10" fill={legend3ColorValue}></circle>
-		<text className="legend-title-map" x="200" y="830" width="500" height="150">{legend3TitleValue}</text>
-	</g>
-
-	<g style={{display: showLabel4 ? 'block': 'none'}}>
-		<circle className="legend-dot-map"  cx="180" cy="861" r="10" fill={legend4ColorValue}></circle>
-		<text className="legend-title-map" x="200" y="870" width="500" height="150">{legend4TitleValue}</text>
-	</g>
-
-	<g style={{display: showLabel5 ? 'block': 'none'}}>
-		<circle className="legend-dot-map"  cx="180" cy="901" r="10" fill={legend5ColorValue}></circle>
-		<text className="legend-title-map" x="200" y="910" width="500" height="150">{legend5TitleValue}</text>
-	</g>
-
-
+{groups}
 
 
 
@@ -3212,4 +3265,4 @@ function WorldMap({
     )
 }
 
-export default WorldMap
+export default WorldStates
