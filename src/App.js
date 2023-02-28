@@ -4,6 +4,7 @@ import Header from './components/Header';
 import WorldMap from './components/world-map/WorldMap';
 import UnitedStates from './components/us-states/UnitedStates';
 import { useState } from 'react';
+import Europe from './components/europe/Europe';
 
 
 
@@ -181,6 +182,11 @@ function App() {
           numItems={numItems}
           setNumItems={setNumItems}
       />
+
+      break;
+
+    case '/europe':
+      component = <Europe/>
   }
 
 

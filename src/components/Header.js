@@ -38,7 +38,7 @@ function Header() {
 
 
                 <li>
-                  <a>
+                  <a href="/europe">
                     Europe
                   </a>
                 </li>
