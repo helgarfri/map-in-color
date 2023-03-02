@@ -1,12 +1,13 @@
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from '../Countries';
-import React, { Component, useEffect, useState } from 'react';
+import React, { Component, useState } from 'react';
 import { CompactPicker, SketchPicker } from 'react-color'
+
 
 
  
 
-function Legend1({
+function Legend2({
     legend1CountryValue, 
     setLegend1CountryValue, 
     legend2CountryValue,
@@ -25,51 +26,48 @@ function Legend1({
     setLegend8CountryValue,
 
 
+
     activeLegend, 
-    legend1ColorValue, 
-    setLegend1ColorValue, 
-    legend1TitleValue, 
-    handleTitle1ValueChange,
+    legend2ColorValue, 
+    setLegend2ColorValue, 
+    legend2TitleValue, 
+    handleTitle2ValueChange,
+  
 
-    
 }) {
-    
 
     
+
+
+
    
-      
 
     const handleColorChange = (color) =>{
-        setLegend1ColorValue(color.hex)
-        for (var i = 0; i < legend1CountryValue.length; i++) {
-            const id = legend1CountryValue[i];
+        setLegend2ColorValue(color.hex)
+        for (var i = 0; i < legend2CountryValue.length; i++) {
+            const id = legend2CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
+
+    }
+
+    const handleTitle2Change = (event) => {
+        handleTitle2ValueChange(event.target.value)
     }
 
 
-    const handleTitle1Change = (event) => {
-        handleTitle1ValueChange(event.target.value)
-
+   
+    if (activeLegend !== 2) {
+        return null
+    } 
         
-    }
-
-   
-   
-
-
-
-
-    
-    
-        if (activeLegend !== 1) {
-            return null
-        } 
-
+        
         
     return(
         <div>
             <div className='legend'>
+
+
                 <div className='legend-set'>
                     
                     <div className='legend-title'>
@@ -77,21 +75,18 @@ function Legend1({
                         <input 
                             className='legend-title' 
                             placeholder="Click to add title" 
-                            onChange={handleTitle1Change}
+                            onChange={handleTitle2Change}
                             type='text'
                             ></input>
 
-                        
-                   
-                        
-
+                          
                     </div>
 
 
                     <CompactPicker 
                         className='color-picker'
-                        color={legend1ColorValue}
-                        value={legend1ColorValue}
+                        color={legend2ColorValue}
+                        value={legend2ColorValue}
                         onChangeComplete={handleColorChange} 
                         
                         />
@@ -99,12 +94,11 @@ function Legend1({
                    
                     
                 </div>
-
-                
+             
                     <Countries
-                    legend1ColorValue={legend1ColorValue}
-                    setLegend1ColorValue={setLegend1ColorValue}
-                    legend={1}
+                    legend2ColorValue={legend2ColorValue}
+                    setLegend2ColorValue={setLegend2ColorValue}
+                    legend={2}
                     
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
@@ -130,13 +124,14 @@ function Legend1({
                     legend8CountryValue={legend8CountryValue}
                     setLegend8CountryValue={setLegend8CountryValue}
 
-
-
-                
+                    
                     
 
+
+                    
+                    
                 />
-               
+              
                 
             </div>
             
@@ -147,4 +142,4 @@ function Legend1({
    
 }
 
-export default Legend1
+export default Legend2

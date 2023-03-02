@@ -69,7 +69,7 @@ function Legend1({
         
     return(
         <div>
-            <div className='legend'>
+            <div className='legend-eu'>
                 <div className='legend-set'>
                     
                     <div className='legend-title'>

@@ -204,7 +204,7 @@ function States({
 
     return(
         <div className="state-selector-us">
-            <div className='all-states'>
+            <div className='all-states-us'>
                 <ul>
                    
                     

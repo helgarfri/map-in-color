@@ -1,5 +1,4 @@
 import '../App.css'
-import './Navigator'
 import { useEffect, useState } from 'react';
 
 

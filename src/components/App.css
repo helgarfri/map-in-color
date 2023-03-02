@@ -17,6 +17,19 @@
   
 }
 
+.legend-eu {
+  flex-direction: column;
+  margin: 0px;
+  border: 3px solid #f8f9fa;
+  height: fit-content;
+  align-items: center;
+  background-color: #f8f9fa;
+
+  
+  
+  
+}
+
 .header {
   height: 50px;
   width: 100%;
@@ -184,6 +197,10 @@ input.legend-title {
   
   
 }
+.letter {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
 
 
 .state-selector {
@@ -204,34 +221,57 @@ input.legend-title {
   justify-content: center;
 }
 
-
-
-.letter {
-  margin-top: 10px;
-  margin-bottom: 10px;
+.state-selector-eu{
+  display: flex;
+  flex-direction: column;
+  background-color: #e9ecef;
+  text-align: left;
+  justify-content: center;
 }
 
 
 
-.all-states ul {
+
+
+
+.all-states-us ul {
   display: flex;
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
   height: 340px;
 
-
- 
-
-
 }
 
-.all-states li {
+.all-states-us li {
   flex: 1 0 auto;
   margin-top: 5px;
   display: flex;
   align-items: center;
 }
+
+
+
+
+
+.all-states-eu ul {
+  display: flex;
+  list-style: none;
+  flex-wrap: wrap;
+  flex-direction: column;
+  height: 230px;
+}
+
+
+.all-states-eu li {
+  display: flex;
+  margin-top: 5px;
+  max-width: 140px;
+  font-size: 14px;
+}
+
+
+
 
 .country-label {
   font-size: 14px;
@@ -273,6 +313,11 @@ li {
 }
 
 .states li {
+  display: flex;
+  align-items: center;
+}
+
+.country-eu li {
   display: flex;
   align-items: center;
 }
