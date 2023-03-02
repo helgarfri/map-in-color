@@ -192,6 +192,7 @@ input.legend-title {
   background-color: #e9ecef;
   text-align: left;
   justify-content: center;
+  width: 100%;
   
 }
 
@@ -217,7 +218,7 @@ input.legend-title {
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
-  height: 270px;
+  height: 340px;
 
 
  
@@ -228,22 +229,33 @@ input.legend-title {
 .all-states li {
   flex: 1 0 auto;
   margin-top: 5px;
+  display: flex;
+  align-items: center;
 }
 
 .country-label {
-  font-size: 10px;
+  font-size: 14px;
+  margin: 4px;
 }
 
 .state-label {
   font-size: 14px;
+  margin: 4px;
+
 }
 
 
 
 
 .country  {
-  height: 10px;
+  height: 14px;
+  margin: 4px;
+  margin-top: 6px
  
+}
+
+.states{
+  height: 14px;
 }
 
 .oceana {
@@ -288,7 +300,8 @@ li {
 .con-label {
   font-weight: bold;
   margin-left: 4px;
-  font-size: 12px;
+  font-size: 16px;
+  color: #808080;
  
 }
 
