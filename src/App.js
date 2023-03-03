@@ -13,14 +13,14 @@ function App() {
 
     const [mapTitleValue, setMapTitleValue] = useState('')
 
-    const [legend1TitleValue, setLegend1TitleValue] = useState('Group 1')
-    const [legend2TitleValue, setLegend2TitleValue] =useState('Group 2')
-    const [legend3TitleValue, setLegend3TitleValue] =useState('Group 3')
-    const [legend4TitleValue, setLegend4TitleValue] =useState('Group 4')
-    const [legend5TitleValue, setLegend5TitleValue] =useState('Group 5')
-    const [legend6TitleValue, setLegend6TitleValue] =useState('Group 6')
-    const [legend7TitleValue, setLegend7TitleValue] =useState('Group 7')
-    const [legend8TitleValue, setLegend8TitleValue] =useState('Group 8')
+    const [legend1TitleValue, setLegend1TitleValue] = useState('')
+    const [legend2TitleValue, setLegend2TitleValue] =useState('')
+    const [legend3TitleValue, setLegend3TitleValue] =useState('')
+    const [legend4TitleValue, setLegend4TitleValue] =useState('')
+    const [legend5TitleValue, setLegend5TitleValue] =useState('')
+    const [legend6TitleValue, setLegend6TitleValue] =useState('')
+    const [legend7TitleValue, setLegend7TitleValue] =useState('')
+    const [legend8TitleValue, setLegend8TitleValue] =useState('')
   
   
   

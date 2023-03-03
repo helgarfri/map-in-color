@@ -7,7 +7,7 @@ import { CompactPicker, SketchPicker } from 'react-color'
 
  
 
-function Legend8({
+function Group5({
     legend1CountryValue, 
     setLegend1CountryValue, 
     legend2CountryValue,
@@ -25,11 +25,11 @@ function Legend8({
     legend8CountryValue,
     setLegend8CountryValue,
 
-
     activeLegend, 
-    legend8ColorValue, 
-    setLegend8ColorValue, 
-    handleTitle8ValueChange,
+    legend5ColorValue, 
+    setLegend5ColorValue, 
+    legend5TitleValue, 
+    handleTitle5ValueChange,
    
     
 }) {
@@ -40,22 +40,22 @@ function Legend8({
       
 
     const handleColorChange = (color) =>{
-        setLegend8ColorValue(color.hex)
-        for (var i = 0; i < legend8CountryValue.length; i++) {
-            const id = legend8CountryValue[i];
+        setLegend5ColorValue(color.hex)
+        for (var i = 0; i < legend5CountryValue.length; i++) {
+            const id = legend5CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
     }
 
 
-    const handleTitle8Change = (event) => {
-        handleTitle8ValueChange(event.target.value)
+    const handleTitle5Change = (event) => {
+        handleTitle5ValueChange(event.target.value)
 
         
     }
 
 
-        if (activeLegend !== 8) {
+        if (activeLegend !== 5) {
             return null
         } 
 
@@ -72,7 +72,7 @@ function Legend8({
                         <input 
                             className='legend-title' 
                             placeholder="Click to add title" 
-                            onChange={handleTitle8Change}
+                            onChange={handleTitle5Change}
                             type='text'
                             ></input>
 
@@ -83,12 +83,54 @@ function Legend8({
                     </div>
 
 
-                    <CompactPicker 
-                        className='color-picker'
-                        color={legend8ColorValue}
-                        value={legend8ColorValue}
-                        onChangeComplete={handleColorChange} 
+                    <CompactPicker
                         
+                        className='color-picker'
+                        color={legend5ColorValue}
+                        value={legend5ColorValue}
+                        onChangeComplete={handleColorChange} 
+                        colors={[
+                              '#8B0000', //Dark red
+                              '#FF0000', // Red
+                              '#FF4500', // Orange Red
+                              '#FF8C00', // Dark Orange
+                              '#FFA500', // Orange
+                              '#FFD700', // Gold
+                              '#006400', // Dark Green
+                              '#008000', // Geen
+                              '#008B8B', // Dark Cyan
+                              '#00CED1', // Dark Turquoise
+                              '#00008B', // Dark Blue
+                              '#0000FF', // Blue
+                              '#800000', // Maroon
+                              '#A52A2A', // Brown
+                              '#C71585', // Medium Violet Red 
+                              '#DB7093', // PaleVioletRed 
+                              '#4B0082', //Indigo
+                              '#800080', // Purple
+                              '#BDB76B', // Dark Khaki 
+                              '#F0E68C', // Khaki
+                              '#4682B4', // Steel Blue
+                              '#5F9EA0', // Cadet Blue
+                              '#BC8F8F', // Rosy Brown
+                              '#F4A460', // Sandy Brown
+                              '#808000', // Olive
+                              '#2F4F4F', // Dark Slate Gray
+                              '#778899', // Light Slate Gray
+                              '#696969', // Dim Gray
+                              '#C0C0C0', // Silver
+                              '#CD5C5C', // Indian Red
+                              '#000000', //Black
+                              '#FFFFFF', // White
+                            
+
+
+
+
+
+                        ]
+
+                        }
                         />
                     
                    
@@ -97,9 +139,9 @@ function Legend8({
 
                 
                     <Countries
-                    legend8ColorValue={legend8ColorValue}
-                    setLegend8ColorValue={setLegend8ColorValue}
-                    legend={8}
+                    legend5ColorValue={legend5ColorValue}
+                    setLegend5ColorValue={setLegend5ColorValue}
+                    legend={5}
                     
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
@@ -126,6 +168,7 @@ function Legend8({
                     setLegend8CountryValue={setLegend8CountryValue}
 
 
+
                 
                     
 
@@ -141,4 +184,4 @@ function Legend8({
    
 }
 
-export default Legend8
+export default Group5

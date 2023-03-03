@@ -7,38 +7,31 @@ import { CompactPicker, SketchPicker } from 'react-color'
 
  
 
-function Legend3({
-    legend1CountryValue,
-    setLegend1CountryValue,
-
+function Group8({
+    legend1CountryValue, 
+    setLegend1CountryValue, 
     legend2CountryValue,
     setLegend2CountryValue,
-    
-    legend3CountryValue, 
-    setLegend3CountryValue, 
-
+    legend3CountryValue,
+    setLegend3CountryValue,
     legend4CountryValue,
     setLegend4CountryValue,
-
     legend5CountryValue,
     setLegend5CountryValue,
-
     legend6CountryValue,
     setLegend6CountryValue,
-
     legend7CountryValue,
     setLegend7CountryValue,
-
     legend8CountryValue,
     setLegend8CountryValue,
 
 
     activeLegend, 
-    legend3ColorValue, 
-    setLegend3ColorValue, 
-    legend3TitleValue, 
-    handleTitle3ValueChange,
+    legend8ColorValue, 
+    setLegend8ColorValue, 
+    handleTitle8ValueChange,
    
+    
 }) {
 
 
@@ -47,28 +40,22 @@ function Legend3({
       
 
     const handleColorChange = (color) =>{
-        setLegend3ColorValue(color.hex)
-        for (var i = 0; i < legend3CountryValue.length; i++) {
-            const id = legend3CountryValue[i];
+        setLegend8ColorValue(color.hex)
+        for (var i = 0; i < legend8CountryValue.length; i++) {
+            const id = legend8CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
     }
 
 
-    const handleTitle3Change = (event) => {
-        handleTitle3ValueChange(event.target.value)
+    const handleTitle8Change = (event) => {
+        handleTitle8ValueChange(event.target.value)
 
         
     }
 
-   
-    
 
-
-
-    
-    
-        if (activeLegend !== 3) {
+        if (activeLegend !== 8) {
             return null
         } 
 
@@ -85,24 +72,65 @@ function Legend3({
                         <input 
                             className='legend-title' 
                             placeholder="Click to add title" 
-                            onChange={handleTitle3Change}
+                            onChange={handleTitle8Change}
                             type='text'
                             ></input>
 
                         
-                      
-                        
+                     
                         
 
                     </div>
 
 
-                    <CompactPicker 
-                        className='color-picker'
-                        color={legend3ColorValue}
-                        value={legend3ColorValue}
-                        onChangeComplete={handleColorChange} 
+                    <CompactPicker
                         
+                        className='color-picker'
+                        color={legend8ColorValue}
+                        value={legend8ColorValue}
+                        onChangeComplete={handleColorChange} 
+                        colors={[
+                              '#8B0000', //Dark red
+                              '#FF0000', // Red
+                              '#FF4500', // Orange Red
+                              '#FF8C00', // Dark Orange
+                              '#FFA500', // Orange
+                              '#FFD700', // Gold
+                              '#006400', // Dark Green
+                              '#008000', // Geen
+                              '#008B8B', // Dark Cyan
+                              '#00CED1', // Dark Turquoise
+                              '#00008B', // Dark Blue
+                              '#0000FF', // Blue
+                              '#800000', // Maroon
+                              '#A52A2A', // Brown
+                              '#C71585', // Medium Violet Red 
+                              '#DB7093', // PaleVioletRed 
+                              '#4B0082', //Indigo
+                              '#800080', // Purple
+                              '#BDB76B', // Dark Khaki 
+                              '#F0E68C', // Khaki
+                              '#4682B4', // Steel Blue
+                              '#5F9EA0', // Cadet Blue
+                              '#BC8F8F', // Rosy Brown
+                              '#F4A460', // Sandy Brown
+                              '#808000', // Olive
+                              '#2F4F4F', // Dark Slate Gray
+                              '#778899', // Light Slate Gray
+                              '#696969', // Dim Gray
+                              '#C0C0C0', // Silver
+                              '#CD5C5C', // Indian Red
+                              '#000000', //Black
+                              '#FFFFFF', // White
+                            
+
+
+
+
+
+                        ]
+
+                        }
                         />
                     
                    
@@ -111,11 +139,9 @@ function Legend3({
 
                 
                     <Countries
-                    
-                    legend3ColorValue={legend3ColorValue}
-                    setLegend3ColorValue={setLegend3ColorValue}
-                    
-                    legend={3}
+                    legend8ColorValue={legend8ColorValue}
+                    setLegend8ColorValue={setLegend8ColorValue}
+                    legend={8}
                     
                     legend1CountryValue={legend1CountryValue}
                     setLegend1CountryValue={setLegend1CountryValue}
@@ -157,4 +183,4 @@ function Legend3({
    
 }
 
-export default Legend3
+export default Group8

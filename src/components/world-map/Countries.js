@@ -192,22 +192,22 @@ function Countries({
               setLegend6CountryValue([...legend6CountryValue, selectedOption]);
             }
        
-      } 
-      else if (legend === 7) {
-        if (legend7CountryValue.includes(selectedOption)) {
-          setLegend7CountryValue(legend7CountryValue.filter((o) => o !== selectedOption));
-        } else {
-          setLegend7CountryValue([...legend7CountryValue, selectedOption]);
-        }
-   
-  }  else if (legend === 8) {
-    if (legend8CountryValue.includes(selectedOption)) {
-      setLegend8CountryValue(legend8CountryValue.filter((o) => o !== selectedOption));
-    } else {
-      setLegend8CountryValue([...legend8CountryValue, selectedOption]);
-    }
+        } 
+        else if (legend === 7) {
+            if (legend7CountryValue.includes(selectedOption)) {
+            setLegend7CountryValue(legend7CountryValue.filter((o) => o !== selectedOption));
+            } else {
+            setLegend7CountryValue([...legend7CountryValue, selectedOption]);
+            }
+        
+    }  else if (legend === 8) {
+            if (legend8CountryValue.includes(selectedOption)) {
+            setLegend8CountryValue(legend8CountryValue.filter((o) => o !== selectedOption));
+            } else {
+            setLegend8CountryValue([...legend8CountryValue, selectedOption]);
+            }
 
-};
+    };
 
 
     }

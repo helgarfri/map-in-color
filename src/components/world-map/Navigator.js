@@ -1,13 +1,13 @@
 import React, { useState, Component } from 'react'
 import '../App.css'
-import Legend1 from './legends/Legend-1'
-import Legend2 from './legends/Legend-2'
-import Legend3 from './legends/Legend-3'
-import Legend4 from './legends/Legend-4'
-import Legend5 from './legends/Legend-5'
-import Legend6 from './legends/Legend-6'
-import Legend7 from './legends/Legend-7'
-import Legend8 from './legends/Legend-8'
+import Group1 from './groups/Group1'
+import Group2 from './groups/Group2'
+import Group3 from './groups/Group3'
+import Group4 from './groups/Group4'
+import Group5 from './groups/Group5'
+import Group6 from './groups/Group6'
+import Group7 from './groups/Group7'
+import Group8 from './groups/Group8'
 import NavButton from '../NavButton'
 
 
@@ -144,7 +144,7 @@ function Navigator({
         
 
                 </ul>
-                <Legend1
+                <Group1
                     activeLegend={activeLegend}
                      // color value
                     legend1ColorValue = {legend1ColorValue}
@@ -184,7 +184,7 @@ function Navigator({
 
                 />
 
-                <Legend2
+                <Group2
                     activeLegend={activeLegend }
                     
                     // color value
@@ -228,7 +228,7 @@ function Navigator({
 
                 />
 
-                <Legend3
+                <Group3
                     activeLegend={activeLegend}
 
                     // color value
@@ -267,7 +267,7 @@ function Navigator({
                
                 />
 
-                <Legend4
+                <Group4
                     activeLegend={activeLegend}
 
                     // color value
@@ -306,7 +306,7 @@ function Navigator({
          
                 />
 
-                <Legend5
+                <Group5
                     activeLegend={activeLegend}
 
                     // color value
@@ -347,7 +347,7 @@ function Navigator({
 
                 />
 
-                <Legend6
+                <Group6
                     activeLegend={activeLegend}
 
                     // color value
@@ -386,7 +386,7 @@ function Navigator({
 
                 />
 
-                <Legend7
+                <Group7
                     activeLegend={activeLegend}
 
                     // color value
@@ -425,7 +425,7 @@ function Navigator({
 
                 />
 
-                <Legend8
+                <Group8
                     activeLegend={activeLegend}
 
                     // color value
