@@ -10,6 +10,7 @@ import Europe from './components/europe/Europe';
 
 function App() {
 
+
     const [mapTitleValue, setMapTitleValue] = useState('')
 
     const [legend1TitleValue, setLegend1TitleValue] = useState('Group 1')
@@ -36,7 +37,8 @@ function App() {
   
   
   
-  
+    console.log(legend1TitleValue)
+
   
     const [selectedRes, setSelectedRes] = useState('13.33');
   

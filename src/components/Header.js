@@ -17,7 +17,7 @@ function Header() {
       ></img>
       </a>
      
-      <nav>
+      <nav className="header-nav">
         <ul>
           <li onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
             Maps

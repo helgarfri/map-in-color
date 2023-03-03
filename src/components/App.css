@@ -10,7 +10,7 @@
   border: 3px solid #f8f9fa;
   height: fit-content;
   align-items: center;
-  background-color: #f8f9fa;
+  background-color: #e9ecef;
 
   
   
@@ -20,7 +20,6 @@
 .legend-eu {
   flex-direction: column;
   margin: 0px;
-  border: 3px solid #f8f9fa;
   height: fit-content;
   align-items: center;
   background-color: #f8f9fa;
@@ -31,7 +30,7 @@
 }
 
 .header {
-  height: 50px;
+  height: 100px;
   width: 100%;
   background-color: #212529;
   display: flex;
@@ -40,8 +39,17 @@
   
 }
 
+
+.header-nav li {
+  font-size: 28px;
+}
+
+.header-nav a {
+  font-size: 20px;
+}
+
 .logo {
-  height: 40px;
+  height: 75px;
   position: relative;
   float: left;
   
@@ -82,10 +90,10 @@ li:hover > .header-dropdown {
   background-color: #495057;
   border: none;
   border-radius: 15px 15px 0px 0px;
-  height: 30px;
+  height: 40px;
   color: white;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 18px;
   flex: 1;
   transition: all 0.3s;
   width: 100%;
@@ -108,14 +116,25 @@ li:hover > .header-dropdown {
 
 .nav-button.active:hover {
   background-color: #f8f9fa
+
+
+
 }
+
+
 .color-picker {
   background-color: #e9ecef;
   color: white;
   border: #e9ecef solid 5px;
-  
+  scale: 2;
+  width:100% !important;
+  margin-bottom: 25px;
+  margin-top: 25px;
+
+
   
 }
+
 
 
 
@@ -136,8 +155,8 @@ li:hover > .header-dropdown {
 }
 
 .map-title {
-  margin: 10px;
-  font-size: 20px;
+  margin: 20px;
+  font-size: 35px;
   border: none;
   font-weight: bold;
   flex-direction: column;
@@ -153,20 +172,21 @@ li:hover > .header-dropdown {
 
 .legend-title {
   margin: 10px;
-  font-size: 20px;
-  border: none;
+  font-size: 30px;
+  border-radius: 5px;
   font-weight: bold;
   display: flex;
   flex-direction: column;
   color: black;
+  text-align: center;
   
 }
 
 input.legend-title {
-  background-color: #f8f9fa;
+  background-color: #e9ecef;
   border-radius: 5px;
   padding-left: 7px;
-  height: 30px ;
+  height: 40px ;
   border: 3px solid #e9ecef;
 }
 
@@ -180,12 +200,10 @@ input.legend-title {
 
 .legend-set {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
   height: fit-content;
-  margin: 30px;
   
 }
 .countries {
@@ -239,7 +257,9 @@ input.legend-title {
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
-  height: 340px;
+  height: 380px;
+  margin-left: 10%;
+  margin-right: 10%;
 
 }
 
@@ -259,29 +279,37 @@ input.legend-title {
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
-  height: 230px;
+  height: 370px;
+  margin-left: 10%;
+  margin-right: 10%;
 }
 
 
 .all-states-eu li {
   display: flex;
   margin-top: 5px;
-  max-width: 140px;
-  font-size: 14px;
+  max-width: 190px;
+  font-size: 20px;
+  min-width: 170px
 }
 
 
 
 
 .country-label {
-  font-size: 14px;
+  font-size: 20px;
   margin: 4px;
 }
 
 .state-label {
-  font-size: 14px;
+  font-size: 20px;
   margin: 4px;
 
+}
+
+.country-label-eu {
+  font-size: 20px;
+  margin: 4px;
 }
 
 
@@ -321,6 +349,12 @@ li {
   display: flex;
   align-items: center;
 }
+
+.country-eu {
+  margin: 4px;
+}
+
+
 
 
 
@@ -366,7 +400,7 @@ li {
 
 .settings-title {
   color: white;
-  font-size: 9px;
+  font-size: 18px;
   margin-bottom: 0px;
   margin-top: 0px;
   align-items: center;
@@ -375,26 +409,26 @@ li {
 
 .settings-checkbox {
   height: 10px;
-  margin: 1px;
+  margin: 2px;
 }
 
 .settings-label{
   color: white;
-  font-size: 9px;
+  font-size: 18px;
 }
 
 .settings-button {
   background-color: #495057;
   border: none;
-  border-radius: 15px ;
-  height: 15px;
+  border-radius: 30px ;
+  height: 30px;
   color:white;
   cursor: pointer;
-  font-size: 8px;
+  font-size: 16px;
   transition: all 0.3s;
-  margin-top: 1px;
+  margin-top: 2px;
   margin-bottom: 0px;
-  margin-left: 3px;
+  margin-left: 6px;
   
 }
 
@@ -429,24 +463,23 @@ li {
 
 .settings-label-r {
   color: white;
-  font-size: 7px;
+  font-size: 14px;
 }
 
 .settings-radio {
-  height: 8px;
+  height: 16px;
 }
 
 .remove-button {
   background-color: #747f8a;
-  border: none;
   border-radius: 15px ;
   color:white;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   float: right;
-  width: 15px;
-  height: 15px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -467,7 +500,7 @@ li {
 }
 
 .remove-img {
-  height: 10px;
+  height: 15px;
   display: flex;
   align-items: center;
   
@@ -482,8 +515,8 @@ li {
   transition: all 0.8s;
   display: flex;
   float: right;
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -506,7 +539,7 @@ li {
 
 
 .add-img {
-  height: 15px;
+  height: 30px;
   display: flex;
   align-items: center;
   
