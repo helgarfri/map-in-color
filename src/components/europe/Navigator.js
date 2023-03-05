@@ -1,26 +1,26 @@
 import React, { useState, Component } from 'react'
 import '../App.css'
-import Legend1 from './legends/Legend-1'
-import Legend2 from './legends/Legend-2'
-import Legend3 from './legends/Legend-3'
-import Legend4 from './legends/Legend-4'
-import Legend5 from './legends/Legend-5'
-import Legend6 from './legends/Legend-6'
-import Legend7 from './legends/Legend-7'
-import Legend8 from './legends/Legend-8'
+import Group1 from './groups/Group1'
+import Group2 from './groups/Group2'
+import Group3 from './groups/Group3'
+import Group4 from './groups/Group4'
+import Group5 from './groups/Group5'
+import Group6 from './groups/Group6'
+import Group7 from './groups/Group7'
+import Group8 from './groups/Group8'
 import NavButton from '../NavButton'
 
 
 
 function Navigator({ 
-    legend1TitleValue, 
-    legend2TitleValue ,
-    legend3TitleValue,
-    legend4TitleValue,
-    legend5TitleValue,
-    legend6TitleValue,
-    legend7TitleValue,
-    legend8TitleValue,
+    group1TitleValue, 
+    group2TitleValue ,
+    group3TitleValue,
+    group4TitleValue,
+    group5TitleValue,
+    group6TitleValue,
+    group7TitleValue,
+    group8TitleValue,
 
 
 
@@ -37,27 +37,27 @@ function Navigator({
 
 
 
-    legend1ColorValue, 
-    legend2ColorValue, 
-    legend3ColorValue,
-    legend4ColorValue,
-    legend5ColorValue,
-    legend6ColorValue,
-    legend7ColorValue,
-    legend8ColorValue,
+    group1ColorValue, 
+    group2ColorValue, 
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
 
 
 
 
 
-    setLegend1ColorValue, 
-    setLegend2ColorValue,
-    setLegend3ColorValue,
-    setLegend4ColorValue,
-    setLegend5ColorValue,
-    setLegend6ColorValue,
-    setLegend7ColorValue,
-    setLegend8ColorValue,
+    setGroup1ColorValue, 
+    setGroup2ColorValue,
+    setGroup3ColorValue,
+    setGroup4ColorValue,
+    setGroup5ColorValue,
+    setGroup6ColorValue,
+    setGroup7ColorValue,
+    setGroup8ColorValue,
 
 
 
@@ -73,28 +73,28 @@ function Navigator({
 
 
     
-    const [ activeLegend, setActiveLegend ] = useState(1);
+    const [ activeGroup, setActiveGroup ] = useState(1);
 
 
 
     const [ activeButton, setActiveButton ] = useState(1)
 
     
-    const [legend1CountryValue, setLegend1CountryValue] = useState('');
+    const [group1CountryValue, setGroup1CountryValue] = useState('');
 
-    const [legend2CountryValue, setLegend2CountryValue] = useState('')
+    const [group2CountryValue, setGroup2CountryValue] = useState('')
 
-    const [ legend3CountryValue, setLegend3CountryValue] = useState('')
+    const [ group3CountryValue, setGroup3CountryValue] = useState('')
 
-    const [ legend4CountryValue, setLegend4CountryValue ] = useState('')
+    const [ group4CountryValue, setGroup4CountryValue ] = useState('')
 
-    const [ legend5CountryValue, setLegend5CountryValue ] = useState('')
+    const [ group5CountryValue, setGroup5CountryValue ] = useState('')
 
-    const [ legend6CountryValue, setLegend6CountryValue ] = useState('')
+    const [ group6CountryValue, setGroup6CountryValue ] = useState('')
 
-    const [ legend7CountryValue, setLegend7CountryValue ] = useState('')
+    const [ group7CountryValue, setGroup7CountryValue ] = useState('')
 
-    const [ legend8CountryValue, setLegend8CountryValue ] = useState('')
+    const [ group8CountryValue, setGroup8CountryValue ] = useState('')
 
 
 
@@ -102,7 +102,7 @@ function Navigator({
     
 
    const handleButtonClick = (buttonNum) => {
-    setActiveLegend(buttonNum)
+    setActiveGroup(buttonNum)
     setActiveButton(buttonNum)
    }
 
@@ -144,39 +144,39 @@ function Navigator({
         
 
                 </ul>
-                <Legend1
-                    activeLegend={activeLegend}
+                <Group1
+                    activeGroup={activeGroup}
                      // color value
-                    legend1ColorValue = {legend1ColorValue}
-                    setLegend1ColorValue={setLegend1ColorValue}
+                    group1ColorValue = {group1ColorValue}
+                    setGroup1ColorValue={setGroup1ColorValue}
                     
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
 
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
                     
-                    // legend title
-                    legend1TitleValue={legend1TitleValue}
+                    // group title
+                    group1TitleValue={group1TitleValue}
                     handleTitle1ValueChange={handleTitle1ValueChange}
 
 
@@ -184,40 +184,40 @@ function Navigator({
 
                 />
 
-                <Legend2
-                    activeLegend={activeLegend }
+                <Group2
+                    activeGroup={activeGroup }
                     
                     // color value
-                    legend2ColorValue={legend2ColorValue}
-                    setLegend2ColorValue={setLegend2ColorValue}
+                    group2ColorValue={group2ColorValue}
+                    setGroup2ColorValue={setGroup2ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
                     
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
 
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend2TitleValue={legend2TitleValue}
+                    // group title
+                    group2TitleValue={group2TitleValue}
                     handleTitle2ValueChange={handleTitle2ValueChange}
 
             
@@ -228,118 +228,118 @@ function Navigator({
 
                 />
 
-                <Legend3
-                    activeLegend={activeLegend}
+                <Group3
+                    activeGroup={activeGroup}
 
                     // color value
-                    legend3ColorValue={legend3ColorValue}
-                    setLegend3ColorValue={setLegend3ColorValue}
+                    group3ColorValue={group3ColorValue}
+                    setGroup3ColorValue={setGroup3ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend3TitleValue={legend3TitleValue}
+                    // group title
+                    group3TitleValue={group3TitleValue}
                     handleTitle3ValueChange={handleTitle3ValueChange}
 
                
                 />
 
-                <Legend4
-                    activeLegend={activeLegend}
+                <Group4
+                    activeGroup={activeGroup}
 
                     // color value
-                    legend4ColorValue={legend4ColorValue}
-                    setLegend4ColorValue={setLegend4ColorValue}
+                    group4ColorValue={group4ColorValue}
+                    setGroup4ColorValue={setGroup4ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend4TitleValue={legend4TitleValue}
+                    // group title
+                    group4TitleValue={group4TitleValue}
                     handleTitle4ValueChange={handleTitle4ValueChange}
 
          
                 />
 
-                <Legend5
-                    activeLegend={activeLegend}
+                <Group5
+                    activeGroup={activeGroup}
 
                     // color value
-                    legend5ColorValue={legend5ColorValue}
-                    setLegend5ColorValue={setLegend5ColorValue}
+                    group5ColorValue={group5ColorValue}
+                    setGroup5ColorValue={setGroup5ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend5TitleValue={legend5TitleValue}
+                    // group title
+                    group5TitleValue={group5TitleValue}
                     handleTitle5ValueChange={handleTitle5ValueChange}
 
 
@@ -347,118 +347,118 @@ function Navigator({
 
                 />
 
-                <Legend6
-                    activeLegend={activeLegend}
+                <Group6
+                    activeGroup={activeGroup}
 
                     // color value
-                    legend6ColorValue={legend6ColorValue}
-                    setLegend6ColorValue={setLegend6ColorValue}
+                    group6ColorValue={group6ColorValue}
+                    setGroup6ColorValue={setGroup6ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend6TitleValue={legend6TitleValue}
+                    // group title
+                    group6TitleValue={group6TitleValue}
                     handleTitle6ValueChange={handleTitle6ValueChange}
 
 
                 />
 
-                <Legend7
-                    activeLegend={activeLegend}
+                <Group7
+                    activeGroup={activeGroup}
 
                     // color value
-                    legend7ColorValue={legend7ColorValue}
-                    setLegend7ColorValue={setLegend7ColorValue}
+                    group7ColorValue={group7ColorValue}
+                    setGroup7ColorValue={setGroup7ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend7TitleValue={legend7TitleValue}
+                    // group title
+                    group7TitleValue={group7TitleValue}
                     handleTitle7ValueChange={handleTitle7ValueChange}
 
 
                 />
 
-                <Legend8
-                    activeLegend={activeLegend}
+                <Group8
+                    activeGroup={activeGroup}
 
                     // color value
-                    legend8ColorValue={legend8ColorValue}
-                    setLegend8ColorValue={setLegend8ColorValue}
+                    group8ColorValue={group8ColorValue}
+                    setGroup8ColorValue={setGroup8ColorValue}
 
                     // country value
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
 
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
-                    // legend title
-                    legend8TitleValue={legend8TitleValue}
+                    // group title
+                    group8TitleValue={group8TitleValue}
                     handleTitle8ValueChange={handleTitle8ValueChange}
 
 

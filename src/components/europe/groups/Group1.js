@@ -59,6 +59,7 @@ function Group1({
 
 
 
+
     
     
         if (activeGroup !== 1) {
@@ -68,7 +69,7 @@ function Group1({
         
     return(
         <div>
-            <div className='group'>
+            <div className='group-eu'>
                 <div className='group-set'>
                     
                     <div className='group-title'>
@@ -78,7 +79,6 @@ function Group1({
                             placeholder="Click to add title" 
                             onChange={handleTitle1Change}
                             type='text'
-                            value={group1TitleValue}
                             ></input>
 
                         
@@ -86,7 +86,7 @@ function Group1({
                         
 
                     </div>
-                
+
 
                     <CompactPicker
                         

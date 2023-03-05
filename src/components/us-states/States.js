@@ -1,34 +1,34 @@
 import '../App.css'
 import { useEffect } from 'react';
 function States({
-    legend,
+    group,
     
-    legend1ColorValue, 
-    legend2ColorValue, 
-    legend3ColorValue,
-    legend4ColorValue,
-    legend5ColorValue,
-    legend6ColorValue,
-    legend7ColorValue,
-    legend8ColorValue,
+    group1ColorValue, 
+    group2ColorValue, 
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
     
-    legend1StatesValue,
-    legend2StatesValue,
-    legend3StatesValue,
-    legend4StatesValue,
-    legend5StatesValue,
-    legend6StatesValue,
-    legend7StatesValue,
-    legend8StatesValue,
+    group1StatesValue,
+    group2StatesValue,
+    group3StatesValue,
+    group4StatesValue,
+    group5StatesValue,
+    group6StatesValue,
+    group7StatesValue,
+    group8StatesValue,
 
-    setLegend1StatesValue,
-    setLegend2StatesValue,
-    setLegend3StatesValue,
-    setLegend4StatesValue,
-    setLegend5StatesValue,
-    setLegend6StatesValue,
-    setLegend7StatesValue,
-    setLegend8StatesValue,
+    setGroup1StatesValue,
+    setGroup2StatesValue,
+    setGroup3StatesValue,
+    setGroup4StatesValue,
+    setGroup5StatesValue,
+    setGroup6StatesValue,
+    setGroup7StatesValue,
+    setGroup8StatesValue,
 
     
     
@@ -39,53 +39,53 @@ function States({
         console.log(allStatesId)
 
         if (
-            legend === 1 || 
-            legend === 2 || 
-            legend === 3 || 
-            legend === 4 || 
-            legend === 5 || 
-            legend === 6 || 
-            legend === 7 ||
-            legend === 8) {
+            group === 1 || 
+            group === 2 || 
+            group === 3 || 
+            group === 4 || 
+            group === 5 || 
+            group === 6 || 
+            group === 7 ||
+            group === 8) {
           
-          for (var i = 0; i < legend1StatesValue.length; i++) {
-            const id = legend1StatesValue[i];
-            document.getElementById(id).style.fill = legend1ColorValue;
+          for (var i = 0; i < group1StatesValue.length; i++) {
+            const id = group1StatesValue[i];
+            document.getElementById(id).style.fill = group1ColorValue;
           }
           
-          for (var i = 0; i < legend2StatesValue.length; i++) {
-            const id = legend2StatesValue[i];
-            document.getElementById(id).style.fill = legend2ColorValue;
+          for (var i = 0; i < group2StatesValue.length; i++) {
+            const id = group2StatesValue[i];
+            document.getElementById(id).style.fill = group2ColorValue;
           }
     
-          for (var i = 0; i < legend3StatesValue.length; i++) {
-            const id = legend3StatesValue[i];
-            document.getElementById(id).style.fill = legend3ColorValue;
+          for (var i = 0; i < group3StatesValue.length; i++) {
+            const id = group3StatesValue[i];
+            document.getElementById(id).style.fill = group3ColorValue;
           }
     
-          for (var i = 0; i < legend4StatesValue.length; i++) {
-            const id = legend4StatesValue[i];
-            document.getElementById(id).style.fill = legend4ColorValue;
+          for (var i = 0; i < group4StatesValue.length; i++) {
+            const id = group4StatesValue[i];
+            document.getElementById(id).style.fill = group4ColorValue;
           }
     
-          for (var i = 0; i < legend5StatesValue.length; i++) {
-            const id = legend5StatesValue[i];
-            document.getElementById(id).style.fill = legend5ColorValue;
+          for (var i = 0; i < group5StatesValue.length; i++) {
+            const id = group5StatesValue[i];
+            document.getElementById(id).style.fill = group5ColorValue;
           }
     
-          for (var i = 0; i < legend6StatesValue.length; i++) {
-            const id = legend6StatesValue[i];
-            document.getElementById(id).style.fill = legend6ColorValue;
+          for (var i = 0; i < group6StatesValue.length; i++) {
+            const id = group6StatesValue[i];
+            document.getElementById(id).style.fill = group6ColorValue;
           }
     
-          for (var i = 0; i < legend7StatesValue.length; i++) {
-            const id = legend7StatesValue[i];
-            document.getElementById(id).style.fill = legend7ColorValue;
+          for (var i = 0; i < group7StatesValue.length; i++) {
+            const id = group7StatesValue[i];
+            document.getElementById(id).style.fill = group7ColorValue;
           }
     
-          for (var i = 0; i < legend8StatesValue.length; i++) {
-            const id = legend8StatesValue[i];
-            document.getElementById(id).style.fill = legend8ColorValue;
+          for (var i = 0; i < group8StatesValue.length; i++) {
+            const id = group8StatesValue[i];
+            document.getElementById(id).style.fill = group8ColorValue;
           }
           
           
@@ -97,14 +97,14 @@ function States({
           for (var i = 0; i < allStatesId.length; i++) {
             const id = allStatesId[i].value;
             if (
-                !legend1StatesValue.includes(id) && 
-                !legend2StatesValue.includes(id) && 
-                !legend3StatesValue.includes(id) && 
-                !legend4StatesValue.includes(id) &&
-                !legend5StatesValue.includes(id) &&
-                !legend6StatesValue.includes(id) &&
-                !legend7StatesValue.includes(id) &&
-                !legend8StatesValue.includes(id)
+                !group1StatesValue.includes(id) && 
+                !group2StatesValue.includes(id) && 
+                !group3StatesValue.includes(id) && 
+                !group4StatesValue.includes(id) &&
+                !group5StatesValue.includes(id) &&
+                !group6StatesValue.includes(id) &&
+                !group7StatesValue.includes(id) &&
+                !group8StatesValue.includes(id)
     
     
                 ) {
@@ -113,15 +113,15 @@ function States({
           }
         }
       }, [
-        legend, 
-        legend1StatesValue, 
-        legend2StatesValue, 
-        legend3StatesValue, 
-        legend4StatesValue,
-        legend5StatesValue,
-        legend6StatesValue,
-        legend7StatesValue,
-        legend8StatesValue,
+        group, 
+        group1StatesValue, 
+        group2StatesValue, 
+        group3StatesValue, 
+        group4StatesValue,
+        group5StatesValue,
+        group6StatesValue,
+        group7StatesValue,
+        group8StatesValue,
     
     
     ]);
@@ -129,70 +129,70 @@ function States({
         
           const handleChange = (event) => {
             const selectedOption = event.target.value;
-            if (legend === 1) {
-              if (legend1StatesValue.includes(selectedOption)) {
-                setLegend1StatesValue(legend1StatesValue.filter((o) => o !== selectedOption));
+            if (group === 1) {
+              if (group1StatesValue.includes(selectedOption)) {
+                setGroup1StatesValue(group1StatesValue.filter((o) => o !== selectedOption));
               } else {
-                setLegend1StatesValue([...legend1StatesValue, selectedOption]);
+                setGroup1StatesValue([...group1StatesValue, selectedOption]);
               }
                 
     
               
     
-            } else if (legend === 2) {
-              if (legend2StatesValue.includes(selectedOption)) {
-                setLegend2StatesValue(legend2StatesValue.filter((o) => o !== selectedOption));
+            } else if (group === 2) {
+              if (group2StatesValue.includes(selectedOption)) {
+                setGroup2StatesValue(group2StatesValue.filter((o) => o !== selectedOption));
               } else {
-                setLegend2StatesValue([...legend2StatesValue, selectedOption]);
+                setGroup2StatesValue([...group2StatesValue, selectedOption]);
               }
             
             
-            }else if (legend === 3) {
-                if (legend3StatesValue.includes(selectedOption)) {
-                    setLegend3StatesValue(legend3StatesValue.filter((o) => o !== selectedOption));
+            }else if (group === 3) {
+                if (group3StatesValue.includes(selectedOption)) {
+                    setGroup3StatesValue(group3StatesValue.filter((o) => o !== selectedOption));
                 } else {
-                    setLegend3StatesValue([...legend3StatesValue, selectedOption]);
+                    setGroup3StatesValue([...group3StatesValue, selectedOption]);
                 }
               }
     
-              else if (legend === 4) {
-                if (legend4StatesValue.includes(selectedOption)) {
-                    setLegend4StatesValue(legend4StatesValue.filter((o) => o !== selectedOption));
+              else if (group === 4) {
+                if (group4StatesValue.includes(selectedOption)) {
+                    setGroup4StatesValue(group4StatesValue.filter((o) => o !== selectedOption));
                 } else {
-                    setLegend4StatesValue([...legend4StatesValue, selectedOption]);
+                    setGroup4StatesValue([...group4StatesValue, selectedOption]);
                 } 
                 
               }
     
-              else if (legend === 5) {
-                if (legend5StatesValue.includes(selectedOption)) {
-                    setLegend5StatesValue(legend5StatesValue.filter((o) => o !== selectedOption));
+              else if (group === 5) {
+                if (group5StatesValue.includes(selectedOption)) {
+                    setGroup5StatesValue(group5StatesValue.filter((o) => o !== selectedOption));
                 } else {
-                    setLegend5StatesValue([...legend5StatesValue, selectedOption]);
+                    setGroup5StatesValue([...group5StatesValue, selectedOption]);
                 }
     
             } 
     
-            else if (legend === 6) {
-                if (legend6StatesValue.includes(selectedOption)) {
-                    setLegend6StatesValue(legend6StatesValue.filter((o) => o !== selectedOption));
+            else if (group === 6) {
+                if (group6StatesValue.includes(selectedOption)) {
+                    setGroup6StatesValue(group6StatesValue.filter((o) => o !== selectedOption));
                 } else {
-                    setLegend6StatesValue([...legend6StatesValue, selectedOption]);
+                    setGroup6StatesValue([...group6StatesValue, selectedOption]);
                 }
            
           } 
-          else if (legend === 7) {
-            if (legend7StatesValue.includes(selectedOption)) {
-                setLegend7StatesValue(legend7StatesValue.filter((o) => o !== selectedOption));
+          else if (group === 7) {
+            if (group7StatesValue.includes(selectedOption)) {
+                setGroup7StatesValue(group7StatesValue.filter((o) => o !== selectedOption));
             } else {
-                setLegend7StatesValue([...legend7StatesValue, selectedOption]);
+                setGroup7StatesValue([...group7StatesValue, selectedOption]);
             }
        
-      }  else if (legend === 8) {
-        if (legend8StatesValue.includes(selectedOption)) {
-            setLegend8StatesValue(legend8StatesValue.filter((o) => o !== selectedOption));
+      }  else if (group === 8) {
+        if (group8StatesValue.includes(selectedOption)) {
+            setGroup8StatesValue(group8StatesValue.filter((o) => o !== selectedOption));
         } else {
-            setLegend8StatesValue([...legend8StatesValue, selectedOption]);
+            setGroup8StatesValue([...group8StatesValue, selectedOption]);
         }
     
     };
@@ -215,14 +215,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('al') : 
-                                legend === 2 ? legend2StatesValue.includes('al') : 
-                                legend === 3 ? legend3StatesValue.includes('al') : 
-                                legend === 4 ? legend4StatesValue.includes('al') :
-                                legend === 5 ? legend5StatesValue.includes('al') :
-                                legend === 6 ? legend6StatesValue.includes('al') :
-                                legend === 7 ? legend7StatesValue.includes('al') :
-                                legend8StatesValue.includes('al')
+                                group === 1 ? group1StatesValue.includes('al') : 
+                                group === 2 ? group2StatesValue.includes('al') : 
+                                group === 3 ? group3StatesValue.includes('al') : 
+                                group === 4 ? group4StatesValue.includes('al') :
+                                group === 5 ? group5StatesValue.includes('al') :
+                                group === 6 ? group6StatesValue.includes('al') :
+                                group === 7 ? group7StatesValue.includes('al') :
+                                group8StatesValue.includes('al')
                             }
   
                             >
@@ -238,14 +238,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ak') : 
-                                legend === 2 ? legend2StatesValue.includes('ak') : 
-                                legend === 3 ? legend3StatesValue.includes('ak') : 
-                                legend === 4 ? legend4StatesValue.includes('ak') :
-                                legend === 5 ? legend5StatesValue.includes('ak') :
-                                legend === 6 ? legend6StatesValue.includes('ak') :
-                                legend === 7 ? legend7StatesValue.includes('ak') :
-                                legend8StatesValue.includes('ak')
+                                group === 1 ? group1StatesValue.includes('ak') : 
+                                group === 2 ? group2StatesValue.includes('ak') : 
+                                group === 3 ? group3StatesValue.includes('ak') : 
+                                group === 4 ? group4StatesValue.includes('ak') :
+                                group === 5 ? group5StatesValue.includes('ak') :
+                                group === 6 ? group6StatesValue.includes('ak') :
+                                group === 7 ? group7StatesValue.includes('ak') :
+                                group8StatesValue.includes('ak')
                             }
   
                             >
@@ -260,14 +260,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('az') : 
-                                legend === 2 ? legend2StatesValue.includes('az') : 
-                                legend === 3 ? legend3StatesValue.includes('az') : 
-                                legend === 4 ? legend4StatesValue.includes('az') :
-                                legend === 5 ? legend5StatesValue.includes('az') :
-                                legend === 6 ? legend6StatesValue.includes('az') :
-                                legend === 7 ? legend7StatesValue.includes('az') :
-                                legend8StatesValue.includes('az')
+                                group === 1 ? group1StatesValue.includes('az') : 
+                                group === 2 ? group2StatesValue.includes('az') : 
+                                group === 3 ? group3StatesValue.includes('az') : 
+                                group === 4 ? group4StatesValue.includes('az') :
+                                group === 5 ? group5StatesValue.includes('az') :
+                                group === 6 ? group6StatesValue.includes('az') :
+                                group === 7 ? group7StatesValue.includes('az') :
+                                group8StatesValue.includes('az')
                             }
   
                             >
@@ -283,14 +283,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ar') : 
-                                legend === 2 ? legend2StatesValue.includes('ar') : 
-                                legend === 3 ? legend3StatesValue.includes('ar') : 
-                                legend === 4 ? legend4StatesValue.includes('ar') :
-                                legend === 5 ? legend5StatesValue.includes('ar') :
-                                legend === 6 ? legend6StatesValue.includes('ar') :
-                                legend === 7 ? legend7StatesValue.includes('ar') :
-                                legend8StatesValue.includes('ar')
+                                group === 1 ? group1StatesValue.includes('ar') : 
+                                group === 2 ? group2StatesValue.includes('ar') : 
+                                group === 3 ? group3StatesValue.includes('ar') : 
+                                group === 4 ? group4StatesValue.includes('ar') :
+                                group === 5 ? group5StatesValue.includes('ar') :
+                                group === 6 ? group6StatesValue.includes('ar') :
+                                group === 7 ? group7StatesValue.includes('ar') :
+                                group8StatesValue.includes('ar')
                             }
   
                             >
@@ -307,14 +307,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ca') : 
-                                legend === 2 ? legend2StatesValue.includes('ca') : 
-                                legend === 3 ? legend3StatesValue.includes('ca') : 
-                                legend === 4 ? legend4StatesValue.includes('ca') :
-                                legend === 5 ? legend5StatesValue.includes('ca') :
-                                legend === 6 ? legend6StatesValue.includes('ca') :
-                                legend === 7 ? legend7StatesValue.includes('ca') :
-                                legend8StatesValue.includes('ca')
+                                group === 1 ? group1StatesValue.includes('ca') : 
+                                group === 2 ? group2StatesValue.includes('ca') : 
+                                group === 3 ? group3StatesValue.includes('ca') : 
+                                group === 4 ? group4StatesValue.includes('ca') :
+                                group === 5 ? group5StatesValue.includes('ca') :
+                                group === 6 ? group6StatesValue.includes('ca') :
+                                group === 7 ? group7StatesValue.includes('ca') :
+                                group8StatesValue.includes('ca')
                             }
   
                             >
@@ -330,14 +330,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('co') : 
-                                legend === 2 ? legend2StatesValue.includes('co') : 
-                                legend === 3 ? legend3StatesValue.includes('co') : 
-                                legend === 4 ? legend4StatesValue.includes('co') :
-                                legend === 5 ? legend5StatesValue.includes('co') :
-                                legend === 6 ? legend6StatesValue.includes('co') :
-                                legend === 7 ? legend7StatesValue.includes('co') :
-                                legend8StatesValue.includes('co')
+                                group === 1 ? group1StatesValue.includes('co') : 
+                                group === 2 ? group2StatesValue.includes('co') : 
+                                group === 3 ? group3StatesValue.includes('co') : 
+                                group === 4 ? group4StatesValue.includes('co') :
+                                group === 5 ? group5StatesValue.includes('co') :
+                                group === 6 ? group6StatesValue.includes('co') :
+                                group === 7 ? group7StatesValue.includes('co') :
+                                group8StatesValue.includes('co')
                             }
   
                             >
@@ -353,14 +353,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ct') : 
-                                legend === 2 ? legend2StatesValue.includes('ct') : 
-                                legend === 3 ? legend3StatesValue.includes('ct') : 
-                                legend === 4 ? legend4StatesValue.includes('ct') :
-                                legend === 5 ? legend5StatesValue.includes('ct') :
-                                legend === 6 ? legend6StatesValue.includes('ct') :
-                                legend === 7 ? legend7StatesValue.includes('ct') :
-                                legend8StatesValue.includes('ct')
+                                group === 1 ? group1StatesValue.includes('ct') : 
+                                group === 2 ? group2StatesValue.includes('ct') : 
+                                group === 3 ? group3StatesValue.includes('ct') : 
+                                group === 4 ? group4StatesValue.includes('ct') :
+                                group === 5 ? group5StatesValue.includes('ct') :
+                                group === 6 ? group6StatesValue.includes('ct') :
+                                group === 7 ? group7StatesValue.includes('ct') :
+                                group8StatesValue.includes('ct')
                             }
   
                             >
@@ -376,14 +376,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('de') : 
-                                legend === 2 ? legend2StatesValue.includes('de') : 
-                                legend === 3 ? legend3StatesValue.includes('de') : 
-                                legend === 4 ? legend4StatesValue.includes('de') :
-                                legend === 5 ? legend5StatesValue.includes('de') :
-                                legend === 6 ? legend6StatesValue.includes('de') :
-                                legend === 7 ? legend7StatesValue.includes('de') :
-                                legend8StatesValue.includes('de')
+                                group === 1 ? group1StatesValue.includes('de') : 
+                                group === 2 ? group2StatesValue.includes('de') : 
+                                group === 3 ? group3StatesValue.includes('de') : 
+                                group === 4 ? group4StatesValue.includes('de') :
+                                group === 5 ? group5StatesValue.includes('de') :
+                                group === 6 ? group6StatesValue.includes('de') :
+                                group === 7 ? group7StatesValue.includes('de') :
+                                group8StatesValue.includes('de')
                             }
   
                             >
@@ -402,14 +402,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('fl') : 
-                                legend === 2 ? legend2StatesValue.includes('fl') : 
-                                legend === 3 ? legend3StatesValue.includes('fl') : 
-                                legend === 4 ? legend4StatesValue.includes('fl') :
-                                legend === 5 ? legend5StatesValue.includes('fl') :
-                                legend === 6 ? legend6StatesValue.includes('fl') :
-                                legend === 7 ? legend7StatesValue.includes('fl') :
-                                legend8StatesValue.includes('fl')
+                                group === 1 ? group1StatesValue.includes('fl') : 
+                                group === 2 ? group2StatesValue.includes('fl') : 
+                                group === 3 ? group3StatesValue.includes('fl') : 
+                                group === 4 ? group4StatesValue.includes('fl') :
+                                group === 5 ? group5StatesValue.includes('fl') :
+                                group === 6 ? group6StatesValue.includes('fl') :
+                                group === 7 ? group7StatesValue.includes('fl') :
+                                group8StatesValue.includes('fl')
                             }
   
                             >
@@ -425,14 +425,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ga') : 
-                                legend === 2 ? legend2StatesValue.includes('ga') : 
-                                legend === 3 ? legend3StatesValue.includes('ga') : 
-                                legend === 4 ? legend4StatesValue.includes('ga') :
-                                legend === 5 ? legend5StatesValue.includes('ga') :
-                                legend === 6 ? legend6StatesValue.includes('ga') :
-                                legend === 7 ? legend7StatesValue.includes('ga') :
-                                legend8StatesValue.includes('ga')
+                                group === 1 ? group1StatesValue.includes('ga') : 
+                                group === 2 ? group2StatesValue.includes('ga') : 
+                                group === 3 ? group3StatesValue.includes('ga') : 
+                                group === 4 ? group4StatesValue.includes('ga') :
+                                group === 5 ? group5StatesValue.includes('ga') :
+                                group === 6 ? group6StatesValue.includes('ga') :
+                                group === 7 ? group7StatesValue.includes('ga') :
+                                group8StatesValue.includes('ga')
                             }
   
                             >
@@ -448,14 +448,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('hi') : 
-                                legend === 2 ? legend2StatesValue.includes('hi') : 
-                                legend === 3 ? legend3StatesValue.includes('hi') : 
-                                legend === 4 ? legend4StatesValue.includes('hi') :
-                                legend === 5 ? legend5StatesValue.includes('hi') :
-                                legend === 6 ? legend6StatesValue.includes('hi') :
-                                legend === 7 ? legend7StatesValue.includes('hi') :
-                                legend8StatesValue.includes('hi')
+                                group === 1 ? group1StatesValue.includes('hi') : 
+                                group === 2 ? group2StatesValue.includes('hi') : 
+                                group === 3 ? group3StatesValue.includes('hi') : 
+                                group === 4 ? group4StatesValue.includes('hi') :
+                                group === 5 ? group5StatesValue.includes('hi') :
+                                group === 6 ? group6StatesValue.includes('hi') :
+                                group === 7 ? group7StatesValue.includes('hi') :
+                                group8StatesValue.includes('hi')
                             }
   
                             >
@@ -471,14 +471,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('id') : 
-                                legend === 2 ? legend2StatesValue.includes('id') : 
-                                legend === 3 ? legend3StatesValue.includes('id') : 
-                                legend === 4 ? legend4StatesValue.includes('id') :
-                                legend === 5 ? legend5StatesValue.includes('id') :
-                                legend === 6 ? legend6StatesValue.includes('id') :
-                                legend === 7 ? legend7StatesValue.includes('id') :
-                                legend8StatesValue.includes('id')
+                                group === 1 ? group1StatesValue.includes('id') : 
+                                group === 2 ? group2StatesValue.includes('id') : 
+                                group === 3 ? group3StatesValue.includes('id') : 
+                                group === 4 ? group4StatesValue.includes('id') :
+                                group === 5 ? group5StatesValue.includes('id') :
+                                group === 6 ? group6StatesValue.includes('id') :
+                                group === 7 ? group7StatesValue.includes('id') :
+                                group8StatesValue.includes('id')
                             }
   
                             >
@@ -494,14 +494,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('il') : 
-                                legend === 2 ? legend2StatesValue.includes('il') : 
-                                legend === 3 ? legend3StatesValue.includes('il') : 
-                                legend === 4 ? legend4StatesValue.includes('il') :
-                                legend === 5 ? legend5StatesValue.includes('il') :
-                                legend === 6 ? legend6StatesValue.includes('il') :
-                                legend === 7 ? legend7StatesValue.includes('il') :
-                                legend8StatesValue.includes('il')
+                                group === 1 ? group1StatesValue.includes('il') : 
+                                group === 2 ? group2StatesValue.includes('il') : 
+                                group === 3 ? group3StatesValue.includes('il') : 
+                                group === 4 ? group4StatesValue.includes('il') :
+                                group === 5 ? group5StatesValue.includes('il') :
+                                group === 6 ? group6StatesValue.includes('il') :
+                                group === 7 ? group7StatesValue.includes('il') :
+                                group8StatesValue.includes('il')
                             }
   
                             >
@@ -517,14 +517,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('in') : 
-                                legend === 2 ? legend2StatesValue.includes('in') : 
-                                legend === 3 ? legend3StatesValue.includes('in') : 
-                                legend === 4 ? legend4StatesValue.includes('in') :
-                                legend === 5 ? legend5StatesValue.includes('in') :
-                                legend === 6 ? legend6StatesValue.includes('in') :
-                                legend === 7 ? legend7StatesValue.includes('in') :
-                                legend8StatesValue.includes('in')
+                                group === 1 ? group1StatesValue.includes('in') : 
+                                group === 2 ? group2StatesValue.includes('in') : 
+                                group === 3 ? group3StatesValue.includes('in') : 
+                                group === 4 ? group4StatesValue.includes('in') :
+                                group === 5 ? group5StatesValue.includes('in') :
+                                group === 6 ? group6StatesValue.includes('in') :
+                                group === 7 ? group7StatesValue.includes('in') :
+                                group8StatesValue.includes('in')
                             }
   
                             >
@@ -540,14 +540,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ia') : 
-                                legend === 2 ? legend2StatesValue.includes('ia') : 
-                                legend === 3 ? legend3StatesValue.includes('ia') : 
-                                legend === 4 ? legend4StatesValue.includes('ia') :
-                                legend === 5 ? legend5StatesValue.includes('ia') :
-                                legend === 6 ? legend6StatesValue.includes('ia') :
-                                legend === 7 ? legend7StatesValue.includes('ia') :
-                                legend8StatesValue.includes('ia')
+                                group === 1 ? group1StatesValue.includes('ia') : 
+                                group === 2 ? group2StatesValue.includes('ia') : 
+                                group === 3 ? group3StatesValue.includes('ia') : 
+                                group === 4 ? group4StatesValue.includes('ia') :
+                                group === 5 ? group5StatesValue.includes('ia') :
+                                group === 6 ? group6StatesValue.includes('ia') :
+                                group === 7 ? group7StatesValue.includes('ia') :
+                                group8StatesValue.includes('ia')
                             }
   
                             >
@@ -563,14 +563,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ks') : 
-                                legend === 2 ? legend2StatesValue.includes('ks') : 
-                                legend === 3 ? legend3StatesValue.includes('ks') : 
-                                legend === 4 ? legend4StatesValue.includes('ks') :
-                                legend === 5 ? legend5StatesValue.includes('ks') :
-                                legend === 6 ? legend6StatesValue.includes('ks') :
-                                legend === 7 ? legend7StatesValue.includes('ks') :
-                                legend8StatesValue.includes('ks')
+                                group === 1 ? group1StatesValue.includes('ks') : 
+                                group === 2 ? group2StatesValue.includes('ks') : 
+                                group === 3 ? group3StatesValue.includes('ks') : 
+                                group === 4 ? group4StatesValue.includes('ks') :
+                                group === 5 ? group5StatesValue.includes('ks') :
+                                group === 6 ? group6StatesValue.includes('ks') :
+                                group === 7 ? group7StatesValue.includes('ks') :
+                                group8StatesValue.includes('ks')
                             }
   
                             >
@@ -586,14 +586,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ky') : 
-                                legend === 2 ? legend2StatesValue.includes('ky') : 
-                                legend === 3 ? legend3StatesValue.includes('ky') : 
-                                legend === 4 ? legend4StatesValue.includes('ky') :
-                                legend === 5 ? legend5StatesValue.includes('ky') :
-                                legend === 6 ? legend6StatesValue.includes('ky') :
-                                legend === 7 ? legend7StatesValue.includes('ky') :
-                                legend8StatesValue.includes('ky')
+                                group === 1 ? group1StatesValue.includes('ky') : 
+                                group === 2 ? group2StatesValue.includes('ky') : 
+                                group === 3 ? group3StatesValue.includes('ky') : 
+                                group === 4 ? group4StatesValue.includes('ky') :
+                                group === 5 ? group5StatesValue.includes('ky') :
+                                group === 6 ? group6StatesValue.includes('ky') :
+                                group === 7 ? group7StatesValue.includes('ky') :
+                                group8StatesValue.includes('ky')
                             }
   
                             >
@@ -609,14 +609,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('la') : 
-                                legend === 2 ? legend2StatesValue.includes('la') : 
-                                legend === 3 ? legend3StatesValue.includes('la') : 
-                                legend === 4 ? legend4StatesValue.includes('la') :
-                                legend === 5 ? legend5StatesValue.includes('la') :
-                                legend === 6 ? legend6StatesValue.includes('la') :
-                                legend === 7 ? legend7StatesValue.includes('la') :
-                                legend8StatesValue.includes('la')
+                                group === 1 ? group1StatesValue.includes('la') : 
+                                group === 2 ? group2StatesValue.includes('la') : 
+                                group === 3 ? group3StatesValue.includes('la') : 
+                                group === 4 ? group4StatesValue.includes('la') :
+                                group === 5 ? group5StatesValue.includes('la') :
+                                group === 6 ? group6StatesValue.includes('la') :
+                                group === 7 ? group7StatesValue.includes('la') :
+                                group8StatesValue.includes('la')
                             }
   
                             >
@@ -632,14 +632,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('me') : 
-                                legend === 2 ? legend2StatesValue.includes('me') : 
-                                legend === 3 ? legend3StatesValue.includes('me') : 
-                                legend === 4 ? legend4StatesValue.includes('me') :
-                                legend === 5 ? legend5StatesValue.includes('me') :
-                                legend === 6 ? legend6StatesValue.includes('me') :
-                                legend === 7 ? legend7StatesValue.includes('me') :
-                                legend8StatesValue.includes('me')
+                                group === 1 ? group1StatesValue.includes('me') : 
+                                group === 2 ? group2StatesValue.includes('me') : 
+                                group === 3 ? group3StatesValue.includes('me') : 
+                                group === 4 ? group4StatesValue.includes('me') :
+                                group === 5 ? group5StatesValue.includes('me') :
+                                group === 6 ? group6StatesValue.includes('me') :
+                                group === 7 ? group7StatesValue.includes('me') :
+                                group8StatesValue.includes('me')
                             }
   
                             >
@@ -655,14 +655,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('md') : 
-                                legend === 2 ? legend2StatesValue.includes('md') : 
-                                legend === 3 ? legend3StatesValue.includes('md') : 
-                                legend === 4 ? legend4StatesValue.includes('md') :
-                                legend === 5 ? legend5StatesValue.includes('md') :
-                                legend === 6 ? legend6StatesValue.includes('md') :
-                                legend === 7 ? legend7StatesValue.includes('md') :
-                                legend8StatesValue.includes('md')
+                                group === 1 ? group1StatesValue.includes('md') : 
+                                group === 2 ? group2StatesValue.includes('md') : 
+                                group === 3 ? group3StatesValue.includes('md') : 
+                                group === 4 ? group4StatesValue.includes('md') :
+                                group === 5 ? group5StatesValue.includes('md') :
+                                group === 6 ? group6StatesValue.includes('md') :
+                                group === 7 ? group7StatesValue.includes('md') :
+                                group8StatesValue.includes('md')
                             }
   
                             >
@@ -678,14 +678,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ma') : 
-                                legend === 2 ? legend2StatesValue.includes('ma') : 
-                                legend === 3 ? legend3StatesValue.includes('ma') : 
-                                legend === 4 ? legend4StatesValue.includes('ma') :
-                                legend === 5 ? legend5StatesValue.includes('ma') :
-                                legend === 6 ? legend6StatesValue.includes('ma') :
-                                legend === 7 ? legend7StatesValue.includes('ma') :
-                                legend8StatesValue.includes('ma')
+                                group === 1 ? group1StatesValue.includes('ma') : 
+                                group === 2 ? group2StatesValue.includes('ma') : 
+                                group === 3 ? group3StatesValue.includes('ma') : 
+                                group === 4 ? group4StatesValue.includes('ma') :
+                                group === 5 ? group5StatesValue.includes('ma') :
+                                group === 6 ? group6StatesValue.includes('ma') :
+                                group === 7 ? group7StatesValue.includes('ma') :
+                                group8StatesValue.includes('ma')
                             }
   
                             >
@@ -701,14 +701,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('mi') : 
-                                legend === 2 ? legend2StatesValue.includes('mi') : 
-                                legend === 3 ? legend3StatesValue.includes('mi') : 
-                                legend === 4 ? legend4StatesValue.includes('mi') :
-                                legend === 5 ? legend5StatesValue.includes('mi') :
-                                legend === 6 ? legend6StatesValue.includes('mi') :
-                                legend === 7 ? legend7StatesValue.includes('mi') :
-                                legend8StatesValue.includes('mi')
+                                group === 1 ? group1StatesValue.includes('mi') : 
+                                group === 2 ? group2StatesValue.includes('mi') : 
+                                group === 3 ? group3StatesValue.includes('mi') : 
+                                group === 4 ? group4StatesValue.includes('mi') :
+                                group === 5 ? group5StatesValue.includes('mi') :
+                                group === 6 ? group6StatesValue.includes('mi') :
+                                group === 7 ? group7StatesValue.includes('mi') :
+                                group8StatesValue.includes('mi')
                             }
   
                             >
@@ -724,14 +724,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('mn') : 
-                                legend === 2 ? legend2StatesValue.includes('mn') : 
-                                legend === 3 ? legend3StatesValue.includes('mn') : 
-                                legend === 4 ? legend4StatesValue.includes('mn') :
-                                legend === 5 ? legend5StatesValue.includes('mn') :
-                                legend === 6 ? legend6StatesValue.includes('mn') :
-                                legend === 7 ? legend7StatesValue.includes('mn') :
-                                legend8StatesValue.includes('mn')
+                                group === 1 ? group1StatesValue.includes('mn') : 
+                                group === 2 ? group2StatesValue.includes('mn') : 
+                                group === 3 ? group3StatesValue.includes('mn') : 
+                                group === 4 ? group4StatesValue.includes('mn') :
+                                group === 5 ? group5StatesValue.includes('mn') :
+                                group === 6 ? group6StatesValue.includes('mn') :
+                                group === 7 ? group7StatesValue.includes('mn') :
+                                group8StatesValue.includes('mn')
                             }
   
                             >
@@ -747,14 +747,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ms') : 
-                                legend === 2 ? legend2StatesValue.includes('ms') : 
-                                legend === 3 ? legend3StatesValue.includes('ms') : 
-                                legend === 4 ? legend4StatesValue.includes('ms') :
-                                legend === 5 ? legend5StatesValue.includes('ms') :
-                                legend === 6 ? legend6StatesValue.includes('ms') :
-                                legend === 7 ? legend7StatesValue.includes('ms') :
-                                legend8StatesValue.includes('ms')
+                                group === 1 ? group1StatesValue.includes('ms') : 
+                                group === 2 ? group2StatesValue.includes('ms') : 
+                                group === 3 ? group3StatesValue.includes('ms') : 
+                                group === 4 ? group4StatesValue.includes('ms') :
+                                group === 5 ? group5StatesValue.includes('ms') :
+                                group === 6 ? group6StatesValue.includes('ms') :
+                                group === 7 ? group7StatesValue.includes('ms') :
+                                group8StatesValue.includes('ms')
                             }
   
                             >
@@ -770,14 +770,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('mo') : 
-                                legend === 2 ? legend2StatesValue.includes('mo') : 
-                                legend === 3 ? legend3StatesValue.includes('mo') : 
-                                legend === 4 ? legend4StatesValue.includes('mo') :
-                                legend === 5 ? legend5StatesValue.includes('mo') :
-                                legend === 6 ? legend6StatesValue.includes('mo') :
-                                legend === 7 ? legend7StatesValue.includes('mo') :
-                                legend8StatesValue.includes('mo')
+                                group === 1 ? group1StatesValue.includes('mo') : 
+                                group === 2 ? group2StatesValue.includes('mo') : 
+                                group === 3 ? group3StatesValue.includes('mo') : 
+                                group === 4 ? group4StatesValue.includes('mo') :
+                                group === 5 ? group5StatesValue.includes('mo') :
+                                group === 6 ? group6StatesValue.includes('mo') :
+                                group === 7 ? group7StatesValue.includes('mo') :
+                                group8StatesValue.includes('mo')
                             }
   
                             >
@@ -793,14 +793,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('mt') : 
-                                legend === 2 ? legend2StatesValue.includes('mt') : 
-                                legend === 3 ? legend3StatesValue.includes('mt') : 
-                                legend === 4 ? legend4StatesValue.includes('mt') :
-                                legend === 5 ? legend5StatesValue.includes('mt') :
-                                legend === 6 ? legend6StatesValue.includes('mt') :
-                                legend === 7 ? legend7StatesValue.includes('mt') :
-                                legend8StatesValue.includes('mt')
+                                group === 1 ? group1StatesValue.includes('mt') : 
+                                group === 2 ? group2StatesValue.includes('mt') : 
+                                group === 3 ? group3StatesValue.includes('mt') : 
+                                group === 4 ? group4StatesValue.includes('mt') :
+                                group === 5 ? group5StatesValue.includes('mt') :
+                                group === 6 ? group6StatesValue.includes('mt') :
+                                group === 7 ? group7StatesValue.includes('mt') :
+                                group8StatesValue.includes('mt')
                             }
   
                             >
@@ -816,14 +816,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ne') : 
-                                legend === 2 ? legend2StatesValue.includes('ne') : 
-                                legend === 3 ? legend3StatesValue.includes('ne') : 
-                                legend === 4 ? legend4StatesValue.includes('ne') :
-                                legend === 5 ? legend5StatesValue.includes('ne') :
-                                legend === 6 ? legend6StatesValue.includes('ne') :
-                                legend === 7 ? legend7StatesValue.includes('ne') :
-                                legend8StatesValue.includes('ne')
+                                group === 1 ? group1StatesValue.includes('ne') : 
+                                group === 2 ? group2StatesValue.includes('ne') : 
+                                group === 3 ? group3StatesValue.includes('ne') : 
+                                group === 4 ? group4StatesValue.includes('ne') :
+                                group === 5 ? group5StatesValue.includes('ne') :
+                                group === 6 ? group6StatesValue.includes('ne') :
+                                group === 7 ? group7StatesValue.includes('ne') :
+                                group8StatesValue.includes('ne')
                             }
   
                             >
@@ -839,14 +839,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('nv') : 
-                                legend === 2 ? legend2StatesValue.includes('nv') : 
-                                legend === 3 ? legend3StatesValue.includes('nv') : 
-                                legend === 4 ? legend4StatesValue.includes('nv') :
-                                legend === 5 ? legend5StatesValue.includes('nv') :
-                                legend === 6 ? legend6StatesValue.includes('nv') :
-                                legend === 7 ? legend7StatesValue.includes('nv') :
-                                legend8StatesValue.includes('nv')
+                                group === 1 ? group1StatesValue.includes('nv') : 
+                                group === 2 ? group2StatesValue.includes('nv') : 
+                                group === 3 ? group3StatesValue.includes('nv') : 
+                                group === 4 ? group4StatesValue.includes('nv') :
+                                group === 5 ? group5StatesValue.includes('nv') :
+                                group === 6 ? group6StatesValue.includes('nv') :
+                                group === 7 ? group7StatesValue.includes('nv') :
+                                group8StatesValue.includes('nv')
                             }
   
                             >
@@ -862,14 +862,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('nh') : 
-                                legend === 2 ? legend2StatesValue.includes('nh') : 
-                                legend === 3 ? legend3StatesValue.includes('nh') : 
-                                legend === 4 ? legend4StatesValue.includes('nh') :
-                                legend === 5 ? legend5StatesValue.includes('nh') :
-                                legend === 6 ? legend6StatesValue.includes('nh') :
-                                legend === 7 ? legend7StatesValue.includes('nh') :
-                                legend8StatesValue.includes('nh')
+                                group === 1 ? group1StatesValue.includes('nh') : 
+                                group === 2 ? group2StatesValue.includes('nh') : 
+                                group === 3 ? group3StatesValue.includes('nh') : 
+                                group === 4 ? group4StatesValue.includes('nh') :
+                                group === 5 ? group5StatesValue.includes('nh') :
+                                group === 6 ? group6StatesValue.includes('nh') :
+                                group === 7 ? group7StatesValue.includes('nh') :
+                                group8StatesValue.includes('nh')
                             }
   
                             >
@@ -885,14 +885,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('nj') : 
-                                legend === 2 ? legend2StatesValue.includes('nj') : 
-                                legend === 3 ? legend3StatesValue.includes('nj') : 
-                                legend === 4 ? legend4StatesValue.includes('nj') :
-                                legend === 5 ? legend5StatesValue.includes('nj') :
-                                legend === 6 ? legend6StatesValue.includes('nj') :
-                                legend === 7 ? legend7StatesValue.includes('nj') :
-                                legend8StatesValue.includes('nj')
+                                group === 1 ? group1StatesValue.includes('nj') : 
+                                group === 2 ? group2StatesValue.includes('nj') : 
+                                group === 3 ? group3StatesValue.includes('nj') : 
+                                group === 4 ? group4StatesValue.includes('nj') :
+                                group === 5 ? group5StatesValue.includes('nj') :
+                                group === 6 ? group6StatesValue.includes('nj') :
+                                group === 7 ? group7StatesValue.includes('nj') :
+                                group8StatesValue.includes('nj')
                             }
   
                             >
@@ -908,14 +908,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('nm') : 
-                                legend === 2 ? legend2StatesValue.includes('nm') : 
-                                legend === 3 ? legend3StatesValue.includes('nm') : 
-                                legend === 4 ? legend4StatesValue.includes('nm') :
-                                legend === 5 ? legend5StatesValue.includes('nm') :
-                                legend === 6 ? legend6StatesValue.includes('nm') :
-                                legend === 7 ? legend7StatesValue.includes('nm') :
-                                legend8StatesValue.includes('nm')
+                                group === 1 ? group1StatesValue.includes('nm') : 
+                                group === 2 ? group2StatesValue.includes('nm') : 
+                                group === 3 ? group3StatesValue.includes('nm') : 
+                                group === 4 ? group4StatesValue.includes('nm') :
+                                group === 5 ? group5StatesValue.includes('nm') :
+                                group === 6 ? group6StatesValue.includes('nm') :
+                                group === 7 ? group7StatesValue.includes('nm') :
+                                group8StatesValue.includes('nm')
                             }
   
                             >
@@ -931,14 +931,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ny') : 
-                                legend === 2 ? legend2StatesValue.includes('ny') : 
-                                legend === 3 ? legend3StatesValue.includes('ny') : 
-                                legend === 4 ? legend4StatesValue.includes('ny') :
-                                legend === 5 ? legend5StatesValue.includes('ny') :
-                                legend === 6 ? legend6StatesValue.includes('ny') :
-                                legend === 7 ? legend7StatesValue.includes('ny') :
-                                legend8StatesValue.includes('ny')
+                                group === 1 ? group1StatesValue.includes('ny') : 
+                                group === 2 ? group2StatesValue.includes('ny') : 
+                                group === 3 ? group3StatesValue.includes('ny') : 
+                                group === 4 ? group4StatesValue.includes('ny') :
+                                group === 5 ? group5StatesValue.includes('ny') :
+                                group === 6 ? group6StatesValue.includes('ny') :
+                                group === 7 ? group7StatesValue.includes('ny') :
+                                group8StatesValue.includes('ny')
                             }
   
                             >
@@ -954,14 +954,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('nc') : 
-                                legend === 2 ? legend2StatesValue.includes('nc') : 
-                                legend === 3 ? legend3StatesValue.includes('nc') : 
-                                legend === 4 ? legend4StatesValue.includes('nc') :
-                                legend === 5 ? legend5StatesValue.includes('nc') :
-                                legend === 6 ? legend6StatesValue.includes('nc') :
-                                legend === 7 ? legend7StatesValue.includes('nc') :
-                                legend8StatesValue.includes('nc')
+                                group === 1 ? group1StatesValue.includes('nc') : 
+                                group === 2 ? group2StatesValue.includes('nc') : 
+                                group === 3 ? group3StatesValue.includes('nc') : 
+                                group === 4 ? group4StatesValue.includes('nc') :
+                                group === 5 ? group5StatesValue.includes('nc') :
+                                group === 6 ? group6StatesValue.includes('nc') :
+                                group === 7 ? group7StatesValue.includes('nc') :
+                                group8StatesValue.includes('nc')
                             }
   
                             >
@@ -977,14 +977,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('nd') : 
-                                legend === 2 ? legend2StatesValue.includes('nd') : 
-                                legend === 3 ? legend3StatesValue.includes('nd') : 
-                                legend === 4 ? legend4StatesValue.includes('nd') :
-                                legend === 5 ? legend5StatesValue.includes('nd') :
-                                legend === 6 ? legend6StatesValue.includes('nd') :
-                                legend === 7 ? legend7StatesValue.includes('nd') :
-                                legend8StatesValue.includes('nd')
+                                group === 1 ? group1StatesValue.includes('nd') : 
+                                group === 2 ? group2StatesValue.includes('nd') : 
+                                group === 3 ? group3StatesValue.includes('nd') : 
+                                group === 4 ? group4StatesValue.includes('nd') :
+                                group === 5 ? group5StatesValue.includes('nd') :
+                                group === 6 ? group6StatesValue.includes('nd') :
+                                group === 7 ? group7StatesValue.includes('nd') :
+                                group8StatesValue.includes('nd')
                             }
   
                             >
@@ -1000,14 +1000,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('oh') : 
-                                legend === 2 ? legend2StatesValue.includes('oh') : 
-                                legend === 3 ? legend3StatesValue.includes('oh') : 
-                                legend === 4 ? legend4StatesValue.includes('oh') :
-                                legend === 5 ? legend5StatesValue.includes('oh') :
-                                legend === 6 ? legend6StatesValue.includes('oh') :
-                                legend === 7 ? legend7StatesValue.includes('oh') :
-                                legend8StatesValue.includes('oh')
+                                group === 1 ? group1StatesValue.includes('oh') : 
+                                group === 2 ? group2StatesValue.includes('oh') : 
+                                group === 3 ? group3StatesValue.includes('oh') : 
+                                group === 4 ? group4StatesValue.includes('oh') :
+                                group === 5 ? group5StatesValue.includes('oh') :
+                                group === 6 ? group6StatesValue.includes('oh') :
+                                group === 7 ? group7StatesValue.includes('oh') :
+                                group8StatesValue.includes('oh')
                             }
   
                             >
@@ -1023,14 +1023,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ok') : 
-                                legend === 2 ? legend2StatesValue.includes('ok') : 
-                                legend === 3 ? legend3StatesValue.includes('ok') : 
-                                legend === 4 ? legend4StatesValue.includes('ok') :
-                                legend === 5 ? legend5StatesValue.includes('ok') :
-                                legend === 6 ? legend6StatesValue.includes('ok') :
-                                legend === 7 ? legend7StatesValue.includes('ok') :
-                                legend8StatesValue.includes('ok')
+                                group === 1 ? group1StatesValue.includes('ok') : 
+                                group === 2 ? group2StatesValue.includes('ok') : 
+                                group === 3 ? group3StatesValue.includes('ok') : 
+                                group === 4 ? group4StatesValue.includes('ok') :
+                                group === 5 ? group5StatesValue.includes('ok') :
+                                group === 6 ? group6StatesValue.includes('ok') :
+                                group === 7 ? group7StatesValue.includes('ok') :
+                                group8StatesValue.includes('ok')
                             }
   
                             >
@@ -1046,14 +1046,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('or') : 
-                                legend === 2 ? legend2StatesValue.includes('or') : 
-                                legend === 3 ? legend3StatesValue.includes('or') : 
-                                legend === 4 ? legend4StatesValue.includes('or') :
-                                legend === 5 ? legend5StatesValue.includes('or') :
-                                legend === 6 ? legend6StatesValue.includes('or') :
-                                legend === 7 ? legend7StatesValue.includes('or') :
-                                legend8StatesValue.includes('or')
+                                group === 1 ? group1StatesValue.includes('or') : 
+                                group === 2 ? group2StatesValue.includes('or') : 
+                                group === 3 ? group3StatesValue.includes('or') : 
+                                group === 4 ? group4StatesValue.includes('or') :
+                                group === 5 ? group5StatesValue.includes('or') :
+                                group === 6 ? group6StatesValue.includes('or') :
+                                group === 7 ? group7StatesValue.includes('or') :
+                                group8StatesValue.includes('or')
                             }
   
                             >
@@ -1069,14 +1069,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('pa') : 
-                                legend === 2 ? legend2StatesValue.includes('pa') : 
-                                legend === 3 ? legend3StatesValue.includes('pa') : 
-                                legend === 4 ? legend4StatesValue.includes('pa') :
-                                legend === 5 ? legend5StatesValue.includes('pa') :
-                                legend === 6 ? legend6StatesValue.includes('pa') :
-                                legend === 7 ? legend7StatesValue.includes('pa') :
-                                legend8StatesValue.includes('pa')
+                                group === 1 ? group1StatesValue.includes('pa') : 
+                                group === 2 ? group2StatesValue.includes('pa') : 
+                                group === 3 ? group3StatesValue.includes('pa') : 
+                                group === 4 ? group4StatesValue.includes('pa') :
+                                group === 5 ? group5StatesValue.includes('pa') :
+                                group === 6 ? group6StatesValue.includes('pa') :
+                                group === 7 ? group7StatesValue.includes('pa') :
+                                group8StatesValue.includes('pa')
                             }
   
                             >
@@ -1092,14 +1092,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ri') : 
-                                legend === 2 ? legend2StatesValue.includes('ri') : 
-                                legend === 3 ? legend3StatesValue.includes('ri') : 
-                                legend === 4 ? legend4StatesValue.includes('ri') :
-                                legend === 5 ? legend5StatesValue.includes('ri') :
-                                legend === 6 ? legend6StatesValue.includes('ri') :
-                                legend === 7 ? legend7StatesValue.includes('ri') :
-                                legend8StatesValue.includes('ri')
+                                group === 1 ? group1StatesValue.includes('ri') : 
+                                group === 2 ? group2StatesValue.includes('ri') : 
+                                group === 3 ? group3StatesValue.includes('ri') : 
+                                group === 4 ? group4StatesValue.includes('ri') :
+                                group === 5 ? group5StatesValue.includes('ri') :
+                                group === 6 ? group6StatesValue.includes('ri') :
+                                group === 7 ? group7StatesValue.includes('ri') :
+                                group8StatesValue.includes('ri')
                             }
   
                             >
@@ -1115,14 +1115,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('sc') : 
-                                legend === 2 ? legend2StatesValue.includes('sc') : 
-                                legend === 3 ? legend3StatesValue.includes('sc') : 
-                                legend === 4 ? legend4StatesValue.includes('sc') :
-                                legend === 5 ? legend5StatesValue.includes('sc') :
-                                legend === 6 ? legend6StatesValue.includes('sc') :
-                                legend === 7 ? legend7StatesValue.includes('sc') :
-                                legend8StatesValue.includes('sc')
+                                group === 1 ? group1StatesValue.includes('sc') : 
+                                group === 2 ? group2StatesValue.includes('sc') : 
+                                group === 3 ? group3StatesValue.includes('sc') : 
+                                group === 4 ? group4StatesValue.includes('sc') :
+                                group === 5 ? group5StatesValue.includes('sc') :
+                                group === 6 ? group6StatesValue.includes('sc') :
+                                group === 7 ? group7StatesValue.includes('sc') :
+                                group8StatesValue.includes('sc')
                             }
   
                             >
@@ -1138,14 +1138,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('sd') : 
-                                legend === 2 ? legend2StatesValue.includes('sd') : 
-                                legend === 3 ? legend3StatesValue.includes('sd') : 
-                                legend === 4 ? legend4StatesValue.includes('sd') :
-                                legend === 5 ? legend5StatesValue.includes('sd') :
-                                legend === 6 ? legend6StatesValue.includes('sd') :
-                                legend === 7 ? legend7StatesValue.includes('sd') :
-                                legend8StatesValue.includes('sd')
+                                group === 1 ? group1StatesValue.includes('sd') : 
+                                group === 2 ? group2StatesValue.includes('sd') : 
+                                group === 3 ? group3StatesValue.includes('sd') : 
+                                group === 4 ? group4StatesValue.includes('sd') :
+                                group === 5 ? group5StatesValue.includes('sd') :
+                                group === 6 ? group6StatesValue.includes('sd') :
+                                group === 7 ? group7StatesValue.includes('sd') :
+                                group8StatesValue.includes('sd')
                             }
   
                             >
@@ -1161,14 +1161,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('tn') : 
-                                legend === 2 ? legend2StatesValue.includes('tn') : 
-                                legend === 3 ? legend3StatesValue.includes('tn') : 
-                                legend === 4 ? legend4StatesValue.includes('tn') :
-                                legend === 5 ? legend5StatesValue.includes('tn') :
-                                legend === 6 ? legend6StatesValue.includes('tn') :
-                                legend === 7 ? legend7StatesValue.includes('tn') :
-                                legend8StatesValue.includes('tn')
+                                group === 1 ? group1StatesValue.includes('tn') : 
+                                group === 2 ? group2StatesValue.includes('tn') : 
+                                group === 3 ? group3StatesValue.includes('tn') : 
+                                group === 4 ? group4StatesValue.includes('tn') :
+                                group === 5 ? group5StatesValue.includes('tn') :
+                                group === 6 ? group6StatesValue.includes('tn') :
+                                group === 7 ? group7StatesValue.includes('tn') :
+                                group8StatesValue.includes('tn')
                             }
   
                             >
@@ -1184,14 +1184,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('tx') : 
-                                legend === 2 ? legend2StatesValue.includes('tx') : 
-                                legend === 3 ? legend3StatesValue.includes('tx') : 
-                                legend === 4 ? legend4StatesValue.includes('tx') :
-                                legend === 5 ? legend5StatesValue.includes('tx') :
-                                legend === 6 ? legend6StatesValue.includes('tx') :
-                                legend === 7 ? legend7StatesValue.includes('tx') :
-                                legend8StatesValue.includes('tx')
+                                group === 1 ? group1StatesValue.includes('tx') : 
+                                group === 2 ? group2StatesValue.includes('tx') : 
+                                group === 3 ? group3StatesValue.includes('tx') : 
+                                group === 4 ? group4StatesValue.includes('tx') :
+                                group === 5 ? group5StatesValue.includes('tx') :
+                                group === 6 ? group6StatesValue.includes('tx') :
+                                group === 7 ? group7StatesValue.includes('tx') :
+                                group8StatesValue.includes('tx')
                             }
   
                             >
@@ -1207,14 +1207,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('ut') : 
-                                legend === 2 ? legend2StatesValue.includes('ut') : 
-                                legend === 3 ? legend3StatesValue.includes('ut') : 
-                                legend === 4 ? legend4StatesValue.includes('ut') :
-                                legend === 5 ? legend5StatesValue.includes('ut') :
-                                legend === 6 ? legend6StatesValue.includes('ut') :
-                                legend === 7 ? legend7StatesValue.includes('ut') :
-                                legend8StatesValue.includes('ut')
+                                group === 1 ? group1StatesValue.includes('ut') : 
+                                group === 2 ? group2StatesValue.includes('ut') : 
+                                group === 3 ? group3StatesValue.includes('ut') : 
+                                group === 4 ? group4StatesValue.includes('ut') :
+                                group === 5 ? group5StatesValue.includes('ut') :
+                                group === 6 ? group6StatesValue.includes('ut') :
+                                group === 7 ? group7StatesValue.includes('ut') :
+                                group8StatesValue.includes('ut')
                             }
   
                             >
@@ -1230,14 +1230,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('vt') : 
-                                legend === 2 ? legend2StatesValue.includes('vt') : 
-                                legend === 3 ? legend3StatesValue.includes('vt') : 
-                                legend === 4 ? legend4StatesValue.includes('vt') :
-                                legend === 5 ? legend5StatesValue.includes('vt') :
-                                legend === 6 ? legend6StatesValue.includes('vt') :
-                                legend === 7 ? legend7StatesValue.includes('vt') :
-                                legend8StatesValue.includes('vt')
+                                group === 1 ? group1StatesValue.includes('vt') : 
+                                group === 2 ? group2StatesValue.includes('vt') : 
+                                group === 3 ? group3StatesValue.includes('vt') : 
+                                group === 4 ? group4StatesValue.includes('vt') :
+                                group === 5 ? group5StatesValue.includes('vt') :
+                                group === 6 ? group6StatesValue.includes('vt') :
+                                group === 7 ? group7StatesValue.includes('vt') :
+                                group8StatesValue.includes('vt')
                             }
   
                             >
@@ -1253,14 +1253,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('va') : 
-                                legend === 2 ? legend2StatesValue.includes('va') : 
-                                legend === 3 ? legend3StatesValue.includes('va') : 
-                                legend === 4 ? legend4StatesValue.includes('va') :
-                                legend === 5 ? legend5StatesValue.includes('va') :
-                                legend === 6 ? legend6StatesValue.includes('va') :
-                                legend === 7 ? legend7StatesValue.includes('va') :
-                                legend8StatesValue.includes('va')
+                                group === 1 ? group1StatesValue.includes('va') : 
+                                group === 2 ? group2StatesValue.includes('va') : 
+                                group === 3 ? group3StatesValue.includes('va') : 
+                                group === 4 ? group4StatesValue.includes('va') :
+                                group === 5 ? group5StatesValue.includes('va') :
+                                group === 6 ? group6StatesValue.includes('va') :
+                                group === 7 ? group7StatesValue.includes('va') :
+                                group8StatesValue.includes('va')
                             }
   
                             >
@@ -1276,14 +1276,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('wa') : 
-                                legend === 2 ? legend2StatesValue.includes('wa') : 
-                                legend === 3 ? legend3StatesValue.includes('wa') : 
-                                legend === 4 ? legend4StatesValue.includes('wa') :
-                                legend === 5 ? legend5StatesValue.includes('wa') :
-                                legend === 6 ? legend6StatesValue.includes('wa') :
-                                legend === 7 ? legend7StatesValue.includes('wa') :
-                                legend8StatesValue.includes('wa')
+                                group === 1 ? group1StatesValue.includes('wa') : 
+                                group === 2 ? group2StatesValue.includes('wa') : 
+                                group === 3 ? group3StatesValue.includes('wa') : 
+                                group === 4 ? group4StatesValue.includes('wa') :
+                                group === 5 ? group5StatesValue.includes('wa') :
+                                group === 6 ? group6StatesValue.includes('wa') :
+                                group === 7 ? group7StatesValue.includes('wa') :
+                                group8StatesValue.includes('wa')
                             }
   
                             >
@@ -1299,14 +1299,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('wv') : 
-                                legend === 2 ? legend2StatesValue.includes('wv') : 
-                                legend === 3 ? legend3StatesValue.includes('wv') : 
-                                legend === 4 ? legend4StatesValue.includes('wv') :
-                                legend === 5 ? legend5StatesValue.includes('wv') :
-                                legend === 6 ? legend6StatesValue.includes('wv') :
-                                legend === 7 ? legend7StatesValue.includes('wv') :
-                                legend8StatesValue.includes('wv')
+                                group === 1 ? group1StatesValue.includes('wv') : 
+                                group === 2 ? group2StatesValue.includes('wv') : 
+                                group === 3 ? group3StatesValue.includes('wv') : 
+                                group === 4 ? group4StatesValue.includes('wv') :
+                                group === 5 ? group5StatesValue.includes('wv') :
+                                group === 6 ? group6StatesValue.includes('wv') :
+                                group === 7 ? group7StatesValue.includes('wv') :
+                                group8StatesValue.includes('wv')
                             }
   
                             >
@@ -1322,14 +1322,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('wi') : 
-                                legend === 2 ? legend2StatesValue.includes('wi') : 
-                                legend === 3 ? legend3StatesValue.includes('wi') : 
-                                legend === 4 ? legend4StatesValue.includes('wi') :
-                                legend === 5 ? legend5StatesValue.includes('wi') :
-                                legend === 6 ? legend6StatesValue.includes('wi') :
-                                legend === 7 ? legend7StatesValue.includes('wi') :
-                                legend8StatesValue.includes('wi')
+                                group === 1 ? group1StatesValue.includes('wi') : 
+                                group === 2 ? group2StatesValue.includes('wi') : 
+                                group === 3 ? group3StatesValue.includes('wi') : 
+                                group === 4 ? group4StatesValue.includes('wi') :
+                                group === 5 ? group5StatesValue.includes('wi') :
+                                group === 6 ? group6StatesValue.includes('wi') :
+                                group === 7 ? group7StatesValue.includes('wi') :
+                                group8StatesValue.includes('wi')
                             }
   
                             >
@@ -1345,14 +1345,14 @@ function States({
                             className="states"
                             onChange={handleChange}
                             checked={
-                                legend === 1 ? legend1StatesValue.includes('wy') : 
-                                legend === 2 ? legend2StatesValue.includes('wy') : 
-                                legend === 3 ? legend3StatesValue.includes('wy') : 
-                                legend === 4 ? legend4StatesValue.includes('wy') :
-                                legend === 5 ? legend5StatesValue.includes('wy') :
-                                legend === 6 ? legend6StatesValue.includes('wy') :
-                                legend === 7 ? legend7StatesValue.includes('wy') :
-                                legend8StatesValue.includes('wy')
+                                group === 1 ? group1StatesValue.includes('wy') : 
+                                group === 2 ? group2StatesValue.includes('wy') : 
+                                group === 3 ? group3StatesValue.includes('wy') : 
+                                group === 4 ? group4StatesValue.includes('wy') :
+                                group === 5 ? group5StatesValue.includes('wy') :
+                                group === 6 ? group6StatesValue.includes('wy') :
+                                group === 7 ? group7StatesValue.includes('wy') :
+                                group8StatesValue.includes('wy')
                             }
   
                             >

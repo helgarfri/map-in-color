@@ -4,14 +4,14 @@ import { useState } from "react"
 import WorldStates from "./WorldStates"
 
 function WorldMap({
-    legend1TitleValue, 
-    legend2TitleValue ,
-    legend3TitleValue,
-    legend4TitleValue,
-    legend5TitleValue,
-    legend6TitleValue,
-    legend7TitleValue,
-    legend8TitleValue,
+    group1TitleValue, 
+    group2TitleValue ,
+    group3TitleValue,
+    group4TitleValue,
+    group5TitleValue,
+    group6TitleValue,
+    group7TitleValue,
+    group8TitleValue,
 
 
 
@@ -26,24 +26,24 @@ function WorldMap({
     handleTitle8ValueChange,
 
 
-    legend1ColorValue, 
-    legend2ColorValue, 
-    legend3ColorValue,
-    legend4ColorValue,
-    legend5ColorValue,
-    legend6ColorValue,
-    legend7ColorValue,
-    legend8ColorValue,
+    group1ColorValue, 
+    group2ColorValue, 
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
 
 
-    setLegend1ColorValue, 
-    setLegend2ColorValue,
-    setLegend3ColorValue,
-    setLegend4ColorValue,
-    setLegend5ColorValue,
-    setLegend6ColorValue,
-    setLegend7ColorValue,
-    setLegend8ColorValue,
+    setGroup1ColorValue, 
+    setGroup2ColorValue,
+    setGroup3ColorValue,
+    setGroup4ColorValue,
+    setGroup5ColorValue,
+    setGroup6ColorValue,
+    setGroup7ColorValue,
+    setGroup8ColorValue,
 
     selectedRes,
     setSelectedRes,
@@ -62,27 +62,27 @@ function WorldMap({
           
           mapTitleValue={mapTitleValue}
           
-          legend1TitleValue={legend1TitleValue}
-          legend2TitleValue={legend2TitleValue}
-          legend3TitleValue={legend3TitleValue}
-          legend4TitleValue={legend4TitleValue}
-          legend5TitleValue={legend5TitleValue}
-          legend6TitleValue={legend6TitleValue}
-          legend7TitleValue={legend7TitleValue}
-          legend8TitleValue={legend8TitleValue}
+          group1TitleValue={group1TitleValue}
+          group2TitleValue={group2TitleValue}
+          group3TitleValue={group3TitleValue}
+          group4TitleValue={group4TitleValue}
+          group5TitleValue={group5TitleValue}
+          group6TitleValue={group6TitleValue}
+          group7TitleValue={group7TitleValue}
+          group8TitleValue={group8TitleValue}
 
 
 
 
 
-          legend1ColorValue={legend1ColorValue}
-          legend2ColorValue={legend2ColorValue}
-          legend3ColorValue={legend3ColorValue}
-          legend4ColorValue={legend4ColorValue}
-          legend5ColorValue={legend5ColorValue}
-          legend6ColorValue={legend6ColorValue}
-          legend7ColorValue={legend7ColorValue}
-          legend8ColorValue={legend8ColorValue}
+          group1ColorValue={group1ColorValue}
+          group2ColorValue={group2ColorValue}
+          group3ColorValue={group3ColorValue}
+          group4ColorValue={group4ColorValue}
+          group5ColorValue={group5ColorValue}
+          group6ColorValue={group6ColorValue}
+          group7ColorValue={group7ColorValue}
+          group8ColorValue={group8ColorValue}
 
 
 
@@ -103,14 +103,14 @@ function WorldMap({
     />
 
       <Navigator 
-          legend1TitleValue={legend1TitleValue}
-          legend2TitleValue={legend2TitleValue}
-          legend3TitleValue={legend3TitleValue}
-          legend4TitleValue={legend4TitleValue}
-          legend5TitleValue={legend5TitleValue}
-          legend6TitleValue={legend6TitleValue}
-          legend7TitleValue={legend7TitleValue}
-          legend8TitleValue={legend8TitleValue}
+          group1TitleValue={group1TitleValue}
+          group2TitleValue={group2TitleValue}
+          group3TitleValue={group3TitleValue}
+          group4TitleValue={group4TitleValue}
+          group5TitleValue={group5TitleValue}
+          group6TitleValue={group6TitleValue}
+          group7TitleValue={group7TitleValue}
+          group8TitleValue={group8TitleValue}
 
 
 
@@ -131,26 +131,26 @@ function WorldMap({
 
 
 
-          legend1ColorValue={legend1ColorValue}
-          legend2ColorValue={legend2ColorValue}
-          legend3ColorValue={legend3ColorValue}
-          legend4ColorValue={legend4ColorValue}
-          legend5ColorValue={legend5ColorValue}
-          legend6ColorValue={legend6ColorValue}
-          legend7ColorValue={legend7ColorValue}
-          legend8ColorValue={legend8ColorValue}
+          group1ColorValue={group1ColorValue}
+          group2ColorValue={group2ColorValue}
+          group3ColorValue={group3ColorValue}
+          group4ColorValue={group4ColorValue}
+          group5ColorValue={group5ColorValue}
+          group6ColorValue={group6ColorValue}
+          group7ColorValue={group7ColorValue}
+          group8ColorValue={group8ColorValue}
 
 
 
 
-          setLegend1ColorValue={setLegend1ColorValue}
-          setLegend2ColorValue={setLegend2ColorValue}
-          setLegend3ColorValue={setLegend3ColorValue}
-          setLegend4ColorValue={setLegend4ColorValue}
-          setLegend5ColorValue={setLegend5ColorValue}
-          setLegend6ColorValue={setLegend6ColorValue}
-          setLegend7ColorValue={setLegend7ColorValue}
-          setLegend8ColorValue={setLegend8ColorValue}
+          setGroup1ColorValue={setGroup1ColorValue}
+          setGroup2ColorValue={setGroup2ColorValue}
+          setGroup3ColorValue={setGroup3ColorValue}
+          setGroup4ColorValue={setGroup4ColorValue}
+          setGroup5ColorValue={setGroup5ColorValue}
+          setGroup6ColorValue={setGroup6ColorValue}
+          setGroup7ColorValue={setGroup7ColorValue}
+          setGroup8ColorValue={setGroup8ColorValue}
 
 
 

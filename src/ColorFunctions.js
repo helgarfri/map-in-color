@@ -1,7 +1,7 @@
 import "./components/WorldStates"
 import "./components/Countries"
-import "./components/Legend-1"
-import './components/Legend-2'
+import "./components/Group-1"
+import './components/Group-2'
 import './components/Navigator'
 
 
@@ -21,8 +21,8 @@ function ColorFunctions() {
         var uncheckedValue = countries[i].checked === false
      
        
-         for (var i = 0; i < legend1CountryValue.length; i++) {
-             document.getElementById(legend1CountryValue[i]).style.fill = colorValue
+         for (var i = 0; i < group1CountryValue.length; i++) {
+             document.getElementById(group1CountryValue[i]).style.fill = colorValue
          }
              var countries = document.querySelectorAll('.country')
      

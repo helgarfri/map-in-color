@@ -1,12 +1,13 @@
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from '../Countries';
-import React, { Component, useEffect, useState } from 'react';
+import React, { Component, useState } from 'react';
 import { CompactPicker, SketchPicker } from 'react-color'
+
 
 
  
 
-function Group1({
+function Group2({
     group1CountryValue, 
     setGroup1CountryValue, 
     group2CountryValue,
@@ -25,50 +26,48 @@ function Group1({
     setGroup8CountryValue,
 
 
+
     activeGroup, 
-    group1ColorValue, 
-    setGroup1ColorValue, 
-    group1TitleValue, 
-    handleTitle1ValueChange,
+    group2ColorValue, 
+    setGroup2ColorValue, 
+    group2TitleValue, 
+    handleTitle2ValueChange,
+  
 
-    
 }) {
-    
 
     
+
+
+
    
-      
 
     const handleColorChange = (color) =>{
-        setGroup1ColorValue(color.hex)
-        for (var i = 0; i < group1CountryValue.length; i++) {
-            const id = group1CountryValue[i];
+        setGroup2ColorValue(color.hex)
+        for (var i = 0; i < group2CountryValue.length; i++) {
+            const id = group2CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
+
+    }
+
+    const handleTitle2Change = (event) => {
+        handleTitle2ValueChange(event.target.value)
     }
 
 
-    const handleTitle1Change = (event) => {
-        handleTitle1ValueChange(event.target.value)
-
+   
+    if (activeGroup !== 2) {
+        return null
+    } 
         
-    }
-
-   
-   
-
-
-
-    
-    
-        if (activeGroup !== 1) {
-            return null
-        } 
-
+        
         
     return(
         <div>
             <div className='group'>
+
+
                 <div className='group-set'>
                     
                     <div className='group-title'>
@@ -76,23 +75,19 @@ function Group1({
                         <input 
                             className='group-title' 
                             placeholder="Click to add title" 
-                            onChange={handleTitle1Change}
+                            onChange={handleTitle2Change}
                             type='text'
-                            value={group1TitleValue}
                             ></input>
 
-                        
-                   
-                        
-
+                          
                     </div>
-                
+
 
                     <CompactPicker
                         
                         className='color-picker'
-                        color={group1ColorValue}
-                        value={group1ColorValue}
+                        color={group2ColorValue}
+                        value={group2ColorValue}
                         onChangeComplete={handleColorChange} 
                         colors={[
                               '#8B0000', //Dark red
@@ -141,12 +136,11 @@ function Group1({
                    
                     
                 </div>
-
-                
+             
                     <Countries
-                    group1ColorValue={group1ColorValue}
-                    setGroup1ColorValue={setGroup1ColorValue}
-                    group={1}
+                    group2ColorValue={group2ColorValue}
+                    setGroup2ColorValue={setGroup2ColorValue}
+                    group={2}
                     
                     group1CountryValue={group1CountryValue}
                     setGroup1CountryValue={setGroup1CountryValue}
@@ -172,13 +166,14 @@ function Group1({
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
 
-
-
-                
+                    
                     
 
+
+                    
+                    
                 />
-               
+              
                 
             </div>
             
@@ -189,4 +184,4 @@ function Group1({
    
 }
 
-export default Group1
+export default Group2

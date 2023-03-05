@@ -5,39 +5,39 @@ import { useEffect, useState } from 'react';
 
 
 function Countries({ 
-    legend,
+    group,
     
-    legend1ColorValue, 
-    legend2ColorValue, 
-    legend3ColorValue,
-    legend4ColorValue,
-    legend5ColorValue,
-    legend6ColorValue,
-    legend7ColorValue,
-    legend8ColorValue,
+    group1ColorValue, 
+    group2ColorValue, 
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
 
 
      
-    legend1CountryValue, 
-    legend2CountryValue, 
-    legend3CountryValue,
-    legend4CountryValue,
-    legend5CountryValue,
-    legend6CountryValue,
-    legend7CountryValue,
-    legend8CountryValue,
+    group1CountryValue, 
+    group2CountryValue, 
+    group3CountryValue,
+    group4CountryValue,
+    group5CountryValue,
+    group6CountryValue,
+    group7CountryValue,
+    group8CountryValue,
 
 
 
 
-    setLegend1CountryValue,
-    setLegend2CountryValue,
-    setLegend3CountryValue,
-    setLegend4CountryValue,
-    setLegend5CountryValue,
-    setLegend6CountryValue,
-    setLegend7CountryValue,
-    setLegend8CountryValue,
+    setGroup1CountryValue,
+    setGroup2CountryValue,
+    setGroup3CountryValue,
+    setGroup4CountryValue,
+    setGroup5CountryValue,
+    setGroup6CountryValue,
+    setGroup7CountryValue,
+    setGroup8CountryValue,
 
 
 
@@ -51,53 +51,53 @@ function Countries({
     const allCountryIds = document.getElementsByClassName("country-eu");
     
     if (
-        legend === 1 || 
-        legend === 2 || 
-        legend === 3 || 
-        legend === 4 || 
-        legend === 5 || 
-        legend === 6 || 
-        legend === 7 ||
-        legend === 8) {
+        group === 1 || 
+        group === 2 || 
+        group === 3 || 
+        group === 4 || 
+        group === 5 || 
+        group === 6 || 
+        group === 7 ||
+        group === 8) {
       
-      for (var i = 0; i < legend1CountryValue.length; i++) {
-        const id = legend1CountryValue[i];
-        document.getElementById(id).style.fill = legend1ColorValue;
+      for (var i = 0; i < group1CountryValue.length; i++) {
+        const id = group1CountryValue[i];
+        document.getElementById(id).style.fill = group1ColorValue;
       }
       
-      for (var i = 0; i < legend2CountryValue.length; i++) {
-        const id = legend2CountryValue[i];
-        document.getElementById(id).style.fill = legend2ColorValue;
+      for (var i = 0; i < group2CountryValue.length; i++) {
+        const id = group2CountryValue[i];
+        document.getElementById(id).style.fill = group2ColorValue;
       }
 
-      for (var i = 0; i < legend3CountryValue.length; i++) {
-        const id = legend3CountryValue[i];
-        document.getElementById(id).style.fill = legend3ColorValue;
+      for (var i = 0; i < group3CountryValue.length; i++) {
+        const id = group3CountryValue[i];
+        document.getElementById(id).style.fill = group3ColorValue;
       }
 
-      for (var i = 0; i < legend4CountryValue.length; i++) {
-        const id = legend4CountryValue[i];
-        document.getElementById(id).style.fill = legend4ColorValue;
+      for (var i = 0; i < group4CountryValue.length; i++) {
+        const id = group4CountryValue[i];
+        document.getElementById(id).style.fill = group4ColorValue;
       }
 
-      for (var i = 0; i < legend5CountryValue.length; i++) {
-        const id = legend5CountryValue[i];
-        document.getElementById(id).style.fill = legend5ColorValue;
+      for (var i = 0; i < group5CountryValue.length; i++) {
+        const id = group5CountryValue[i];
+        document.getElementById(id).style.fill = group5ColorValue;
       }
 
-      for (var i = 0; i < legend6CountryValue.length; i++) {
-        const id = legend6CountryValue[i];
-        document.getElementById(id).style.fill = legend6ColorValue;
+      for (var i = 0; i < group6CountryValue.length; i++) {
+        const id = group6CountryValue[i];
+        document.getElementById(id).style.fill = group6ColorValue;
       }
 
-      for (var i = 0; i < legend7CountryValue.length; i++) {
-        const id = legend7CountryValue[i];
-        document.getElementById(id).style.fill = legend7ColorValue;
+      for (var i = 0; i < group7CountryValue.length; i++) {
+        const id = group7CountryValue[i];
+        document.getElementById(id).style.fill = group7ColorValue;
       }
 
-      for (var i = 0; i < legend8CountryValue.length; i++) {
-        const id = legend8CountryValue[i];
-        document.getElementById(id).style.fill = legend8ColorValue;
+      for (var i = 0; i < group8CountryValue.length; i++) {
+        const id = group8CountryValue[i];
+        document.getElementById(id).style.fill = group8ColorValue;
       }
       
       
@@ -109,14 +109,14 @@ function Countries({
       for (var i = 0; i < allCountryIds.length; i++) {
         const id = allCountryIds[i].value;
         if (
-            !legend1CountryValue.includes(id) && 
-            !legend2CountryValue.includes(id) && 
-            !legend3CountryValue.includes(id) && 
-            !legend4CountryValue.includes(id) &&
-            !legend5CountryValue.includes(id) &&
-            !legend6CountryValue.includes(id) &&
-            !legend7CountryValue.includes(id) &&
-            !legend8CountryValue.includes(id)
+            !group1CountryValue.includes(id) && 
+            !group2CountryValue.includes(id) && 
+            !group3CountryValue.includes(id) && 
+            !group4CountryValue.includes(id) &&
+            !group5CountryValue.includes(id) &&
+            !group6CountryValue.includes(id) &&
+            !group7CountryValue.includes(id) &&
+            !group8CountryValue.includes(id)
 
 
             ) {
@@ -125,15 +125,15 @@ function Countries({
       }
     }
   }, [
-    legend, 
-    legend1CountryValue, 
-    legend2CountryValue, 
-    legend3CountryValue, 
-    legend4CountryValue,
-    legend5CountryValue,
-    legend6CountryValue,
-    legend7CountryValue,
-    legend8CountryValue,
+    group, 
+    group1CountryValue, 
+    group2CountryValue, 
+    group3CountryValue, 
+    group4CountryValue,
+    group5CountryValue,
+    group6CountryValue,
+    group7CountryValue,
+    group8CountryValue,
 
 
 ]);
@@ -141,70 +141,70 @@ function Countries({
     
       const handleChange = (event) => {
         const selectedOption = event.target.value;
-        if (legend === 1) {
-          if (legend1CountryValue.includes(selectedOption)) {
-            setLegend1CountryValue(legend1CountryValue.filter((o) => o !== selectedOption));
+        if (group === 1) {
+          if (group1CountryValue.includes(selectedOption)) {
+            setGroup1CountryValue(group1CountryValue.filter((o) => o !== selectedOption));
           } else {
-            setLegend1CountryValue([...legend1CountryValue, selectedOption]);
+            setGroup1CountryValue([...group1CountryValue, selectedOption]);
           }
             
 
           
 
-        } else if (legend === 2) {
-          if (legend2CountryValue.includes(selectedOption)) {
-            setLegend2CountryValue(legend2CountryValue.filter((o) => o !== selectedOption));
+        } else if (group === 2) {
+          if (group2CountryValue.includes(selectedOption)) {
+            setGroup2CountryValue(group2CountryValue.filter((o) => o !== selectedOption));
           } else {
-            setLegend2CountryValue([...legend2CountryValue, selectedOption]);
+            setGroup2CountryValue([...group2CountryValue, selectedOption]);
           }
         
         
-        }else if (legend === 3) {
-            if (legend3CountryValue.includes(selectedOption)) {
-              setLegend3CountryValue(legend3CountryValue.filter((o) => o !== selectedOption));
+        }else if (group === 3) {
+            if (group3CountryValue.includes(selectedOption)) {
+              setGroup3CountryValue(group3CountryValue.filter((o) => o !== selectedOption));
             } else {
-              setLegend3CountryValue([...legend3CountryValue, selectedOption]);
+              setGroup3CountryValue([...group3CountryValue, selectedOption]);
             }
           }
 
-          else if (legend === 4) {
-            if (legend4CountryValue.includes(selectedOption)) {
-              setLegend4CountryValue(legend4CountryValue.filter((o) => o !== selectedOption));
+          else if (group === 4) {
+            if (group4CountryValue.includes(selectedOption)) {
+              setGroup4CountryValue(group4CountryValue.filter((o) => o !== selectedOption));
             } else {
-              setLegend4CountryValue([...legend4CountryValue, selectedOption]);
+              setGroup4CountryValue([...group4CountryValue, selectedOption]);
             } 
             
           }
 
-          else if (legend === 5) {
-            if (legend5CountryValue.includes(selectedOption)) {
-              setLegend5CountryValue(legend5CountryValue.filter((o) => o !== selectedOption));
+          else if (group === 5) {
+            if (group5CountryValue.includes(selectedOption)) {
+              setGroup5CountryValue(group5CountryValue.filter((o) => o !== selectedOption));
             } else {
-              setLegend5CountryValue([...legend5CountryValue, selectedOption]);
+              setGroup5CountryValue([...group5CountryValue, selectedOption]);
             }
 
         } 
 
-        else if (legend === 6) {
-            if (legend6CountryValue.includes(selectedOption)) {
-              setLegend6CountryValue(legend6CountryValue.filter((o) => o !== selectedOption));
+        else if (group === 6) {
+            if (group6CountryValue.includes(selectedOption)) {
+              setGroup6CountryValue(group6CountryValue.filter((o) => o !== selectedOption));
             } else {
-              setLegend6CountryValue([...legend6CountryValue, selectedOption]);
+              setGroup6CountryValue([...group6CountryValue, selectedOption]);
             }
        
       } 
-      else if (legend === 7) {
-        if (legend7CountryValue.includes(selectedOption)) {
-          setLegend7CountryValue(legend7CountryValue.filter((o) => o !== selectedOption));
+      else if (group === 7) {
+        if (group7CountryValue.includes(selectedOption)) {
+          setGroup7CountryValue(group7CountryValue.filter((o) => o !== selectedOption));
         } else {
-          setLegend7CountryValue([...legend7CountryValue, selectedOption]);
+          setGroup7CountryValue([...group7CountryValue, selectedOption]);
         }
    
-  }  else if (legend === 8) {
-    if (legend8CountryValue.includes(selectedOption)) {
-      setLegend8CountryValue(legend8CountryValue.filter((o) => o !== selectedOption));
+  }  else if (group === 8) {
+    if (group8CountryValue.includes(selectedOption)) {
+      setGroup8CountryValue(group8CountryValue.filter((o) => o !== selectedOption));
     } else {
-      setLegend8CountryValue([...legend8CountryValue, selectedOption]);
+      setGroup8CountryValue([...group8CountryValue, selectedOption]);
     }
 
 };
@@ -226,14 +226,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('al') : 
-                                legend === 2 ? legend2CountryValue.includes('al') : 
-                                legend === 3 ? legend3CountryValue.includes('al') : 
-                                legend === 4 ? legend4CountryValue.includes('al') :
-                                legend === 5 ? legend5CountryValue.includes('al') :
-                                legend === 6 ? legend6CountryValue.includes('al') :
-                                legend === 7 ? legend7CountryValue.includes('al') :
-                                legend8CountryValue.includes('al')
+                                group === 1 ? group1CountryValue.includes('al') : 
+                                group === 2 ? group2CountryValue.includes('al') : 
+                                group === 3 ? group3CountryValue.includes('al') : 
+                                group === 4 ? group4CountryValue.includes('al') :
+                                group === 5 ? group5CountryValue.includes('al') :
+                                group === 6 ? group6CountryValue.includes('al') :
+                                group === 7 ? group7CountryValue.includes('al') :
+                                group8CountryValue.includes('al')
                             }
                             >
                         </input>
@@ -249,14 +249,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ad') : 
-                                legend === 2 ? legend2CountryValue.includes('ad') : 
-                                legend === 3 ? legend3CountryValue.includes('ad') : 
-                                legend === 4 ? legend4CountryValue.includes('ad') :
-                                legend === 5 ? legend5CountryValue.includes('ad') :
-                                legend === 6 ? legend6CountryValue.includes('ad') :
-                                legend === 7 ? legend7CountryValue.includes('ad') :
-                                legend8CountryValue.includes('ad')
+                                group === 1 ? group1CountryValue.includes('ad') : 
+                                group === 2 ? group2CountryValue.includes('ad') : 
+                                group === 3 ? group3CountryValue.includes('ad') : 
+                                group === 4 ? group4CountryValue.includes('ad') :
+                                group === 5 ? group5CountryValue.includes('ad') :
+                                group === 6 ? group6CountryValue.includes('ad') :
+                                group === 7 ? group7CountryValue.includes('ad') :
+                                group8CountryValue.includes('ad')
                             }
                             >
                         </input>
@@ -272,14 +272,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('at') : 
-                                legend === 2 ? legend2CountryValue.includes('at') : 
-                                legend === 3 ? legend3CountryValue.includes('at') : 
-                                legend === 4 ? legend4CountryValue.includes('at') :
-                                legend === 5 ? legend5CountryValue.includes('at') :
-                                legend === 6 ? legend6CountryValue.includes('at') :
-                                legend === 7 ? legend7CountryValue.includes('at') :
-                                legend8CountryValue.includes('at')
+                                group === 1 ? group1CountryValue.includes('at') : 
+                                group === 2 ? group2CountryValue.includes('at') : 
+                                group === 3 ? group3CountryValue.includes('at') : 
+                                group === 4 ? group4CountryValue.includes('at') :
+                                group === 5 ? group5CountryValue.includes('at') :
+                                group === 6 ? group6CountryValue.includes('at') :
+                                group === 7 ? group7CountryValue.includes('at') :
+                                group8CountryValue.includes('at')
                             }
                             >
                         </input>
@@ -295,14 +295,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('by') : 
-                                legend === 2 ? legend2CountryValue.includes('by') : 
-                                legend === 3 ? legend3CountryValue.includes('by') : 
-                                legend === 4 ? legend4CountryValue.includes('by') :
-                                legend === 5 ? legend5CountryValue.includes('by') :
-                                legend === 6 ? legend6CountryValue.includes('by') :
-                                legend === 7 ? legend7CountryValue.includes('by') :
-                                legend8CountryValue.includes('by')
+                                group === 1 ? group1CountryValue.includes('by') : 
+                                group === 2 ? group2CountryValue.includes('by') : 
+                                group === 3 ? group3CountryValue.includes('by') : 
+                                group === 4 ? group4CountryValue.includes('by') :
+                                group === 5 ? group5CountryValue.includes('by') :
+                                group === 6 ? group6CountryValue.includes('by') :
+                                group === 7 ? group7CountryValue.includes('by') :
+                                group8CountryValue.includes('by')
                             }
                             >
                         </input>
@@ -318,14 +318,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('be') : 
-                                legend === 2 ? legend2CountryValue.includes('be') : 
-                                legend === 3 ? legend3CountryValue.includes('be') : 
-                                legend === 4 ? legend4CountryValue.includes('be') :
-                                legend === 5 ? legend5CountryValue.includes('be') :
-                                legend === 6 ? legend6CountryValue.includes('be') :
-                                legend === 7 ? legend7CountryValue.includes('be') :
-                                legend8CountryValue.includes('be')
+                                group === 1 ? group1CountryValue.includes('be') : 
+                                group === 2 ? group2CountryValue.includes('be') : 
+                                group === 3 ? group3CountryValue.includes('be') : 
+                                group === 4 ? group4CountryValue.includes('be') :
+                                group === 5 ? group5CountryValue.includes('be') :
+                                group === 6 ? group6CountryValue.includes('be') :
+                                group === 7 ? group7CountryValue.includes('be') :
+                                group8CountryValue.includes('be')
                             }
                             >
                         </input>
@@ -341,14 +341,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ba') : 
-                                legend === 2 ? legend2CountryValue.includes('ba') : 
-                                legend === 3 ? legend3CountryValue.includes('ba') : 
-                                legend === 4 ? legend4CountryValue.includes('ba') :
-                                legend === 5 ? legend5CountryValue.includes('ba') :
-                                legend === 6 ? legend6CountryValue.includes('ba') :
-                                legend === 7 ? legend7CountryValue.includes('ba') :
-                                legend8CountryValue.includes('ba')
+                                group === 1 ? group1CountryValue.includes('ba') : 
+                                group === 2 ? group2CountryValue.includes('ba') : 
+                                group === 3 ? group3CountryValue.includes('ba') : 
+                                group === 4 ? group4CountryValue.includes('ba') :
+                                group === 5 ? group5CountryValue.includes('ba') :
+                                group === 6 ? group6CountryValue.includes('ba') :
+                                group === 7 ? group7CountryValue.includes('ba') :
+                                group8CountryValue.includes('ba')
                             }
                             >
                         </input>
@@ -364,14 +364,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('bg') : 
-                                legend === 2 ? legend2CountryValue.includes('bg') : 
-                                legend === 3 ? legend3CountryValue.includes('bg') : 
-                                legend === 4 ? legend4CountryValue.includes('bg') :
-                                legend === 5 ? legend5CountryValue.includes('bg') :
-                                legend === 6 ? legend6CountryValue.includes('bg') :
-                                legend === 7 ? legend7CountryValue.includes('bg') :
-                                legend8CountryValue.includes('bg')
+                                group === 1 ? group1CountryValue.includes('bg') : 
+                                group === 2 ? group2CountryValue.includes('bg') : 
+                                group === 3 ? group3CountryValue.includes('bg') : 
+                                group === 4 ? group4CountryValue.includes('bg') :
+                                group === 5 ? group5CountryValue.includes('bg') :
+                                group === 6 ? group6CountryValue.includes('bg') :
+                                group === 7 ? group7CountryValue.includes('bg') :
+                                group8CountryValue.includes('bg')
                             }
                             >
                         </input>
@@ -387,14 +387,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('hr') : 
-                                legend === 2 ? legend2CountryValue.includes('hr') : 
-                                legend === 3 ? legend3CountryValue.includes('hr') : 
-                                legend === 4 ? legend4CountryValue.includes('hr') :
-                                legend === 5 ? legend5CountryValue.includes('hr') :
-                                legend === 6 ? legend6CountryValue.includes('hr') :
-                                legend === 7 ? legend7CountryValue.includes('hr') :
-                                legend8CountryValue.includes('hr')
+                                group === 1 ? group1CountryValue.includes('hr') : 
+                                group === 2 ? group2CountryValue.includes('hr') : 
+                                group === 3 ? group3CountryValue.includes('hr') : 
+                                group === 4 ? group4CountryValue.includes('hr') :
+                                group === 5 ? group5CountryValue.includes('hr') :
+                                group === 6 ? group6CountryValue.includes('hr') :
+                                group === 7 ? group7CountryValue.includes('hr') :
+                                group8CountryValue.includes('hr')
                             }
                             >
                         </input>
@@ -412,14 +412,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('cz') : 
-                                legend === 2 ? legend2CountryValue.includes('cz') : 
-                                legend === 3 ? legend3CountryValue.includes('cz') : 
-                                legend === 4 ? legend4CountryValue.includes('cz') :
-                                legend === 5 ? legend5CountryValue.includes('cz') :
-                                legend === 6 ? legend6CountryValue.includes('cz') :
-                                legend === 7 ? legend7CountryValue.includes('cz') :
-                                legend8CountryValue.includes('cz')
+                                group === 1 ? group1CountryValue.includes('cz') : 
+                                group === 2 ? group2CountryValue.includes('cz') : 
+                                group === 3 ? group3CountryValue.includes('cz') : 
+                                group === 4 ? group4CountryValue.includes('cz') :
+                                group === 5 ? group5CountryValue.includes('cz') :
+                                group === 6 ? group6CountryValue.includes('cz') :
+                                group === 7 ? group7CountryValue.includes('cz') :
+                                group8CountryValue.includes('cz')
                             }
                             >
                         </input>
@@ -435,14 +435,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('dk') : 
-                                legend === 2 ? legend2CountryValue.includes('dk') : 
-                                legend === 3 ? legend3CountryValue.includes('dk') : 
-                                legend === 4 ? legend4CountryValue.includes('dk') :
-                                legend === 5 ? legend5CountryValue.includes('dk') :
-                                legend === 6 ? legend6CountryValue.includes('dk') :
-                                legend === 7 ? legend7CountryValue.includes('dk') :
-                                legend8CountryValue.includes('dk')
+                                group === 1 ? group1CountryValue.includes('dk') : 
+                                group === 2 ? group2CountryValue.includes('dk') : 
+                                group === 3 ? group3CountryValue.includes('dk') : 
+                                group === 4 ? group4CountryValue.includes('dk') :
+                                group === 5 ? group5CountryValue.includes('dk') :
+                                group === 6 ? group6CountryValue.includes('dk') :
+                                group === 7 ? group7CountryValue.includes('dk') :
+                                group8CountryValue.includes('dk')
                             }
                             >
                         </input>
@@ -458,14 +458,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ee') : 
-                                legend === 2 ? legend2CountryValue.includes('ee') : 
-                                legend === 3 ? legend3CountryValue.includes('ee') : 
-                                legend === 4 ? legend4CountryValue.includes('ee') :
-                                legend === 5 ? legend5CountryValue.includes('ee') :
-                                legend === 6 ? legend6CountryValue.includes('ee') :
-                                legend === 7 ? legend7CountryValue.includes('ee') :
-                                legend8CountryValue.includes('ee')
+                                group === 1 ? group1CountryValue.includes('ee') : 
+                                group === 2 ? group2CountryValue.includes('ee') : 
+                                group === 3 ? group3CountryValue.includes('ee') : 
+                                group === 4 ? group4CountryValue.includes('ee') :
+                                group === 5 ? group5CountryValue.includes('ee') :
+                                group === 6 ? group6CountryValue.includes('ee') :
+                                group === 7 ? group7CountryValue.includes('ee') :
+                                group8CountryValue.includes('ee')
                             }
                             >
                         </input>
@@ -481,14 +481,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('fi') : 
-                                legend === 2 ? legend2CountryValue.includes('fi') : 
-                                legend === 3 ? legend3CountryValue.includes('fi') : 
-                                legend === 4 ? legend4CountryValue.includes('fi') :
-                                legend === 5 ? legend5CountryValue.includes('fi') :
-                                legend === 6 ? legend6CountryValue.includes('fi') :
-                                legend === 7 ? legend7CountryValue.includes('fi') :
-                                legend8CountryValue.includes('fi')
+                                group === 1 ? group1CountryValue.includes('fi') : 
+                                group === 2 ? group2CountryValue.includes('fi') : 
+                                group === 3 ? group3CountryValue.includes('fi') : 
+                                group === 4 ? group4CountryValue.includes('fi') :
+                                group === 5 ? group5CountryValue.includes('fi') :
+                                group === 6 ? group6CountryValue.includes('fi') :
+                                group === 7 ? group7CountryValue.includes('fi') :
+                                group8CountryValue.includes('fi')
                             }
                             >
                         </input>
@@ -504,14 +504,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('fr') : 
-                                legend === 2 ? legend2CountryValue.includes('fr') : 
-                                legend === 3 ? legend3CountryValue.includes('fr') : 
-                                legend === 4 ? legend4CountryValue.includes('fr') :
-                                legend === 5 ? legend5CountryValue.includes('fr') :
-                                legend === 6 ? legend6CountryValue.includes('fr') :
-                                legend === 7 ? legend7CountryValue.includes('fr') :
-                                legend8CountryValue.includes('fr')
+                                group === 1 ? group1CountryValue.includes('fr') : 
+                                group === 2 ? group2CountryValue.includes('fr') : 
+                                group === 3 ? group3CountryValue.includes('fr') : 
+                                group === 4 ? group4CountryValue.includes('fr') :
+                                group === 5 ? group5CountryValue.includes('fr') :
+                                group === 6 ? group6CountryValue.includes('fr') :
+                                group === 7 ? group7CountryValue.includes('fr') :
+                                group8CountryValue.includes('fr')
                             }
                             >
                         </input>
@@ -527,14 +527,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('de') : 
-                                legend === 2 ? legend2CountryValue.includes('de') : 
-                                legend === 3 ? legend3CountryValue.includes('de') : 
-                                legend === 4 ? legend4CountryValue.includes('de') :
-                                legend === 5 ? legend5CountryValue.includes('de') :
-                                legend === 6 ? legend6CountryValue.includes('de') :
-                                legend === 7 ? legend7CountryValue.includes('de') :
-                                legend8CountryValue.includes('de')
+                                group === 1 ? group1CountryValue.includes('de') : 
+                                group === 2 ? group2CountryValue.includes('de') : 
+                                group === 3 ? group3CountryValue.includes('de') : 
+                                group === 4 ? group4CountryValue.includes('de') :
+                                group === 5 ? group5CountryValue.includes('de') :
+                                group === 6 ? group6CountryValue.includes('de') :
+                                group === 7 ? group7CountryValue.includes('de') :
+                                group8CountryValue.includes('de')
                             }
                             >
                         </input>
@@ -550,14 +550,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('gr') : 
-                                legend === 2 ? legend2CountryValue.includes('gr') : 
-                                legend === 3 ? legend3CountryValue.includes('gr') : 
-                                legend === 4 ? legend4CountryValue.includes('gr') :
-                                legend === 5 ? legend5CountryValue.includes('gr') :
-                                legend === 6 ? legend6CountryValue.includes('gr') :
-                                legend === 7 ? legend7CountryValue.includes('gr') :
-                                legend8CountryValue.includes('gr')
+                                group === 1 ? group1CountryValue.includes('gr') : 
+                                group === 2 ? group2CountryValue.includes('gr') : 
+                                group === 3 ? group3CountryValue.includes('gr') : 
+                                group === 4 ? group4CountryValue.includes('gr') :
+                                group === 5 ? group5CountryValue.includes('gr') :
+                                group === 6 ? group6CountryValue.includes('gr') :
+                                group === 7 ? group7CountryValue.includes('gr') :
+                                group8CountryValue.includes('gr')
                             }
                             >
                         </input>
@@ -573,14 +573,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('hu') : 
-                                legend === 2 ? legend2CountryValue.includes('hu') : 
-                                legend === 3 ? legend3CountryValue.includes('hu') : 
-                                legend === 4 ? legend4CountryValue.includes('hu') :
-                                legend === 5 ? legend5CountryValue.includes('hu') :
-                                legend === 6 ? legend6CountryValue.includes('hu') :
-                                legend === 7 ? legend7CountryValue.includes('hu') :
-                                legend8CountryValue.includes('hu')
+                                group === 1 ? group1CountryValue.includes('hu') : 
+                                group === 2 ? group2CountryValue.includes('hu') : 
+                                group === 3 ? group3CountryValue.includes('hu') : 
+                                group === 4 ? group4CountryValue.includes('hu') :
+                                group === 5 ? group5CountryValue.includes('hu') :
+                                group === 6 ? group6CountryValue.includes('hu') :
+                                group === 7 ? group7CountryValue.includes('hu') :
+                                group8CountryValue.includes('hu')
                             }
                             >
                         </input>
@@ -596,14 +596,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('is') : 
-                                legend === 2 ? legend2CountryValue.includes('is') : 
-                                legend === 3 ? legend3CountryValue.includes('is') : 
-                                legend === 4 ? legend4CountryValue.includes('is') :
-                                legend === 5 ? legend5CountryValue.includes('is') :
-                                legend === 6 ? legend6CountryValue.includes('is') :
-                                legend === 7 ? legend7CountryValue.includes('is') :
-                                legend8CountryValue.includes('is')
+                                group === 1 ? group1CountryValue.includes('is') : 
+                                group === 2 ? group2CountryValue.includes('is') : 
+                                group === 3 ? group3CountryValue.includes('is') : 
+                                group === 4 ? group4CountryValue.includes('is') :
+                                group === 5 ? group5CountryValue.includes('is') :
+                                group === 6 ? group6CountryValue.includes('is') :
+                                group === 7 ? group7CountryValue.includes('is') :
+                                group8CountryValue.includes('is')
                             }
                             >
                         </input>
@@ -619,14 +619,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ie') : 
-                                legend === 2 ? legend2CountryValue.includes('ie') : 
-                                legend === 3 ? legend3CountryValue.includes('ie') : 
-                                legend === 4 ? legend4CountryValue.includes('ie') :
-                                legend === 5 ? legend5CountryValue.includes('ie') :
-                                legend === 6 ? legend6CountryValue.includes('ie') :
-                                legend === 7 ? legend7CountryValue.includes('ie') :
-                                legend8CountryValue.includes('ie')
+                                group === 1 ? group1CountryValue.includes('ie') : 
+                                group === 2 ? group2CountryValue.includes('ie') : 
+                                group === 3 ? group3CountryValue.includes('ie') : 
+                                group === 4 ? group4CountryValue.includes('ie') :
+                                group === 5 ? group5CountryValue.includes('ie') :
+                                group === 6 ? group6CountryValue.includes('ie') :
+                                group === 7 ? group7CountryValue.includes('ie') :
+                                group8CountryValue.includes('ie')
                             }
                             >
                         </input>
@@ -642,14 +642,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('it') : 
-                                legend === 2 ? legend2CountryValue.includes('it') : 
-                                legend === 3 ? legend3CountryValue.includes('it') : 
-                                legend === 4 ? legend4CountryValue.includes('it') :
-                                legend === 5 ? legend5CountryValue.includes('it') :
-                                legend === 6 ? legend6CountryValue.includes('it') :
-                                legend === 7 ? legend7CountryValue.includes('it') :
-                                legend8CountryValue.includes('it')
+                                group === 1 ? group1CountryValue.includes('it') : 
+                                group === 2 ? group2CountryValue.includes('it') : 
+                                group === 3 ? group3CountryValue.includes('it') : 
+                                group === 4 ? group4CountryValue.includes('it') :
+                                group === 5 ? group5CountryValue.includes('it') :
+                                group === 6 ? group6CountryValue.includes('it') :
+                                group === 7 ? group7CountryValue.includes('it') :
+                                group8CountryValue.includes('it')
                             }
                             >
                         </input>
@@ -665,14 +665,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('xk') : 
-                                legend === 2 ? legend2CountryValue.includes('xk') : 
-                                legend === 3 ? legend3CountryValue.includes('xk') : 
-                                legend === 4 ? legend4CountryValue.includes('xk') :
-                                legend === 5 ? legend5CountryValue.includes('xk') :
-                                legend === 6 ? legend6CountryValue.includes('xk') :
-                                legend === 7 ? legend7CountryValue.includes('xk') :
-                                legend8CountryValue.includes('xk')
+                                group === 1 ? group1CountryValue.includes('xk') : 
+                                group === 2 ? group2CountryValue.includes('xk') : 
+                                group === 3 ? group3CountryValue.includes('xk') : 
+                                group === 4 ? group4CountryValue.includes('xk') :
+                                group === 5 ? group5CountryValue.includes('xk') :
+                                group === 6 ? group6CountryValue.includes('xk') :
+                                group === 7 ? group7CountryValue.includes('xk') :
+                                group8CountryValue.includes('xk')
                             }
                             >
                         </input>
@@ -688,14 +688,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('lv') : 
-                                legend === 2 ? legend2CountryValue.includes('lv') : 
-                                legend === 3 ? legend3CountryValue.includes('lv') : 
-                                legend === 4 ? legend4CountryValue.includes('lv') :
-                                legend === 5 ? legend5CountryValue.includes('lv') :
-                                legend === 6 ? legend6CountryValue.includes('lv') :
-                                legend === 7 ? legend7CountryValue.includes('lv') :
-                                legend8CountryValue.includes('lv')
+                                group === 1 ? group1CountryValue.includes('lv') : 
+                                group === 2 ? group2CountryValue.includes('lv') : 
+                                group === 3 ? group3CountryValue.includes('lv') : 
+                                group === 4 ? group4CountryValue.includes('lv') :
+                                group === 5 ? group5CountryValue.includes('lv') :
+                                group === 6 ? group6CountryValue.includes('lv') :
+                                group === 7 ? group7CountryValue.includes('lv') :
+                                group8CountryValue.includes('lv')
                             }
                             >
                         </input>
@@ -711,14 +711,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('li') : 
-                                legend === 2 ? legend2CountryValue.includes('li') : 
-                                legend === 3 ? legend3CountryValue.includes('li') : 
-                                legend === 4 ? legend4CountryValue.includes('li') :
-                                legend === 5 ? legend5CountryValue.includes('li') :
-                                legend === 6 ? legend6CountryValue.includes('li') :
-                                legend === 7 ? legend7CountryValue.includes('li') :
-                                legend8CountryValue.includes('li')
+                                group === 1 ? group1CountryValue.includes('li') : 
+                                group === 2 ? group2CountryValue.includes('li') : 
+                                group === 3 ? group3CountryValue.includes('li') : 
+                                group === 4 ? group4CountryValue.includes('li') :
+                                group === 5 ? group5CountryValue.includes('li') :
+                                group === 6 ? group6CountryValue.includes('li') :
+                                group === 7 ? group7CountryValue.includes('li') :
+                                group8CountryValue.includes('li')
                             }
                             >
                         </input>
@@ -734,14 +734,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('lt') : 
-                                legend === 2 ? legend2CountryValue.includes('lt') : 
-                                legend === 3 ? legend3CountryValue.includes('lt') : 
-                                legend === 4 ? legend4CountryValue.includes('lt') :
-                                legend === 5 ? legend5CountryValue.includes('lt') :
-                                legend === 6 ? legend6CountryValue.includes('lt') :
-                                legend === 7 ? legend7CountryValue.includes('lt') :
-                                legend8CountryValue.includes('lt')
+                                group === 1 ? group1CountryValue.includes('lt') : 
+                                group === 2 ? group2CountryValue.includes('lt') : 
+                                group === 3 ? group3CountryValue.includes('lt') : 
+                                group === 4 ? group4CountryValue.includes('lt') :
+                                group === 5 ? group5CountryValue.includes('lt') :
+                                group === 6 ? group6CountryValue.includes('lt') :
+                                group === 7 ? group7CountryValue.includes('lt') :
+                                group8CountryValue.includes('lt')
                             }
                             >
                         </input>
@@ -757,14 +757,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('lu') : 
-                                legend === 2 ? legend2CountryValue.includes('lu') : 
-                                legend === 3 ? legend3CountryValue.includes('lu') : 
-                                legend === 4 ? legend4CountryValue.includes('lu') :
-                                legend === 5 ? legend5CountryValue.includes('lu') :
-                                legend === 6 ? legend6CountryValue.includes('lu') :
-                                legend === 7 ? legend7CountryValue.includes('lu') :
-                                legend8CountryValue.includes('lu')
+                                group === 1 ? group1CountryValue.includes('lu') : 
+                                group === 2 ? group2CountryValue.includes('lu') : 
+                                group === 3 ? group3CountryValue.includes('lu') : 
+                                group === 4 ? group4CountryValue.includes('lu') :
+                                group === 5 ? group5CountryValue.includes('lu') :
+                                group === 6 ? group6CountryValue.includes('lu') :
+                                group === 7 ? group7CountryValue.includes('lu') :
+                                group8CountryValue.includes('lu')
                             }
                             >
                         </input>
@@ -780,14 +780,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('mt') : 
-                                legend === 2 ? legend2CountryValue.includes('mt') : 
-                                legend === 3 ? legend3CountryValue.includes('mt') : 
-                                legend === 4 ? legend4CountryValue.includes('mt') :
-                                legend === 5 ? legend5CountryValue.includes('mt') :
-                                legend === 6 ? legend6CountryValue.includes('mt') :
-                                legend === 7 ? legend7CountryValue.includes('mt') :
-                                legend8CountryValue.includes('mt')
+                                group === 1 ? group1CountryValue.includes('mt') : 
+                                group === 2 ? group2CountryValue.includes('mt') : 
+                                group === 3 ? group3CountryValue.includes('mt') : 
+                                group === 4 ? group4CountryValue.includes('mt') :
+                                group === 5 ? group5CountryValue.includes('mt') :
+                                group === 6 ? group6CountryValue.includes('mt') :
+                                group === 7 ? group7CountryValue.includes('mt') :
+                                group8CountryValue.includes('mt')
                             }
                             >
                         </input>
@@ -803,14 +803,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('md') : 
-                                legend === 2 ? legend2CountryValue.includes('md') : 
-                                legend === 3 ? legend3CountryValue.includes('md') : 
-                                legend === 4 ? legend4CountryValue.includes('md') :
-                                legend === 5 ? legend5CountryValue.includes('md') :
-                                legend === 6 ? legend6CountryValue.includes('md') :
-                                legend === 7 ? legend7CountryValue.includes('md') :
-                                legend8CountryValue.includes('md')
+                                group === 1 ? group1CountryValue.includes('md') : 
+                                group === 2 ? group2CountryValue.includes('md') : 
+                                group === 3 ? group3CountryValue.includes('md') : 
+                                group === 4 ? group4CountryValue.includes('md') :
+                                group === 5 ? group5CountryValue.includes('md') :
+                                group === 6 ? group6CountryValue.includes('md') :
+                                group === 7 ? group7CountryValue.includes('md') :
+                                group8CountryValue.includes('md')
                             }
                             >
                         </input>
@@ -826,14 +826,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('mc') : 
-                                legend === 2 ? legend2CountryValue.includes('mc') : 
-                                legend === 3 ? legend3CountryValue.includes('mc') : 
-                                legend === 4 ? legend4CountryValue.includes('mc') :
-                                legend === 5 ? legend5CountryValue.includes('mc') :
-                                legend === 6 ? legend6CountryValue.includes('mc') :
-                                legend === 7 ? legend7CountryValue.includes('mc') :
-                                legend8CountryValue.includes('mc')
+                                group === 1 ? group1CountryValue.includes('mc') : 
+                                group === 2 ? group2CountryValue.includes('mc') : 
+                                group === 3 ? group3CountryValue.includes('mc') : 
+                                group === 4 ? group4CountryValue.includes('mc') :
+                                group === 5 ? group5CountryValue.includes('mc') :
+                                group === 6 ? group6CountryValue.includes('mc') :
+                                group === 7 ? group7CountryValue.includes('mc') :
+                                group8CountryValue.includes('mc')
                             }
                             >
                         </input>
@@ -849,14 +849,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('me') : 
-                                legend === 2 ? legend2CountryValue.includes('me') : 
-                                legend === 3 ? legend3CountryValue.includes('me') : 
-                                legend === 4 ? legend4CountryValue.includes('me') :
-                                legend === 5 ? legend5CountryValue.includes('me') :
-                                legend === 6 ? legend6CountryValue.includes('me') :
-                                legend === 7 ? legend7CountryValue.includes('me') :
-                                legend8CountryValue.includes('me')
+                                group === 1 ? group1CountryValue.includes('me') : 
+                                group === 2 ? group2CountryValue.includes('me') : 
+                                group === 3 ? group3CountryValue.includes('me') : 
+                                group === 4 ? group4CountryValue.includes('me') :
+                                group === 5 ? group5CountryValue.includes('me') :
+                                group === 6 ? group6CountryValue.includes('me') :
+                                group === 7 ? group7CountryValue.includes('me') :
+                                group8CountryValue.includes('me')
                             }
                             >
                         </input>
@@ -872,14 +872,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('nl') : 
-                                legend === 2 ? legend2CountryValue.includes('nl') : 
-                                legend === 3 ? legend3CountryValue.includes('nl') : 
-                                legend === 4 ? legend4CountryValue.includes('nl') :
-                                legend === 5 ? legend5CountryValue.includes('nl') :
-                                legend === 6 ? legend6CountryValue.includes('nl') :
-                                legend === 7 ? legend7CountryValue.includes('nl') :
-                                legend8CountryValue.includes('nl')
+                                group === 1 ? group1CountryValue.includes('nl') : 
+                                group === 2 ? group2CountryValue.includes('nl') : 
+                                group === 3 ? group3CountryValue.includes('nl') : 
+                                group === 4 ? group4CountryValue.includes('nl') :
+                                group === 5 ? group5CountryValue.includes('nl') :
+                                group === 6 ? group6CountryValue.includes('nl') :
+                                group === 7 ? group7CountryValue.includes('nl') :
+                                group8CountryValue.includes('nl')
                             }
                             >
                         </input>
@@ -895,14 +895,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('mk') : 
-                                legend === 2 ? legend2CountryValue.includes('mk') : 
-                                legend === 3 ? legend3CountryValue.includes('mk') : 
-                                legend === 4 ? legend4CountryValue.includes('mk') :
-                                legend === 5 ? legend5CountryValue.includes('mk') :
-                                legend === 6 ? legend6CountryValue.includes('mk') :
-                                legend === 7 ? legend7CountryValue.includes('mk') :
-                                legend8CountryValue.includes('mk')
+                                group === 1 ? group1CountryValue.includes('mk') : 
+                                group === 2 ? group2CountryValue.includes('mk') : 
+                                group === 3 ? group3CountryValue.includes('mk') : 
+                                group === 4 ? group4CountryValue.includes('mk') :
+                                group === 5 ? group5CountryValue.includes('mk') :
+                                group === 6 ? group6CountryValue.includes('mk') :
+                                group === 7 ? group7CountryValue.includes('mk') :
+                                group8CountryValue.includes('mk')
                             }
                             >
                         </input>
@@ -918,14 +918,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('no') : 
-                                legend === 2 ? legend2CountryValue.includes('no') : 
-                                legend === 3 ? legend3CountryValue.includes('no') : 
-                                legend === 4 ? legend4CountryValue.includes('no') :
-                                legend === 5 ? legend5CountryValue.includes('no') :
-                                legend === 6 ? legend6CountryValue.includes('no') :
-                                legend === 7 ? legend7CountryValue.includes('no') :
-                                legend8CountryValue.includes('no')
+                                group === 1 ? group1CountryValue.includes('no') : 
+                                group === 2 ? group2CountryValue.includes('no') : 
+                                group === 3 ? group3CountryValue.includes('no') : 
+                                group === 4 ? group4CountryValue.includes('no') :
+                                group === 5 ? group5CountryValue.includes('no') :
+                                group === 6 ? group6CountryValue.includes('no') :
+                                group === 7 ? group7CountryValue.includes('no') :
+                                group8CountryValue.includes('no')
                             }
                             >
                         </input>
@@ -941,14 +941,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('pl') : 
-                                legend === 2 ? legend2CountryValue.includes('pl') : 
-                                legend === 3 ? legend3CountryValue.includes('pl') : 
-                                legend === 4 ? legend4CountryValue.includes('pl') :
-                                legend === 5 ? legend5CountryValue.includes('pl') :
-                                legend === 6 ? legend6CountryValue.includes('pl') :
-                                legend === 7 ? legend7CountryValue.includes('pl') :
-                                legend8CountryValue.includes('pl')
+                                group === 1 ? group1CountryValue.includes('pl') : 
+                                group === 2 ? group2CountryValue.includes('pl') : 
+                                group === 3 ? group3CountryValue.includes('pl') : 
+                                group === 4 ? group4CountryValue.includes('pl') :
+                                group === 5 ? group5CountryValue.includes('pl') :
+                                group === 6 ? group6CountryValue.includes('pl') :
+                                group === 7 ? group7CountryValue.includes('pl') :
+                                group8CountryValue.includes('pl')
                             }
                             >
                         </input>
@@ -964,14 +964,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('pt') : 
-                                legend === 2 ? legend2CountryValue.includes('pt') : 
-                                legend === 3 ? legend3CountryValue.includes('pt') : 
-                                legend === 4 ? legend4CountryValue.includes('pt') :
-                                legend === 5 ? legend5CountryValue.includes('pt') :
-                                legend === 6 ? legend6CountryValue.includes('pt') :
-                                legend === 7 ? legend7CountryValue.includes('pt') :
-                                legend8CountryValue.includes('pt')
+                                group === 1 ? group1CountryValue.includes('pt') : 
+                                group === 2 ? group2CountryValue.includes('pt') : 
+                                group === 3 ? group3CountryValue.includes('pt') : 
+                                group === 4 ? group4CountryValue.includes('pt') :
+                                group === 5 ? group5CountryValue.includes('pt') :
+                                group === 6 ? group6CountryValue.includes('pt') :
+                                group === 7 ? group7CountryValue.includes('pt') :
+                                group8CountryValue.includes('pt')
                             }
                             >
                         </input>
@@ -987,14 +987,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ro') : 
-                                legend === 2 ? legend2CountryValue.includes('ro') : 
-                                legend === 3 ? legend3CountryValue.includes('ro') : 
-                                legend === 4 ? legend4CountryValue.includes('ro') :
-                                legend === 5 ? legend5CountryValue.includes('ro') :
-                                legend === 6 ? legend6CountryValue.includes('ro') :
-                                legend === 7 ? legend7CountryValue.includes('ro') :
-                                legend8CountryValue.includes('ro')
+                                group === 1 ? group1CountryValue.includes('ro') : 
+                                group === 2 ? group2CountryValue.includes('ro') : 
+                                group === 3 ? group3CountryValue.includes('ro') : 
+                                group === 4 ? group4CountryValue.includes('ro') :
+                                group === 5 ? group5CountryValue.includes('ro') :
+                                group === 6 ? group6CountryValue.includes('ro') :
+                                group === 7 ? group7CountryValue.includes('ro') :
+                                group8CountryValue.includes('ro')
                             }
                             >
                         </input>
@@ -1010,14 +1010,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ru') : 
-                                legend === 2 ? legend2CountryValue.includes('ru') : 
-                                legend === 3 ? legend3CountryValue.includes('ru') : 
-                                legend === 4 ? legend4CountryValue.includes('ru') :
-                                legend === 5 ? legend5CountryValue.includes('ru') :
-                                legend === 6 ? legend6CountryValue.includes('ru') :
-                                legend === 7 ? legend7CountryValue.includes('ru') :
-                                legend8CountryValue.includes('ru')
+                                group === 1 ? group1CountryValue.includes('ru') : 
+                                group === 2 ? group2CountryValue.includes('ru') : 
+                                group === 3 ? group3CountryValue.includes('ru') : 
+                                group === 4 ? group4CountryValue.includes('ru') :
+                                group === 5 ? group5CountryValue.includes('ru') :
+                                group === 6 ? group6CountryValue.includes('ru') :
+                                group === 7 ? group7CountryValue.includes('ru') :
+                                group8CountryValue.includes('ru')
                             }
                             >
                         </input>
@@ -1033,14 +1033,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('sm') : 
-                                legend === 2 ? legend2CountryValue.includes('sm') : 
-                                legend === 3 ? legend3CountryValue.includes('sm') : 
-                                legend === 4 ? legend4CountryValue.includes('sm') :
-                                legend === 5 ? legend5CountryValue.includes('sm') :
-                                legend === 6 ? legend6CountryValue.includes('sm') :
-                                legend === 7 ? legend7CountryValue.includes('sm') :
-                                legend8CountryValue.includes('sm')
+                                group === 1 ? group1CountryValue.includes('sm') : 
+                                group === 2 ? group2CountryValue.includes('sm') : 
+                                group === 3 ? group3CountryValue.includes('sm') : 
+                                group === 4 ? group4CountryValue.includes('sm') :
+                                group === 5 ? group5CountryValue.includes('sm') :
+                                group === 6 ? group6CountryValue.includes('sm') :
+                                group === 7 ? group7CountryValue.includes('sm') :
+                                group8CountryValue.includes('sm')
                             }
                             >
                         </input>
@@ -1056,14 +1056,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('rs') : 
-                                legend === 2 ? legend2CountryValue.includes('rs') : 
-                                legend === 3 ? legend3CountryValue.includes('rs') : 
-                                legend === 4 ? legend4CountryValue.includes('rs') :
-                                legend === 5 ? legend5CountryValue.includes('rs') :
-                                legend === 6 ? legend6CountryValue.includes('rs') :
-                                legend === 7 ? legend7CountryValue.includes('rs') :
-                                legend8CountryValue.includes('rs')
+                                group === 1 ? group1CountryValue.includes('rs') : 
+                                group === 2 ? group2CountryValue.includes('rs') : 
+                                group === 3 ? group3CountryValue.includes('rs') : 
+                                group === 4 ? group4CountryValue.includes('rs') :
+                                group === 5 ? group5CountryValue.includes('rs') :
+                                group === 6 ? group6CountryValue.includes('rs') :
+                                group === 7 ? group7CountryValue.includes('rs') :
+                                group8CountryValue.includes('rs')
                             }
                             >
                         </input>
@@ -1079,14 +1079,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('sk') : 
-                                legend === 2 ? legend2CountryValue.includes('sk') : 
-                                legend === 3 ? legend3CountryValue.includes('sk') : 
-                                legend === 4 ? legend4CountryValue.includes('sk') :
-                                legend === 5 ? legend5CountryValue.includes('sk') :
-                                legend === 6 ? legend6CountryValue.includes('sk') :
-                                legend === 7 ? legend7CountryValue.includes('sk') :
-                                legend8CountryValue.includes('sk')
+                                group === 1 ? group1CountryValue.includes('sk') : 
+                                group === 2 ? group2CountryValue.includes('sk') : 
+                                group === 3 ? group3CountryValue.includes('sk') : 
+                                group === 4 ? group4CountryValue.includes('sk') :
+                                group === 5 ? group5CountryValue.includes('sk') :
+                                group === 6 ? group6CountryValue.includes('sk') :
+                                group === 7 ? group7CountryValue.includes('sk') :
+                                group8CountryValue.includes('sk')
                             }
                             >
                         </input>
@@ -1102,14 +1102,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('si') : 
-                                legend === 2 ? legend2CountryValue.includes('si') : 
-                                legend === 3 ? legend3CountryValue.includes('si') : 
-                                legend === 4 ? legend4CountryValue.includes('si') :
-                                legend === 5 ? legend5CountryValue.includes('si') :
-                                legend === 6 ? legend6CountryValue.includes('si') :
-                                legend === 7 ? legend7CountryValue.includes('si') :
-                                legend8CountryValue.includes('si')
+                                group === 1 ? group1CountryValue.includes('si') : 
+                                group === 2 ? group2CountryValue.includes('si') : 
+                                group === 3 ? group3CountryValue.includes('si') : 
+                                group === 4 ? group4CountryValue.includes('si') :
+                                group === 5 ? group5CountryValue.includes('si') :
+                                group === 6 ? group6CountryValue.includes('si') :
+                                group === 7 ? group7CountryValue.includes('si') :
+                                group8CountryValue.includes('si')
                             }
                             >
                         </input>
@@ -1125,14 +1125,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('es') : 
-                                legend === 2 ? legend2CountryValue.includes('es') : 
-                                legend === 3 ? legend3CountryValue.includes('es') : 
-                                legend === 4 ? legend4CountryValue.includes('es') :
-                                legend === 5 ? legend5CountryValue.includes('es') :
-                                legend === 6 ? legend6CountryValue.includes('es') :
-                                legend === 7 ? legend7CountryValue.includes('es') :
-                                legend8CountryValue.includes('es')
+                                group === 1 ? group1CountryValue.includes('es') : 
+                                group === 2 ? group2CountryValue.includes('es') : 
+                                group === 3 ? group3CountryValue.includes('es') : 
+                                group === 4 ? group4CountryValue.includes('es') :
+                                group === 5 ? group5CountryValue.includes('es') :
+                                group === 6 ? group6CountryValue.includes('es') :
+                                group === 7 ? group7CountryValue.includes('es') :
+                                group8CountryValue.includes('es')
                             }
                             >
                         </input>
@@ -1148,14 +1148,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('se') : 
-                                legend === 2 ? legend2CountryValue.includes('se') : 
-                                legend === 3 ? legend3CountryValue.includes('se') : 
-                                legend === 4 ? legend4CountryValue.includes('se') :
-                                legend === 5 ? legend5CountryValue.includes('se') :
-                                legend === 6 ? legend6CountryValue.includes('se') :
-                                legend === 7 ? legend7CountryValue.includes('se') :
-                                legend8CountryValue.includes('se')
+                                group === 1 ? group1CountryValue.includes('se') : 
+                                group === 2 ? group2CountryValue.includes('se') : 
+                                group === 3 ? group3CountryValue.includes('se') : 
+                                group === 4 ? group4CountryValue.includes('se') :
+                                group === 5 ? group5CountryValue.includes('se') :
+                                group === 6 ? group6CountryValue.includes('se') :
+                                group === 7 ? group7CountryValue.includes('se') :
+                                group8CountryValue.includes('se')
                             }
                             >
                         </input>
@@ -1171,14 +1171,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ch') : 
-                                legend === 2 ? legend2CountryValue.includes('ch') : 
-                                legend === 3 ? legend3CountryValue.includes('ch') : 
-                                legend === 4 ? legend4CountryValue.includes('ch') :
-                                legend === 5 ? legend5CountryValue.includes('ch') :
-                                legend === 6 ? legend6CountryValue.includes('ch') :
-                                legend === 7 ? legend7CountryValue.includes('ch') :
-                                legend8CountryValue.includes('ch')
+                                group === 1 ? group1CountryValue.includes('ch') : 
+                                group === 2 ? group2CountryValue.includes('ch') : 
+                                group === 3 ? group3CountryValue.includes('ch') : 
+                                group === 4 ? group4CountryValue.includes('ch') :
+                                group === 5 ? group5CountryValue.includes('ch') :
+                                group === 6 ? group6CountryValue.includes('ch') :
+                                group === 7 ? group7CountryValue.includes('ch') :
+                                group8CountryValue.includes('ch')
                             }
                             >
                         </input>
@@ -1194,14 +1194,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('ua') : 
-                                legend === 2 ? legend2CountryValue.includes('ua') : 
-                                legend === 3 ? legend3CountryValue.includes('ua') : 
-                                legend === 4 ? legend4CountryValue.includes('ua') :
-                                legend === 5 ? legend5CountryValue.includes('ua') :
-                                legend === 6 ? legend6CountryValue.includes('ua') :
-                                legend === 7 ? legend7CountryValue.includes('ua') :
-                                legend8CountryValue.includes('ua')
+                                group === 1 ? group1CountryValue.includes('ua') : 
+                                group === 2 ? group2CountryValue.includes('ua') : 
+                                group === 3 ? group3CountryValue.includes('ua') : 
+                                group === 4 ? group4CountryValue.includes('ua') :
+                                group === 5 ? group5CountryValue.includes('ua') :
+                                group === 6 ? group6CountryValue.includes('ua') :
+                                group === 7 ? group7CountryValue.includes('ua') :
+                                group8CountryValue.includes('ua')
                             }
                             >
                         </input>
@@ -1217,14 +1217,14 @@ function Countries({
                             
                             
                             checked={
-                                legend === 1 ? legend1CountryValue.includes('gb') : 
-                                legend === 2 ? legend2CountryValue.includes('gb') : 
-                                legend === 3 ? legend3CountryValue.includes('gb') : 
-                                legend === 4 ? legend4CountryValue.includes('gb') :
-                                legend === 5 ? legend5CountryValue.includes('gb') :
-                                legend === 6 ? legend6CountryValue.includes('gb') :
-                                legend === 7 ? legend7CountryValue.includes('gb') :
-                                legend8CountryValue.includes('gb')
+                                group === 1 ? group1CountryValue.includes('gb') : 
+                                group === 2 ? group2CountryValue.includes('gb') : 
+                                group === 3 ? group3CountryValue.includes('gb') : 
+                                group === 4 ? group4CountryValue.includes('gb') :
+                                group === 5 ? group5CountryValue.includes('gb') :
+                                group === 6 ? group6CountryValue.includes('gb') :
+                                group === 7 ? group7CountryValue.includes('gb') :
+                                group8CountryValue.includes('gb')
                             }
                             >
                         </input>

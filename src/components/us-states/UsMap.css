@@ -17,7 +17,7 @@
     background-color: rgba(255, 255, 255, 0);
 }
 
-.legends {
+.groups {
     fill:none;
 
 }
@@ -37,7 +37,7 @@ Place this code in the empty space below. */
     overflow-wrap: break-word;
 }
 
-.legend-title-map-us{
+.group-title-map-us{
 	font-size: 12px;
 	letter-spacing: 0.5px;
 	font-weight: 500;

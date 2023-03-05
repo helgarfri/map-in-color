@@ -8,24 +8,24 @@ import MapSettings from '../MapSettings';
 function UsMap({
     mapTitleValue,
 
-    legend1TitleValue, 
-    legend2TitleValue, 
-    legend3TitleValue,
-    legend4TitleValue,
-    legend5TitleValue,
-    legend6TitleValue,
-    legend7TitleValue,
-    legend8TitleValue,
+    group1TitleValue, 
+    group2TitleValue, 
+    group3TitleValue,
+    group4TitleValue,
+    group5TitleValue,
+    group6TitleValue,
+    group7TitleValue,
+    group8TitleValue,
   
 
-    legend1ColorValue, 
-    legend2ColorValue,
-    legend3ColorValue,
-    legend4ColorValue,
-    legend5ColorValue,
-    legend6ColorValue,
-    legend7ColorValue,
-    legend8ColorValue,
+    group1ColorValue, 
+    group2ColorValue,
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
 
     numItems,
 
@@ -60,49 +60,49 @@ function UsMap({
 	  }
 
 
-  const legendGroups = [
+  const groupGroups = [
 		{
-		  color: legend1ColorValue,
-		  title: legend1TitleValue
+		  color: group1ColorValue,
+		  title: group1TitleValue
 		},
 		{
-		  color: legend2ColorValue,
-		  title: legend2TitleValue
+		  color: group2ColorValue,
+		  title: group2TitleValue
 		},
 		{
-		  color: legend3ColorValue,
-		  title: legend3TitleValue
+		  color: group3ColorValue,
+		  title: group3TitleValue
 		},
 		{
-		  color: legend4ColorValue,
-		  title: legend4TitleValue
+		  color: group4ColorValue,
+		  title: group4TitleValue
 		},
 		{
-		  color: legend5ColorValue,
-		  title: legend5TitleValue
+		  color: group5ColorValue,
+		  title: group5TitleValue
 		},
 
 		{
-			color: legend6ColorValue,
-			title: legend6TitleValue
+			color: group6ColorValue,
+			title: group6TitleValue
 		  },
 
 		{
-			color: legend7ColorValue,
-			title: legend7TitleValue
+			color: group7ColorValue,
+			title: group7TitleValue
 		},
 
 		  {
-			  color: legend8ColorValue,
-			  title: legend8TitleValue
+			  color: group8ColorValue,
+			  title: group8TitleValue
 			}
 	  ];
-	  console.log(legend1TitleValue)
+	  console.log(group1TitleValue)
 	  const groups = [];
 	  
 	  for (let i = 0; i < numItems; i++) {
 		const circleStyle = {
-		  fill: legendGroups[i].color,
+		  fill: groupGroups[i].color,
 		  cx: 880,
 		  cy: 375 + 22 * i,
 		  r: 5
@@ -115,16 +115,16 @@ function UsMap({
 		};
 		groups.push(
 		  <g style={{display: `block`}}>
-			<circle className="legend-dot-map" {...circleStyle}></circle>
-			<text className="legend-title-map-us" {...textStyle}>{legendGroups[i].title}</text>
+			<circle className="group-dot-map" {...circleStyle}></circle>
+			<text className="group-title-map-us" {...textStyle}>{groupGroups[i].title}</text>
 		  </g>
 		);
 	  
 		for (let j = i + 1; j < numItems; j++) {
 		  groups.push(
 			<g style={{display: `none`}}>
-			  <circle className="legend-dot-map" {...circleStyle}></circle>
-			  <text className="legend-title-map" {...textStyle}>{legendGroups[i].title}</text>
+			  <circle className="group-dot-map" {...circleStyle}></circle>
+			  <text className="group-title-map" {...textStyle}>{groupGroups[i].title}</text>
 			</g>
 		  );
 		}

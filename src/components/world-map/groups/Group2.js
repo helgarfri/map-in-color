@@ -8,29 +8,29 @@ import { CompactPicker, SketchPicker } from 'react-color'
  
 
 function Group2({
-    legend1CountryValue, 
-    setLegend1CountryValue, 
-    legend2CountryValue,
-    setLegend2CountryValue,
-    legend3CountryValue,
-    setLegend3CountryValue,
-    legend4CountryValue,
-    setLegend4CountryValue,
-    legend5CountryValue,
-    setLegend5CountryValue,
-    legend6CountryValue,
-    setLegend6CountryValue,
-    legend7CountryValue,
-    setLegend7CountryValue,
-    legend8CountryValue,
-    setLegend8CountryValue,
+    group1CountryValue, 
+    setGroup1CountryValue, 
+    group2CountryValue,
+    setGroup2CountryValue,
+    group3CountryValue,
+    setGroup3CountryValue,
+    group4CountryValue,
+    setGroup4CountryValue,
+    group5CountryValue,
+    setGroup5CountryValue,
+    group6CountryValue,
+    setGroup6CountryValue,
+    group7CountryValue,
+    setGroup7CountryValue,
+    group8CountryValue,
+    setGroup8CountryValue,
 
 
 
-    activeLegend, 
-    legend2ColorValue, 
-    setLegend2ColorValue, 
-    legend2TitleValue, 
+    activeGroup, 
+    group2ColorValue, 
+    setGroup2ColorValue, 
+    group2TitleValue, 
     handleTitle2ValueChange,
   
 
@@ -43,9 +43,9 @@ function Group2({
    
 
     const handleColorChange = (color) =>{
-        setLegend2ColorValue(color.hex)
-        for (var i = 0; i < legend2CountryValue.length; i++) {
-            const id = legend2CountryValue[i];
+        setGroup2ColorValue(color.hex)
+        for (var i = 0; i < group2CountryValue.length; i++) {
+            const id = group2CountryValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
 
@@ -57,7 +57,7 @@ function Group2({
 
 
    
-    if (activeLegend !== 2) {
+    if (activeGroup !== 2) {
         return null
     } 
         
@@ -65,15 +65,15 @@ function Group2({
         
     return(
         <div>
-            <div className='legend'>
+            <div className='group'>
 
 
-                <div className='legend-set'>
+                <div className='group-set'>
                     
-                    <div className='legend-title'>
+                    <div className='group-title'>
                         
                         <input 
-                            className='legend-title' 
+                            className='group-title' 
                             placeholder="Click to add title" 
                             onChange={handleTitle2Change}
                             type='text'
@@ -85,8 +85,8 @@ function Group2({
                     <CompactPicker
                         
                         className='color-picker'
-                        color={legend2ColorValue}
-                        value={legend2ColorValue}
+                        color={group2ColorValue}
+                        value={group2ColorValue}
                         onChangeComplete={handleColorChange} 
                         colors={[
                               '#8B0000', //Dark red
@@ -137,33 +137,33 @@ function Group2({
                 </div>
              
                     <Countries
-                    legend2ColorValue={legend2ColorValue}
-                    setLegend2ColorValue={setLegend2ColorValue}
-                    legend={2}
+                    group2ColorValue={group2ColorValue}
+                    setGroup2ColorValue={setGroup2ColorValue}
+                    group={2}
                     
-                    legend1CountryValue={legend1CountryValue}
-                    setLegend1CountryValue={setLegend1CountryValue}
+                    group1CountryValue={group1CountryValue}
+                    setGroup1CountryValue={setGroup1CountryValue}
                     
-                    legend2CountryValue={legend2CountryValue}
-                    setLegend2CountryValue={setLegend2CountryValue}
+                    group2CountryValue={group2CountryValue}
+                    setGroup2CountryValue={setGroup2CountryValue}
                     
-                    legend3CountryValue={legend3CountryValue}
-                    setLegend3CountryValue={setLegend3CountryValue}
+                    group3CountryValue={group3CountryValue}
+                    setGroup3CountryValue={setGroup3CountryValue}
 
-                    legend4CountryValue={legend4CountryValue}
-                    setLegend4CountryValue={setLegend4CountryValue}
+                    group4CountryValue={group4CountryValue}
+                    setGroup4CountryValue={setGroup4CountryValue}
 
-                    legend5CountryValue={legend5CountryValue}
-                    setLegend5CountryValue={setLegend5CountryValue}
+                    group5CountryValue={group5CountryValue}
+                    setGroup5CountryValue={setGroup5CountryValue}
 
-                    legend6CountryValue={legend6CountryValue}
-                    setLegend6CountryValue={setLegend6CountryValue}
+                    group6CountryValue={group6CountryValue}
+                    setGroup6CountryValue={setGroup6CountryValue}
 
-                    legend7CountryValue={legend7CountryValue}
-                    setLegend7CountryValue={setLegend7CountryValue}
+                    group7CountryValue={group7CountryValue}
+                    setGroup7CountryValue={setGroup7CountryValue}
 
-                    legend8CountryValue={legend8CountryValue}
-                    setLegend8CountryValue={setLegend8CountryValue}
+                    group8CountryValue={group8CountryValue}
+                    setGroup8CountryValue={setGroup8CountryValue}
 
                     
                     

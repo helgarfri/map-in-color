@@ -13,31 +13,30 @@ function App() {
 
     const [mapTitleValue, setMapTitleValue] = useState('')
 
-    const [legend1TitleValue, setLegend1TitleValue] = useState('')
-    const [legend2TitleValue, setLegend2TitleValue] =useState('')
-    const [legend3TitleValue, setLegend3TitleValue] =useState('')
-    const [legend4TitleValue, setLegend4TitleValue] =useState('')
-    const [legend5TitleValue, setLegend5TitleValue] =useState('')
-    const [legend6TitleValue, setLegend6TitleValue] =useState('')
-    const [legend7TitleValue, setLegend7TitleValue] =useState('')
-    const [legend8TitleValue, setLegend8TitleValue] =useState('')
+    const [group1TitleValue, setGroup1TitleValue] = useState('')
+    const [group2TitleValue, setGroup2TitleValue] =useState('')
+    const [group3TitleValue, setGroup3TitleValue] =useState('')
+    const [group4TitleValue, setGroup4TitleValue] =useState('')
+    const [group5TitleValue, setGroup5TitleValue] =useState('')
+    const [group6TitleValue, setGroup6TitleValue] =useState('')
+    const [group7TitleValue, setGroup7TitleValue] =useState('')
+    const [group8TitleValue, setGroup8TitleValue] =useState('')
   
   
   
   
   
-    const [legend1ColorValue, setLegend1ColorValue] = useState('#000000')
-    const [legend2ColorValue, setLegend2ColorValue] = useState('#000000')
-    const [legend3ColorValue, setLegend3ColorValue] = useState('#000000')
-    const [legend4ColorValue, setLegend4ColorValue] = useState('#000000')
-    const [legend5ColorValue, setLegend5ColorValue] = useState('#000000')
-    const [legend6ColorValue, setLegend6ColorValue] = useState('#000000')
-    const [legend7ColorValue, setLegend7ColorValue] = useState('#000000')
-    const [legend8ColorValue, setLegend8ColorValue] = useState('#000000')
+    const [group1ColorValue, setGroup1ColorValue] = useState('#000000')
+    const [group2ColorValue, setGroup2ColorValue] = useState('#000000')
+    const [group3ColorValue, setGroup3ColorValue] = useState('#000000')
+    const [group4ColorValue, setGroup4ColorValue] = useState('#000000')
+    const [group5ColorValue, setGroup5ColorValue] = useState('#000000')
+    const [group6ColorValue, setGroup6ColorValue] = useState('#000000')
+    const [group7ColorValue, setGroup7ColorValue] = useState('#000000')
+    const [group8ColorValue, setGroup8ColorValue] = useState('#000000')
   
   
   
-    console.log(legend1TitleValue)
 
   
     const [selectedRes, setSelectedRes] = useState('13.33');
@@ -52,35 +51,35 @@ function App() {
   
   
     const handleTitle1ValueChange = (newValue) => {
-      setLegend1TitleValue(newValue)
+      setGroup1TitleValue(newValue)
     }
   
     const handleTitle2ValueChange = (newValue) => {
-      setLegend2TitleValue(newValue)
+      setGroup2TitleValue(newValue)
     }
   
     const handleTitle3ValueChange = (newValue) => {
-      setLegend3TitleValue(newValue)
+      setGroup3TitleValue(newValue)
     }
   
     const handleTitle4ValueChange = (newValue) => {
-      setLegend4TitleValue(newValue)
+      setGroup4TitleValue(newValue)
     }
   
     const handleTitle5ValueChange = (newValue) => {
-      setLegend5TitleValue(newValue)
+      setGroup5TitleValue(newValue)
     }
   
     const handleTitle6ValueChange = (newValue) => {
-      setLegend6TitleValue(newValue)
+      setGroup6TitleValue(newValue)
     }
   
     const handleTitle7ValueChange = (newValue) => {
-      setLegend7TitleValue(newValue)
+      setGroup7TitleValue(newValue)
     }
   
     const handleTitle8ValueChange = (newValue) => {
-      setLegend8TitleValue(newValue)
+      setGroup8TitleValue(newValue)
     }
 
   let component
@@ -89,14 +88,14 @@ function App() {
     case '/world-map':
       component = 
       <WorldMap
-          legend1TitleValue={legend1TitleValue}
-          legend2TitleValue={legend2TitleValue}
-          legend3TitleValue={legend3TitleValue}
-          legend4TitleValue={legend4TitleValue}
-          legend5TitleValue={legend5TitleValue}
-          legend6TitleValue={legend6TitleValue}
-          legend7TitleValue={legend7TitleValue}
-          legend8TitleValue={legend8TitleValue}
+          group1TitleValue={group1TitleValue}
+          group2TitleValue={group2TitleValue}
+          group3TitleValue={group3TitleValue}
+          group4TitleValue={group4TitleValue}
+          group5TitleValue={group5TitleValue}
+          group6TitleValue={group6TitleValue}
+          group7TitleValue={group7TitleValue}
+          group8TitleValue={group8TitleValue}
 
           handleTitle1ValueChange={handleTitle1ValueChange}
           handleTitle2ValueChange={handleTitle2ValueChange}
@@ -107,23 +106,23 @@ function App() {
           handleTitle7ValueChange={handleTitle7ValueChange}
           handleTitle8ValueChange={handleTitle8ValueChange}
 
-          legend1ColorValue={legend1ColorValue}
-          legend2ColorValue={legend2ColorValue}
-          legend3ColorValue={legend3ColorValue}
-          legend4ColorValue={legend4ColorValue}
-          legend5ColorValue={legend5ColorValue}
-          legend6ColorValue={legend6ColorValue}
-          legend7ColorValue={legend7ColorValue}
-          legend8ColorValue={legend8ColorValue}
+          group1ColorValue={group1ColorValue}
+          group2ColorValue={group2ColorValue}
+          group3ColorValue={group3ColorValue}
+          group4ColorValue={group4ColorValue}
+          group5ColorValue={group5ColorValue}
+          group6ColorValue={group6ColorValue}
+          group7ColorValue={group7ColorValue}
+          group8ColorValue={group8ColorValue}
 
-          setLegend1ColorValue={setLegend1ColorValue}
-          setLegend2ColorValue={setLegend2ColorValue}
-          setLegend3ColorValue={setLegend3ColorValue}
-          setLegend4ColorValue={setLegend4ColorValue}
-          setLegend5ColorValue={setLegend5ColorValue}
-          setLegend6ColorValue={setLegend6ColorValue}
-          setLegend7ColorValue={setLegend7ColorValue}
-          setLegend8ColorValue={setLegend8ColorValue}
+          setGroup1ColorValue={setGroup1ColorValue}
+          setGroup2ColorValue={setGroup2ColorValue}
+          setGroup3ColorValue={setGroup3ColorValue}
+          setGroup4ColorValue={setGroup4ColorValue}
+          setGroup5ColorValue={setGroup5ColorValue}
+          setGroup6ColorValue={setGroup6ColorValue}
+          setGroup7ColorValue={setGroup7ColorValue}
+          setGroup8ColorValue={setGroup8ColorValue}
 
           mapTitleValue={mapTitleValue}
           handleMapTitleValueChange={handleMapTitleValueChange}
@@ -139,14 +138,14 @@ function App() {
     
     case '/us-states':
       component = <UnitedStates
-          legend1TitleValue={legend1TitleValue}
-          legend2TitleValue={legend2TitleValue}
-          legend3TitleValue={legend3TitleValue}
-          legend4TitleValue={legend4TitleValue}
-          legend5TitleValue={legend5TitleValue}
-          legend6TitleValue={legend6TitleValue}
-          legend7TitleValue={legend7TitleValue}
-          legend8TitleValue={legend8TitleValue}
+          group1TitleValue={group1TitleValue}
+          group2TitleValue={group2TitleValue}
+          group3TitleValue={group3TitleValue}
+          group4TitleValue={group4TitleValue}
+          group5TitleValue={group5TitleValue}
+          group6TitleValue={group6TitleValue}
+          group7TitleValue={group7TitleValue}
+          group8TitleValue={group8TitleValue}
 
           handleTitle1ValueChange={handleTitle1ValueChange}
           handleTitle2ValueChange={handleTitle2ValueChange}
@@ -157,23 +156,23 @@ function App() {
           handleTitle7ValueChange={handleTitle7ValueChange}
           handleTitle8ValueChange={handleTitle8ValueChange}
 
-          legend1ColorValue={legend1ColorValue}
-          legend2ColorValue={legend2ColorValue}
-          legend3ColorValue={legend3ColorValue}
-          legend4ColorValue={legend4ColorValue}
-          legend5ColorValue={legend5ColorValue}
-          legend6ColorValue={legend6ColorValue}
-          legend7ColorValue={legend7ColorValue}
-          legend8ColorValue={legend8ColorValue}
+          group1ColorValue={group1ColorValue}
+          group2ColorValue={group2ColorValue}
+          group3ColorValue={group3ColorValue}
+          group4ColorValue={group4ColorValue}
+          group5ColorValue={group5ColorValue}
+          group6ColorValue={group6ColorValue}
+          group7ColorValue={group7ColorValue}
+          group8ColorValue={group8ColorValue}
 
-          setLegend1ColorValue={setLegend1ColorValue}
-          setLegend2ColorValue={setLegend2ColorValue}
-          setLegend3ColorValue={setLegend3ColorValue}
-          setLegend4ColorValue={setLegend4ColorValue}
-          setLegend5ColorValue={setLegend5ColorValue}
-          setLegend6ColorValue={setLegend6ColorValue}
-          setLegend7ColorValue={setLegend7ColorValue}
-          setLegend8ColorValue={setLegend8ColorValue}
+          setGroup1ColorValue={setGroup1ColorValue}
+          setGroup2ColorValue={setGroup2ColorValue}
+          setGroup3ColorValue={setGroup3ColorValue}
+          setGroup4ColorValue={setGroup4ColorValue}
+          setGroup5ColorValue={setGroup5ColorValue}
+          setGroup6ColorValue={setGroup6ColorValue}
+          setGroup7ColorValue={setGroup7ColorValue}
+          setGroup8ColorValue={setGroup8ColorValue}
 
           mapTitleValue={mapTitleValue}
           handleMapTitleValueChange={handleMapTitleValueChange}
@@ -189,14 +188,14 @@ function App() {
 
     case '/europe':
       component = <Europe
-      legend1TitleValue={legend1TitleValue}
-          legend2TitleValue={legend2TitleValue}
-          legend3TitleValue={legend3TitleValue}
-          legend4TitleValue={legend4TitleValue}
-          legend5TitleValue={legend5TitleValue}
-          legend6TitleValue={legend6TitleValue}
-          legend7TitleValue={legend7TitleValue}
-          legend8TitleValue={legend8TitleValue}
+      group1TitleValue={group1TitleValue}
+          group2TitleValue={group2TitleValue}
+          group3TitleValue={group3TitleValue}
+          group4TitleValue={group4TitleValue}
+          group5TitleValue={group5TitleValue}
+          group6TitleValue={group6TitleValue}
+          group7TitleValue={group7TitleValue}
+          group8TitleValue={group8TitleValue}
 
           handleTitle1ValueChange={handleTitle1ValueChange}
           handleTitle2ValueChange={handleTitle2ValueChange}
@@ -207,23 +206,23 @@ function App() {
           handleTitle7ValueChange={handleTitle7ValueChange}
           handleTitle8ValueChange={handleTitle8ValueChange}
 
-          legend1ColorValue={legend1ColorValue}
-          legend2ColorValue={legend2ColorValue}
-          legend3ColorValue={legend3ColorValue}
-          legend4ColorValue={legend4ColorValue}
-          legend5ColorValue={legend5ColorValue}
-          legend6ColorValue={legend6ColorValue}
-          legend7ColorValue={legend7ColorValue}
-          legend8ColorValue={legend8ColorValue}
+          group1ColorValue={group1ColorValue}
+          group2ColorValue={group2ColorValue}
+          group3ColorValue={group3ColorValue}
+          group4ColorValue={group4ColorValue}
+          group5ColorValue={group5ColorValue}
+          group6ColorValue={group6ColorValue}
+          group7ColorValue={group7ColorValue}
+          group8ColorValue={group8ColorValue}
 
-          setLegend1ColorValue={setLegend1ColorValue}
-          setLegend2ColorValue={setLegend2ColorValue}
-          setLegend3ColorValue={setLegend3ColorValue}
-          setLegend4ColorValue={setLegend4ColorValue}
-          setLegend5ColorValue={setLegend5ColorValue}
-          setLegend6ColorValue={setLegend6ColorValue}
-          setLegend7ColorValue={setLegend7ColorValue}
-          setLegend8ColorValue={setLegend8ColorValue}
+          setGroup1ColorValue={setGroup1ColorValue}
+          setGroup2ColorValue={setGroup2ColorValue}
+          setGroup3ColorValue={setGroup3ColorValue}
+          setGroup4ColorValue={setGroup4ColorValue}
+          setGroup5ColorValue={setGroup5ColorValue}
+          setGroup6ColorValue={setGroup6ColorValue}
+          setGroup7ColorValue={setGroup7ColorValue}
+          setGroup8ColorValue={setGroup8ColorValue}
 
           mapTitleValue={mapTitleValue}
           handleMapTitleValueChange={handleMapTitleValueChange}

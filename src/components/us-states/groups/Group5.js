@@ -1,67 +1,68 @@
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
-import Countries from '../Countries';
-import React, { Component, useEffect, useState } from 'react';
-import { CompactPicker, SketchPicker } from 'react-color'
+import React from 'react';
+import '../Navigator'
+import { CompactPicker } from 'react-color'
+import States from '../States';
 
 
  
 
-function Group1({
-    group1CountryValue, 
-    setGroup1CountryValue, 
-    group2CountryValue,
-    setGroup2CountryValue,
-    group3CountryValue,
-    setGroup3CountryValue,
-    group4CountryValue,
-    setGroup4CountryValue,
-    group5CountryValue,
-    setGroup5CountryValue,
-    group6CountryValue,
-    setGroup6CountryValue,
-    group7CountryValue,
-    setGroup7CountryValue,
-    group8CountryValue,
-    setGroup8CountryValue,
+function Group5({
+    activeGroup,
+    
+    group5ColorValue,
+    setGroup5ColorValue,
+    
+    group1StatesValue,
+    setGroup1StatesValue,
+
+    group2StatesValue,
+    setGroup2StatesValue,
+
+    group3StatesValue,
+    setGroup3StatesValue,
+
+    group4StatesValue,
+    setGroup4StatesValue,
+
+    group5StatesValue,
+    setGroup5StatesValue,
+
+    group6StatesValue,
+    setGroup6StatesValue,
+
+    group7StatesValue,
+    setGroup7StatesValue,
+
+    group8StatesValue,
+    setGroup8StatesValue,
 
 
-    activeGroup, 
-    group1ColorValue, 
-    setGroup1ColorValue, 
-    group1TitleValue, 
-    handleTitle1ValueChange,
+    handleTitle5ValueChange
 
     
 }) {
     
-
-    
-   
-      
-
+console.log(group5ColorValue)
     const handleColorChange = (color) =>{
-        setGroup1ColorValue(color.hex)
-        for (var i = 0; i < group1CountryValue.length; i++) {
-            const id = group1CountryValue[i];
+        setGroup5ColorValue(color.hex)
+        for (var i = 0; i < group5StatesValue.length; i++) {
+            const id = group5StatesValue[i];
             document.getElementById(id).style.fill = color.hex;
           }
     }
 
-
-    const handleTitle1Change = (event) => {
-        handleTitle1ValueChange(event.target.value)
+    const handleTitle5Change = (event) => {
+        handleTitle5ValueChange(event.target.value)
 
         
     }
 
    
-   
-
-
 
     
     
-        if (activeGroup !== 1) {
+        if (activeGroup !== 5) {
             return null
         } 
 
@@ -76,9 +77,8 @@ function Group1({
                         <input 
                             className='group-title' 
                             placeholder="Click to add title" 
-                            onChange={handleTitle1Change}
+                            onChange={handleTitle5Change}
                             type='text'
-                            value={group1TitleValue}
                             ></input>
 
                         
@@ -86,13 +86,13 @@ function Group1({
                         
 
                     </div>
-                
+
 
                     <CompactPicker
                         
                         className='color-picker'
-                        color={group1ColorValue}
-                        value={group1ColorValue}
+                        color={group5ColorValue}
+                        value={group5ColorValue}
                         onChangeComplete={handleColorChange} 
                         colors={[
                               '#8B0000', //Dark red
@@ -142,45 +142,45 @@ function Group1({
                     
                 </div>
 
-                
-                    <Countries
-                    group1ColorValue={group1ColorValue}
-                    setGroup1ColorValue={setGroup1ColorValue}
-                    group={1}
-                    
-                    group1CountryValue={group1CountryValue}
-                    setGroup1CountryValue={setGroup1CountryValue}
-                    
-                    group2CountryValue={group2CountryValue}
-                    setGroup2CountryValue={setGroup2CountryValue}
-                    
-                    group3CountryValue={group3CountryValue}
-                    setGroup3CountryValue={setGroup3CountryValue}
-
-                    group4CountryValue={group4CountryValue}
-                    setGroup4CountryValue={setGroup4CountryValue}
-
-                    group5CountryValue={group5CountryValue}
-                    setGroup5CountryValue={setGroup5CountryValue}
-
-                    group6CountryValue={group6CountryValue}
-                    setGroup6CountryValue={setGroup6CountryValue}
-
-                    group7CountryValue={group7CountryValue}
-                    setGroup7CountryValue={setGroup7CountryValue}
-
-                    group8CountryValue={group8CountryValue}
-                    setGroup8CountryValue={setGroup8CountryValue}
-
-
-
-                
-                    
-
-                />
+           
                
                 
             </div>
+            
+            <States
+                group={5}
+
+                    group5ColorValue={group5ColorValue}
+
+
+                    group1StatesValue={group1StatesValue}
+                    setGroup1StatesValue={setGroup1StatesValue}
+    
+                    group2StatesValue={group2StatesValue}
+                    setGroup2StatesValue={setGroup2StatesValue}
+
+                    group3StatesValue={group3StatesValue}
+                    setGroup3StatesValue={setGroup3StatesValue}
+
+                    group4StatesValue={group4StatesValue}
+                    setGroup4StatesValue={setGroup4StatesValue}
+
+                    group5StatesValue={group5StatesValue}
+                    setGroup5StatesValue={setGroup5StatesValue}
+
+                    group6StatesValue={group6StatesValue}
+                    setGroup6StatesValue={setGroup6StatesValue}
+
+                    group7StatesValue={group7StatesValue}
+                    setGroup7StatesValue={setGroup7StatesValue}
+
+                    group8StatesValue={group8StatesValue}
+                    setGroup8StatesValue={setGroup8StatesValue}
+
+
+                  
+
+            />
             
             
         </div>
@@ -189,4 +189,4 @@ function Group1({
    
 }
 
-export default Group1
+export default Group5
