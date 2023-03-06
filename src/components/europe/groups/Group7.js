@@ -101,8 +101,8 @@ function Group7({
                               '#00CED1', // Dark Turquoise
                               '#00008B', // Dark Blue
                               '#0000FF', // Blue
-                              '#800000', // Maroon
-                              '#A52A2A', // Brown
+                              
+                              
                               '#C71585', // Medium Violet Red 
                               '#DB7093', // PaleVioletRed 
                               '#4B0082', //Indigo
