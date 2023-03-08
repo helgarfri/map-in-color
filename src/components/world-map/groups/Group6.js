@@ -26,7 +26,8 @@ function Group6({
     setGroup8CountryValue,
 
     activeGroup, 
-    group6ColorValue, 
+    group6ColorValue,
+    group6TitleValue,
     setGroup6ColorValue, 
     handleTitle6ValueChange,
    
@@ -73,6 +74,8 @@ function Group6({
                             placeholder="Click to add title" 
                             onChange={handleTitle6Change}
                             type='text'
+                            value={group6TitleValue}
+
                             ></input>
 
                         

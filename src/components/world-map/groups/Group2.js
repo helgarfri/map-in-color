@@ -77,6 +77,7 @@ function Group2({
                             placeholder="Click to add title" 
                             onChange={handleTitle2Change}
                             type='text'
+                            value={group2TitleValue}
                             ></input>
 
                           

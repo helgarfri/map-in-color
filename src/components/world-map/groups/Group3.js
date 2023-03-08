@@ -87,6 +87,8 @@ function Group3({
                             placeholder="Click to add title" 
                             onChange={handleTitle3Change}
                             type='text'
+                            value={group3TitleValue}
+
                             ></input>
 
                         

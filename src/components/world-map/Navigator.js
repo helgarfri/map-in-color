@@ -132,6 +132,7 @@ function Navigator({
               index={index}
               numItems={numItems}
               setNumItems={setNumItems}
+              className='nav-button'
               
             />
              

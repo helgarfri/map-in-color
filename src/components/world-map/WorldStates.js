@@ -137,6 +137,7 @@ function WorldStates({
 		  );
 		}
 	  }
+	  console.log(selectedRes)
 
     return(
 		<div >

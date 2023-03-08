@@ -28,6 +28,7 @@ function Group8({
 
     activeGroup, 
     group8ColorValue, 
+    group8TitleValue,
     setGroup8ColorValue, 
     handleTitle8ValueChange,
    
@@ -74,6 +75,8 @@ function Group8({
                             placeholder="Click to add title" 
                             onChange={handleTitle8Change}
                             type='text'
+                            value={group8TitleValue}
+
                             ></input>
 
                         

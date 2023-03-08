@@ -81,6 +81,8 @@ function Group4({
                             placeholder="Click to add title" 
                             onChange={handleTitle4Change}
                             type='text'
+                            value={group4TitleValue}
+
                             ></input>
 
                         

@@ -74,6 +74,8 @@ function Group5({
                             placeholder="Click to add title" 
                             onChange={handleTitle5Change}
                             type='text'
+                            value={group5TitleValue}
+
                             ></input>
 
                         

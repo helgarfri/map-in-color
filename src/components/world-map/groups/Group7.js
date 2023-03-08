@@ -27,6 +27,7 @@ function Group7({
 
     activeGroup, 
     group7ColorValue, 
+    group7TitleValue,
     setGroup7ColorValue, 
     handleTitle7ValueChange,
    
@@ -73,6 +74,8 @@ function Group7({
                             placeholder="Click to add title" 
                             onChange={handleTitle7Change}
                             type='text'
+                            value={group7TitleValue}
+
                             ></input>
 
                         
