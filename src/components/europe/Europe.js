@@ -60,7 +60,8 @@ function Europe({
             <EuropeMap 
           
           mapTitleValue={mapTitleValue}
-          
+          handleMapTitleValueChange={handleMapTitleValueChange}
+
           group1TitleValue={group1TitleValue}
           group2TitleValue={group2TitleValue}
           group3TitleValue={group3TitleValue}
@@ -96,11 +97,7 @@ function Europe({
 
 
         />
-    <Title
-      handleMapTitleValueChange={handleMapTitleValueChange}
-      mapTitleValue={mapTitleValue}
-    />
-
+  
       <Navigator 
           group1TitleValue={group1TitleValue}
           group2TitleValue={group2TitleValue}

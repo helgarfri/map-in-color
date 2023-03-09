@@ -64,6 +64,8 @@ function UnitedStates({
             
             <UsMap
             mapTitleValue={mapTitleValue}
+            handleMapTitleValueChange={handleMapTitleValueChange}
+
           
             group1TitleValue={group1TitleValue}
             group2TitleValue={group2TitleValue}
@@ -100,10 +102,7 @@ function UnitedStates({
 
             />
 
-            <Title
-            handleMapTitleValueChange={handleMapTitleValueChange}
-            mapTitleValue={mapTitleValue}
-            />
+           
 
 
             <Navigator

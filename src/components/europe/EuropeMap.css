@@ -1,8 +1,8 @@
-.map-background-eu {
-    background-color: white;
+#euMap {
     width: 70%;
     display: inline-block;
     vertical-align: middle;
+    margin-top: 13px;
     
   
 }
@@ -13,5 +13,10 @@
 	font-weight: 500;
 	font-weight: 600;
     overflow-wrap: break-word;
+}
+
+.svg-eu {
+    background-color: white;
+
 }
 

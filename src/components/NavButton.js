@@ -32,12 +32,14 @@ function NavButton({onClick, label, active, index, numItems, setNumItems}) {
     
     
     return(
-        <li>
-        <button 
-            className={`nav-button ${active ? 'active' : ''} ${visible ? 'visible' : ''}`} 
+        <li  className={`nav-button ${active ? 'active' : ''} ${visible ? 'visible' : ''}`} >
+            
+        <h4 
+           
             
             onClick={handleClick}          
             >{label}
+            
             
             {index === numItems - 1 && (
                 <button onClick={handleRemoveButtonClick}
@@ -47,8 +49,8 @@ function NavButton({onClick, label, active, index, numItems, setNumItems}) {
                     
                     <img src='../assets/remove.png' className="remove-img"></img></button>
               )}
-            
-        </button>
+        </h4>
+        
         
     </li>
     )

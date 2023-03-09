@@ -1,12 +1,15 @@
 import './UsMap.css'
 import html2canvas from 'html2canvas';
 import MapSettings from '../MapSettings';
+import { useState } from 'react';
+import Title from '../Title';
 
 
 
 
 function UsMap({
     mapTitleValue,
+	handleMapTitleValueChange,
 
     group1TitleValue, 
     group2TitleValue, 
@@ -35,28 +38,85 @@ function UsMap({
   
 }) {
 
-  function handleDownloadClickPNG() {
-		const svgElement = document.getElementById("usMap");
-	  
-		html2canvas(svgElement, {scale: 10}).then((canvas) => {
-		  const pngUrl = canvas.toDataURL("image/png");
-		  const downloadLink = document.createElement("a");
-		  downloadLink.download = "my-map.png";
-		  downloadLink.href = pngUrl;
-		  downloadLink.click();
-		});
-	  }
+	const [loading, setLoading] = useState(false);
 
+	function handleDownloadClickPNG() {
+		const svgElement = document.getElementById("usMap");
+	
+		const loader = document.createElement("div");
+		loader.className = "loader";
+		document.body.appendChild(loader);
+	  
+		const message = document.createElement("div");
+		message.textContent = "Just a moment...";
+		message.className = "loader-message";
+		document.body.appendChild(message);
+	  
+		setLoading(true);
+	  
+		html2canvas(svgElement, { scale: 6 })
+		  .then((canvas) => {
+			const pngUrl = canvas.toDataURL("image/png");
+			const downloadLink = document.createElement("a");
+			downloadLink.download = mapTitleValue;
+			downloadLink.href = pngUrl;
+	  
+			console.log("pngUrl: ", pngUrl);
+			console.log("downloadLink: ", downloadLink);
+	  
+			setTimeout(() => {
+			  downloadLink.click();
+			}, 1000);
+		  })
+		  .catch((error) => {
+			console.error("Failed to download image: ", error);
+		  })
+		  .finally(() => {
+			setLoading(false);
+			document.body.removeChild(loader);
+			document.body.removeChild(message);
+		  });
+	  }
+	  
+	
+	
+	
 	  function handleDownloadClickJPEG() {
 		const svgElement = document.getElementById("usMap");
+	
+		const loader = document.createElement("div");
+		loader.className = "loader";
+		document.body.appendChild(loader);
 	  
-		html2canvas(svgElement, { scale: 6 }).then((canvas) => {
-		  const jpegUrl = canvas.toDataURL("image/jpeg", 1.0);
-		  const downloadLink = document.createElement("a");
-		  downloadLink.download = "my-map.jpeg";
-		  downloadLink.href = jpegUrl;
-		  downloadLink.click();
-		});
+		const message = document.createElement("div");
+		message.textContent = "Just a moment...";
+		message.className = "loader-message";
+		document.body.appendChild(message);
+	  
+		setLoading(true);
+	  
+		html2canvas(svgElement, { scale: 6 })
+		  .then((canvas) => {
+			const jpegUrl = canvas.toDataURL("image/jpeg");
+			const downloadLink = document.createElement("a");
+			downloadLink.download = mapTitleValue;
+			downloadLink.href = jpegUrl;
+	  
+			console.log("jpegUrl: ", jpegUrl);
+			console.log("downloadLink: ", downloadLink);
+	  
+			setTimeout(() => {
+			  downloadLink.click();
+			}, 1000);
+		  })
+		  .catch((error) => {
+			console.error("Failed to download image: ", error);
+		  })
+		  .finally(() => {
+			setLoading(false);
+			document.body.removeChild(loader);
+			document.body.removeChild(message);
+		  });
 	  }
 
 
@@ -131,12 +191,20 @@ function UsMap({
 	  }
     return(
         <div>
-          <MapSettings
+          <div className="download-box">
+			<Title
+				handleMapTitleValueChange={handleMapTitleValueChange}
+				mapTitleValue={mapTitleValue}
+				/>
+			<MapSettings
 				handleDownloadClickPNG={handleDownloadClickPNG}
 				handleDownloadClickJPEG={handleDownloadClickJPEG}
 				selectedRes={selectedRes}
 				setSelectedRes={setSelectedRes}
 			/>
+			
+			
+			</div>
 
 <div className='map-background'>
 

@@ -1,6 +1,11 @@
+import MapSettings from '../MapSettings';
 import './EuropeMap.css'
+import { useState } from 'react';
+import html2canvas from 'html2canvas';
+import Title from '../Title';
 function EuropeMap({
    mapTitleValue,
+   handleMapTitleValueChange,
 
     group1TitleValue, 
     group2TitleValue, 
@@ -27,6 +32,87 @@ function EuropeMap({
     setSelectedRes
    
 }) {
+
+   const [loading, setLoading] = useState(false);
+
+	function handleDownloadClickPNG() {
+		const svgElement = document.getElementById("euMap");
+	
+		const loader = document.createElement("div");
+		loader.className = "loader";
+		document.body.appendChild(loader);
+	  
+		const message = document.createElement("div");
+		message.textContent = "Just a moment...";
+		message.className = "loader-message";
+		document.body.appendChild(message);
+	  
+		setLoading(true);
+	  
+		html2canvas(svgElement, { scale: 6 })
+		  .then((canvas) => {
+			const pngUrl = canvas.toDataURL("image/png");
+			const downloadLink = document.createElement("a");
+			downloadLink.download = mapTitleValue;
+			downloadLink.href = pngUrl;
+	  
+			console.log("pngUrl: ", pngUrl);
+			console.log("downloadLink: ", downloadLink);
+	  
+			setTimeout(() => {
+			  downloadLink.click();
+			}, 1000);
+		  })
+		  .catch((error) => {
+			console.error("Failed to download image: ", error);
+		  })
+		  .finally(() => {
+			setLoading(false);
+			document.body.removeChild(loader);
+			document.body.removeChild(message);
+		  });
+	  }
+	  
+	
+	
+	
+	  function handleDownloadClickJPEG() {
+		const svgElement = document.getElementById("euMap");
+	
+		const loader = document.createElement("div");
+		loader.className = "loader";
+		document.body.appendChild(loader);
+	  
+		const message = document.createElement("div");
+		message.textContent = "Just a moment...";
+		message.className = "loader-message";
+		document.body.appendChild(message);
+	  
+		setLoading(true);
+	  
+		html2canvas(svgElement, { scale: 6 })
+		  .then((canvas) => {
+			const jpegUrl = canvas.toDataURL("image/jpeg");
+			const downloadLink = document.createElement("a");
+			downloadLink.download = mapTitleValue;
+			downloadLink.href = jpegUrl;
+	  
+			console.log("jpegUrl: ", jpegUrl);
+			console.log("downloadLink: ", downloadLink);
+	  
+			setTimeout(() => {
+			  downloadLink.click();
+			}, 1000);
+		  })
+		  .catch((error) => {
+			console.error("Failed to download image: ", error);
+		  })
+		  .finally(() => {
+			setLoading(false);
+			document.body.removeChild(loader);
+			document.body.removeChild(message);
+		  });
+	  }
 
    const groupGroups = [
 		{
@@ -99,9 +185,24 @@ function EuropeMap({
 		
     return(
 
-        <div>
 
-       <div className="map-background-eu">
+        <div>
+      <div className="download-box">
+         <Title
+				handleMapTitleValueChange={handleMapTitleValueChange}
+				mapTitleValue={mapTitleValue}
+				/>
+			<MapSettings
+				handleDownloadClickPNG={handleDownloadClickPNG}
+				handleDownloadClickJPEG={handleDownloadClickJPEG}
+				selectedRes={selectedRes}
+				setSelectedRes={setSelectedRes}
+			/>
+			
+			
+			</div>
+
+       <div id="euMap">
 
        
         <svg

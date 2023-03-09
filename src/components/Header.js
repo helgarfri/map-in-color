@@ -20,7 +20,9 @@ function Header() {
       <nav className="header-nav">
         <ul>
           <li onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
-            Maps
+            Maps           
+            <img className="dropdown-icon" src="../assets/dropdown.png"></img>
+
             {showDropdown && (
               <ul className="header-dropdown">
                 <li>

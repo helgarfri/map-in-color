@@ -1,6 +1,7 @@
 import html2canvas from "html2canvas";
 import MapSettings from '../MapSettings'
 import { useState } from "react";
+import Title from "../Title";
 
 function WorldStates({
 	group1TitleValue, 
@@ -31,6 +32,8 @@ function WorldStates({
 	
 
 	mapTitleValue,
+	handleMapTitleValueChange,
+
 
 	selectedRes,
 	setSelectedRes,
@@ -63,7 +66,7 @@ function handleDownloadClickPNG() {
 	  .then((canvas) => {
 		const pngUrl = canvas.toDataURL("image/png");
 		const downloadLink = document.createElement("a");
-		downloadLink.download = "my-map.png";
+		downloadLink.download = mapTitleValue;
 		downloadLink.href = pngUrl;
   
 		console.log("pngUrl: ", pngUrl);
@@ -104,7 +107,7 @@ function handleDownloadClickPNG() {
 	  .then((canvas) => {
 		const jpegUrl = canvas.toDataURL("image/jpeg");
 		const downloadLink = document.createElement("a");
-		downloadLink.download = "my-map.jpeg";
+		downloadLink.download = mapTitleValue;
 		downloadLink.href = jpegUrl;
   
 		console.log("jpegUrl: ", jpegUrl);
@@ -169,7 +172,7 @@ function handleDownloadClickPNG() {
 		  fill: groupGroups[i].color,
 		  cx: 180,
 		  cy: 741 + 40 * i,
-		  r: 10
+		  r: 7
 		};
 		const textStyle = {
 		  x: 200,
@@ -196,12 +199,22 @@ function handleDownloadClickPNG() {
 
     return(
 		<div >
+			<div className="download-box">
+			<Title
+				handleMapTitleValueChange={handleMapTitleValueChange}
+				mapTitleValue={mapTitleValue}
+				/>
 			<MapSettings
 				handleDownloadClickPNG={handleDownloadClickPNG}
 				handleDownloadClickJPEG={handleDownloadClickJPEG}
 				selectedRes={selectedRes}
 				setSelectedRes={setSelectedRes}
 			/>
+			
+			
+			</div>
+			
+			
 <div id="worldMap"   >
 <svg  viewBox="0 0 2754 1398 " version="1.1" width="98%" height="auto" >
 	<title>World Map</title>
@@ -3311,6 +3324,8 @@ function handleDownloadClickPNG() {
 
 
 </div>
+
+
 </div>
 
 

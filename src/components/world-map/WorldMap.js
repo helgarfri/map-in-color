@@ -58,7 +58,9 @@ function WorldMap({
   
     return(
         <div>
+           
             <WorldStates 
+            handleMapTitleValueChange={handleMapTitleValueChange}
           
           mapTitleValue={mapTitleValue}
           
@@ -97,10 +99,7 @@ function WorldMap({
 
 
         />
-    <Title
-      handleMapTitleValueChange={handleMapTitleValueChange}
-      mapTitleValue={mapTitleValue}
-    />
+   
 
       <Navigator 
           group1TitleValue={group1TitleValue}
