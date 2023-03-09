@@ -97,6 +97,7 @@ function Navigator({
     const [ group8CountryValue, setGroup8CountryValue ] = useState('')
 
 
+    const [selectedOption, setSelectedOption] = useState([]);
 
 
     
@@ -183,6 +184,10 @@ function Navigator({
                     group1TitleValue={group1TitleValue}
                     handleTitle1ValueChange={handleTitle1ValueChange}
 
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
+
             
                    
                    
@@ -226,7 +231,8 @@ function Navigator({
                     group2TitleValue={group2TitleValue}
                     handleTitle2ValueChange={handleTitle2ValueChange}
 
-            
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
                    
                    
                     
@@ -270,6 +276,9 @@ function Navigator({
                     group3TitleValue={group3TitleValue}
                     handleTitle3ValueChange={handleTitle3ValueChange}
 
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
+
                
                 />
 
@@ -309,6 +318,9 @@ function Navigator({
                     group4TitleValue={group4TitleValue}
                     handleTitle4ValueChange={handleTitle4ValueChange}
 
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
+
          
                 />
 
@@ -347,6 +359,9 @@ function Navigator({
                     // group title
                     group5TitleValue={group5TitleValue}
                     handleTitle5ValueChange={handleTitle5ValueChange}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
 
@@ -389,6 +404,9 @@ function Navigator({
                     group6TitleValue={group6TitleValue}
                     handleTitle6ValueChange={handleTitle6ValueChange}
 
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
+
 
                 />
 
@@ -428,6 +446,9 @@ function Navigator({
                     group7TitleValue={group7TitleValue}
                     handleTitle7ValueChange={handleTitle7ValueChange}
 
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
+
 
                 />
 
@@ -466,6 +487,9 @@ function Navigator({
                     // group title
                     group8TitleValue={group8TitleValue}
                     handleTitle8ValueChange={handleTitle8ValueChange}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
                 />

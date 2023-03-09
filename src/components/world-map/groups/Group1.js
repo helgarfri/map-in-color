@@ -31,11 +31,13 @@ function Group1({
     group1TitleValue, 
     handleTitle1ValueChange,
 
+    selectedOption,
+    setSelectedOption
+
     
 }) {
     
 
-    
    
       
 
@@ -172,6 +174,9 @@ function Group1({
 
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
 
