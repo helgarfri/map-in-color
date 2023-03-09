@@ -76,6 +76,7 @@ function Group8({
                             onChange={handleTitle8Change}
                             type='text'
                             value={group8TitleValue}
+                            maxLength='30'
 
                             ></input>
 

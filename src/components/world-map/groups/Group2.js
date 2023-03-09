@@ -78,6 +78,7 @@ function Group2({
                             onChange={handleTitle2Change}
                             type='text'
                             value={group2TitleValue}
+                            maxLength='30'
                             ></input>
 
                           

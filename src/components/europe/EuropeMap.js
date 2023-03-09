@@ -1,7 +1,102 @@
 import './EuropeMap.css'
 function EuropeMap({
+   mapTitleValue,
+
+    group1TitleValue, 
+    group2TitleValue, 
+    group3TitleValue,
+    group4TitleValue,
+    group5TitleValue,
+    group6TitleValue,
+    group7TitleValue,
+    group8TitleValue,
+  
+
+    group1ColorValue, 
+    group2ColorValue,
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
+
+    numItems,
+
+    selectedRes,
+    setSelectedRes
    
 }) {
+
+   const groupGroups = [
+		{
+		  color: group1ColorValue,
+		  title: group1TitleValue
+		},
+		{
+		  color: group2ColorValue,
+		  title: group2TitleValue
+		},
+		{
+		  color: group3ColorValue,
+		  title: group3TitleValue
+		},
+		{
+		  color: group4ColorValue,
+		  title: group4TitleValue
+		},
+		{
+		  color: group5ColorValue,
+		  title: group5TitleValue
+		},
+
+		{
+			color: group6ColorValue,
+			title: group6TitleValue
+		  },
+
+		{
+			color: group7ColorValue,
+			title: group7TitleValue
+		},
+
+		  {
+			  color: group8ColorValue,
+			  title: group8TitleValue
+			}
+	  ];
+	  console.log(group1TitleValue)
+	  const groups = [];
+	  
+	  for (let i = 0; i < numItems; i++) {
+		const circleStyle = {
+		  fill: groupGroups[i].color,
+		  cx: -20,
+		  cy: 250 + 22 * i,
+		  r: 4
+		};
+		const textStyle = {
+		  x: -10,
+		  y: 254 + 22 * i,
+		  width: 500,
+		  height: 150
+		};
+		groups.push(
+		  <g style={{display: `block`}}>
+			<circle className="group-dot-map" {...circleStyle}></circle>
+			<text className="group-title-map-us" {...textStyle}>{groupGroups[i].title}</text>
+		  </g>
+		);
+	  
+		for (let j = i + 1; j < numItems; j++) {
+		  groups.push(
+			<g style={{display: `none`}}>
+			  <circle className="group-dot-map" {...circleStyle}></circle>
+			  <text className="group-title-map" {...textStyle}>{groupGroups[i].title}</text>
+			</g>
+		  );
+        }}
+		
     return(
 
         <div>
@@ -15,38 +110,23 @@ function EuropeMap({
            height="auto"
            width="100%"
            version="1.1"
-           viewBox="0 0 680 520"
+           viewBox="-50 0 680 520"
            className='svg-eu'
         >
           <title
              id="title4">Countries of Europe</title>
           
-          <defs
-             id="defs3159">
-            <clipPath
-               id="clipPath7195">
-              <rect
-                style={{
-                    fill: '#008000',
-                    fillOpacity: 1,
-                    stroke: '#ffffff',
-                    strokeWidth: 2.35228395,
-                    strokeLinejoin: 'miter',
-                    strokeMiterlimit: 4,
-                    strokeOpacity: 1,
-                    strokeDasharray: 'none'
-                }}
-                
-                   id="rect7197"
-                 y="163.35237"
-                 x="1594.606"
-                 height="6873.1284"
-                 width="7331.4937" />
-            </clipPath>
-          </defs>
+       
         
                 <title>Countries of Europe</title>
-          <g
+                
+                {groups}
+
+                <text>
+            <tspan className='title-map-eu' x="-25" y='215' dy="1.2em" >{mapTitleValue}</tspan>
+         </text>
+                
+                          <g
              id="layer1"
              transform="matrix(1.0020524,0,0,1.0020524,0.25102907,-0.17691186)">
             <g
@@ -628,7 +708,7 @@ function EuropeMap({
                  transform="matrix(15.278846,0,0,15.278846,1528.1923,161)"
                  id="gb"
                  style={{
-                    fill: 'blue',
+                    fill: '#c0c0c0',
                     stroke: '#ffffff',
                     strokeWidth: 0.40000001,
                     strokeMiterlimit: 4,

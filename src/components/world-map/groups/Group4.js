@@ -82,6 +82,7 @@ function Group4({
                             onChange={handleTitle4Change}
                             type='text'
                             value={group4TitleValue}
+                            maxLength='30'
 
                             ></input>
 

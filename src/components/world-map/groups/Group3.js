@@ -88,6 +88,7 @@ function Group3({
                             onChange={handleTitle3Change}
                             type='text'
                             value={group3TitleValue}
+                            maxLength='30'
 
                             ></input>
 

@@ -5,6 +5,7 @@ import WorldMap from './components/world-map/WorldMap';
 import UnitedStates from './components/us-states/UnitedStates';
 import { useState } from 'react';
 import Europe from './components/europe/Europe';
+import Footer from './components/Footer';
 
 
 
@@ -244,6 +245,8 @@ function App() {
       <Header/>
       
       {component}
+
+      <Footer/>
       </div>
   );
 }

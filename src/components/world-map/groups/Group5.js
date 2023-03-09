@@ -75,6 +75,7 @@ function Group5({
                             onChange={handleTitle5Change}
                             type='text'
                             value={group5TitleValue}
+                            maxLength='30'
 
                             ></input>
 

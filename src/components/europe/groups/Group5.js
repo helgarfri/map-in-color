@@ -62,7 +62,7 @@ function Group5({
         
     return(
         <div>
-            <div className='group'>
+            <div className='group-eu'>
 
 
                 <div className='group-set'>
