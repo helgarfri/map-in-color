@@ -272,6 +272,8 @@ input.group-title {
   flex-wrap: wrap;
   flex-direction: column;
   height: 380px;
+  margin-left: 15%;
+  margin-right: 15%;
   
 
 }
@@ -281,6 +283,8 @@ input.group-title {
   margin-top: 5px;
   display: flex;
   align-items: center;
+  min-width: 240px;
+  max-width: 140px;
 }
 
 
@@ -289,10 +293,13 @@ input.group-title {
 
 .all-states-eu ul {
   display: flex;
+  align-items: center;
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
   height: 370px;
+  margin-left: 10%;
+  margin-right: 10%;
  
 }
 
@@ -300,9 +307,9 @@ input.group-title {
 .all-states-eu li {
   display: flex;
   margin-top: 5px;
-  max-width: 190px;
   font-size: 20px;
-  min-width: 170px
+  min-width: 240px;
+  max-width: 140px;
 }
 
 
@@ -472,7 +479,7 @@ li {
 .download-format {
   display: flex;
   flex-direction: row;
-  margin-top: 5px;
+  margin-top: 15px;
 }
 
 .settings-label-r {
@@ -484,6 +491,45 @@ li {
   height: 16px;
 }
 
+.loader {
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.loader::after {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid #fff;
+  border-color: #000 transparent #000 transparent;
+  animation: loader 1.2s linear infinite;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+.loader-message {
+  position: fixed;
+  top: 39%;
+  left: 50%;
+  color: #000;
+  transform: translate(-50%, -50%);
+
+  
+}
 .remove-button {
   background-color: #747f8a;
   border-radius: 15px ;

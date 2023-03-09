@@ -38,7 +38,7 @@ function UsMap({
   function handleDownloadClickPNG() {
 		const svgElement = document.getElementById("usMap");
 	  
-		html2canvas(svgElement, {scale: selectedRes}).then((canvas) => {
+		html2canvas(svgElement, {scale: 10}).then((canvas) => {
 		  const pngUrl = canvas.toDataURL("image/png");
 		  const downloadLink = document.createElement("a");
 		  downloadLink.download = "my-map.png";
@@ -50,7 +50,7 @@ function UsMap({
 	  function handleDownloadClickJPEG() {
 		const svgElement = document.getElementById("usMap");
 	  
-		html2canvas(svgElement, { scale: selectedRes }).then((canvas) => {
+		html2canvas(svgElement, { scale: 6 }).then((canvas) => {
 		  const jpegUrl = canvas.toDataURL("image/jpeg", 1.0);
 		  const downloadLink = document.createElement("a");
 		  downloadLink.download = "my-map.jpeg";

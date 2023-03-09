@@ -23,10 +23,12 @@ function MapSettings({
                 <button className="settings-button" onClick={handleDownloadClickPNG}>PNG</button>
 
                 <button className="settings-button" onClick={handleDownloadClickJPEG}>JPEG</button>
-        
+
                 </div>
+
+
                 
-                <div className="download-format">
+                {/* <div className="download-format">
                     <p className="settings-title">Resolution</p>
                     
                     <label className="settings-label-r">
@@ -45,8 +47,8 @@ function MapSettings({
                         type="radio"
                         className="settings-radio"
                         name="option"
-                        value="13.33"
-                        checked={selectedRes === "13.33"}
+                        value="13"
+                        checked={selectedRes === "13"}
                         onChange={handleOptionChange}
                         />
                         Medium
@@ -62,11 +64,11 @@ function MapSettings({
                         />
                         High
                     </label>
-            </div>
+            </div> */}
 
                 
                 </div>
-            
+
             </div>
             
             
