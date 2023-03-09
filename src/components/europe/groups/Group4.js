@@ -30,6 +30,9 @@ function Group4({
     setGroup4ColorValue, 
     group4TitleValue, 
     handleTitle4ValueChange,
+
+    selectedOption,
+    setSelectedOption
   
     
 }) {
@@ -174,6 +177,9 @@ function Group4({
 
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
 

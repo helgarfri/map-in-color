@@ -29,6 +29,9 @@ function Group7({
     group7ColorValue, 
     setGroup7ColorValue, 
     handleTitle7ValueChange,
+
+    selectedOption,
+    setSelectedOption
    
     
 }) {
@@ -164,6 +167,9 @@ function Group7({
 
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
                 

@@ -38,7 +38,10 @@ function Group6({
     setGroup8StatesValue,
 
 
-    handleTitle6ValueChange
+    handleTitle6ValueChange,
+
+    selectedOption,
+    setSelectedOption
 
     
 }) {
@@ -176,6 +179,9 @@ console.log(group6ColorValue)
 
                     group8StatesValue={group8StatesValue}
                     setGroup8StatesValue={setGroup8StatesValue}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
                   

@@ -39,6 +39,9 @@ function Countries({
     setGroup7CountryValue,
     setGroup8CountryValue,
 
+    selectedOption,
+    setSelectedOption
+
 
 
 
@@ -46,101 +49,94 @@ function Countries({
 }) {
 
    
-  useEffect(() => {
-    // get a list of all the countries
-    const allCountryIds = document.getElementsByClassName("country-eu");
-    
-    if (
-        group === 1 || 
-        group === 2 || 
-        group === 3 || 
-        group === 4 || 
-        group === 5 || 
-        group === 6 || 
-        group === 7 ||
-        group === 8) {
-      
-      for (var i = 0; i < group1CountryValue.length; i++) {
-        const id = group1CountryValue[i];
-        document.getElementById(id).style.fill = group1ColorValue;
-      }
-      
-      for (var i = 0; i < group2CountryValue.length; i++) {
-        const id = group2CountryValue[i];
-        document.getElementById(id).style.fill = group2ColorValue;
-      }
+    useEffect(() => {
+        // get a list of all the countries
+        const allCountryIds = document.getElementsByClassName("country");
 
-      for (var i = 0; i < group3CountryValue.length; i++) {
-        const id = group3CountryValue[i];
-        document.getElementById(id).style.fill = group3ColorValue;
-      }
-
-      for (var i = 0; i < group4CountryValue.length; i++) {
-        const id = group4CountryValue[i];
-        document.getElementById(id).style.fill = group4ColorValue;
-      }
-
-      for (var i = 0; i < group5CountryValue.length; i++) {
-        const id = group5CountryValue[i];
-        document.getElementById(id).style.fill = group5ColorValue;
-      }
-
-      for (var i = 0; i < group6CountryValue.length; i++) {
-        const id = group6CountryValue[i];
-        document.getElementById(id).style.fill = group6ColorValue;
-      }
-
-      for (var i = 0; i < group7CountryValue.length; i++) {
-        const id = group7CountryValue[i];
-        document.getElementById(id).style.fill = group7ColorValue;
-      }
-
-      for (var i = 0; i < group8CountryValue.length; i++) {
-        const id = group8CountryValue[i];
-        document.getElementById(id).style.fill = group8ColorValue;
-      }
-      
-      
-      
-      
-      
-      
-      // loop through all the countries and set their fill color back to the default
-      for (var i = 0; i < allCountryIds.length; i++) {
-        const id = allCountryIds[i].value;
+        
         if (
-            !group1CountryValue.includes(id) && 
-            !group2CountryValue.includes(id) && 
-            !group3CountryValue.includes(id) && 
-            !group4CountryValue.includes(id) &&
-            !group5CountryValue.includes(id) &&
-            !group6CountryValue.includes(id) &&
-            !group7CountryValue.includes(id) &&
-            !group8CountryValue.includes(id)
-
-
+            group === 1 || 
+            group === 2 || 
+            group === 3 || 
+            group === 4 || 
+            group === 5 || 
+            group === 6 || 
+            group === 7 ||
+            group === 8
             ) {
-          document.getElementById(id).style.fill = "#c0c0c0";
+          
+          const groups = [      
+            group1CountryValue,      
+            group2CountryValue,      
+            group3CountryValue,      
+            group4CountryValue,      
+            group5CountryValue,      
+            group6CountryValue,      
+            group7CountryValue,      
+            group8CountryValue,    ];
+      
+          const colors = [      
+            group1ColorValue,      
+            group2ColorValue,      
+            group3ColorValue,      
+            group4ColorValue,      
+            group5ColorValue,      
+            group6ColorValue,      
+            group7ColorValue,      
+            group8ColorValue,    ];
+          
+          groups.forEach((groupCountryValue, index) => {
+            if (groupCountryValue.length > 0) {
+              groupCountryValue.forEach((id) => {
+                document.getElementById(id).style.fill = colors[index];
+              });
+            }
+          });
+
+
+          // loop through all the countries and set their fill color back to the default
+          for (var i = 0; i < allCountryIds.length; i++) {
+            const id = allCountryIds[i].value;
+            
+            if (
+                !group1CountryValue.includes(id) && 
+                !group2CountryValue.includes(id) && 
+                !group3CountryValue.includes(id) && 
+                !group4CountryValue.includes(id) &&
+                !group5CountryValue.includes(id) &&
+                !group6CountryValue.includes(id) &&
+                !group7CountryValue.includes(id) &&
+                !group8CountryValue.includes(id)
+                ) {
+                   
+              document.getElementById(id).style.fill = "#c0c0c0";
+            }
+          }
+
+      
+         
         }
-      }
-    }
-  }, [
-    group, 
-    group1CountryValue, 
-    group2CountryValue, 
-    group3CountryValue, 
-    group4CountryValue,
-    group5CountryValue,
-    group6CountryValue,
-    group7CountryValue,
-    group8CountryValue,
-
-
-]);
+      }, [  
+        group,   
+        group1CountryValue,   
+        group2CountryValue,   
+        group3CountryValue,   
+        group4CountryValue,  
+        group5CountryValue,  
+        group6CountryValue,  
+        group7CountryValue,  
+        group8CountryValue,]);
 
     
       const handleChange = (event) => {
         const selectedOption = event.target.value;
+
+        setSelectedOption(prevSelectedOption => prevSelectedOption.includes(selectedOption)
+        ? prevSelectedOption.filter(option => option !== selectedOption)
+        : [...prevSelectedOption, selectedOption]
+      );
+
+      
         if (group === 1) {
           if (group1CountryValue.includes(selectedOption)) {
             setGroup1CountryValue(group1CountryValue.filter((o) => o !== selectedOption));
@@ -235,6 +231,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('al') :
                                 group8CountryValue.includes('al')
                             }
+                            disabled={
+                                selectedOption.includes('al') &&
+                                ((group !== 1 && group1CountryValue.includes('al')) ||
+                                (group !== 2 && group2CountryValue.includes('al')) ||
+                                (group !== 3 && group3CountryValue.includes('al')) ||
+                                (group !== 4 && group4CountryValue.includes('al')) ||
+                                (group !== 5 && group5CountryValue.includes('al')) ||
+                                (group !== 6 && group6CountryValue.includes('al')) ||
+                                (group !== 7 && group7CountryValue.includes('al')) ||
+                                (group !== 8 && group8CountryValue.includes('al')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Albania</label>
@@ -257,6 +264,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('ad') :
                                 group === 7 ? group7CountryValue.includes('ad') :
                                 group8CountryValue.includes('ad')
+                            }
+                            disabled={
+                                selectedOption.includes('ad') &&
+                                ((group !== 1 && group1CountryValue.includes('ad')) ||
+                                (group !== 2 && group2CountryValue.includes('ad')) ||
+                                (group !== 3 && group3CountryValue.includes('ad')) ||
+                                (group !== 4 && group4CountryValue.includes('ad')) ||
+                                (group !== 5 && group5CountryValue.includes('ad')) ||
+                                (group !== 6 && group6CountryValue.includes('ad')) ||
+                                (group !== 7 && group7CountryValue.includes('ad')) ||
+                                (group !== 8 && group8CountryValue.includes('ad')))
                             }
                             >
                         </input>
@@ -281,6 +299,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('at') :
                                 group8CountryValue.includes('at')
                             }
+                            disabled={
+                                selectedOption.includes('at') &&
+                                ((group !== 1 && group1CountryValue.includes('at')) ||
+                                (group !== 2 && group2CountryValue.includes('at')) ||
+                                (group !== 3 && group3CountryValue.includes('at')) ||
+                                (group !== 4 && group4CountryValue.includes('at')) ||
+                                (group !== 5 && group5CountryValue.includes('at')) ||
+                                (group !== 6 && group6CountryValue.includes('at')) ||
+                                (group !== 7 && group7CountryValue.includes('at')) ||
+                                (group !== 8 && group8CountryValue.includes('at')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Austria</label>
@@ -303,6 +332,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('by') :
                                 group === 7 ? group7CountryValue.includes('by') :
                                 group8CountryValue.includes('by')
+                            }
+                            disabled={
+                                selectedOption.includes('by') &&
+                                ((group !== 1 && group1CountryValue.includes('by')) ||
+                                (group !== 2 && group2CountryValue.includes('by')) ||
+                                (group !== 3 && group3CountryValue.includes('by')) ||
+                                (group !== 4 && group4CountryValue.includes('by')) ||
+                                (group !== 5 && group5CountryValue.includes('by')) ||
+                                (group !== 6 && group6CountryValue.includes('by')) ||
+                                (group !== 7 && group7CountryValue.includes('by')) ||
+                                (group !== 8 && group8CountryValue.includes('by')))
                             }
                             >
                         </input>
@@ -327,6 +367,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('be') :
                                 group8CountryValue.includes('be')
                             }
+                            disabled={
+                                selectedOption.includes('be') &&
+                                ((group !== 1 && group1CountryValue.includes('be')) ||
+                                (group !== 2 && group2CountryValue.includes('be')) ||
+                                (group !== 3 && group3CountryValue.includes('be')) ||
+                                (group !== 4 && group4CountryValue.includes('be')) ||
+                                (group !== 5 && group5CountryValue.includes('be')) ||
+                                (group !== 6 && group6CountryValue.includes('be')) ||
+                                (group !== 7 && group7CountryValue.includes('be')) ||
+                                (group !== 8 && group8CountryValue.includes('be')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Belgium</label>
@@ -349,6 +400,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('ba') :
                                 group === 7 ? group7CountryValue.includes('ba') :
                                 group8CountryValue.includes('ba')
+                            }
+                            disabled={
+                                selectedOption.includes('ba') &&
+                                ((group !== 1 && group1CountryValue.includes('ba')) ||
+                                (group !== 2 && group2CountryValue.includes('ba')) ||
+                                (group !== 3 && group3CountryValue.includes('ba')) ||
+                                (group !== 4 && group4CountryValue.includes('ba')) ||
+                                (group !== 5 && group5CountryValue.includes('ba')) ||
+                                (group !== 6 && group6CountryValue.includes('ba')) ||
+                                (group !== 7 && group7CountryValue.includes('ba')) ||
+                                (group !== 8 && group8CountryValue.includes('ba')))
                             }
                             >
                         </input>
@@ -373,6 +435,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('bg') :
                                 group8CountryValue.includes('bg')
                             }
+                            disabled={
+                                selectedOption.includes('bg') &&
+                                ((group !== 1 && group1CountryValue.includes('bg')) ||
+                                (group !== 2 && group2CountryValue.includes('bg')) ||
+                                (group !== 3 && group3CountryValue.includes('bg')) ||
+                                (group !== 4 && group4CountryValue.includes('bg')) ||
+                                (group !== 5 && group5CountryValue.includes('bg')) ||
+                                (group !== 6 && group6CountryValue.includes('bg')) ||
+                                (group !== 7 && group7CountryValue.includes('bg')) ||
+                                (group !== 8 && group8CountryValue.includes('bg')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Bulgaria</label>
@@ -395,6 +468,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('hr') :
                                 group === 7 ? group7CountryValue.includes('hr') :
                                 group8CountryValue.includes('hr')
+                            }
+                            disabled={
+                                selectedOption.includes('hr') &&
+                                ((group !== 1 && group1CountryValue.includes('hr')) ||
+                                (group !== 2 && group2CountryValue.includes('hr')) ||
+                                (group !== 3 && group3CountryValue.includes('hr')) ||
+                                (group !== 4 && group4CountryValue.includes('hr')) ||
+                                (group !== 5 && group5CountryValue.includes('hr')) ||
+                                (group !== 6 && group6CountryValue.includes('hr')) ||
+                                (group !== 7 && group7CountryValue.includes('hr')) ||
+                                (group !== 8 && group8CountryValue.includes('hr')))
                             }
                             >
                         </input>
@@ -421,6 +505,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('cz') :
                                 group8CountryValue.includes('cz')
                             }
+                            disabled={
+                                selectedOption.includes('cz') &&
+                                ((group !== 1 && group1CountryValue.includes('cz')) ||
+                                (group !== 2 && group2CountryValue.includes('cz')) ||
+                                (group !== 3 && group3CountryValue.includes('cz')) ||
+                                (group !== 4 && group4CountryValue.includes('cz')) ||
+                                (group !== 5 && group5CountryValue.includes('cz')) ||
+                                (group !== 6 && group6CountryValue.includes('cz')) ||
+                                (group !== 7 && group7CountryValue.includes('cz')) ||
+                                (group !== 8 && group8CountryValue.includes('cz')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Czech Republic</label>
@@ -443,6 +538,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('dk') :
                                 group === 7 ? group7CountryValue.includes('dk') :
                                 group8CountryValue.includes('dk')
+                            }
+                            disabled={
+                                selectedOption.includes('dk') &&
+                                ((group !== 1 && group1CountryValue.includes('dk')) ||
+                                (group !== 2 && group2CountryValue.includes('dk')) ||
+                                (group !== 3 && group3CountryValue.includes('dk')) ||
+                                (group !== 4 && group4CountryValue.includes('dk')) ||
+                                (group !== 5 && group5CountryValue.includes('dk')) ||
+                                (group !== 6 && group6CountryValue.includes('dk')) ||
+                                (group !== 7 && group7CountryValue.includes('dk')) ||
+                                (group !== 8 && group8CountryValue.includes('dk')))
                             }
                             >
                         </input>
@@ -467,6 +573,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('ee') :
                                 group8CountryValue.includes('ee')
                             }
+                            disabled={
+                                selectedOption.includes('ee') &&
+                                ((group !== 1 && group1CountryValue.includes('ee')) ||
+                                (group !== 2 && group2CountryValue.includes('ee')) ||
+                                (group !== 3 && group3CountryValue.includes('ee')) ||
+                                (group !== 4 && group4CountryValue.includes('ee')) ||
+                                (group !== 5 && group5CountryValue.includes('ee')) ||
+                                (group !== 6 && group6CountryValue.includes('ee')) ||
+                                (group !== 7 && group7CountryValue.includes('ee')) ||
+                                (group !== 8 && group8CountryValue.includes('ee')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Estonia</label>
@@ -489,6 +606,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('fi') :
                                 group === 7 ? group7CountryValue.includes('fi') :
                                 group8CountryValue.includes('fi')
+                            }
+                            disabled={
+                                selectedOption.includes('fi') &&
+                                ((group !== 1 && group1CountryValue.includes('fi')) ||
+                                (group !== 2 && group2CountryValue.includes('fi')) ||
+                                (group !== 3 && group3CountryValue.includes('fi')) ||
+                                (group !== 4 && group4CountryValue.includes('fi')) ||
+                                (group !== 5 && group5CountryValue.includes('fi')) ||
+                                (group !== 6 && group6CountryValue.includes('fi')) ||
+                                (group !== 7 && group7CountryValue.includes('fi')) ||
+                                (group !== 8 && group8CountryValue.includes('fi')))
                             }
                             >
                         </input>
@@ -513,6 +641,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('fr') :
                                 group8CountryValue.includes('fr')
                             }
+                            disabled={
+                                selectedOption.includes('fr') &&
+                                ((group !== 1 && group1CountryValue.includes('fr')) ||
+                                (group !== 2 && group2CountryValue.includes('fr')) ||
+                                (group !== 3 && group3CountryValue.includes('fr')) ||
+                                (group !== 4 && group4CountryValue.includes('fr')) ||
+                                (group !== 5 && group5CountryValue.includes('fr')) ||
+                                (group !== 6 && group6CountryValue.includes('fr')) ||
+                                (group !== 7 && group7CountryValue.includes('fr')) ||
+                                (group !== 8 && group8CountryValue.includes('fr')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>France</label>
@@ -535,6 +674,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('de') :
                                 group === 7 ? group7CountryValue.includes('de') :
                                 group8CountryValue.includes('de')
+                            }
+                            disabled={
+                                selectedOption.includes('de') &&
+                                ((group !== 1 && group1CountryValue.includes('de')) ||
+                                (group !== 2 && group2CountryValue.includes('de')) ||
+                                (group !== 3 && group3CountryValue.includes('de')) ||
+                                (group !== 4 && group4CountryValue.includes('de')) ||
+                                (group !== 5 && group5CountryValue.includes('de')) ||
+                                (group !== 6 && group6CountryValue.includes('de')) ||
+                                (group !== 7 && group7CountryValue.includes('de')) ||
+                                (group !== 8 && group8CountryValue.includes('de')))
                             }
                             >
                         </input>
@@ -559,6 +709,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('gr') :
                                 group8CountryValue.includes('gr')
                             }
+                            disabled={
+                                selectedOption.includes('gr') &&
+                                ((group !== 1 && group1CountryValue.includes('gr')) ||
+                                (group !== 2 && group2CountryValue.includes('gr')) ||
+                                (group !== 3 && group3CountryValue.includes('gr')) ||
+                                (group !== 4 && group4CountryValue.includes('gr')) ||
+                                (group !== 5 && group5CountryValue.includes('gr')) ||
+                                (group !== 6 && group6CountryValue.includes('gr')) ||
+                                (group !== 7 && group7CountryValue.includes('gr')) ||
+                                (group !== 8 && group8CountryValue.includes('gr')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Greece</label>
@@ -581,6 +742,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('hu') :
                                 group === 7 ? group7CountryValue.includes('hu') :
                                 group8CountryValue.includes('hu')
+                            }
+                            disabled={
+                                selectedOption.includes('hu') &&
+                                ((group !== 1 && group1CountryValue.includes('hu')) ||
+                                (group !== 2 && group2CountryValue.includes('hu')) ||
+                                (group !== 3 && group3CountryValue.includes('hu')) ||
+                                (group !== 4 && group4CountryValue.includes('hu')) ||
+                                (group !== 5 && group5CountryValue.includes('hu')) ||
+                                (group !== 6 && group6CountryValue.includes('hu')) ||
+                                (group !== 7 && group7CountryValue.includes('hu')) ||
+                                (group !== 8 && group8CountryValue.includes('hu')))
                             }
                             >
                         </input>
@@ -605,6 +777,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('is') :
                                 group8CountryValue.includes('is')
                             }
+                            disabled={
+                                selectedOption.includes('is') &&
+                                ((group !== 1 && group1CountryValue.includes('is')) ||
+                                (group !== 2 && group2CountryValue.includes('is')) ||
+                                (group !== 3 && group3CountryValue.includes('is')) ||
+                                (group !== 4 && group4CountryValue.includes('is')) ||
+                                (group !== 5 && group5CountryValue.includes('is')) ||
+                                (group !== 6 && group6CountryValue.includes('is')) ||
+                                (group !== 7 && group7CountryValue.includes('is')) ||
+                                (group !== 8 && group8CountryValue.includes('is')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Iceland</label>
@@ -627,6 +810,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('ie') :
                                 group === 7 ? group7CountryValue.includes('ie') :
                                 group8CountryValue.includes('ie')
+                            }
+                            disabled={
+                                selectedOption.includes('ie') &&
+                                ((group !== 1 && group1CountryValue.includes('ie')) ||
+                                (group !== 2 && group2CountryValue.includes('ie')) ||
+                                (group !== 3 && group3CountryValue.includes('ie')) ||
+                                (group !== 4 && group4CountryValue.includes('ie')) ||
+                                (group !== 5 && group5CountryValue.includes('ie')) ||
+                                (group !== 6 && group6CountryValue.includes('ie')) ||
+                                (group !== 7 && group7CountryValue.includes('ie')) ||
+                                (group !== 8 && group8CountryValue.includes('ie')))
                             }
                             >
                         </input>
@@ -651,6 +845,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('it') :
                                 group8CountryValue.includes('it')
                             }
+                            disabled={
+                                selectedOption.includes('it') &&
+                                ((group !== 1 && group1CountryValue.includes('it')) ||
+                                (group !== 2 && group2CountryValue.includes('it')) ||
+                                (group !== 3 && group3CountryValue.includes('it')) ||
+                                (group !== 4 && group4CountryValue.includes('it')) ||
+                                (group !== 5 && group5CountryValue.includes('it')) ||
+                                (group !== 6 && group6CountryValue.includes('it')) ||
+                                (group !== 7 && group7CountryValue.includes('it')) ||
+                                (group !== 8 && group8CountryValue.includes('it')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Italy</label>
@@ -673,6 +878,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('xk') :
                                 group === 7 ? group7CountryValue.includes('xk') :
                                 group8CountryValue.includes('xk')
+                            }
+                            disabled={
+                                selectedOption.includes('xk') &&
+                                ((group !== 1 && group1CountryValue.includes('xk')) ||
+                                (group !== 2 && group2CountryValue.includes('xk')) ||
+                                (group !== 3 && group3CountryValue.includes('xk')) ||
+                                (group !== 4 && group4CountryValue.includes('xk')) ||
+                                (group !== 5 && group5CountryValue.includes('xk')) ||
+                                (group !== 6 && group6CountryValue.includes('xk')) ||
+                                (group !== 7 && group7CountryValue.includes('xk')) ||
+                                (group !== 8 && group8CountryValue.includes('xk')))
                             }
                             >
                         </input>
@@ -697,6 +913,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('lv') :
                                 group8CountryValue.includes('lv')
                             }
+                            disabled={
+                                selectedOption.includes('lv') &&
+                                ((group !== 1 && group1CountryValue.includes('lv')) ||
+                                (group !== 2 && group2CountryValue.includes('lv')) ||
+                                (group !== 3 && group3CountryValue.includes('lv')) ||
+                                (group !== 4 && group4CountryValue.includes('lv')) ||
+                                (group !== 5 && group5CountryValue.includes('lv')) ||
+                                (group !== 6 && group6CountryValue.includes('lv')) ||
+                                (group !== 7 && group7CountryValue.includes('lv')) ||
+                                (group !== 8 && group8CountryValue.includes('lv')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Latvia</label>
@@ -719,6 +946,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('li') :
                                 group === 7 ? group7CountryValue.includes('li') :
                                 group8CountryValue.includes('li')
+                            }
+                            disabled={
+                                selectedOption.includes('li') &&
+                                ((group !== 1 && group1CountryValue.includes('li')) ||
+                                (group !== 2 && group2CountryValue.includes('li')) ||
+                                (group !== 3 && group3CountryValue.includes('li')) ||
+                                (group !== 4 && group4CountryValue.includes('li')) ||
+                                (group !== 5 && group5CountryValue.includes('li')) ||
+                                (group !== 6 && group6CountryValue.includes('li')) ||
+                                (group !== 7 && group7CountryValue.includes('li')) ||
+                                (group !== 8 && group8CountryValue.includes('li')))
                             }
                             >
                         </input>
@@ -743,6 +981,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('lt') :
                                 group8CountryValue.includes('lt')
                             }
+                            disabled={
+                                selectedOption.includes('lt') &&
+                                ((group !== 1 && group1CountryValue.includes('lt')) ||
+                                (group !== 2 && group2CountryValue.includes('lt')) ||
+                                (group !== 3 && group3CountryValue.includes('lt')) ||
+                                (group !== 4 && group4CountryValue.includes('lt')) ||
+                                (group !== 5 && group5CountryValue.includes('lt')) ||
+                                (group !== 6 && group6CountryValue.includes('lt')) ||
+                                (group !== 7 && group7CountryValue.includes('lt')) ||
+                                (group !== 8 && group8CountryValue.includes('lt')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Lithuania</label>
@@ -765,6 +1014,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('lu') :
                                 group === 7 ? group7CountryValue.includes('lu') :
                                 group8CountryValue.includes('lu')
+                            }
+                            disabled={
+                                selectedOption.includes('lu') &&
+                                ((group !== 1 && group1CountryValue.includes('lu')) ||
+                                (group !== 2 && group2CountryValue.includes('lu')) ||
+                                (group !== 3 && group3CountryValue.includes('lu')) ||
+                                (group !== 4 && group4CountryValue.includes('lu')) ||
+                                (group !== 5 && group5CountryValue.includes('lu')) ||
+                                (group !== 6 && group6CountryValue.includes('lu')) ||
+                                (group !== 7 && group7CountryValue.includes('lu')) ||
+                                (group !== 8 && group8CountryValue.includes('lu')))
                             }
                             >
                         </input>
@@ -789,6 +1049,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('mt') :
                                 group8CountryValue.includes('mt')
                             }
+                            disabled={
+                                selectedOption.includes('mt') &&
+                                ((group !== 1 && group1CountryValue.includes('mt')) ||
+                                (group !== 2 && group2CountryValue.includes('mt')) ||
+                                (group !== 3 && group3CountryValue.includes('mt')) ||
+                                (group !== 4 && group4CountryValue.includes('mt')) ||
+                                (group !== 5 && group5CountryValue.includes('mt')) ||
+                                (group !== 6 && group6CountryValue.includes('mt')) ||
+                                (group !== 7 && group7CountryValue.includes('mt')) ||
+                                (group !== 8 && group8CountryValue.includes('mt')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Malta</label>
@@ -811,6 +1082,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('md') :
                                 group === 7 ? group7CountryValue.includes('md') :
                                 group8CountryValue.includes('md')
+                            }
+                            disabled={
+                                selectedOption.includes('md') &&
+                                ((group !== 1 && group1CountryValue.includes('md')) ||
+                                (group !== 2 && group2CountryValue.includes('md')) ||
+                                (group !== 3 && group3CountryValue.includes('md')) ||
+                                (group !== 4 && group4CountryValue.includes('md')) ||
+                                (group !== 5 && group5CountryValue.includes('md')) ||
+                                (group !== 6 && group6CountryValue.includes('md')) ||
+                                (group !== 7 && group7CountryValue.includes('md')) ||
+                                (group !== 8 && group8CountryValue.includes('md')))
                             }
                             >
                         </input>
@@ -835,6 +1117,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('mc') :
                                 group8CountryValue.includes('mc')
                             }
+                            disabled={
+                                selectedOption.includes('mc') &&
+                                ((group !== 1 && group1CountryValue.includes('mc')) ||
+                                (group !== 2 && group2CountryValue.includes('mc')) ||
+                                (group !== 3 && group3CountryValue.includes('mc')) ||
+                                (group !== 4 && group4CountryValue.includes('mc')) ||
+                                (group !== 5 && group5CountryValue.includes('mc')) ||
+                                (group !== 6 && group6CountryValue.includes('mc')) ||
+                                (group !== 7 && group7CountryValue.includes('mc')) ||
+                                (group !== 8 && group8CountryValue.includes('mc')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Monaco</label>
@@ -857,6 +1150,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('me') :
                                 group === 7 ? group7CountryValue.includes('me') :
                                 group8CountryValue.includes('me')
+                            }
+                            disabled={
+                                selectedOption.includes('me') &&
+                                ((group !== 1 && group1CountryValue.includes('me')) ||
+                                (group !== 2 && group2CountryValue.includes('me')) ||
+                                (group !== 3 && group3CountryValue.includes('me')) ||
+                                (group !== 4 && group4CountryValue.includes('me')) ||
+                                (group !== 5 && group5CountryValue.includes('me')) ||
+                                (group !== 6 && group6CountryValue.includes('me')) ||
+                                (group !== 7 && group7CountryValue.includes('me')) ||
+                                (group !== 8 && group8CountryValue.includes('me')))
                             }
                             >
                         </input>
@@ -881,6 +1185,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('nl') :
                                 group8CountryValue.includes('nl')
                             }
+                            disabled={
+                                selectedOption.includes('nl') &&
+                                ((group !== 1 && group1CountryValue.includes('nl')) ||
+                                (group !== 2 && group2CountryValue.includes('nl')) ||
+                                (group !== 3 && group3CountryValue.includes('nl')) ||
+                                (group !== 4 && group4CountryValue.includes('nl')) ||
+                                (group !== 5 && group5CountryValue.includes('nl')) ||
+                                (group !== 6 && group6CountryValue.includes('nl')) ||
+                                (group !== 7 && group7CountryValue.includes('nl')) ||
+                                (group !== 8 && group8CountryValue.includes('nl')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Netherlands</label>
@@ -903,6 +1218,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('mk') :
                                 group === 7 ? group7CountryValue.includes('mk') :
                                 group8CountryValue.includes('mk')
+                            }
+                            disabled={
+                                selectedOption.includes('mk') &&
+                                ((group !== 1 && group1CountryValue.includes('mk')) ||
+                                (group !== 2 && group2CountryValue.includes('mk')) ||
+                                (group !== 3 && group3CountryValue.includes('mk')) ||
+                                (group !== 4 && group4CountryValue.includes('mk')) ||
+                                (group !== 5 && group5CountryValue.includes('mk')) ||
+                                (group !== 6 && group6CountryValue.includes('mk')) ||
+                                (group !== 7 && group7CountryValue.includes('mk')) ||
+                                (group !== 8 && group8CountryValue.includes('mk')))
                             }
                             >
                         </input>
@@ -927,6 +1253,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('no') :
                                 group8CountryValue.includes('no')
                             }
+                            disabled={
+                                selectedOption.includes('no') &&
+                                ((group !== 1 && group1CountryValue.includes('no')) ||
+                                (group !== 2 && group2CountryValue.includes('no')) ||
+                                (group !== 3 && group3CountryValue.includes('no')) ||
+                                (group !== 4 && group4CountryValue.includes('no')) ||
+                                (group !== 5 && group5CountryValue.includes('no')) ||
+                                (group !== 6 && group6CountryValue.includes('no')) ||
+                                (group !== 7 && group7CountryValue.includes('no')) ||
+                                (group !== 8 && group8CountryValue.includes('no')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Norway</label>
@@ -949,6 +1286,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('pl') :
                                 group === 7 ? group7CountryValue.includes('pl') :
                                 group8CountryValue.includes('pl')
+                            }
+                            disabled={
+                                selectedOption.includes('pl') &&
+                                ((group !== 1 && group1CountryValue.includes('pl')) ||
+                                (group !== 2 && group2CountryValue.includes('pl')) ||
+                                (group !== 3 && group3CountryValue.includes('pl')) ||
+                                (group !== 4 && group4CountryValue.includes('pl')) ||
+                                (group !== 5 && group5CountryValue.includes('pl')) ||
+                                (group !== 6 && group6CountryValue.includes('pl')) ||
+                                (group !== 7 && group7CountryValue.includes('pl')) ||
+                                (group !== 8 && group8CountryValue.includes('pl')))
                             }
                             >
                         </input>
@@ -973,6 +1321,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('pt') :
                                 group8CountryValue.includes('pt')
                             }
+                            disabled={
+                                selectedOption.includes('pt') &&
+                                ((group !== 1 && group1CountryValue.includes('pt')) ||
+                                (group !== 2 && group2CountryValue.includes('pt')) ||
+                                (group !== 3 && group3CountryValue.includes('pt')) ||
+                                (group !== 4 && group4CountryValue.includes('pt')) ||
+                                (group !== 5 && group5CountryValue.includes('pt')) ||
+                                (group !== 6 && group6CountryValue.includes('pt')) ||
+                                (group !== 7 && group7CountryValue.includes('pt')) ||
+                                (group !== 8 && group8CountryValue.includes('pt')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Portugal</label>
@@ -995,6 +1354,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('ro') :
                                 group === 7 ? group7CountryValue.includes('ro') :
                                 group8CountryValue.includes('ro')
+                            }
+                            disabled={
+                                selectedOption.includes('ro') &&
+                                ((group !== 1 && group1CountryValue.includes('ro')) ||
+                                (group !== 2 && group2CountryValue.includes('ro')) ||
+                                (group !== 3 && group3CountryValue.includes('ro')) ||
+                                (group !== 4 && group4CountryValue.includes('ro')) ||
+                                (group !== 5 && group5CountryValue.includes('ro')) ||
+                                (group !== 6 && group6CountryValue.includes('ro')) ||
+                                (group !== 7 && group7CountryValue.includes('ro')) ||
+                                (group !== 8 && group8CountryValue.includes('ro')))
                             }
                             >
                         </input>
@@ -1019,6 +1389,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('ru') :
                                 group8CountryValue.includes('ru')
                             }
+                            disabled={
+                                selectedOption.includes('ru') &&
+                                ((group !== 1 && group1CountryValue.includes('ru')) ||
+                                (group !== 2 && group2CountryValue.includes('ru')) ||
+                                (group !== 3 && group3CountryValue.includes('ru')) ||
+                                (group !== 4 && group4CountryValue.includes('ru')) ||
+                                (group !== 5 && group5CountryValue.includes('ru')) ||
+                                (group !== 6 && group6CountryValue.includes('ru')) ||
+                                (group !== 7 && group7CountryValue.includes('ru')) ||
+                                (group !== 8 && group8CountryValue.includes('ru')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Russia</label>
@@ -1041,6 +1422,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('sm') :
                                 group === 7 ? group7CountryValue.includes('sm') :
                                 group8CountryValue.includes('sm')
+                            }
+                            disabled={
+                                selectedOption.includes('sm') &&
+                                ((group !== 1 && group1CountryValue.includes('sm')) ||
+                                (group !== 2 && group2CountryValue.includes('sm')) ||
+                                (group !== 3 && group3CountryValue.includes('sm')) ||
+                                (group !== 4 && group4CountryValue.includes('sm')) ||
+                                (group !== 5 && group5CountryValue.includes('sm')) ||
+                                (group !== 6 && group6CountryValue.includes('sm')) ||
+                                (group !== 7 && group7CountryValue.includes('sm')) ||
+                                (group !== 8 && group8CountryValue.includes('sm')))
                             }
                             >
                         </input>
@@ -1065,6 +1457,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('rs') :
                                 group8CountryValue.includes('rs')
                             }
+                            disabled={
+                                selectedOption.includes('rs') &&
+                                ((group !== 1 && group1CountryValue.includes('rs')) ||
+                                (group !== 2 && group2CountryValue.includes('rs')) ||
+                                (group !== 3 && group3CountryValue.includes('rs')) ||
+                                (group !== 4 && group4CountryValue.includes('rs')) ||
+                                (group !== 5 && group5CountryValue.includes('rs')) ||
+                                (group !== 6 && group6CountryValue.includes('rs')) ||
+                                (group !== 7 && group7CountryValue.includes('rs')) ||
+                                (group !== 8 && group8CountryValue.includes('rs')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Serbia</label>
@@ -1087,6 +1490,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('sk') :
                                 group === 7 ? group7CountryValue.includes('sk') :
                                 group8CountryValue.includes('sk')
+                            }
+                            disabled={
+                                selectedOption.includes('sk') &&
+                                ((group !== 1 && group1CountryValue.includes('sk')) ||
+                                (group !== 2 && group2CountryValue.includes('sk')) ||
+                                (group !== 3 && group3CountryValue.includes('sk')) ||
+                                (group !== 4 && group4CountryValue.includes('sk')) ||
+                                (group !== 5 && group5CountryValue.includes('sk')) ||
+                                (group !== 6 && group6CountryValue.includes('sk')) ||
+                                (group !== 7 && group7CountryValue.includes('sk')) ||
+                                (group !== 8 && group8CountryValue.includes('sk')))
                             }
                             >
                         </input>
@@ -1111,6 +1525,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('si') :
                                 group8CountryValue.includes('si')
                             }
+                            disabled={
+                                selectedOption.includes('si') &&
+                                ((group !== 1 && group1CountryValue.includes('si')) ||
+                                (group !== 2 && group2CountryValue.includes('si')) ||
+                                (group !== 3 && group3CountryValue.includes('si')) ||
+                                (group !== 4 && group4CountryValue.includes('si')) ||
+                                (group !== 5 && group5CountryValue.includes('si')) ||
+                                (group !== 6 && group6CountryValue.includes('si')) ||
+                                (group !== 7 && group7CountryValue.includes('si')) ||
+                                (group !== 8 && group8CountryValue.includes('si')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Slovenia</label>
@@ -1133,6 +1558,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('es') :
                                 group === 7 ? group7CountryValue.includes('es') :
                                 group8CountryValue.includes('es')
+                            }
+                            disabled={
+                                selectedOption.includes('es') &&
+                                ((group !== 1 && group1CountryValue.includes('es')) ||
+                                (group !== 2 && group2CountryValue.includes('es')) ||
+                                (group !== 3 && group3CountryValue.includes('es')) ||
+                                (group !== 4 && group4CountryValue.includes('es')) ||
+                                (group !== 5 && group5CountryValue.includes('es')) ||
+                                (group !== 6 && group6CountryValue.includes('es')) ||
+                                (group !== 7 && group7CountryValue.includes('es')) ||
+                                (group !== 8 && group8CountryValue.includes('es')))
                             }
                             >
                         </input>
@@ -1157,6 +1593,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('se') :
                                 group8CountryValue.includes('se')
                             }
+                            disabled={
+                                selectedOption.includes('se') &&
+                                ((group !== 1 && group1CountryValue.includes('se')) ||
+                                (group !== 2 && group2CountryValue.includes('se')) ||
+                                (group !== 3 && group3CountryValue.includes('se')) ||
+                                (group !== 4 && group4CountryValue.includes('se')) ||
+                                (group !== 5 && group5CountryValue.includes('se')) ||
+                                (group !== 6 && group6CountryValue.includes('se')) ||
+                                (group !== 7 && group7CountryValue.includes('se')) ||
+                                (group !== 8 && group8CountryValue.includes('se')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Sweden</label>
@@ -1179,6 +1626,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('ch') :
                                 group === 7 ? group7CountryValue.includes('ch') :
                                 group8CountryValue.includes('ch')
+                            }
+                            disabled={
+                                selectedOption.includes('ch') &&
+                                ((group !== 1 && group1CountryValue.includes('ch')) ||
+                                (group !== 2 && group2CountryValue.includes('ch')) ||
+                                (group !== 3 && group3CountryValue.includes('ch')) ||
+                                (group !== 4 && group4CountryValue.includes('ch')) ||
+                                (group !== 5 && group5CountryValue.includes('ch')) ||
+                                (group !== 6 && group6CountryValue.includes('ch')) ||
+                                (group !== 7 && group7CountryValue.includes('ch')) ||
+                                (group !== 8 && group8CountryValue.includes('ch')))
                             }
                             >
                         </input>
@@ -1203,6 +1661,17 @@ function Countries({
                                 group === 7 ? group7CountryValue.includes('ua') :
                                 group8CountryValue.includes('ua')
                             }
+                            disabled={
+                                selectedOption.includes('ua') &&
+                                ((group !== 1 && group1CountryValue.includes('ua')) ||
+                                (group !== 2 && group2CountryValue.includes('ua')) ||
+                                (group !== 3 && group3CountryValue.includes('ua')) ||
+                                (group !== 4 && group4CountryValue.includes('ua')) ||
+                                (group !== 5 && group5CountryValue.includes('ua')) ||
+                                (group !== 6 && group6CountryValue.includes('ua')) ||
+                                (group !== 7 && group7CountryValue.includes('ua')) ||
+                                (group !== 8 && group8CountryValue.includes('ua')))
+                            }
                             >
                         </input>
                         <label className='country-label-eu'>Ukraine</label>
@@ -1225,6 +1694,17 @@ function Countries({
                                 group === 6 ? group6CountryValue.includes('gb') :
                                 group === 7 ? group7CountryValue.includes('gb') :
                                 group8CountryValue.includes('gb')
+                            }
+                            disabled={
+                                selectedOption.includes('gb') &&
+                                ((group !== 1 && group1CountryValue.includes('gb')) ||
+                                (group !== 2 && group2CountryValue.includes('gb')) ||
+                                (group !== 3 && group3CountryValue.includes('gb')) ||
+                                (group !== 4 && group4CountryValue.includes('gb')) ||
+                                (group !== 5 && group5CountryValue.includes('gb')) ||
+                                (group !== 6 && group6CountryValue.includes('gb')) ||
+                                (group !== 7 && group7CountryValue.includes('gb')) ||
+                                (group !== 8 && group8CountryValue.includes('gb')))
                             }
                             >
                         </input>

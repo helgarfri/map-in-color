@@ -38,6 +38,9 @@ function Group3({
     setGroup3ColorValue, 
     group3TitleValue, 
     handleTitle3ValueChange,
+
+    selectedOption,
+    setSelectedOption
    
 }) {
 
@@ -182,6 +185,9 @@ function Group3({
 
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
                 

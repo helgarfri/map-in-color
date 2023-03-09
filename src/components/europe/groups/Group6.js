@@ -29,6 +29,9 @@ function Group6({
     group6ColorValue, 
     setGroup6ColorValue, 
     handleTitle6ValueChange,
+
+    selectedOption,
+    setSelectedOption
    
     
 }) {
@@ -165,6 +168,9 @@ function Group6({
 
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
+
+                    selectedOption={selectedOption}
+                    setSelectedOption={setSelectedOption}
 
 
                 
