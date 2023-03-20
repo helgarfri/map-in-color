@@ -51,7 +51,7 @@ function Countries({
    
     useEffect(() => {
         // get a list of all the countries
-        const allCountryIds = document.getElementsByClassName("country");
+        const allCountryIds = document.getElementsByClassName("country-eu");
 
         
         if (
@@ -97,7 +97,6 @@ function Countries({
           // loop through all the countries and set their fill color back to the default
           for (var i = 0; i < allCountryIds.length; i++) {
             const id = allCountryIds[i].value;
-            
             if (
                 !group1CountryValue.includes(id) && 
                 !group2CountryValue.includes(id) && 
@@ -126,35 +125,35 @@ function Countries({
         group6CountryValue,  
         group7CountryValue,  
         group8CountryValue,]);
-
-    
+      
       const handleChange = (event) => {
         const selectedOption = event.target.value;
-
         setSelectedOption(prevSelectedOption => prevSelectedOption.includes(selectedOption)
         ? prevSelectedOption.filter(option => option !== selectedOption)
         : [...prevSelectedOption, selectedOption]
       );
-
       
+        
+
         if (group === 1) {
+            
           if (group1CountryValue.includes(selectedOption)) {
             setGroup1CountryValue(group1CountryValue.filter((o) => o !== selectedOption));
           } else {
             setGroup1CountryValue([...group1CountryValue, selectedOption]);
           }
-            
-
           
 
+
         } else if (group === 2) {
+            
           if (group2CountryValue.includes(selectedOption)) {
             setGroup2CountryValue(group2CountryValue.filter((o) => o !== selectedOption));
           } else {
             setGroup2CountryValue([...group2CountryValue, selectedOption]);
           }
-        
-        
+
+          
         }else if (group === 3) {
             if (group3CountryValue.includes(selectedOption)) {
               setGroup3CountryValue(group3CountryValue.filter((o) => o !== selectedOption));
@@ -188,22 +187,22 @@ function Countries({
               setGroup6CountryValue([...group6CountryValue, selectedOption]);
             }
        
-      } 
-      else if (group === 7) {
-        if (group7CountryValue.includes(selectedOption)) {
-          setGroup7CountryValue(group7CountryValue.filter((o) => o !== selectedOption));
-        } else {
-          setGroup7CountryValue([...group7CountryValue, selectedOption]);
-        }
-   
-  }  else if (group === 8) {
-    if (group8CountryValue.includes(selectedOption)) {
-      setGroup8CountryValue(group8CountryValue.filter((o) => o !== selectedOption));
-    } else {
-      setGroup8CountryValue([...group8CountryValue, selectedOption]);
-    }
+        } 
+        else if (group === 7) {
+            if (group7CountryValue.includes(selectedOption)) {
+            setGroup7CountryValue(group7CountryValue.filter((o) => o !== selectedOption));
+            } else {
+            setGroup7CountryValue([...group7CountryValue, selectedOption]);
+            }
+        
+    }   else if (group === 8) {
+            if (group8CountryValue.includes(selectedOption)) {
+            setGroup8CountryValue(group8CountryValue.filter((o) => o !== selectedOption));
+            } else {
+            setGroup8CountryValue([...group8CountryValue, selectedOption]);
+            }
 
-};
+    };
 
 
     }
@@ -485,6 +484,40 @@ function Countries({
                         <label className='country-label-eu'>Croatia</label>
                     </li>
 
+                    <li>
+                        <input  
+                            type='checkbox' 
+                            value='cy'
+                            className="country-eu"
+                            onChange={handleChange} 
+                            
+                            
+                            checked={
+                                group === 1 ? group1CountryValue.includes('cy') : 
+                                group === 2 ? group2CountryValue.includes('cy') : 
+                                group === 3 ? group3CountryValue.includes('cy') : 
+                                group === 4 ? group4CountryValue.includes('cy') :
+                                group === 5 ? group5CountryValue.includes('cy') :
+                                group === 6 ? group6CountryValue.includes('cy') :
+                                group === 7 ? group7CountryValue.includes('cy') :
+                                group8CountryValue.includes('cy')
+                            }
+                            disabled={
+                                selectedOption.includes('cy') &&
+                                ((group !== 1 && group1CountryValue.includes('cy')) ||
+                                (group !== 2 && group2CountryValue.includes('cy')) ||
+                                (group !== 3 && group3CountryValue.includes('cy')) ||
+                                (group !== 4 && group4CountryValue.includes('cy')) ||
+                                (group !== 5 && group5CountryValue.includes('cy')) ||
+                                (group !== 6 && group6CountryValue.includes('cy')) ||
+                                (group !== 7 && group7CountryValue.includes('cy')) ||
+                                (group !== 8 && group8CountryValue.includes('cy')))
+                            }
+                            >
+                        </input>
+                        <label className='country-label-eu'>Cyprus</label>
+                    </li>
+
                
 
                     <li>
@@ -588,6 +621,41 @@ function Countries({
                         </input>
                         <label className='country-label-eu'>Estonia</label>
                     </li>
+
+                    <li>
+                        <input  
+                            type='checkbox' 
+                            value='fo'
+                            className="country-eu"
+                            onChange={handleChange} 
+                            
+                            
+                            checked={
+                                group === 1 ? group1CountryValue.includes('fo') : 
+                                group === 2 ? group2CountryValue.includes('fo') : 
+                                group === 3 ? group3CountryValue.includes('fo') : 
+                                group === 4 ? group4CountryValue.includes('fo') :
+                                group === 5 ? group5CountryValue.includes('fo') :
+                                group === 6 ? group6CountryValue.includes('fo') :
+                                group === 7 ? group7CountryValue.includes('fo') :
+                                group8CountryValue.includes('fo')
+                            }
+                            disabled={
+                                selectedOption.includes('fo') &&
+                                ((group !== 1 && group1CountryValue.includes('fo')) ||
+                                (group !== 2 && group2CountryValue.includes('fo')) ||
+                                (group !== 3 && group3CountryValue.includes('fo')) ||
+                                (group !== 4 && group4CountryValue.includes('fo')) ||
+                                (group !== 5 && group5CountryValue.includes('fo')) ||
+                                (group !== 6 && group6CountryValue.includes('fo')) ||
+                                (group !== 7 && group7CountryValue.includes('fo')) ||
+                                (group !== 8 && group8CountryValue.includes('fo')))
+                            }
+                            >
+                        </input>
+                        <label className='country-label-eu'>Faroe Islands</label>
+                    </li>
+
 
                     <li>
                         <input  
@@ -723,6 +791,40 @@ function Countries({
                             >
                         </input>
                         <label className='country-label-eu'>Greece</label>
+                    </li>
+
+                    <li>
+                        <input  
+                            type='checkbox' 
+                            value='gl'
+                            className="country-eu"
+                            onChange={handleChange} 
+                            
+                            
+                            checked={
+                                group === 1 ? group1CountryValue.includes('gl') : 
+                                group === 2 ? group2CountryValue.includes('gl') : 
+                                group === 3 ? group3CountryValue.includes('gl') : 
+                                group === 4 ? group4CountryValue.includes('gl') :
+                                group === 5 ? group5CountryValue.includes('gl') :
+                                group === 6 ? group6CountryValue.includes('gl') :
+                                group === 7 ? group7CountryValue.includes('gl') :
+                                group8CountryValue.includes('gl')
+                            }
+                            disabled={
+                                selectedOption.includes('gl') &&
+                                ((group !== 1 && group1CountryValue.includes('gl')) ||
+                                (group !== 2 && group2CountryValue.includes('gl')) ||
+                                (group !== 3 && group3CountryValue.includes('gl')) ||
+                                (group !== 4 && group4CountryValue.includes('gl')) ||
+                                (group !== 5 && group5CountryValue.includes('gl')) ||
+                                (group !== 6 && group6CountryValue.includes('gl')) ||
+                                (group !== 7 && group7CountryValue.includes('gl')) ||
+                                (group !== 8 && group8CountryValue.includes('gl')))
+                            }
+                            >
+                        </input>
+                        <label className='country-label-eu'>Greenland</label>
                     </li>
 
                     <li>
@@ -1641,6 +1743,40 @@ function Countries({
                             >
                         </input>
                         <label className='country-label-eu'>Switzerland</label>
+                    </li>
+
+                    <li>
+                        <input  
+                            type='checkbox' 
+                            value='tr'
+                            className="country-eu"
+                            onChange={handleChange} 
+                            
+                            
+                            checked={
+                                group === 1 ? group1CountryValue.includes('tr') : 
+                                group === 2 ? group2CountryValue.includes('tr') : 
+                                group === 3 ? group3CountryValue.includes('tr') : 
+                                group === 4 ? group4CountryValue.includes('tr') :
+                                group === 5 ? group5CountryValue.includes('tr') :
+                                group === 6 ? group6CountryValue.includes('tr') :
+                                group === 7 ? group7CountryValue.includes('tr') :
+                                group8CountryValue.includes('tr')
+                            }
+                            disabled={
+                                selectedOption.includes('tr') &&
+                                ((group !== 1 && group1CountryValue.includes('tr')) ||
+                                (group !== 2 && group2CountryValue.includes('tr')) ||
+                                (group !== 3 && group3CountryValue.includes('tr')) ||
+                                (group !== 4 && group4CountryValue.includes('tr')) ||
+                                (group !== 5 && group5CountryValue.includes('tr')) ||
+                                (group !== 6 && group6CountryValue.includes('tr')) ||
+                                (group !== 7 && group7CountryValue.includes('tr')) ||
+                                (group !== 8 && group8CountryValue.includes('tr')))
+                            }
+                            >
+                        </input>
+                        <label className='country-label-eu'>Turkey</label>
                     </li>
 
                     <li>

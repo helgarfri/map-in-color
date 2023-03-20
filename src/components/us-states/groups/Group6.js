@@ -37,7 +37,7 @@ function Group6({
     group8StatesValue,
     setGroup8StatesValue,
 
-
+    group6TitleValue,
     handleTitle6ValueChange,
 
     selectedOption,
@@ -82,6 +82,8 @@ console.log(group6ColorValue)
                             placeholder="Click to add title" 
                             onChange={handleTitle6Change}
                             type='text'
+                            value={group6TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

@@ -36,7 +36,8 @@ function Group3({
     activeGroup, 
     group3ColorValue, 
     setGroup3ColorValue, 
-    group3TitleValue, 
+
+    group3TitleValue,
     handleTitle3ValueChange,
 
     selectedOption,
@@ -90,6 +91,8 @@ function Group3({
                             placeholder="Click to add title" 
                             onChange={handleTitle3Change}
                             type='text'
+                            value={group3TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

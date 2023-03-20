@@ -27,7 +27,8 @@ function Group1({
 
     activeGroup, 
     group1ColorValue, 
-    setGroup1ColorValue, 
+    setGroup1ColorValue,
+     
     group1TitleValue, 
     handleTitle1ValueChange,
 
@@ -82,6 +83,8 @@ function Group1({
                             placeholder="Click to add title" 
                             onChange={handleTitle1Change}
                             type='text'
+                            value={group1TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

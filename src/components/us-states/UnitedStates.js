@@ -66,6 +66,7 @@ function UnitedStates({
             mapTitleValue={mapTitleValue}
             handleMapTitleValueChange={handleMapTitleValueChange}
 
+
           
             group1TitleValue={group1TitleValue}
             group2TitleValue={group2TitleValue}
@@ -106,6 +107,17 @@ function UnitedStates({
 
 
             <Navigator
+
+            group1TitleValue={group1TitleValue}
+            group2TitleValue={group2TitleValue}
+            group3TitleValue={group3TitleValue}
+            group4TitleValue={group4TitleValue}
+            group5TitleValue={group5TitleValue}
+            group6TitleValue={group6TitleValue}
+            group7TitleValue={group7TitleValue}
+            group8TitleValue={group8TitleValue}
+
+            
             handleTitle1ValueChange={handleTitle1ValueChange}
             handleTitle2ValueChange={handleTitle2ValueChange}
             handleTitle3ValueChange={handleTitle3ValueChange}
@@ -135,8 +147,12 @@ function UnitedStates({
             setGroup7ColorValue={setGroup7ColorValue}
             setGroup8ColorValue={setGroup8ColorValue}
 
+
+
             numItems={numItems}
             setNumItems={setNumItems}
+
+
 
         
             

@@ -10,7 +10,7 @@ function Header() {
 
   return (
     <div className="header">
-      <a href="/">
+      <a href="/home">
       <img
         src="../assets/map-in-color-logo-text.png"
         className="logo"

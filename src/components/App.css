@@ -4,6 +4,44 @@
   font-family: 'Open Sans', sans-serif;
 }
 
+.home-Demo {
+  width: 70%;
+  display: flex;
+  margin: 0 auto;
+  border: 10px solid black;
+
+}
+
+.home-row{
+    display: flex;
+    flex-direction: column;
+    color: white;
+    
+}
+
+
+.home-slogan {
+  font-size: 55px;
+  margin-bottom: 0px;
+  margin-top: 30px;
+}
+
+.home-subslogan {
+  font-size: 25px;
+  margin-top: 0px;
+}
+
+.home-description {
+  font-size: 18px;
+  width: 70%;
+  margin: 30px auto;
+  text-align: start;
+  letter-spacing: 0.6px;
+  line-height: 30px;
+  
+
+}
+
 .group {
   display: flex;
   flex-direction: column;
@@ -175,11 +213,11 @@ li:hover > .header-dropdown {
   margin-top: 25px;
   display: flex;
   flex-direction: column;
- 
-
 
   
 }
+
+
 
 
 
@@ -323,10 +361,10 @@ input.group-title {
   flex-wrap: wrap;
   flex-direction: column;
   height: 400px;
-  justify-content: center;
   align-items: center;
-  width: 75%;
+  max-width: 80%;
   margin: 0 auto;
+  margin-top: 15px;
 
  
  
@@ -352,11 +390,12 @@ input.group-title {
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
-  height: 370px;
-  justify-content: center;
+  height: 416px;
   align-items: center;
-  width: 75%;
+  max-width: 80%;
   margin: 0 auto;
+  margin-top: 15px;
+
  
 }
 
@@ -677,4 +716,22 @@ li {
   display: flex;
   align-items: center;
   
+}
+
+@media (max-width: 1350px) {
+  .color-picker {
+    width: 300px !important;
+  }
+  .all-states-eu ul {
+    height: 680px;
+  }
+  .all-states-us ul {
+    height: 680px;
+  }
+
+  .country-label {
+    font-size: 16px;
+  }
+ 
+
 }

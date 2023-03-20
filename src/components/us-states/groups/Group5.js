@@ -37,7 +37,7 @@ function Group5({
     group8StatesValue,
     setGroup8StatesValue,
 
-
+    group5TitleValue,
     handleTitle5ValueChange,
 
     selectedOption,
@@ -82,6 +82,8 @@ console.log(group5ColorValue)
                             placeholder="Click to add title" 
                             onChange={handleTitle5Change}
                             type='text'
+                            value={group5TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

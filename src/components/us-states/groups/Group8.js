@@ -37,7 +37,7 @@ function Group8({
     group8StatesValue,
     setGroup8StatesValue,
 
-
+    group8TitleValue,
     handleTitle8ValueChange,
 
     selectedOption,
@@ -82,6 +82,8 @@ console.log(group8ColorValue)
                             placeholder="Click to add title" 
                             onChange={handleTitle8Change}
                             type='text'
+                            value={group8TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

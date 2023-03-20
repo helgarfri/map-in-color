@@ -2164,15 +2164,15 @@ function Countries({
                         group8CountryValue.includes('af')
                     }                            
                     disabled={
-                        selectedOption.includes('dz') &&
-                        ((group !== 1 && group1CountryValue.includes('dz')) ||
-                        (group !== 2 && group2CountryValue.includes('dz')) ||
-                        (group !== 3 && group3CountryValue.includes('dz')) ||
-                        (group !== 4 && group4CountryValue.includes('dz')) ||
-                        (group !== 5 && group5CountryValue.includes('dz')) ||
-                        (group !== 6 && group6CountryValue.includes('dz')) ||
-                        (group !== 7 && group7CountryValue.includes('dz')) ||
-                        (group !== 8 && group8CountryValue.includes('dz')))
+                        selectedOption.includes('af') &&
+                        ((group !== 1 && group1CountryValue.includes('af')) ||
+                        (group !== 2 && group2CountryValue.includes('af')) ||
+                        (group !== 3 && group3CountryValue.includes('af')) ||
+                        (group !== 4 && group4CountryValue.includes('af')) ||
+                        (group !== 5 && group5CountryValue.includes('af')) ||
+                        (group !== 6 && group6CountryValue.includes('af')) ||
+                        (group !== 7 && group7CountryValue.includes('af')) ||
+                        (group !== 8 && group8CountryValue.includes('af')))
                       }
                       
                       >
@@ -2531,6 +2531,41 @@ function Countries({
 
               </input>
               <label className='country-label'>Georgia</label>
+          </li>
+
+          <li>
+              <input 
+                  type='checkbox' 
+                  value='hk'
+                  name='' 
+                  className="country"
+                  onChange={handleChange}
+                  checked={
+                    group === 1 ? group1CountryValue.includes('hk') : 
+                    group === 2 ? group2CountryValue.includes('hk') : 
+                    group === 3 ? group3CountryValue.includes('hk') : 
+                    group === 4 ? group4CountryValue.includes('hk') :
+                    group === 5 ? group5CountryValue.includes('hk') :
+                    group === 6 ? group6CountryValue.includes('hk') :
+                    group === 7 ? group7CountryValue.includes('hk') :
+                    group8CountryValue.includes('hk')
+                }                            
+                disabled={
+                        selectedOption.includes('hk') &&
+                        ((group !== 1 && group1CountryValue.includes('hk')) ||
+                        (group !== 2 && group2CountryValue.includes('hk')) ||
+                        (group !== 3 && group3CountryValue.includes('hk')) ||
+                        (group !== 4 && group4CountryValue.includes('hk')) ||
+                        (group !== 5 && group5CountryValue.includes('hk')) ||
+                        (group !== 6 && group6CountryValue.includes('hk')) ||
+                        (group !== 7 && group7CountryValue.includes('hk')) ||
+                        (group !== 8 && group8CountryValue.includes('hk')))
+                      }
+                  
+                      >
+
+              </input>
+              <label className='country-label'>Hong Kong</label>
           </li>
 
           <li>
@@ -2951,6 +2986,41 @@ function Countries({
 
               </input>
               <label className='country-label'>Lebanon</label>
+          </li>
+
+          <li>
+              <input 
+                  type='checkbox' 
+                  value='mo'
+                  name='' 
+                  className="country"
+                  onChange={handleChange}
+                  checked={
+                    group === 1 ? group1CountryValue.includes('mo') : 
+                    group === 2 ? group2CountryValue.includes('mo') : 
+                    group === 3 ? group3CountryValue.includes('mo') : 
+                    group === 4 ? group4CountryValue.includes('mo') :
+                    group === 5 ? group5CountryValue.includes('mo') :
+                    group === 6 ? group6CountryValue.includes('mo') :
+                    group === 7 ? group7CountryValue.includes('mo') :
+                    group8CountryValue.includes('mo')
+                }                            
+                disabled={
+                        selectedOption.includes('mo') &&
+                        ((group !== 1 && group1CountryValue.includes('mo')) ||
+                        (group !== 2 && group2CountryValue.includes('mo')) ||
+                        (group !== 3 && group3CountryValue.includes('mo')) ||
+                        (group !== 4 && group4CountryValue.includes('mo')) ||
+                        (group !== 5 && group5CountryValue.includes('mo')) ||
+                        (group !== 6 && group6CountryValue.includes('mo')) ||
+                        (group !== 7 && group7CountryValue.includes('mo')) ||
+                        (group !== 8 && group8CountryValue.includes('mo')))
+                      }
+                  
+                      >
+
+              </input>
+              <label className='country-label'>Macao</label>
           </li>
           
           <li>

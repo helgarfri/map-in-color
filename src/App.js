@@ -6,6 +6,7 @@ import UnitedStates from './components/us-states/UnitedStates';
 import { useState } from 'react';
 import Europe from './components/europe/Europe';
 import Footer from './components/Footer';
+import Home from './components/Home';
 
 
 
@@ -85,7 +86,10 @@ function App() {
 
   let component
   switch (window.location.pathname) {
- 
+    case '/home':
+      component =
+      <Home/>
+      break;
     case '/world-map':
       component = 
       <WorldMap

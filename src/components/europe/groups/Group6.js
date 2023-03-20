@@ -28,6 +28,7 @@ function Group6({
     activeGroup, 
     group6ColorValue, 
     setGroup6ColorValue, 
+    group6TitleValue,
     handleTitle6ValueChange,
 
     selectedOption,
@@ -75,6 +76,8 @@ function Group6({
                             className='group-title' 
                             placeholder="Click to add title" 
                             onChange={handleTitle6Change}
+                            value={group6TitleValue}
+                            maxLength='30'
                             type='text'
                             ></input>
 

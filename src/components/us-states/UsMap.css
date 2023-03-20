@@ -45,12 +45,17 @@ Place this code in the empty space below. */
 	
  }
 
- .map-background {
+ #usMap {
     background-color: white;
-    width: 95%;
     display: inline-block;
     vertical-align: middle;
-    margin-top: 13px;
+    width: 70%;
+	display: flex;
+	align-items: center;
+	margin: 0 auto;
+    margin-top: 15px;
+    border: 10px solid #212529;
+
 
  }
 

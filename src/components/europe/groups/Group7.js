@@ -28,6 +28,7 @@ function Group7({
     activeGroup, 
     group7ColorValue, 
     setGroup7ColorValue, 
+    group7TitleValue,
     handleTitle7ValueChange,
 
     selectedOption,
@@ -76,6 +77,8 @@ function Group7({
                             placeholder="Click to add title" 
                             onChange={handleTitle7Change}
                             type='text'
+                            value={group7TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

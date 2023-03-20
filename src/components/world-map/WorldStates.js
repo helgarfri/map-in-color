@@ -56,7 +56,7 @@ function handleDownloadClickPNG() {
 	document.body.appendChild(loader);
   
 	const message = document.createElement("div");
-	message.textContent = "Just a moment...";
+	message.textContent = "Just a second...";
 	message.className = "loader-message";
 	document.body.appendChild(message);
   
@@ -66,7 +66,8 @@ function handleDownloadClickPNG() {
 	  .then((canvas) => {
 		const pngUrl = canvas.toDataURL("image/png");
 		const downloadLink = document.createElement("a");
-		downloadLink.download = mapTitleValue;
+		downloadLink.download = mapTitleValue.replace(/\s/g, '-');
+
 		downloadLink.href = pngUrl;
   
 		console.log("pngUrl: ", pngUrl);
@@ -97,7 +98,7 @@ function handleDownloadClickPNG() {
 	document.body.appendChild(loader);
   
 	const message = document.createElement("div");
-	message.textContent = "Just a moment...";
+	message.textContent = "Just a second...";
 	message.className = "loader-message";
 	document.body.appendChild(message);
   
@@ -107,7 +108,8 @@ function handleDownloadClickPNG() {
 	  .then((canvas) => {
 		const jpegUrl = canvas.toDataURL("image/jpeg");
 		const downloadLink = document.createElement("a");
-		downloadLink.download = mapTitleValue;
+		downloadLink.download = mapTitleValue.replace(/\s/g, '-');
+;
 		downloadLink.href = jpegUrl;
   
 		console.log("jpegUrl: ", jpegUrl);

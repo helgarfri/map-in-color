@@ -37,7 +37,7 @@ function Group3({
     group8StatesValue,
     setGroup8StatesValue,
 
-
+    group3TitleValue,
     handleTitle3ValueChange,
 
     selectedOption,
@@ -82,6 +82,9 @@ console.log(group3ColorValue)
                             placeholder="Click to add title" 
                             onChange={handleTitle3Change}
                             type='text'
+                            value={group3TitleValue}
+                            maxLength='30'
+
                             ></input>
 
                         
