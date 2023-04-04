@@ -14,7 +14,7 @@
 } 
 
 .svg-us {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgb(255, 255, 255);
 }
 
 .groups {
@@ -46,7 +46,6 @@ Place this code in the empty space below. */
  }
 
  #usMap {
-    background-color: white;
     display: inline-block;
     vertical-align: middle;
     width: 70%;
@@ -54,7 +53,6 @@ Place this code in the empty space below. */
 	align-items: center;
 	margin: 0 auto;
     margin-top: 15px;
-    border: 10px solid #212529;
 
 
  }

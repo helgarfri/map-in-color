@@ -4,15 +4,27 @@
   font-family: 'Open Sans', sans-serif;
 }
 
+.header-git {
+  position: absolute;
+  top: 36px;
+  right: 5%;
+ 
+}
+
+.nav-items {
+  display: flex;
+  flex-direction: row;
+
+}
+
 .home-Demo {
   width: 70%;
   display: flex;
   margin: 0 auto;
-  border: 10px solid black;
 
 }
 
-.home-row{
+.home-sec{
     display: flex;
     flex-direction: column;
     color: white;
@@ -33,15 +45,69 @@
 
 .home-description {
   font-size: 18px;
-  width: 70%;
+  width: 1000px;
   margin: 30px auto;
   text-align: start;
   letter-spacing: 0.6px;
   line-height: 30px;
+  max-width: 1000px;
+  
   
 
 }
 
+
+.map-types p {
+  max-width: 500px;
+  font-size: 18px;
+  margin-left: 30px;
+  text-align: start;
+}
+
+.map-types h3 {
+  margin: 0px 10px 10px 0px;
+}
+
+.map-types img {
+  max-width: 500px;
+  
+  
+
+}
+
+.map-types a {
+  all: unset;
+  background-color: #495057;
+  color: white;
+  border-radius: 10px;
+  transition: 0.3s;
+  padding: 5px;
+  
+  
+
+}
+
+.map-types a:hover {
+    background-color: #e9ecef;
+    color: black;
+}
+
+.map-types {
+  background-color: #212529;
+}
+
+
+
+.map-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border: #212529 10px solid;
+  width: fit-content;
+  margin: 30px auto
+  
+}
 .group {
   display: flex;
   flex-direction: column;
@@ -76,7 +142,11 @@
   
 }
 
-
+.header-nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 .header-nav li {
   font-size: 28px;
   

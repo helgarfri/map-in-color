@@ -3,6 +3,7 @@ import Title from "../Title"
 import { useState } from "react"
 import WorldStates from "./WorldStates"
 
+
 function WorldMap({
     group1TitleValue, 
     group2TitleValue ,
@@ -55,10 +56,12 @@ function WorldMap({
     handleMapTitleValueChange
 }) {
 
+
+
   
     return(
         <div>
-           
+         
             <WorldStates 
             handleMapTitleValueChange={handleMapTitleValueChange}
           

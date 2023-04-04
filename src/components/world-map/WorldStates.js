@@ -62,7 +62,7 @@ function handleDownloadClickPNG() {
   
 	setLoading(true);
   
-	html2canvas(svgElement, { scale: 6 })
+	html2canvas(svgElement, { scale: 6, backgroundColor:null })
 	  .then((canvas) => {
 		const pngUrl = canvas.toDataURL("image/png");
 		const downloadLink = document.createElement("a");
@@ -211,6 +211,7 @@ function handleDownloadClickPNG() {
 				handleDownloadClickJPEG={handleDownloadClickJPEG}
 				selectedRes={selectedRes}
 				setSelectedRes={setSelectedRes}
+				currentMap='worldMap'
 			/>
 			
 			

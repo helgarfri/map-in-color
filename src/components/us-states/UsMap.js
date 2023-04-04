@@ -40,44 +40,7 @@ function UsMap({
 
 	const [loading, setLoading] = useState(false);
 
-	function handleDownloadClickPNG() {
-		const svgElement = document.getElementById("usMap");
 	
-		const loader = document.createElement("div");
-		loader.className = "loader";
-		document.body.appendChild(loader);
-	  
-		const message = document.createElement("div");
-		message.textContent = "Just a second...";
-		message.className = "loader-message";
-		document.body.appendChild(message);
-	  
-		setLoading(true);
-	  
-		html2canvas(svgElement, { scale: 6 })
-		  .then((canvas) => {
-			const pngUrl = canvas.toDataURL("image/png");
-			const downloadLink = document.createElement("a");
-			downloadLink.download = mapTitleValue.replace(/\s/g, '-');
-;
-			downloadLink.href = pngUrl;
-	  
-			console.log("pngUrl: ", pngUrl);
-			console.log("downloadLink: ", downloadLink);
-	  
-			setTimeout(() => {
-			  downloadLink.click();
-			}, 1000);
-		  })
-		  .catch((error) => {
-			console.error("Failed to download image: ", error);
-		  })
-		  .finally(() => {
-			setLoading(false);
-			document.body.removeChild(loader);
-			document.body.removeChild(message);
-		  });
-	  }
 	  
 	
 	
@@ -199,10 +162,10 @@ function UsMap({
 				mapTitleValue={mapTitleValue}
 				/>
 			<MapSettings
-				handleDownloadClickPNG={handleDownloadClickPNG}
 				handleDownloadClickJPEG={handleDownloadClickJPEG}
 				selectedRes={selectedRes}
 				setSelectedRes={setSelectedRes}
+				currentMap='states'
 			/>
 			
 			
@@ -213,7 +176,7 @@ function UsMap({
 
 <div id='usMap' >
 
-<svg xmlns="http://www.w3.org/2000/svg"  className='svg-us' viewBox='0 0 1100 593' width="95%" height="auto"><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
+<svg xmlns="http://www.w3.org/2000/svg"  className='svg-us' viewBox='0 0 1100 593' width="100%" height="auto"><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
   <title>United States</title>
 <defs>
 

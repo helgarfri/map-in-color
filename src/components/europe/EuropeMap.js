@@ -35,44 +35,7 @@ function EuropeMap({
 
    const [loading, setLoading] = useState(false);
 
-	function handleDownloadClickPNG() {
-		const svgElement = document.getElementById("euMap");
 	
-		const loader = document.createElement("div");
-		loader.className = "loader";
-		document.body.appendChild(loader);
-	  
-		const message = document.createElement("div");
-		message.textContent = "Just a second...";
-		message.className = "loader-message";
-		document.body.appendChild(message);
-	  
-		setLoading(true);
-	  
-		html2canvas(svgElement, { scale: 6 })
-		  .then((canvas) => {
-			const pngUrl = canvas.toDataURL("image/png");
-			const downloadLink = document.createElement("a");
-			downloadLink.download = mapTitleValue.replace(/\s/g, '-');
-;
-			downloadLink.href = pngUrl;
-	  
-			console.log("pngUrl: ", pngUrl);
-			console.log("downloadLink: ", downloadLink);
-	  
-			setTimeout(() => {
-			  downloadLink.click();
-			}, 1000);
-		  })
-		  .catch((error) => {
-			console.error("Failed to download image: ", error);
-		  })
-		  .finally(() => {
-			setLoading(false);
-			document.body.removeChild(loader);
-			document.body.removeChild(message);
-		  });
-	  }
 	  
 	
 	
@@ -195,10 +158,10 @@ function EuropeMap({
 				mapTitleValue={mapTitleValue}
 				/>
 			<MapSettings
-				handleDownloadClickPNG={handleDownloadClickPNG}
 				handleDownloadClickJPEG={handleDownloadClickJPEG}
 				selectedRes={selectedRes}
 				setSelectedRes={setSelectedRes}
+            currentMap='europe'
 			/>
 			
 			

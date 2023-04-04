@@ -4,6 +4,7 @@ function MapSettings({
     handleDownloadClickJPEG, 
     selectedRes, 
     setSelectedRes,
+    currentMap,
    
 }) {
 
@@ -20,7 +21,8 @@ function MapSettings({
             <div className="map-download">
                 <div className="download-format">
                 <p className="settings-title">Download as</p>
-                <button className="settings-button" onClick={handleDownloadClickPNG}>PNG</button>
+                
+                {currentMap === "worldMap" && <button className="settings-button" onClick={handleDownloadClickPNG}>PNG</button>}
 
                 <button className="settings-button" onClick={handleDownloadClickJPEG}>JPEG</button>
 

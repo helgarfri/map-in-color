@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import WorldMap from "./world-map/WorldMap";
+import GitHubButton from "react-github-btn";
+
 
 function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -9,8 +11,11 @@ function Header() {
   }
 
   return (
-    <div className="header">
-      <a href="/home">
+    <div >
+      <div className="header">
+
+     
+      <a href="/">
       <img
         src="../assets/map-in-color-logo-text.png"
         className="logo"
@@ -18,7 +23,7 @@ function Header() {
       </a>
      
       <nav className="header-nav">
-        <ul>
+        <ul className="nav-items">
           <li onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
             Maps           
             <img className="dropdown-icon" src="../assets/dropdown.png"></img>
@@ -48,9 +53,23 @@ function Header() {
                
               </ul>
             )}
+      
+              
           </li>
+        
+
         </ul>
-      </nav>
+
+        
+        
+
+    </nav>
+    <div className="header-git">
+        <GitHubButton  href="https://github.com/helgidavidsson/map-in-color" data-size="large" data-show-count="true" aria-label="Star helgidavidsson/map-in-color on GitHub">Star</GitHubButton>
+        </div>
+    </div>
+   
+        
     </div>
   );
 }
