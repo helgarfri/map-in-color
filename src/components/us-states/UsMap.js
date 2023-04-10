@@ -59,7 +59,7 @@ function UsMap({
 	  
 		setLoading(true);
 	  
-		html2canvas(svgElement, { scale: 6 })
+		html2canvas(svgElement, { scale: 3 })
 		  .then((canvas) => {
 			const jpegUrl = canvas.toDataURL("image/jpeg");
 			const downloadLink = document.createElement("a");
