@@ -431,7 +431,7 @@ input.group-title {
   list-style: none;
   flex-wrap: wrap;
   flex-direction: column;
-  height: 400px;
+  height: 415px;
   align-items: center;
   max-width: 80%;
   margin: 0 auto;
@@ -794,10 +794,10 @@ li {
     width: 300px !important;
   }
   .all-states-eu ul {
-    height: 680px;
+    height: 690px;
   }
   .all-states-us ul {
-    height: 680px;
+    height: 700px;
   }
 
   .country-label {
