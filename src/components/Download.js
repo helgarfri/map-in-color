@@ -1,5 +1,5 @@
 
-function MapSettings({ 
+function Download({ 
     handleDownloadClickPNG, 
     handleDownloadClickJPEG, 
     selectedRes, 
@@ -78,4 +78,4 @@ function MapSettings({
     )
 }
 
-export default MapSettings
+export default Download

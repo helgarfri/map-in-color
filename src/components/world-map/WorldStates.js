@@ -1,5 +1,5 @@
 import html2canvas from "html2canvas";
-import MapSettings from '../MapSettings'
+import Download from '../Download'
 import { useState } from "react";
 import Title from "../Title";
 
@@ -206,7 +206,7 @@ function handleDownloadClickPNG() {
 				handleMapTitleValueChange={handleMapTitleValueChange}
 				mapTitleValue={mapTitleValue}
 				/>
-			<MapSettings
+			<Download
 				handleDownloadClickPNG={handleDownloadClickPNG}
 				handleDownloadClickJPEG={handleDownloadClickJPEG}
 				selectedRes={selectedRes}

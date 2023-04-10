@@ -1,7 +1,7 @@
 import UsMap from "./UsMap"
 import Title from "../Title"
 import Navigator from "./Navigator"
-import MapSettings from "../MapSettings"
+import Download from "../Download"
 import { useState } from "react"
 
 function UnitedStates({

@@ -1,4 +1,4 @@
-import MapSettings from "../MapSettings"
+import Download from "../Download"
 import EuropeMap from "./EuropeMap"
 import Title from "../Title"
 import Navigator from "./Navigator"
