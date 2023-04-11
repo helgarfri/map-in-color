@@ -74,7 +74,7 @@ function Group6({
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle6Change}
                             value={group6TitleValue}
                             maxLength='30'

@@ -6,8 +6,9 @@ function Title({ handleMapTitleValueChange }) {
     
     return(
         <div>
+            
             <input
-                placeholder="Click to add title"
+                placeholder="Your map title here"
                 className='map-title'
                 onChange={handleChange}
                 maxLength='33'

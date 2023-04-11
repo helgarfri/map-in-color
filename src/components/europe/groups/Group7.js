@@ -74,7 +74,7 @@ function Group7({
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle7Change}
                             type='text'
                             value={group7TitleValue}

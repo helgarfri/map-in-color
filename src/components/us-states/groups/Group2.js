@@ -78,7 +78,7 @@ console.log(group2ColorValue)
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle2Change}
                             type='text'
                             value={group2TitleValue}

@@ -74,7 +74,7 @@ function Group8({
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle8Change}
                             type='text'
                             ></input>

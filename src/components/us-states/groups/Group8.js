@@ -79,7 +79,7 @@ console.log(group8ColorValue)
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle8Change}
                             type='text'
                             value={group8TitleValue}

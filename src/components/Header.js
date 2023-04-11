@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import WorldMap from "./world-map/WorldMap";
 import GitHubButton from "react-github-btn";
 
 

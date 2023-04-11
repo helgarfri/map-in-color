@@ -88,7 +88,7 @@ function Group3({
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle3Change}
                             type='text'
                             value={group3TitleValue}

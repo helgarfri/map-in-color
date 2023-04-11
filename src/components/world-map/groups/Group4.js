@@ -81,7 +81,7 @@ function Group4({
                         
                         <input 
                             className='group-title' 
-                            placeholder="Click to add title" 
+                            placeholder="Group title here" 
                             onChange={handleTitle4Change}
                             type='text'
                             value={group4TitleValue}
