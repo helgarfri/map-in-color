@@ -16,6 +16,7 @@ function Header() {
      
       <a href="/">
       <img
+        alt="logo"
         src="../assets/map-in-color-logo-text.png"
         className="logo"
       ></img>
@@ -25,7 +26,13 @@ function Header() {
         <ul className="nav-items">
           <li onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
             Maps           
-            <img className="dropdown-icon" src="../assets/dropdown.png"></img>
+            <img 
+              className="dropdown-icon" 
+              src="../assets/dropdown.png"
+              alt="dropdown"
+              >
+              
+              </img>
 
             {showDropdown && (
               <ul className="header-dropdown">

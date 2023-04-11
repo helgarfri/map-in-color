@@ -9,7 +9,9 @@ function Home() {
                 </div>
                 <img 
                     src="./assets/Life-expectancy-by-country.png"
-                    className="home-Demo">
+                    className="home-Demo"
+                    alt="map-life-expectancy"
+                    >
 
                 </img>
 
@@ -23,15 +25,17 @@ function Home() {
                 Once you're happy with your map, you can download it as a PNG or JPEG file for use in presentations, reports, or any other project you have in mind. With more maps coming soon, our tool is perfect for anyone who needs to create custom visualizations for a wide variety of purposes.
                 </p>
                 
-                <p>
-                And the best part? It's all completely free!
-                </p>
+               
                </p>
 
         <div className="map-types">
 
         <div className="map-row">
-        <img src="./assets/world_map_demo.png"></img>
+        <img 
+            src="./assets/world_map_demo.png"
+            alt="world-map"
+
+        ></img>
             
             <div>
             <p >
@@ -52,7 +56,10 @@ function Home() {
         </div>
 
         <div className="map-row">
-        <img src="./assets/us_states_demo.png"></img>
+        <img 
+            src="./assets/us_states_demo.png"
+            alt="us-states"
+            ></img>
             
             <div>
             <p >
@@ -72,7 +79,11 @@ function Home() {
         </div>
 
         <div className="map-row">
-        <img src="./assets/europe_map_demo.png"></img>
+        <img 
+            src="./assets/europe_map_demo.png"
+            alt="europe"
+        
+        ></img>
             
             <div>
             <p >

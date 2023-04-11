@@ -8,9 +8,7 @@ function Download({
    
 }) {
 
-    const handleOptionChange = (event) => {
-        setSelectedRes(event.target.value);
-      }
+   
 
   
 
