@@ -1,7 +1,6 @@
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from '../Countries';
-import React, { Component, useEffect, useState } from 'react';
-import { CompactPicker, SketchPicker } from 'react-color'
+import { CompactPicker } from 'react-color'
 
 
 

@@ -1,7 +1,6 @@
 import './UsMap.css'
 import html2canvas from 'html2canvas';
 import Download from '../Download';
-import { useState } from 'react';
 import Title from '../Title';
 
 
@@ -38,7 +37,6 @@ function UsMap({
   
 }) {
 
-	const [loading, setLoading] = useState(false);
 
 	
 	  
@@ -57,7 +55,6 @@ function UsMap({
 		message.className = "loader-message";
 		document.body.appendChild(message);
 	  
-		setLoading(true);
 	  
 		html2canvas(svgElement, { scale: 3 })
 		  .then((canvas) => {
@@ -78,7 +75,6 @@ function UsMap({
 			console.error("Failed to download image: ", error);
 		  })
 		  .finally(() => {
-			setLoading(false);
 			document.body.removeChild(loader);
 			document.body.removeChild(message);
 		  });

@@ -1,5 +1,5 @@
 import '../App.css'
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 
 
@@ -226,7 +226,10 @@ function Countries({
           <ul>
           <li>
                <div className="continents">
-                    <img className='con-icon' src='../assets/africa.png'></img>
+                    <img 
+                        className='con-icon' 
+                        src='../assets/africa.png'
+                        alt='Africa'></img>
 
                     <label className='con-label'>Africa</label>
               </div>         
@@ -2140,7 +2143,12 @@ function Countries({
 
           <li>
                <div className="continents">
-                    <img className='con-icon' src='../assets/asia.png'></img>
+                    <img 
+                        className='con-icon' 
+                        src='../assets/asia.png'
+                        alt='Asia'>
+
+                        </img>
 
                     <label className='con-label'>Asia</label>
               </div>         
@@ -3948,7 +3956,13 @@ function Countries({
           <li>
               
               <div className="continents">
-                      <img className='con-icon' src='../assets/europe.png'></img>
+                      <img 
+                        className='con-icon' 
+                        src='../assets/europe.png'
+                        alt='Europe'
+                        >
+
+                        </img>
 
                       <label className='con-label'>Europe</label>
               </div>
@@ -5514,7 +5528,11 @@ function Countries({
 
       <li>
                     <div className="continents">
-                            <img className='con-icon' src='../assets/north-america.png'></img>
+                            <img 
+                                className='con-icon' 
+                                src='../assets/north-america.png'
+                                alt='North America'
+                                ></img>
 
                             <label className='con-label'>North America</label>
                     </div>    
@@ -6982,7 +7000,13 @@ function Countries({
           <ul>
           <li>
                     <div className="continents">
-                            <img className='con-icon' src='../assets/south-america.png'></img>
+                            <img 
+                                className='con-icon' 
+                                src='../assets/south-america.png'
+                                alt='South America'
+                                >
+
+                                </img>
 
                             <label className='con-label'>South America</label>
                     </div>      
@@ -7501,7 +7525,13 @@ function Countries({
           <ul>
           <li>
                 <div className="continents" >
-                    <img className='con-icon' src='../assets/australia.png'></img>
+                    <img 
+                        className='con-icon' 
+                        src='../assets/australia.png'
+                        alt='Australia'
+                        >
+                            
+                        </img>
 
                     <label className='con-label'>Oceana</label>
                 </div>           

@@ -1,8 +1,5 @@
 import UsMap from "./UsMap"
-import Title from "../Title"
 import Navigator from "./Navigator"
-import Download from "../Download"
-import { useState } from "react"
 
 function UnitedStates({
     group1TitleValue, 

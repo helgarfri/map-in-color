@@ -5,34 +5,38 @@ function NavButton({onClick, label, active, index, numItems, setNumItems}) {
 
     const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    setVisible(true);
-  }, []);
+            
+        useEffect(() => {
+            setVisible(true);
+        }, []);
 
-    const [ clicked, setClicked ] = useState(false)
 
-    const handleClick = () => {
-        setClicked(true)
-        onClick()
-    }
+        const handleClick = () => {
+            onClick()
+        }
 
-    const handleRemoveButtonClick = () => {
-        var addButton = document.getElementById('addButton')
+        const handleRemoveButtonClick = () => {
+            var addButton = document.getElementById('addButton')
 
-        setNumItems(numItems - 1);
+            setNumItems(numItems - 1);
 
-        if (numItems = 8) {
-            addButton.style.display = 'flex'
-        }   
+            if (numItems = 8) {
+                addButton.style.display = 'flex'
+            }   
 
-      };  
+        };  
 
      
 
     
     
     return(
-        <li  className={`nav-button ${active ? 'active' : ''} ${visible ? 'visible' : ''}`} >
+        <li  
+            className={
+                `nav-button 
+                ${active ? 'active' : ''} 
+                ${visible ? 'visible' : ''}`
+                } >
             
         <h4 
            
@@ -42,12 +46,19 @@ function NavButton({onClick, label, active, index, numItems, setNumItems}) {
             
             
             {index === numItems - 1 && (
-                <button onClick={handleRemoveButtonClick}
+                <button 
+                    onClick={handleRemoveButtonClick}
                     id='removeButton'
                     className='remove-button'
                 >
                     
-                    <img src='../assets/remove.png' className="remove-img"></img></button>
+                    <img 
+                        src='../assets/remove.png' 
+                        className="remove-img" 
+                        alt="Remove">
+                    </img>
+                </button>
+
               )}
         </h4>
         

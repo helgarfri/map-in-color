@@ -1,6 +1,4 @@
 import Navigator from "./Navigator"
-import Title from "../Title"
-import { useState } from "react"
 import WorldStates from "./WorldStates"
 
 

@@ -44,12 +44,12 @@
 }
 
 .home-description {
-  font-size: 18px;
-  width: 1000px;
+  font-size: 22px;
+  width: 90%;
   margin: 30px auto;
   text-align: start;
-  letter-spacing: 0.6px;
-  line-height: 30px;
+  letter-spacing: 0.8px;
+  line-height: 40px;
   max-width: 1000px;
   
   

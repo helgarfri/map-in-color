@@ -1,7 +1,6 @@
 import 'react-minimal-side-navigation/lib/ReactMinimalSideNavigation.css';
 import Countries from '../Countries';
-import React, { Component, useEffect, useState } from 'react';
-import { CompactPicker, SketchPicker } from 'react-color'
+import { CompactPicker } from 'react-color'
 
 
 
@@ -29,6 +28,8 @@ function Group8({
     activeGroup, 
     group8ColorValue, 
     setGroup8ColorValue, 
+
+    group8TitleValue,
     handleTitle8ValueChange,
 
     selectedOption,
@@ -74,9 +75,11 @@ function Group8({
                         
                         <input 
                             className='group-title' 
-                            placeholder="Group title here" 
+                            placeholder="Click to add title" 
                             onChange={handleTitle8Change}
                             type='text'
+                            value={group8TitleValue}
+                            maxLength='30'
                             ></input>
 
                         

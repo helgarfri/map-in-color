@@ -1,4 +1,4 @@
-import React, { useState, Component } from 'react'
+import React, { useState } from 'react'
 import '../App.css'
 
 import NavButton from '../NavButton'
@@ -146,7 +146,17 @@ function Navigator({
           </li>
         ))}
 
-        <button id='addButton' className='add-button' onClick={handleAddButtonClick}><img className='add-img' src='../assets/plus.png'></img></button>
+        <button 
+          id='addButton' 
+          className='add-button' 
+          onClick={handleAddButtonClick}>
+            
+            <img 
+              className='add-img' 
+              src='../assets/plus.png'
+              alt='Add'>
+            </img>
+          </button>
                 
 
         

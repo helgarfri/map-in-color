@@ -1,4 +1,4 @@
-import React, { useState, Component } from 'react'
+import React, { useState } from 'react'
 import '../App.css'
 import Group1 from './groups/Group1'
 import Group2 from './groups/Group2'
@@ -140,7 +140,19 @@ function Navigator({
           </li>
         ))}
 
-        <button id='addButton' className='add-button' onClick={handleAddButtonClick}><img className='add-img' src='../assets/plus.png'></img></button>
+        <button 
+            id='addButton' 
+            className='add-button' 
+            onClick={handleAddButtonClick}>
+                
+            <img 
+                className='add-img' 
+                src='../assets/plus.png'
+                alt='Add'
+                >
+            
+            </img>
+        </button>
                 
 
         

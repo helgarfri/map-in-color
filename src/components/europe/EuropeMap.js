@@ -1,6 +1,5 @@
 import Download from '../Download';
 import './EuropeMap.css'
-import { useState } from 'react';
 import html2canvas from 'html2canvas';
 import Title from '../Title';
 function EuropeMap({
@@ -33,7 +32,6 @@ function EuropeMap({
    
 }) {
 
-   const [loading, setLoading] = useState(false);
 
 	
 	  
@@ -52,7 +50,7 @@ function EuropeMap({
 		message.className = "loader-message";
 		document.body.appendChild(message);
 	  
-		setLoading(true);
+		;
 	  
 		html2canvas(svgElement, { scale: 3 })
 		  .then((canvas) => {
@@ -73,7 +71,6 @@ function EuropeMap({
 			console.error("Failed to download image: ", error);
 		  })
 		  .finally(() => {
-			setLoading(false);
 			document.body.removeChild(loader);
 			document.body.removeChild(message);
 		  });
