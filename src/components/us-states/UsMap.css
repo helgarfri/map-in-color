@@ -57,4 +57,10 @@ Place this code in the empty space below. */
 
  }
 
+ @media (max-width: 735px) {
+    #usMap {
+       width: 100%;
+    }
+   }
+
  

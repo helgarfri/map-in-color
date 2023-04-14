@@ -31,3 +31,8 @@
 
 }
 
+@media (max-width: 735px) {
+	#euMap {
+	   width: 100%;
+	}
+   }

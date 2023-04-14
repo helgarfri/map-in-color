@@ -183,3 +183,10 @@
 	
 	
 }
+
+
+@media (max-width: 735px) {
+ #worldMap {
+	width: 100%;
+ }
+}

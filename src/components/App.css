@@ -803,6 +803,143 @@ li {
   .country-label {
     font-size: 16px;
   }
+  
  
 
 }
+
+@media (max-width: 735px) {
+
+  .home-slogan {
+    font-size: 25px;
+  }
+
+  .home-subslogan {
+    font-size: 19px;
+  }
+
+  .home-Demo {
+    width: 100%;
+  }
+
+  .home-description {
+    font-size: 14px;
+  }
+
+  .map-row {
+    flex-direction: column;
+  }
+  .map-types img {
+    width: 100%;
+  }
+
+  .footer p {
+    font-size: 10px;
+  }
+
+
+  .header {
+    height: 60px;
+  }
+  .logo {
+    height: 50px;
+  }
+
+  .header-nav li{
+    font-size: 20px;
+  }
+
+  .header-git {
+    display: none;
+   
+    
+  }
+
+  .map-title {
+    margin: 10px;
+    font-size: 22px;
+    width: 200px;
+    
+  }
+
+  .settings-title {
+    font-size: 14px;
+    
+  }
+
+  .settings-button {
+    height: 25px;
+    font-size: 12px;
+   
+  }
+
+  .download-format {
+    margin-top: 4.5px;
+  }
+  .nav-button {
+    height: 40px;
+  }
+.nav-button h4 {
+  font-size: 12px;
+}
+
+  .remove-img {
+    height: 10px;
+  }
+
+  .remove-button {
+    height: 20px;
+    width: 20px;
+  }
+  .add-img {
+    height: 20px;
+    
+  }
+
+  .add-button {
+    margin: 0px;
+  }
+  
+  .group-title {
+    font-size: 30px;
+  }
+
+  .color-picker {
+    width: 170px !important;
+    margin-top: 50px;
+    font-size: 14px;
+  }
+
+  .countries {
+    margin-top: 20px;
+  }
+
+  .country-label {
+    font-size: 20px;
+  }
+
+  .country {
+    height: 16px;
+  }
+
+  .oceana {
+    background-color: #e9ecef;
+  }
+
+  .state-selector {
+    flex-direction: column;
+  }
+
+  .all-states-us ul {
+    flex-direction: row;
+    margin-top: 40px;
+    height: 100%;
+  }
+
+  .all-states-eu ul {
+    flex-direction: row;
+    margin-top: 40px;
+    height: 100%;
+  }
+}
+
