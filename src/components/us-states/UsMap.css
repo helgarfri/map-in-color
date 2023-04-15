@@ -48,7 +48,7 @@ Place this code in the empty space below. */
  #usMap {
     display: inline-block;
     vertical-align: middle;
-    width: 70%;
+    width: 80%;
 	display: flex;
 	align-items: center;
 	margin: 0 auto;

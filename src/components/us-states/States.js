@@ -116,19 +116,7 @@ function States({
             }
           }
         }
-      }, [
-        group, 
-        group1StatesValue, 
-        group2StatesValue, 
-        group3StatesValue, 
-        group4StatesValue,
-        group5StatesValue,
-        group6StatesValue,
-        group7StatesValue,
-        group8StatesValue,
-    
-    
-    ]);
+      },);
     
         
           const handleChange = (event) => {

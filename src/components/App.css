@@ -857,13 +857,13 @@ li {
 
   .map-title {
     margin: 10px;
-    font-size: 22px;
-    width: 200px;
+    font-size: 20px;
+    width: 180px;
     
   }
 
   .settings-title {
-    font-size: 14px;
+    font-size: 12px;
     
   }
 
@@ -908,6 +908,11 @@ li {
     width: 170px !important;
     margin-top: 50px;
     font-size: 14px;
+    
+  }
+
+  .group-set {
+    width: 100%;
   }
 
   .countries {

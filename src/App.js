@@ -86,6 +86,7 @@ function App() {
 
   let component
   switch (window.location.pathname) {
+    default:
     case '/':
       component =
       <Home/>
@@ -238,6 +239,9 @@ function App() {
           numItems={numItems}
           setNumItems={setNumItems}
       />
+
+      break;
+      
   }
 
 

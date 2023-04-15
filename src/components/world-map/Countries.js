@@ -115,16 +115,7 @@ function Countries({
       
          
         }
-      }, [  
-        group,   
-        group1CountryValue,   
-        group2CountryValue,   
-        group3CountryValue,   
-        group4CountryValue,  
-        group5CountryValue,  
-        group6CountryValue,  
-        group7CountryValue,  
-        group8CountryValue,]);
+      },);
       
       const handleChange = (event) => {
         const selectedOption = event.target.value;

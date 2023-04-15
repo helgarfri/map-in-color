@@ -20,7 +20,7 @@ function NavButton({onClick, label, active, index, numItems, setNumItems}) {
 
             setNumItems(numItems - 1);
 
-            if (numItems = 8) {
+            if (numItems === 8) {
                 addButton.style.display = 'flex'
             }   
 
