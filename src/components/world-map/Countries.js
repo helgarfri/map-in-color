@@ -64,33 +64,38 @@ function Countries({
             group === 8
             ) {
           
-          const groups = [      
-            group1CountryValue,      
-            group2CountryValue,      
-            group3CountryValue,      
-            group4CountryValue,      
-            group5CountryValue,      
-            group6CountryValue,      
-            group7CountryValue,      
-            group8CountryValue,    ];
-      
-          const colors = [      
-            group1ColorValue,      
-            group2ColorValue,      
-            group3ColorValue,      
-            group4ColorValue,      
-            group5ColorValue,      
-            group6ColorValue,      
-            group7ColorValue,      
-            group8ColorValue,    ];
-          
-          groups.forEach((groupCountryValue, index) => {
-            if (groupCountryValue.length > 0) {
-              groupCountryValue.forEach((id) => {
-                document.getElementById(id).style.fill = colors[index];
-              });
-            }
-          });
+                const groups = [      
+                    group1CountryValue,      
+                    group2CountryValue,      
+                    group3CountryValue,      
+                    group4CountryValue,      
+                    group5CountryValue,      
+                    group6CountryValue,      
+                    group7CountryValue,      
+                    group8CountryValue,
+                  ];
+                  
+                  const colors = [      
+                    group1ColorValue,      
+                    group2ColorValue,      
+                    group3ColorValue,      
+                    group4ColorValue,      
+                    group5ColorValue,      
+                    group6ColorValue,      
+                    group7ColorValue,      
+                    group8ColorValue,
+                  ];
+                  
+                  groups.forEach((groupCountryValue, index) => {
+                    if (groupCountryValue.length > 0) {
+                      groupCountryValue.forEach((id) => {
+                        document.getElementById(id).style.fill = colors[index];
+                      });
+                    }
+                  });
+
+                  
+                  
 
 
           // loop through all the countries and set their fill color back to the default
@@ -115,7 +120,8 @@ function Countries({
       
          
         }
-      },);
+      }, );
+      
       
       const handleChange = (event) => {
         const selectedOption = event.target.value;

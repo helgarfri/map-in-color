@@ -52,47 +52,36 @@ function States({
             group === 7 ||
             group === 8) {
           
-          for (var i = 0; i < group1StatesValue.length; i++) {
-            const id = group1StatesValue[i];
-            document.getElementById(id).style.fill = group1ColorValue;
-          }
-          
-          for (var i = 0; i < group2StatesValue.length; i++) {
-            const id = group2StatesValue[i];
-            document.getElementById(id).style.fill = group2ColorValue;
-          }
-    
-          for (var i = 0; i < group3StatesValue.length; i++) {
-            const id = group3StatesValue[i];
-            document.getElementById(id).style.fill = group3ColorValue;
-          }
-    
-          for (var i = 0; i < group4StatesValue.length; i++) {
-            const id = group4StatesValue[i];
-            document.getElementById(id).style.fill = group4ColorValue;
-          }
-    
-          for (var i = 0; i < group5StatesValue.length; i++) {
-            const id = group5StatesValue[i];
-            document.getElementById(id).style.fill = group5ColorValue;
-          }
-    
-          for (var i = 0; i < group6StatesValue.length; i++) {
-            const id = group6StatesValue[i];
-            document.getElementById(id).style.fill = group6ColorValue;
-          }
-    
-          for (var i = 0; i < group7StatesValue.length; i++) {
-            const id = group7StatesValue[i];
-            document.getElementById(id).style.fill = group7ColorValue;
-          }
-    
-          for (var i = 0; i < group8StatesValue.length; i++) {
-            const id = group8StatesValue[i];
-            document.getElementById(id).style.fill = group8ColorValue;
-          }
-          
-          
+                const groups = [
+                    group1StatesValue,
+                    group2StatesValue,
+                    group3StatesValue,
+                    group4StatesValue,
+                    group5StatesValue,
+                    group6StatesValue,
+                    group7StatesValue,
+                    group8StatesValue,
+                  ];
+                  
+                  const colors = [
+                    group1ColorValue,
+                    group2ColorValue,
+                    group3ColorValue,
+                    group4ColorValue,
+                    group5ColorValue,
+                    group6ColorValue,
+                    group7ColorValue,
+                    group8ColorValue,
+                  ];
+                  
+                  groups.forEach((groupStatesValue, index) => {
+                    if (groupStatesValue.length > 0) {
+                      groupStatesValue.forEach((id) => {
+                        document.getElementById(id).style.fill = colors[index];
+                      });
+                    }
+                  });
+                  
           
           
           
@@ -117,7 +106,6 @@ function States({
           }
         }
       },);
-    
         
           const handleChange = (event) => {
             const selectedOption = event.target.value;
