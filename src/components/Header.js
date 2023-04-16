@@ -37,21 +37,21 @@ function Header() {
             {showDropdown && (
               <ul className="header-dropdown">
                 <li>
-                  <a href="mapincolor.com/world-map">
+                  <a href="/world-map">
                     World Map
                   </a>
                 
                 </li>
 
                 <li>
-                  <a href="mapincolor.com/us-states">
+                  <a href="/us-states">
                     US States
                   </a>
                 </li>
 
 
                 <li>
-                  <a href="mapincolor.com/europe">
+                  <a href="/europe">
                     Europe
                   </a>
                 </li>
