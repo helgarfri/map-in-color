@@ -87,7 +87,7 @@ function App() {
     let headTitle = 'Map in Color'
     useEffect(() => {
       document.title = headTitle;
-    }, []);
+    }, [headTitle]);
 
   let component
   switch (window.location.pathname) {
