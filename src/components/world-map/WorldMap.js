@@ -2,6 +2,8 @@ import Navigator from "./Navigator"
 import WorldStates from "./WorldStates"
 
 
+
+
 function WorldMap({
     group1TitleValue, 
     group2TitleValue ,
@@ -52,8 +54,11 @@ function WorldMap({
 
     mapTitleValue,
     handleMapTitleValueChange
-}) {
+}) 
+    
+{
 
+  
 
 
   

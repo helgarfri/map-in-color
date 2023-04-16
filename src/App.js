@@ -3,11 +3,11 @@ import './components/world-map/WorldMap.css'
 import Header from './components/Header';
 import WorldMap from './components/world-map/WorldMap';
 import UnitedStates from './components/us-states/UnitedStates';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Europe from './components/europe/Europe';
 import Footer from './components/Footer';
 import Home from './components/Home';
-
+import { Helmet } from 'react-helmet';
 
 
 function App() {
@@ -84,12 +84,18 @@ function App() {
       setGroup8TitleValue(newValue)
     }
 
+    let headTitle = 'Map in Color'
+    useEffect(() => {
+      document.title = headTitle;
+    }, []);
+
   let component
   switch (window.location.pathname) {
     default:
     case '/':
       component =
       <Home/>
+      headTitle = 'Home'
       break;
     case '/world-map':
       component = 
@@ -139,6 +145,7 @@ function App() {
           numItems={numItems}
           setNumItems={setNumItems}
       />
+      headTitle = 'World Map'
     
       break;
     
@@ -190,6 +197,8 @@ function App() {
           setNumItems={setNumItems}
       />
 
+      headTitle = 'United States'
+
       break;
 
     case '/europe':
@@ -240,6 +249,8 @@ function App() {
           setNumItems={setNumItems}
       />
 
+      headTitle = 'Europe'
+
       break;
       
   }
@@ -249,7 +260,9 @@ function App() {
 
   return (
     <div className="App">
-
+      <Helmet>
+        <link rel="icon" type="image/png" href="/public/assets/map-in-color-logo.png" sizes="16x16" />
+      </Helmet>
       <Header/>
       
       {component}
