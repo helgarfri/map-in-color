@@ -46,7 +46,6 @@ function Group6({
     
 }) {
     
-console.log(group6ColorValue)
     const handleColorChange = (color) =>{
         setGroup6ColorValue(color.hex)
         for (var i = 0; i < group6StatesValue.length; i++) {

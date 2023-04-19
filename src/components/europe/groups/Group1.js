@@ -44,10 +44,14 @@ function Group1({
 
     const handleColorChange = (color) =>{
         setGroup1ColorValue(color.hex)
+
         for (var i = 0; i < group1CountryValue.length; i++) {
             const id = group1CountryValue[i];
+
             document.getElementById(id).style.fill = color.hex;
+            
           }
+          
     }
 
 

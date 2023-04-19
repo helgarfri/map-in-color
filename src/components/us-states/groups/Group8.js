@@ -46,7 +46,6 @@ function Group8({
     
 }) {
     
-console.log(group8ColorValue)
     const handleColorChange = (color) =>{
         setGroup8ColorValue(color.hex)
         for (var i = 0; i < group8StatesValue.length; i++) {

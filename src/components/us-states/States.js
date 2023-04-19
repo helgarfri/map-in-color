@@ -40,7 +40,6 @@ function States({
     useEffect(() => {
         // get a list of all the states
         const allStatesId = document.getElementsByClassName("states");
-        console.log(allStatesId)
 
         if (
             group === 1 || 

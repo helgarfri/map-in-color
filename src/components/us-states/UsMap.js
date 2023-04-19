@@ -118,7 +118,6 @@ function UsMap({
 			  title: group8TitleValue
 			}
 	  ];
-	  console.log(group1TitleValue)
 	  const groups = [];
 	  
 	  for (let i = 0; i < numItems; i++) {

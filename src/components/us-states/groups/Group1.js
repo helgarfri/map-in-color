@@ -45,7 +45,6 @@ function Group1({
     
 }) {
     
-console.log(group1ColorValue)
     const handleColorChange = (color) =>{
         setGroup1ColorValue(color.hex)
         for (var i = 0; i < group1StatesValue.length; i++) {

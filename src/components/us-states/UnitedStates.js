@@ -53,7 +53,6 @@ function UnitedStates({
     handleMapTitleValueChange
 }) {
 
-    console.log(group1TitleValue)
     return(
 
         <div>

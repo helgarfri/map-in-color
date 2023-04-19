@@ -90,6 +90,11 @@ function Countries({
               groupCountryValue.forEach((id) => {
                 document.getElementById(id).style.fill = colors[index];
               });
+
+              if (groupCountryValue.includes('ru')) {
+                document.getElementById('ru-kgd').style.fill = colors[index]
+              }
+
             }
           });
 
@@ -105,11 +110,32 @@ function Countries({
                 !group5CountryValue.includes(id) &&
                 !group6CountryValue.includes(id) &&
                 !group7CountryValue.includes(id) &&
-                !group8CountryValue.includes(id)
-                ) {
+                !group8CountryValue.includes(id) 
+                
+                ) 
+
+                
+                { 
                    
               document.getElementById(id).style.fill = "#c0c0c0";
+            
+             
+
+              
             }
+            if (!group1CountryValue.includes('ru') && 
+            !group2CountryValue.includes('ru') && 
+            !group3CountryValue.includes('ru') && 
+            !group4CountryValue.includes('ru') &&
+            !group5CountryValue.includes('ru') &&
+            !group6CountryValue.includes('ru') &&
+            !group7CountryValue.includes('ru') &&
+            !group8CountryValue.includes('ru') 
+            ) {
+                document.getElementById('ru-kgd').style.fill = '#c0c0c0'
+
+              }
+           
           }
 
       

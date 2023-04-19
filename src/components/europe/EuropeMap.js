@@ -726,6 +726,7 @@ function EuropeMap({
                  >
                   <title>Russia</title>
                  </path>
+                 
               <path
                  style={{ fill: '#c0c0c0', stroke: '#ffffff', strokeWidth: 0.39996129, strokeMiterlimit: 4, strokeDasharray: 'none' }}
 
