@@ -1,7 +1,7 @@
-import Download from '../Download';
 import './EuropeMap.css'
 import html2canvas from 'html2canvas';
-import Title from '../Title';
+import Title from '../../Title';
+import Download from '../../Download';
 function EuropeMap({
    mapTitleValue,
    handleMapTitleValueChange,

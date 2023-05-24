@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import '../App.css'
+import '../../App.css'
 
-import NavButton from '../NavButton'
 import Group1 from './groups/Group1';
 import Group2 from './groups/Group2';
 import Group3 from './groups/Group3';
@@ -10,6 +9,8 @@ import Group5 from './groups/Group5';
 import Group6 from './groups/Group6';
 import Group7 from './groups/Group7';
 import Group8 from './groups/Group8';
+
+import NavButton from '../../NavButton';
 
 
 function Navigator({ 

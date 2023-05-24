@@ -1,7 +1,7 @@
 import './UsMap.css'
 import html2canvas from 'html2canvas';
-import Download from '../Download';
-import Title from '../Title';
+import Download from '../../Download';
+import Title from '../../Title';
 
 
 

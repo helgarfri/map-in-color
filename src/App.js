@@ -1,10 +1,12 @@
 import './components/App.css';
-import './components/world-map/WorldMap.css'
 import Header from './components/Header';
-import WorldMap from './components/world-map/WorldMap';
-import UnitedStates from './components/us-states/UnitedStates';
 import { useState, useEffect } from 'react';
-import Europe from './components/europe/Europe';
+
+import Europe from './components/maps/europe/Europe';
+import UnitedStates from './components/maps/us-states/UnitedStates';
+import WorldMap from './components/maps/world-map/WorldMap';
+
+
 import Footer from './components/Footer';
 import Home from './components/Home';
 import { Helmet } from 'react-helmet';

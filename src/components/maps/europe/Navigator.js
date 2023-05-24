@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import '../App.css'
+import '../../App.css'
 import Group1 from './groups/Group1'
 import Group2 from './groups/Group2'
 import Group3 from './groups/Group3'
@@ -8,8 +8,7 @@ import Group5 from './groups/Group5'
 import Group6 from './groups/Group6'
 import Group7 from './groups/Group7'
 import Group8 from './groups/Group8'
-import NavButton from '../NavButton'
-
+import NavButton from '../../NavButton'
 
 
 function Navigator({ 
@@ -97,8 +96,8 @@ function Navigator({
     const [ group8CountryValue, setGroup8CountryValue ] = useState('')
 
 
-    const [selectedOption, setSelectedOption] = useState([]);
 
+    const [selectedOption, setSelectedOption] = useState([]);
 
     
 
@@ -133,7 +132,6 @@ function Navigator({
               index={index}
               numItems={numItems}
               setNumItems={setNumItems}
-              className='nav-button'
               
             />
              
@@ -144,33 +142,28 @@ function Navigator({
             id='addButton' 
             className='add-button' 
             onClick={handleAddButtonClick}>
-                
-            <img 
-                className='add-img' 
-                src='../assets/plus.png'
-                alt='Add'
-                >
-            
-            </img>
-        </button>
+                <img 
+                    className='add-img' 
+                    src='../assets/plus.png'
+                    alt='Add'
+                    >
+                        </img>
+                    </button>
                 
 
         
 
                 </ul>
-                
-
                 <Group1
-                    activeGroup={activeGroup }
-                    
-                    // color value
-                    group1ColorValue={group1ColorValue}
+                    activeGroup={activeGroup}
+                     // color value
+                    group1ColorValue = {group1ColorValue}
                     setGroup1ColorValue={setGroup1ColorValue}
-
+                    
                     // country value
                     group1CountryValue={group1CountryValue}
                     setGroup1CountryValue={setGroup1CountryValue}
-                    
+
                     group2CountryValue={group2CountryValue}
                     setGroup2CountryValue={setGroup2CountryValue}
 
@@ -191,22 +184,19 @@ function Navigator({
 
                     group8CountryValue={group8CountryValue}
                     setGroup8CountryValue={setGroup8CountryValue}
-
+                    
                     // group title
                     group1TitleValue={group1TitleValue}
                     handleTitle1ValueChange={handleTitle1ValueChange}
 
-
                     selectedOption={selectedOption}
                     setSelectedOption={setSelectedOption}
 
-            
-                   
-                   
-                    
-                    
+
+                 
 
                 />
+
                 <Group2
                     activeGroup={activeGroup }
                     
@@ -245,6 +235,8 @@ function Navigator({
 
                     selectedOption={selectedOption}
                     setSelectedOption={setSelectedOption}
+
+            
                    
                    
                     
