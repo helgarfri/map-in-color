@@ -1,70 +1,47 @@
-# Getting Started with Create React App
+# Map in Color
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description
 
-## Available Scripts
+"Map in Color" is a web application designed to create visually engaging, color-coded maps for data visualization. This application currently supports world maps, maps of the United States, and Europe, allowing users to group countries or states and assign them distinct colors. It's an excellent tool for educators, data analysts, or anyone interested in presenting geographical data in an easy-to-understand, visual format.
 
-In the project directory, you can run:
+## Current Features
 
-### `npm start`
+- **Create Color-Coded Maps**: Users can generate maps of the world, US states, and Europe.
+- **Custom Color Groups**: Ability to create groups with specific colors and assign different countries or states to these groups.
+- **Interactive Map Interface**: Users can interact with the map to select and color-code regions.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Planned Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Expansion of Maps**: Adding maps for North and South America, Africa, Asia, and Oceania.
+- **Data Import Functionality**: Ability to import .xls files to automatically generate color-coded maps based on the data.
 
-### `npm test`
+## Getting Started
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prerequisites
 
-### `npm run build`
+- Node.js
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone the repository: `git clone https://github.com/helgidavidsson/map-in-color`
+2. Navigate to the project directory:
+   / `cd map-in-color`
+3. Install dependencies:
+   / `npm install`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Running the Application
 
-### `npm run eject`
+Run the application locally using the following command:
+/ `npm start`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Contributing
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+We welcome contributions! If you have ideas for new features or improvements, feel free to fork the repository and submit pull requests.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## License
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+This project is currently unlicensed. More details about the license will be added in the future.
 
-## Learn More
+## Contact
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Helgi Freyr Davíðsson - [helgifreyr02@gmail.com](helgifreyr02@gmail.com)
