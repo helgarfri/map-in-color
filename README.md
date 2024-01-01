@@ -2,7 +2,7 @@
 
 ## Description
 
-"Map in Color" is a web application designed to create visually engaging, color-coded maps for data visualization. This application currently supports world maps, maps of the United States, and Europe, allowing users to group countries or states and assign them distinct colors. It's an excellent tool for educators, data analysts, or anyone interested in presenting geographical data in an easy-to-understand, visual format.
+"Map in Color" is a web application designed to create visually engaging, color-coded maps for data visualization. This application currently supports world map, map of the United States, and Europe, allowing users to group countries or states and assign them distinct colors. It's an excellent tool for educators, data analysts, or anyone interested in presenting geographical data in an easy-to-understand, visual format.
 
 ## Current Features
 
@@ -23,16 +23,17 @@
 
 ### Installation
 
-1. Clone the repository: `git clone https://github.com/helgidavidsson/map-in-color`
+1. Clone the repository:
+   // `git clone https://github.com/helgidavidsson/map-in-color`
 2. Navigate to the project directory:
-   / `cd map-in-color`
+   // `cd map-in-color`
 3. Install dependencies:
-   / `npm install`
+   // `npm install`
 
 ### Running the Application
 
 Run the application locally using the following command:
-/ `npm start`
+// `npm start`
 
 ## Contributing
 
