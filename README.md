@@ -23,17 +23,17 @@
 
 ### Installation
 
-1. Clone the repository:
-   // `git clone https://github.com/helgidavidsson/map-in-color`
-2. Navigate to the project directory:
-   // `cd map-in-color`
-3. Install dependencies:
-   // `npm install`
+1. Clone the repository: \
+   `git clone https://github.com/helgidavidsson/map-in-color`
+2. Navigate to the project directory: \
+   `cd map-in-color`
+3. Install dependencies: \
+   `npm install`
 
 ### Running the Application
 
-Run the application locally using the following command:
-// `npm start`
+Run the application locally using the following command: \
+ `npm start`
 
 ## Contributing
 
