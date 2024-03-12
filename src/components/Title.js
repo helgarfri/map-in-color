@@ -6,7 +6,6 @@ function Title({ handleMapTitleValueChange }) {
     
     return(
         <div>
-            
             <input
                 placeholder="Your map title here"
                 className='map-title'

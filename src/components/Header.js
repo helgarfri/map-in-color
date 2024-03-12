@@ -57,11 +57,17 @@ function Header() {
                 </li>
 
                
+               
               </ul>
             )}
       
               
           </li>
+
+          <li>
+            <a href="create">Create a new map</a>
+          </li>
+
         
 
         </ul>

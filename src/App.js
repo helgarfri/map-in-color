@@ -10,6 +10,9 @@ import WorldMap from './components/maps/world-map/WorldMap';
 import Footer from './components/Footer';
 import Home from './components/Home';
 import { Helmet } from 'react-helmet';
+import Create from './components/CreateNew';
+import MapTypeSelection from './components/CreateNew';
+import CreateNew from './components/CreateNew';
 
 
 function App() {
@@ -99,6 +102,10 @@ function App() {
       <Home/>
       headTitle = 'Home'
       break;
+    case '/create':
+      component = 
+      <CreateNew/>
+    break;
     case '/world-map':
       component = 
       <WorldMap
