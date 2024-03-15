@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import SelectMap from './SelectMap';
 import SelectType from './SelectType';
 import DataIntergration from './DataIntergration';
-import DataChor from './DataChor';
 import FinalizeMap from './FinalizeMap'; // Import the new component
 
 export default function CreateNew() {
@@ -33,7 +32,7 @@ export default function CreateNew() {
     <div>
       {step === 1 && <SelectMap selectedMap={selectedMap} setSelectedMap={setSelectedMap} continueToNextStep={goToNextStep} />}
       {step === 2 && <SelectType selectedType={selectedType} setSelectedType={setSelectedType} continueToNextStep={goToNextStep} goBack={goBack} />}
-      {step === 3 && <DataIntergration selectedMap={selectedMap} csvData={csvData} setCsvData={setCsvData} goToNextStep={goToNextStep} goBack={goBack} />}
+      {step === 3 && <DataIntergration selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} setCsvData={setCsvData} goToNextStep={goToNextStep} goBack={goBack} />}
 
       {step === 4 && <FinalizeMap selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} goBack={goBack} goToNextStep={goToNextStep} finalize={finalizeCreation} />}
     </div>

@@ -129,6 +129,11 @@ p {
     
   }
 
+  .selectedClass {
+    background-color: #f0f0f0; /* Example styling */
+  }
+  
+
 
   .resetButton {
     transition: .2s;
@@ -172,4 +177,6 @@ p {
 .expanded {
   max-height: 1000px; /* Adjust based on your content's maximum height */
 }
+
+
 

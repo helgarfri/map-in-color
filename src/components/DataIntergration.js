@@ -9,18 +9,25 @@ import WorldMapSVG from './WorldMapSVG'
 import UsSVG from "./UsSVG";
 import EuropeSVG from "./EuropeSVG";
 import { useEffect } from "react";
+import CateGroup from "./CateGroup";
+import ChoroGroup from "./ChoroGroup"
 
-export default function DataCate({
+
+export default function DataIntergration({
   goBack, 
   selectedMap,
   goToNextStep,
   setCsvData,
   csvData,
+  selectedType
 
 }) {
   const [groups, setGroups] = useState({});
   const [isUploaded, setIsUploaded] = useState(false);
   const [openCategory, setOpenCategory] = useState(null);
+
+  const [classLabels, setClassLabels] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(null);
 
   const onDrop = React.useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
@@ -51,10 +58,10 @@ export default function DataCate({
   };
   
   const processCsv = (csvText) => {
-    const lines = csvText.split('\n').map(line => line.trim()).filter(line => line);
-    const result = {};
+    // Split lines and filter out empty or comment lines
+    const lines = csvText.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
   
-   
+    // Determine the dataSource based on the selectedMap
     let dataSource;
     switch (selectedMap) {
       case 'usa':
@@ -68,26 +75,106 @@ export default function DataCate({
         break;
     }
   
-    lines.forEach(line => {
-      const [name, category] = line.split(',').map(item => item.trim().replace(/""/g, '"'));
-      if (name && category) {
-        const dataItem = dataSource.find(item => item.name === name);
-        const code = dataItem ? dataItem.code : 'Unknown'; 
-        if (!result[category]) {
-          const existingColor = groups[category] ? groups[category].color : '#c0c0c0';
-          result[category] = { countries: [], color: existingColor };
-        }
-        result[category].countries.push({ name, code });
-      }
+    // Parse the CSV lines to extract name, value pairs
+    let parsedData = lines.map(line => {
+      const parts = line.split(',').map(part => part.trim().replace(/""/g, '"'));
+      const name = parts[0];
+      const value = parts.length > 1 ? parts[1] : null; // Assuming second column is the value
+      const dataItem = dataSource.find(item => item.name === name);
+      const code = dataItem ? dataItem.code : 'Unknown';
+      return { name, code, value };
     });
+  
+    // Delegate to type-specific processing functions
+    if (selectedType === 'categorical') {
+      processCsvForCategorical(parsedData);
+    } else if (selectedType === 'choropleth') {
+      processCsvForChoropleth(parsedData);
+    }
+  };
+  
+  const processCsvForCategorical = (parsedData) => {
+    // Group parsed data into categories
+    const result = parsedData.reduce((acc, { name, code, value }) => {
+      const category = value; // Assuming value is the category in categorical data
+      if (!acc[category]) {
+        acc[category] = { countries: [], color: '#c0c0c0' }; // Default color
+      }
+      acc[category].countries.push({ name, code });
+      return acc;
+    }, {});
   
     setGroups(result);
     setIsUploaded(true);
-    setCsvData(result); 
-    console.log("Processed CSV:", result);
+    setCsvData(result);
   };
   
   
+  const processCsvForChoropleth = (parsedData) => {
+    const values = parsedData
+      .map((d) => ({ ...d, value: parseFloat(d.value) }))
+      .filter((d) => !isNaN(d.value))
+      .sort((a, b) => a.value - b.value);
+  
+    const numClasses = 5;
+    const minValue = values[0].value;
+    const maxValue = values[values.length - 1].value;
+    const range = maxValue - minValue;
+    const classWidth = range / numClasses;
+  
+    const initialGroups = Array.from({ length: numClasses }, (_, i) => {
+      const lowerBound = minValue + i * classWidth;
+      const upperBound = i === numClasses - 1 ? maxValue : lowerBound + classWidth;
+      return {
+        range: `${lowerBound.toFixed(2)} - ${upperBound.toFixed(2)}`,
+        countries: [],
+        color: '#c0c0c0',
+      };
+    });
+  
+    // A safer function to determine the class index
+    const getClassIndex = (value) => {
+      if (value === maxValue) {
+        return numClasses - 1; // Ensure the max value falls within the last class
+      }
+      return Math.floor((value - minValue) / classWidth);
+    };
+  
+    values.forEach((dataItem) => {
+      const classIndex = getClassIndex(dataItem.value);
+      // Safety check to ensure classIndex is within bounds
+      if (initialGroups[classIndex]) {
+        initialGroups[classIndex].countries.push({
+          name: dataItem.name,
+          code: dataItem.code,
+        });
+      } else {
+        console.error('Class index out of bounds:', classIndex);
+      }
+    });
+  
+    const finalGroups = initialGroups.reduce((acc, group, index) => {
+      acc[group.range] = { countries: group.countries, color: group.color };
+      return acc;
+    }, {});
+  
+    setGroups(finalGroups);
+    setIsUploaded(true);
+    setCsvData(finalGroups);
+  };
+  
+  
+
+
+  // Handler for class selection
+const handleClassSelection = (classIndex) => {
+  setSelectedClass(classIndex);
+  // Here, you could further process data based on the selected class, such as highlighting the map accordingly
+};
+
+
+  
+
   
   const resetSvgColors = () => {
     console.log("Resetting SVG colors");
@@ -213,14 +300,12 @@ useEffect(() => {
 }, [csvData]);
 
 
-
 const toggleCategory = (category) => {
   setOpenCategory((prevOpenCategory) => (prevOpenCategory === category ? null : category));
 };
-
 return (
   <div>
-    <button onClick={downloadTemplate}>Download</button>
+    <button onClick={downloadTemplate}>Download Template</button>
     <h2>Data Integration</h2>
     <div className={styles.dataUploader}>
       <div className={styles.content}>
@@ -233,35 +318,42 @@ return (
 
               return (
                 <div key={category} className={styles.group}>
-                  <div className={styles.categoryHeader}>
-                    {/*Here we need either Categroup or Chorogroup and
-                      they should handle the data diffrently
-                    */}
-                    <input
-                      type="color"
-                      value={color}
-                      className={styles.colorInp}
-                      onChange={(e) => handleColorChange(e.target.value, category)}
+
+
+
+                  {selectedType === 'categorical' && (
+                    <CateGroup
+                      color={color}
+                      handleColorChange={(newColor) => handleColorChange(newColor, category)}
+                      category={category}
+                      unknownCount={unknownCount}
+                      isOpen={isOpen}
+                      toggleCategory={toggleCategory}
+                      countries={countries}
                     />
-                      <h3>{category}</h3>
-                        {unknownCount > 0 && (
-                          <span className={styles.unknownMessage}>
-                            {unknownCount} {unknownCount === 1 ? 'item' : 'items'} not found
-                          </span>
-                        )}
-                        <button
-                          aria-expanded={isOpen}
-                          onClick={() => toggleCategory(category)}
-                          className={`${styles.toggleButton} ${isOpen ? styles.rotated : ''}`}
-                        >
-                          ▼
-                        </button>
-                     
-                  </div>
+                  )}
+
+            
+
+                    {selectedType === "choropleth" && (
+                      console.log("Rendering ChoroGroup", classLabels),
+                      <ChoroGroup
+                        color={color}
+                      handleColorChange={(newColor) => handleColorChange(newColor, category)}
+                      category={category}
+                      unknownCount={unknownCount}
+                      isOpen={isOpen}
+                      toggleCategory={toggleCategory}
+                      countries={countries}
+                      />
+                    )}
+
+                
+                
+
                   <div className={`${styles.animatedContent} ${isOpen ? styles.expanded : ''} `}>
                     <div className={styles.itemListContainer}>
-                    {countries.map((country, index) => (
-            
+                      {countries.map((country, index) => (
                         <React.Fragment key={index}>
                           <span className={styles.itemList} style={{ color: country.code === 'Unknown' ? 'red' : 'inherit' }}>
                             {`${country.name} (${country.code})`}
@@ -270,7 +362,6 @@ return (
                         </React.Fragment>
                       ))}
                     </div>
-               
                   </div>
                 </div>
               );
@@ -284,7 +375,7 @@ return (
             {isDragActive ? <p>Drop the files here ...</p> : <p>Drag 'n' drop some files here, or click to select files</p>}
           </div>
         )}
-          <div className={styles.svgMapContainer}>
+        <div className={styles.svgMapContainer}>
           <h3>Preview</h3>
           {selectedMap === 'world' && <WorldMapSVG groups={groups} />}
           {selectedMap === 'usa' && <UsSVG groups={groups} />}
@@ -296,4 +387,4 @@ return (
     <button onClick={goToNextStep}>Finalize</button>
   </div>
 );
-};
+        }
