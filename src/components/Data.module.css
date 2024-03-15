@@ -1,0 +1,175 @@
+.dataUploader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+
+}
+
+.csvUploader {
+  transition: border 0.3s ease-in-out;
+  border: 2px dashed #cccccc;
+
+}
+
+.groupsDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 40%;
+}
+
+
+.csvUploader, .groupsDisplay {
+
+  border-radius: 5px;
+  padding: 20px;
+  width: 40%;
+  max-width: 600px;
+  text-align: center;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+
+
+.group, .group p, .categoryHeader {
+  box-sizing: border-box; /* Apply consistently to all child elements */
+}
+
+.csvUploader:hover {
+  border-color: #aaaaaa;
+}
+
+.dropActive {
+  border-color: #2196f3;
+  background-color: #f0faff;
+}
+
+h3 {
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+p {
+  margin: 0;
+  font-size: 16px;
+  color: #666666;
+}
+
+  
+  .content {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    
+  }
+  
+
+  
+  .group {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+
+}
+  
+.group h3 {
+    margin: 0;
+    padding: 10px;
+    text-align: left;
+    flex-grow: 1;
+  }
+  .group p {
+    margin: 0;
+    padding: 10px;
+    background-color: #f9f9f9;
+    font-size: small;
+    text-align: left;
+    width: 100%;
+    
+  }
+
+  .itemList {
+    background-color: #f9f9f9;
+    font-size: small;
+    text-align: left;
+
+  }
+
+  .itemListContainer {
+    margin:10px;
+    text-align: left;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-height: 200px;
+    overflow-y: auto; /* Enable vertical scrolling */
+  }
+
+  .categoryHeader {
+    display: flex;
+    align-items: center;
+    background-color: #e9e9e9;
+    width: 100%;
+   
+  }
+
+  .svgMapContainer {
+    flex: 1;
+  }
+  
+
+  .colorInp {
+    margin-left: 0px;
+    width: 40px;
+    height: 40px;
+    margin-right: 0px;
+    
+  }
+
+
+  .resetButton {
+    transition: .2s;
+    border: none;
+    border-radius: 4px;
+  }
+
+  .resetButton:hover{
+    background-color: #666666;
+    color: white;
+    border: none;
+    
+  }
+  
+  .unknownMessage {
+    color: red;
+    font-size: small;
+  }
+/* Add or adjust existing CSS */
+
+.toggleButton {
+  transition: transform 0.6s ease-out; /* Match the duration and easing to animatedContent */
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  margin: 0px;
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+.animatedContent {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.6s ease-out; /* Ensure this matches the duration and easing of the toggleButton */
+}
+
+.expanded {
+  max-height: 1000px; /* Adjust based on your content's maximum height */
+}
+

@@ -10,7 +10,6 @@ export default function SelectType({ continueToNextStep, goBack, selectedType, s
     return(
         <div>
             <div className={styles.typeContainer}>
-            <button onClick={goBack}>Go Back</button>
                 <h2>Select a data type</h2>
                 <div className={styles.dataTypeContainer}>
                     <div
@@ -30,9 +29,13 @@ export default function SelectType({ continueToNextStep, goBack, selectedType, s
                     </div>
                 </div>
                 
+                <div>
+                <button onClick={goBack}>Go Back</button>
                 {selectedType && (
                     <button onClick={continueToNextStep}>Continue</button>
                 )}
+                </div>
+             
             </div>
         </div>
     );
