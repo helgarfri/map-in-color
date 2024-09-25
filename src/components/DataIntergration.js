@@ -21,19 +21,29 @@ export default function DataIntergration({
   csvData,
   selectedType
 
+
 }) {
   const [groups, setGroups] = useState({});
   const [isUploaded, setIsUploaded] = useState(false);
-  const [openCategory, setOpenCategory] = useState(null);
+  const [openCategory, setOpenCategory] = useState([]);
+
+
 
   const [classLabels, setClassLabels] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
+
+  const [fileName, setFileName] = useState("");
+
+  const [csvContent, setCsvContent] = useState(''); // Geymir gögnin úr csv skránni
+  const [isEditing, setIsEditing] = useState(false); // Ef smellt er á edit takkann
+  
 
   const onDrop = React.useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (!file) {
       return;
     }
+    setFileName(file.name);
     const reader = new FileReader();
     reader.onload = function(e) {
       const text = e.target.result;
@@ -93,21 +103,24 @@ export default function DataIntergration({
     }
   };
   
-  const processCsvForCategorical = (parsedData) => {
-    // Group parsed data into categories
-    const result = parsedData.reduce((acc, { name, code, value }) => {
-      const category = value; // Assuming value is the category in categorical data
-      if (!acc[category]) {
-        acc[category] = { countries: [], color: '#c0c0c0' }; // Default color
-      }
-      acc[category].countries.push({ name, code });
-      return acc;
-    }, {});
-  
-    setGroups(result);
-    setIsUploaded(true);
-    setCsvData(result);
-  };
+const processCsvForCategorical = (parsedData) => {
+  const result = parsedData.reduce((acc, { name, code, value }) => {
+    const category = value; // Assuming value is the category in categorical data
+    if (!acc[category]) {
+      acc[category] = {
+        countries: [],
+        color: groups[category] ? groups[category].color : '#c0c0c0' // Preserve existing color or set default
+      };
+    }
+    acc[category].countries.push({ name, code });
+    return acc;
+  }, {});
+
+  setGroups(result);
+  setIsUploaded(true);
+  setCsvData(result);
+};
+
   
   
   const processCsvForChoropleth = (parsedData) => {
@@ -220,18 +233,29 @@ const handleClassSelection = (classIndex) => {
   
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
-      setGroups({});
-  
+    if (!file) return;
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = (e) => {
       const text = e.target.result;
+      setCsvContent(text); // Setur gögnin úr csv skránni
       processCsv(text);
+      setIsUploaded(true);
+      setFileName(file.name);
     };
     reader.readAsText(file);
   };
+
+  const handleEditClick = () => {
+    setIsEditing(true); // Breytir state svo að edit mode sé virkt
+  };
+
+  const handleSaveEdit = () => {
+    processCsv(csvContent); // Re-process the edited CSV data
+    setIsEditing(false); // Exit editing mode
+    setIsUploaded(true); // You might want to update this as per your logic
+  };
+  
+  
   
   
   
@@ -299,29 +323,56 @@ useEffect(() => {
   }
 }, [csvData]);
 
-
 const toggleCategory = (category) => {
-  setOpenCategory((prevOpenCategory) => (prevOpenCategory === category ? null : category));
+  setOpenCategory(prev => {
+    if (prev.includes(category)) {
+      return prev.filter(cat => cat !== category);  // Remove category if it's already open
+    } else {
+      return [...prev, category];  // Add category to the open list
+    }
+  });
 };
+
 return (
   <div>
     <button onClick={downloadTemplate}>Download Template</button>
+  
     <h2>Data Integration</h2>
     <div className={styles.dataUploader}>
       <div className={styles.content}>
         {isUploaded ? (
           <div className={styles.groupsDisplay}>
+            <div className={styles.fileDetailContent}>
+              <p>File name: <b>{fileName}</b></p>
+              <button onClick={handleEditClick} className={styles.editButton}>Edit</button>
+              {isEditing && (
+                <button onClick={handleSaveEdit} className={styles.saveButton}>Save</button>
+              )}
+            </div>
+
+            {isEditing ? (
+              <textarea
+                value={csvContent}
+                onChange={(e) => setCsvContent(e.target.value)}
+                style={{ width: '100%', height: '300px' }}
+              />
+              ) : (
+                <div>{/* Display CSV data normally */}</div>
+              )}
+
             <h3>Categories</h3>
             {Object.entries(groups).map(([category, { countries, color }]) => {
-              const isOpen = openCategory === category;
+              const isOpen = openCategory.includes(category);
+
               const unknownCount = countries.filter(country => country.code === 'Unknown').length;
 
               return (
                 <div key={category} className={styles.group}>
-
+                  
 
 
                   {selectedType === 'categorical' && (
+                    
                     <CateGroup
                       color={color}
                       handleColorChange={(newColor) => handleColorChange(newColor, category)}

@@ -31,10 +31,8 @@ export default function CreateNew() {
   return (
     <div>
       {step === 1 && <SelectMap selectedMap={selectedMap} setSelectedMap={setSelectedMap} continueToNextStep={goToNextStep} />}
-      {step === 2 && <SelectType selectedType={selectedType} setSelectedType={setSelectedType} continueToNextStep={goToNextStep} goBack={goBack} />}
-      {step === 3 && <DataIntergration selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} setCsvData={setCsvData} goToNextStep={goToNextStep} goBack={goBack} />}
-
-      {step === 4 && <FinalizeMap selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} goBack={goBack} goToNextStep={goToNextStep} finalize={finalizeCreation} />}
+      {step === 2 && <DataIntergration selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} setCsvData={setCsvData} goToNextStep={goToNextStep} goBack={goBack} />}
+      {step === 3 && <FinalizeMap selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} goBack={goBack} goToNextStep={goToNextStep} finalize={finalizeCreation} />}
     </div>
   );
 }

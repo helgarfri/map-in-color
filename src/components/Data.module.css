@@ -16,7 +16,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 40%;
+
 }
 
 
@@ -24,10 +24,9 @@
 
   border-radius: 5px;
   padding: 20px;
-  width: 40%;
-  max-width: 600px;
   text-align: center;
   box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  flex: 1;
 }
 
 
@@ -118,6 +117,7 @@ p {
 
   .svgMapContainer {
     flex: 1;
+    max-width: 500px;
   }
   
 
@@ -130,10 +130,26 @@ p {
   }
 
   .selectedClass {
-    background-color: #f0f0f0; /* Example styling */
+    background-color: #f0f0f0; 
+  }
+
+  .fileDetailContent {
+    display: flex;
+    flex-direction: row;
   }
   
-
+  .editButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: .2s;
+    border: none;
+    background-color: none;
+    color: #666666;
+    width: 10px;
+    height: 10px;
+    margin: 2px;
+  }
 
   .resetButton {
     transition: .2s;
