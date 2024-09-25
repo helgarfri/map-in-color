@@ -1,75 +1,96 @@
-import styles from "./Data.module.css"
-import React from "react";
-import { useState } from "react";
-import countryCodes from '../countries.json'
-import { useDropzone } from "react-dropzone";
-import usStatesCodes from '../usStates.json'
-import euCodes from '../europeanCountries.json'
-import WorldMapSVG from './WorldMapSVG'
+import React, { useState } from "react";
+import styles from "./Data.module.css";
+import countryCodes from '../countries.json';
+import usStatesCodes from '../usStates.json';
+import euCodes from '../europeanCountries.json';
+import WorldMapSVG from './WorldMapSVG';
 import UsSVG from "./UsSVG";
 import EuropeSVG from "./EuropeSVG";
-import { useEffect } from "react";
-import CateGroup from "./CateGroup";
-import ChoroGroup from "./ChoroGroup"
 
-
-export default function DataIntergration({
-  goBack, 
+export default function DataIntegration({
+  goBack,
   selectedMap,
   goToNextStep,
   setCsvData,
   csvData,
   selectedType
-
-
 }) {
-  const [groups, setGroups] = useState({});
-  const [isUploaded, setIsUploaded] = useState(false);
-  const [openCategory, setOpenCategory] = useState([]);
+
+  // Place this at the top of your file
+const themes = [
+  {
+    name: 'Blues',
+    colors: ['#f7fbff', '#e1edf8', '#c3def1', '#a6d0ea', '#88c1e3', '#6ab3dc', '#4da4d5', '#2f95ce', '#1187c7', '#0078bf'],
+  },
+  {
+    name: 'Reds',
+    colors: ['#fff5f0', '#ffe0d9', '#ffccc2', '#ffb7ab', '#ffa295', '#ff8e7e', '#ff7967', '#ff6450', '#ff5039', '#ff3b22'],
+  },
+  {
+    name: 'Rainbow',
+    colors: ['#ff0000', '#ff7f00', '#ffff00', '#7fff00', '#00ff00', '#00ff7f', '#00ffff', '#007fff', '#0000ff', '#7f00ff'],
+  },
+  {
+    name: 'Grayscale',
+    colors: ['#ffffff', '#e6e6e6', '#cccccc', '#b3b3b3', '#999999', '#808080', '#666666', '#4d4d4d', '#333333', '#1a1a1a'],
+  },
+];
+
+  const [groups, setGroups] = useState([]);
+  const [data, setData] = useState([]);
+  const [customRanges, setCustomRanges] = useState([
+    {
+      id: Date.now(),
+      color: '#c0c0c0',
+      name: '',
+      lowerBound: '',
+      upperBound: '',
+    },
+  ]);
+  const [numRanges, setNumRanges] = useState(5); // Default to 5 ranges
 
 
 
-  const [classLabels, setClassLabels] = useState([]);
-  const [selectedClass, setSelectedClass] = useState(null);
+  //upplýsingar um skrá
+  const [fileName, setFileName] = useState('');
+  const [fileStats, setFileStats] = useState({
+    lowestValue: null,
+    lowestCountry: '',
+    highestValue: null,
+    highestCountry: '',
+    averageValue: null,
+    medianValue: null,
+    standardDeviation: null,
+    numberOfValues: 0,
+    totalCountries: 0,
+  });
 
-  const [fileName, setFileName] = useState("");
+  const dataCompleteness = (
+    (fileStats.numberOfValues / fileStats.totalCountries) *
+    100
+  ).toFixed(2);
 
-  const [csvContent, setCsvContent] = useState(''); // Geymir gögnin úr csv skránni
-  const [isEditing, setIsEditing] = useState(false); // Ef smellt er á edit takkann
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
   
-
-  const onDrop = React.useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (!file) {
-      return;
-    }
-    setFileName(file.name);
+    setFileName(file.name); // Set the file name
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = (e) => {
       const text = e.target.result;
-      processCsv(text, selectedMap);
-      setIsUploaded(true); 
+      processCsv(text);
     };
     reader.readAsText(file);
-  
-
-    setGroups({});
-  }, [selectedMap, setIsUploaded, setGroups]);
-  
-
-  const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop, accept: '.csv'});
-
-
-  const resetState = () => {
-    resetSvgColors(); 
-    setGroups({});
-    setIsUploaded(false);
-    setCsvData({}); 
   };
   
+
+  //vinnsla á csv skrá
   const processCsv = (csvText) => {
-    // Split lines and filter out empty or comment lines
-    const lines = csvText.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+    const lines = csvText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
   
     // Determine the dataSource based on the selectedMap
     let dataSource;
@@ -85,357 +106,474 @@ export default function DataIntergration({
         break;
     }
   
-    // Parse the CSV lines to extract name, value pairs
-    let parsedData = lines.map(line => {
-      const parts = line.split(',').map(part => part.trim().replace(/""/g, '"'));
+    const parsedData = lines.map((line) => {
+      const parts = line
+        .split(',')
+        .map((part) => part.trim().replace(/""/g, '"'));
       const name = parts[0];
-      const value = parts.length > 1 ? parts[1] : null; // Assuming second column is the value
-      const dataItem = dataSource.find(item => item.name === name);
+      const value = parts.length > 1 ? parseFloat(parts[1]) : null;
+      const dataItem = dataSource.find(
+        (item) => item.name.toLowerCase() === name.toLowerCase()
+      );
       const code = dataItem ? dataItem.code : 'Unknown';
       return { name, code, value };
     });
   
-    // Delegate to type-specific processing functions
-    if (selectedType === 'categorical') {
-      processCsvForCategorical(parsedData);
-    } else if (selectedType === 'choropleth') {
-      processCsvForChoropleth(parsedData);
+    // Filter out invalid entries
+    const validData = parsedData.filter((d) => !isNaN(d.value));
+  
+    // Set the parsed data to state
+    setData(validData);
+  
+    // Compute statistics
+    if (validData.length > 0) {
+      const values = validData.map((d) => d.value);
+      const totalValues = values.length;
+      const sumValues = values.reduce((sum, val) => sum + val, 0);
+      const averageValue = sumValues / totalValues;
+  
+      // Sort values for median calculation
+      const sortedValues = [...values].sort((a, b) => a - b);
+      const middleIndex = Math.floor(totalValues / 2);
+      const medianValue =
+        totalValues % 2 !== 0
+          ? sortedValues[middleIndex]
+          : (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
+  
+      // Standard Deviation
+      const variance =
+        values.reduce((sum, val) => sum + Math.pow(val - averageValue, 2), 0) /
+        totalValues;
+      const standardDeviation = Math.sqrt(variance);
+  
+      // Find lowest and highest values
+      let lowestValue = values[0];
+      let highestValue = values[0];
+      let lowestCountry = validData[0].name;
+      let highestCountry = validData[0].name;
+  
+      validData.forEach((item) => {
+        if (item.value < lowestValue) {
+          lowestValue = item.value;
+          lowestCountry = item.name;
+        }
+        if (item.value > highestValue) {
+          highestValue = item.value;
+          highestCountry = item.name;
+        }
+      });
+  
+      // Total number of countries/states
+      const totalCountries = dataSource.length;
+  
+      // Update fileStats
+      setFileStats({
+        lowestValue,
+        lowestCountry,
+        highestValue,
+        highestCountry,
+        averageValue: parseFloat(averageValue.toFixed(2)),
+        medianValue: parseFloat(medianValue.toFixed(2)),
+        standardDeviation: parseFloat(standardDeviation.toFixed(2)),
+        numberOfValues: totalValues,
+        totalCountries,
+      });
     }
   };
   
-const processCsvForCategorical = (parsedData) => {
-  const result = parsedData.reduce((acc, { name, code, value }) => {
-    const category = value; // Assuming value is the category in categorical data
-    if (!acc[category]) {
-      acc[category] = {
-        countries: [],
-        color: groups[category] ? groups[category].color : '#c0c0c0' // Preserve existing color or set default
-      };
-    }
-    acc[category].countries.push({ name, code });
-    return acc;
-  }, {});
-
-  setGroups(result);
-  setIsUploaded(true);
-  setCsvData(result);
-};
-
-  
-  
-  const processCsvForChoropleth = (parsedData) => {
-    const values = parsedData
-      .map((d) => ({ ...d, value: parseFloat(d.value) }))
-      .filter((d) => !isNaN(d.value))
-      .sort((a, b) => a.value - b.value);
-  
-    const numClasses = 5;
-    const minValue = values[0].value;
-    const maxValue = values[values.length - 1].value;
-    const range = maxValue - minValue;
-    const classWidth = range / numClasses;
-  
-    const initialGroups = Array.from({ length: numClasses }, (_, i) => {
-      const lowerBound = minValue + i * classWidth;
-      const upperBound = i === numClasses - 1 ? maxValue : lowerBound + classWidth;
-      return {
-        range: `${lowerBound.toFixed(2)} - ${upperBound.toFixed(2)}`,
-        countries: [],
+  const addRange = () => {
+    setCustomRanges([
+      ...customRanges,
+      {
+        id: Date.now(),
+        lowerBound: '',
+        upperBound: '',
         color: '#c0c0c0',
+        name: '',
+      },
+    ]);
+  };
+
+  const removeRange = (id) => {
+    if (customRanges.length > 1) {
+      setCustomRanges(customRanges.filter((range) => range.id !== id));
+    } else {
+      alert("Cannot delete the last range.");
+    }
+  };
+
+  const handleRangeChange = (id, field, value) => {
+    setCustomRanges(
+      customRanges.map((range) =>
+        range.id === id ? { ...range, [field]: value } : range
+      )
+    );
+  };
+
+  const generateGroups = () => {
+    if (data.length === 0) {
+      alert("Please upload a CSV file first.");
+      return;
+    }
+
+    // Validate ranges
+    const validRanges = customRanges.filter(
+      (range) =>
+        !isNaN(range.lowerBound) &&
+        !isNaN(range.upperBound) &&
+        range.lowerBound <= range.upperBound
+    );
+
+    // Check for overlapping ranges
+    let isOverlapping = false;
+    for (let i = 0; i < validRanges.length - 1; i++) {
+      if (validRanges[i].upperBound > validRanges[i + 1].lowerBound) {
+        isOverlapping = true;
+        break;
+      }
+    }
+
+    if (isOverlapping) {
+      alert('Ranges are overlapping. Please adjust them.');
+      return;
+    }
+
+    // Sort ranges by lowerBound
+    const sortedRanges = validRanges.sort((a, b) => a.lowerBound - b.lowerBound);
+
+    // Initialize groups
+    const newGroups = sortedRanges.map((range) => ({
+      ...range,
+      countries: [],
+      rangeLabel: range.name || `${range.lowerBound} - ${range.upperBound}`,
+    }));
+
+    // Assign countries to groups
+    data.forEach((item) => {
+      const group = newGroups.find(
+        (g) =>
+          item.value >= g.lowerBound && item.value <= g.upperBound
+      );
+      if (group) {
+        group.countries.push(item);
+      }
+    });
+
+    setGroups(newGroups);
+  };
+
+  const suggestRanges = () => {
+    if (data.length === 0) {
+      alert("Please upload a CSV file first.");
+      return;
+    }
+
+    const values = data.map((d) => d.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+
+    const rangeWidth = (maxValue - minValue) / numRanges;
+
+    const suggestedRanges = Array.from({ length: numRanges }, (_, i) => {
+      const lowerBound = minValue + i * rangeWidth;
+      const upperBound = i === numRanges - 1 ? maxValue : minValue + (i + 1) * rangeWidth;
+      return {
+        id: Date.now() + i,
+        lowerBound: parseFloat(lowerBound.toFixed(2)),
+        upperBound: parseFloat(upperBound.toFixed(2)),
+        color: '#c0c0c0',
+        name: '',
       };
     });
-  
-    // A safer function to determine the class index
-    const getClassIndex = (value) => {
-      if (value === maxValue) {
-        return numClasses - 1; // Ensure the max value falls within the last class
-      }
-      return Math.floor((value - minValue) / classWidth);
-    };
-  
-    values.forEach((dataItem) => {
-      const classIndex = getClassIndex(dataItem.value);
-      // Safety check to ensure classIndex is within bounds
-      if (initialGroups[classIndex]) {
-        initialGroups[classIndex].countries.push({
-          name: dataItem.name,
-          code: dataItem.code,
-        });
-      } else {
-        console.error('Class index out of bounds:', classIndex);
-      }
-    });
-  
-    const finalGroups = initialGroups.reduce((acc, group, index) => {
-      acc[group.range] = { countries: group.countries, color: group.color };
-      return acc;
-    }, {});
-  
-    setGroups(finalGroups);
-    setIsUploaded(true);
-    setCsvData(finalGroups);
-  };
-  
-  
 
-
-  // Handler for class selection
-const handleClassSelection = (classIndex) => {
-  setSelectedClass(classIndex);
-  // Here, you could further process data based on the selected class, such as highlighting the map accordingly
-};
-
-
-  
-
-  
-  const resetSvgColors = () => {
-    console.log("Resetting SVG colors");
-  
-    switch (selectedMap) {
-      case 'usa':
-        resetSvgColorsForStates();
-        break;
-      case 'world':
-      case 'europe': 
-      default:
-        resetSvgColorsForCountries();
-        break;
-    }
-  };
-  
-  const resetSvgColorsForCountries = () => {
-    console.log("Resetting SVG colors for countries");
-    
-    countryCodes.forEach(country => {
-      const elements = document.querySelectorAll(`#${country.code.toLowerCase()}`);
-      elements.forEach(element => {
-        element.style.fill = '#c0c0c0'; 
-      });
-    });
-    if(selectedMap == 'europe') {
-      document.getElementById("ru-kgd").style.fill = "#c0c0c0";
-
-    }
-  };
-  
-  const resetSvgColorsForStates = () => {
-    console.log("Resetting SVG colors for U.S. states");
-    
-    usStatesCodes.forEach(state => {
-      console.log(state)
-      const elements = document.querySelectorAll(`#${state.code.toLowerCase()}`);
-      elements.forEach(element => {
-          element.style.fill = '#c0c0c0'; 
-      });
-    });
-  };
-  
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
-      setCsvContent(text); // Setur gögnin úr csv skránni
-      processCsv(text);
-      setIsUploaded(true);
-      setFileName(file.name);
-    };
-    reader.readAsText(file);
+    setCustomRanges(suggestedRanges);
   };
 
-  const handleEditClick = () => {
-    setIsEditing(true); // Breytir state svo að edit mode sé virkt
-  };
-
-  const handleSaveEdit = () => {
-    processCsv(csvContent); // Re-process the edited CSV data
-    setIsEditing(false); // Exit editing mode
-    setIsUploaded(true); // You might want to update this as per your logic
-  };
-  
-  
-  
-  
-  
   const downloadTemplate = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     let dataSource;
     if (selectedMap === "europe") {
-        dataSource = euCodes; 
+        dataSource = euCodes;
     } else if (selectedMap === "usa") {
-        dataSource = usStatesCodes; 
+        dataSource = usStatesCodes;
     } else {
         dataSource = countryCodes;
     }
 
     dataSource.forEach(item => {
         const name = item.name.includes(',') ? `"${item.name}"` : item.name;
-        csvContent += `${name},\n`; 
+        csvContent += `${name},\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
     link.setAttribute('download', selectedMap === "europe" ? 'european_countries_template.csv' : selectedMap === "usa" ? 'us_states_template.csv' : 'countries_template.csv');
-    document.body.appendChild(link); 
+    document.body.appendChild(link);
 
-    link.click(); 
-    document.body.removeChild(link); 
-};
-
-  
-  
-
-  const handleColorChange = (newColor, category) => {
-    setGroups(prevGroups => ({
-      ...prevGroups,
-      [category]: {
-        ...prevGroups[category],
-        color: newColor,
-        
-      },
-    }));
-   
-    console.log("COLORFUNCTION")
-    console.log(groups)
-  };
-  
-  
-  
-  const updateCountryColors = () => {
-    Object.entries(groups).forEach(([category, { countries, color }]) => {
-      countries.forEach(country => {
-        const elements = document.querySelectorAll(`#${country.code.toLowerCase()}`);
-        elements.forEach(element => {
-          element.style.backgroundColor = color; 
-        });
-      });
-    });
+    link.click();
+    document.body.removeChild(link);
   };
 
-useEffect(() => {
-  if (csvData && Object.keys(csvData).length > 0) {
-    setGroups(csvData);
-    setIsUploaded(true); 
-   
-  }
-}, [csvData]);
-
-const toggleCategory = (category) => {
-  setOpenCategory(prev => {
-    if (prev.includes(category)) {
-      return prev.filter(cat => cat !== category);  // Remove category if it's already open
+  const applyTheme = (themeColors) => {
+    const numRanges = customRanges.length;
+    const numColors = themeColors.length;
+  
+    const indices = [];
+    if (numRanges === 1) {
+      indices.push(Math.floor((numColors - 1) / 2));
     } else {
-      return [...prev, category];  // Add category to the open list
+      const step = (numColors - 1) / (numRanges - 1);
+      for (let i = 0; i < numRanges; i++) {
+        indices.push(Math.round(i * step));
+      }
     }
-  });
-};
-
-return (
-  <div>
-    <button onClick={downloadTemplate}>Download Template</button>
   
-    <h2>Data Integration</h2>
-    <div className={styles.dataUploader}>
-      <div className={styles.content}>
-        {isUploaded ? (
-          <div className={styles.groupsDisplay}>
-            <div className={styles.fileDetailContent}>
-              <p>File name: <b>{fileName}</b></p>
-              <button onClick={handleEditClick} className={styles.editButton}>Edit</button>
-              {isEditing && (
-                <button onClick={handleSaveEdit} className={styles.saveButton}>Save</button>
-              )}
-            </div>
+    const newRanges = customRanges.map((range, index) => ({
+      ...range,
+      color: themeColors[indices[index]],
+    }));
+  
+    setCustomRanges(newRanges);
+  };
+  
+  
 
-            {isEditing ? (
-              <textarea
-                value={csvContent}
-                onChange={(e) => setCsvContent(e.target.value)}
-                style={{ width: '100%', height: '300px' }}
-              />
-              ) : (
-                <div>{/* Display CSV data normally */}</div>
-              )}
+  return (
+    <div className={styles.container}>
 
-            <h3>Categories</h3>
-            {Object.entries(groups).map(([category, { countries, color }]) => {
-              const isOpen = openCategory.includes(category);
+      <h2>Data Integration</h2>
 
-              const unknownCount = countries.filter(country => country.code === 'Unknown').length;
+    {/* Top Layer: File Upload and File Information */}
+<div className={styles.topSection}>
+  {/* File Upload Box */}
+  <div className={styles.fileUploadBox}>
+    <h3>Upload CSV File</h3>
+    <p>Selected Map: {selectedMap === 'world' ? 'World Map' : selectedMap === 'europe' ? 'Europe' : 'USA'}</p>
+    <input type="file" accept=".csv" onChange={handleFileUpload} />
+    <button onClick={downloadTemplate}>Download Template</button>
+    <p>Please ensure your CSV file is structured as follows:</p>
+    <ul>
+      <li>First column: Country/State Name</li>
+      <li>Second column: Value</li>
+    </ul>
+    <p>Example:</p>
+    <pre>
+      StateName1,Value1{'\n'}
+      StateName2,Value2{'\n'}
+      ...
+    </pre>
+  </div>
 
-              return (
-                <div key={category} className={styles.group}>
-                  
+  {/* File Information Table */}
+  <div className={styles.fileInfoBox}>
+    {/* File Information Table */}
+    <table className={styles.fileInfoTable}>
+      <tbody>
+        <tr>
+          <th>File Name</th>
+          <td>{fileName || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>Lowest Value</th>
+          <td>{fileStats.lowestValue !== null ? fileStats.lowestValue : 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>State (Lowest)</th>
+          <td>{fileStats.lowestCountry || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>Highest Value</th>
+          <td>{fileStats.highestValue !== null ? fileStats.highestValue : 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>State (Highest)</th>
+          <td>{fileStats.highestCountry || 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>Average Value</th>
+          <td>{fileStats.averageValue !== null ? fileStats.averageValue : 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>Median Value</th>
+          <td>{fileStats.medianValue !== null ? fileStats.medianValue : 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>Standard Deviation</th>
+          <td>{fileStats.standardDeviation !== null ? fileStats.standardDeviation : 'N/A'}</td>
+        </tr>
+        <tr>
+          <th>Values Count</th>
+          <td>{fileStats.numberOfValues}</td>
+        </tr>
+        <tr>
+          <th>Total Countries</th>
+          <td>{fileStats.totalCountries}</td>
+        </tr>
+        <tr>
+          <th>Data Completeness (%)</th>
+          <td>{dataCompleteness || 'N/A'}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 
-                  {selectedType === 'categorical' && (
-                    
-                    <CateGroup
-                      color={color}
-                      handleColorChange={(newColor) => handleColorChange(newColor, category)}
-                      category={category}
-                      unknownCount={unknownCount}
-                      isOpen={isOpen}
-                      toggleCategory={toggleCategory}
-                      countries={countries}
-                    />
+
+
+      {/* Second Layer: Range Settings */}
+      <div className={styles.section}>
+        <h3>Define Custom Ranges</h3>
+        <table className={styles.rangeTable}>
+          <thead>
+            <tr>
+              <th>Lower Bound</th>
+              <th>Upper Bound</th>
+              <th>Name</th>
+              <th>Color</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customRanges.map((range, index) => (
+              <tr key={range.id}>
+                <td>
+                  <input
+                    type="number"
+                    value={range.lowerBound}
+                    onChange={(e) =>
+                      handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={range.upperBound}
+                    onChange={(e) =>
+                      handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    value={range.name}
+                    onChange={(e) => handleRangeChange(range.id, 'name', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="color"
+                    value={range.color}
+                    onChange={(e) => handleRangeChange(range.id, 'color', e.target.value)}
+                  />
+                </td>
+                <td>
+                  {/* Disable or hide the Remove button if there's only one range */}
+                  {customRanges.length > 1 ? (
+                    <button onClick={() => removeRange(range.id)}>Remove</button>
+                  ) : (
+                    <button disabled>Remove</button>
                   )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          
+        </table>
 
-            
+      {/* Number of Ranges Select Input, Suggest Ranges Button, Add Range Button, and Theme Buttons */}
+      <div className={styles.rangeControls}>
+        <div className={styles.leftControls}>
+          <label htmlFor="numRanges">Number of Ranges:</label>
+          <select
+            id="numRanges"
+            value={numRanges}
+            onChange={(e) => setNumRanges(parseInt(e.target.value))}
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+              <option key={num} value={num}>
+                {num}
+              </option>
+            ))}
+          </select>
+          <button onClick={suggestRanges} disabled={data.length === 0}>
+            Suggest Ranges
+          </button>
+          <button onClick={addRange}>Add Range</button>
+        </div>
 
-                    {selectedType === "choropleth" && (
-                      console.log("Rendering ChoroGroup", classLabels),
-                      <ChoroGroup
-                        color={color}
-                      handleColorChange={(newColor) => handleColorChange(newColor, category)}
-                      category={category}
-                      unknownCount={unknownCount}
-                      isOpen={isOpen}
-                      toggleCategory={toggleCategory}
-                      countries={countries}
-                      />
-                    )}
+        {/* Theme Buttons */}
+        <div className={styles.themeButtons}>
+          {themes.map((theme, index) => (
+            <button
+              key={index}
+              className={styles.themeButton}
+              onClick={() => applyTheme(theme.colors)}
+              title={theme.name}
+            >
+              {/* Display theme colors */}
+              <div className={styles.themePreview}>
+                {theme.colors.map((color, idx) => (
+                  <div
+                    key={idx}
+                    className={styles.themeColor}
+                    style={{ backgroundColor: color }}
+                  ></div>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
-                
-                
 
-                  <div className={`${styles.animatedContent} ${isOpen ? styles.expanded : ''} `}>
-                    <div className={styles.itemListContainer}>
-                      {countries.map((country, index) => (
-                        <React.Fragment key={index}>
-                          <span className={styles.itemList} style={{ color: country.code === 'Unknown' ? 'red' : 'inherit' }}>
-                            {`${country.name} (${country.code})`}
-                          </span>
-                          {index < countries.length - 1 ? ', ' : ''}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            <button className={styles.resetButton} onClick={resetState}>Reset data</button>
-          </div>
-        ) : (
-          <div {...getRootProps({ className: styles.csvUploader })}>
-            <input {...getInputProps()} />
-            <h3>Upload Your CSV</h3>
-            {isDragActive ? <p>Drop the files here ...</p> : <p>Drag 'n' drop some files here, or click to select files</p>}
-          </div>
-        )}
-        <div className={styles.svgMapContainer}>
+        <button onClick={generateGroups}>Generate Groups</button>
+      </div>
+
+      {/* Bottom Layer: Map Preview and Displayed Groups */}
+      <div className={styles.bottomSection}>
+        {/* Map Preview */}
+        <div className={styles.mapContainer}>
           <h3>Preview</h3>
           {selectedMap === 'world' && <WorldMapSVG groups={groups} />}
           {selectedMap === 'usa' && <UsSVG groups={groups} />}
           {selectedMap === 'europe' && <EuropeSVG groups={groups} />}
         </div>
+
+        {/* Displayed Groups */}
+        <div className={styles.groupsContainer}>
+          <h3>Groups</h3>
+          {groups.length > 0 ? (
+            <div>
+              {groups.map((group, index) => (
+                <div key={index} className={styles.group}>
+                  <span>Range: {group.rangeLabel}</span>
+                  <div
+                    className={styles.colorBox}
+                    style={{ backgroundColor: group.color }}
+                  ></div>
+                  {group.countries.length > 0 && (
+                    <div>
+                      {group.countries.map((c) => c.name).join(', ')}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No groups defined yet. Please define ranges and generate groups.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className={styles.navigationButtons}>
+        <button onClick={goBack}>Go Back</button>
+        <button onClick={goToNextStep}>Finalize</button>
       </div>
     </div>
-    <button onClick={goBack}>Go back</button>
-    <button onClick={goToNextStep}>Finalize</button>
-  </div>
-);
-        }
+  );
+}

@@ -1,198 +1,177 @@
-.dataUploader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
+/* Data.module.css */
 
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.csvUploader {
-  transition: border 0.3s ease-in-out;
-  border: 2px dashed #cccccc;
-
+.section {
+  margin-bottom: 20px;
 }
 
-.groupsDisplay {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
+.rangeTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
 }
 
-
-.csvUploader, .groupsDisplay {
-
-  border-radius: 5px;
-  padding: 20px;
+.rangeTable th,
+.rangeTable td {
+  border: 1px solid #ccc;
+  padding: 8px;
   text-align: center;
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.rangeControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bottomSection {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.mapContainer {
   flex: 1;
 }
 
-
-
-.group, .group p, .categoryHeader {
-  box-sizing: border-box; /* Apply consistently to all child elements */
+.groupsContainer {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 500px; /* Adjust as needed */
 }
 
-.csvUploader:hover {
-  border-color: #aaaaaa;
-}
-
-.dropActive {
-  border-color: #2196f3;
-  background-color: #f0faff;
-}
-
-h3 {
-  margin-bottom: 10px;
+.group {
+  background-color: #f5f5f5;
   padding: 10px;
-  font-size: 16px;
+  margin-bottom: 10px;
 }
 
-p {
-  margin: 0;
-  font-size: 16px;
-  color: #666666;
+.colorBox {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: middle;
 }
 
-  
-  .content {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    
-  }
-  
-
-  
-  .group {
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
-  
-.group h3 {
-    margin: 0;
-    padding: 10px;
-    text-align: left;
-    flex-grow: 1;
-  }
-  .group p {
-    margin: 0;
-    padding: 10px;
-    background-color: #f9f9f9;
-    font-size: small;
-    text-align: left;
-    width: 100%;
-    
-  }
 
-  .itemList {
-    background-color: #f9f9f9;
-    font-size: small;
-    text-align: left;
+.navigationButtons button {
+  padding: 10px 20px;
+}
 
-  }
 
-  .itemListContainer {
-    margin:10px;
-    text-align: left;
-    margin-left: 10px;
-    margin-right: 10px;
-    max-height: 200px;
-    overflow-y: auto; /* Enable vertical scrolling */
-  }
+.topSection {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
 
-  .categoryHeader {
-    display: flex;
-    align-items: center;
-    background-color: #e9e9e9;
-    width: 100%;
-   
-  }
+.fileUploadBox,
+.fileInfoBox {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 20px;
+  box-sizing: border-box;
+}
 
-  .svgMapContainer {
-    flex: 1;
-    max-width: 500px;
-  }
-  
+.fileUploadBox {
+  /* Additional styling for the file upload box if needed */
+}
 
-  .colorInp {
-    margin-left: 0px;
-    width: 40px;
-    height: 40px;
-    margin-right: 0px;
-    
-  }
+.fileInfoBox {
+  /* Ensure the table doesn't get too big */
+  max-width: 400px;
+}
 
-  .selectedClass {
-    background-color: #f0f0f0; 
-  }
+.fileInfoTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
 
-  .fileDetailContent {
-    display: flex;
-    flex-direction: row;
-  }
-  
-  .editButton {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: .2s;
-    border: none;
-    background-color: none;
-    color: #666666;
-    width: 10px;
-    height: 10px;
-    margin: 2px;
-  }
+.fileInfoTable th {
+  text-align: left;
+  font-weight: normal;
+  padding-right: 10px;
+}
 
-  .resetButton {
-    transition: .2s;
-    border: none;
-    border-radius: 4px;
-  }
+.fileInfoTable td {
+  text-align: left;
+}
 
-  .resetButton:hover{
-    background-color: #666666;
-    color: white;
-    border: none;
-    
-  }
-  
-  .unknownMessage {
-    color: red;
-    font-size: small;
-  }
-/* Add or adjust existing CSS */
+.fileInfoTable th,
+.fileInfoTable td {
+  padding: 4px 0;
+}
 
-.toggleButton {
-  transition: transform 0.6s ease-out; /* Match the duration and easing to animatedContent */
-  cursor: pointer;
-  background: none;
+.fileInfoTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.fileInfoTable th,
+.fileInfoTable td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.fileInfoTable th {
+  background-color: #f0f0f0;
+  text-align: left;
+  width: 200px; /* Adjust the width as needed */
+}
+
+.fileInfoTable td {
+  text-align: left;
+}
+
+.rangeControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.leftControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.themeButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.themeButton {
   border: none;
-  color: inherit;
-  font-size: 1rem;
-  margin: 0px;
+  background: none;
+  cursor: pointer;
+  padding: 0;
 }
 
-.rotated {
-  transform: rotate(180deg);
-}
-
-.animatedContent {
-  max-height: 0;
+.themePreview {
+  display: flex;
+  height: 20px;
+  width: 50px;
   overflow: hidden;
-  transition: max-height 0.6s ease-out; /* Ensure this matches the duration and easing of the toggleButton */
+  border: 1px solid #ccc;
 }
 
-.expanded {
-  max-height: 1000px; /* Adjust based on your content's maximum height */
+.themeColor {
+  flex: 1;
+  height: 100%;
 }
-
-
-
