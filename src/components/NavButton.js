@@ -26,10 +26,7 @@ function NavButton({onClick, label, active, index, numItems, setNumItems}) {
 
         };  
 
-     
-
-    
-    
+ 
     return(
         <li  
             className={

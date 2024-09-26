@@ -23,7 +23,7 @@ export default function WorldMapSVG({
 
     return(
         
-        <div id="worldMap"   >
+<div id="worldMap"   >
 
 <svg  viewBox="0 0 2754 1398 " version="1.1" width="98%" height="auto" >
 	<title>World Map</title>
@@ -3125,25 +3125,25 @@ export default function WorldMapSVG({
 		</g>
 
 
-    {Object.entries(groups).map(([category, { color }], index) => {
-          const circleStyle = {
-            fill: color,
-            cx: "160", // Adjust based on your SVG's coordinate system
-            cy: String(750 + index * 40), // Example vertical spacing
-            r: "7.5",
-          };
-          const textStyle = {
-            x: "180",
-            y: String(759.5 + index * 40),
-			fontSize: 28
-          };
-          return (
-            <g key={category}>
-              <circle {...circleStyle}></circle>
-              <text {...textStyle}>{category}</text>
-            </g>
-          );
-        })}
+	{groups.map((group, index) => {
+		const circleStyle = {
+		fill: group.color,
+		cx: "160", // Adjust based on your SVG's coordinate system
+		cy: 750 + index * 40, // Example vertical spacing
+		r: "7.5",
+		};
+		const textStyle = {
+		x: "180",
+		y: 759.5 + index * 40,
+		fontSize: 28,
+		};
+		return (
+		<g key={group.id}>
+			<circle {...circleStyle}></circle>
+			<text {...textStyle}>{group.rangeLabel}</text>
+		</g>
+		);
+	})}
 
 
 
