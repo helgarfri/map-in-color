@@ -106,16 +106,15 @@ export default function DataIntegration({
     reader.readAsText(file);
   };
 
-  // Process CSV file
   const processCsv = (csvText) => {
     const lines = csvText
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line && !line.startsWith('#'));
-
+  
     // Clear previous errors
     setErrors([]);
-
+  
     // Determine the dataSource based on the selectedMap
     let dataSourceLocal;
     switch (selectedMap) {
@@ -129,24 +128,38 @@ export default function DataIntegration({
         dataSourceLocal = countryCodes;
         break;
     }
-
+  
     const parsedData = [];
     const errorList = [];
-
+  
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
+  
+      // Split the line by comma
       const parts = line
         .split(',')
         .map((part) => part.trim().replace(/""/g, '"'));
+  
+      // Check if the line is missing a comma separator
+      if (parts.length < 2) {
+        errorList.push({
+          line: lineNumber,
+          type: 'Missing Separator',
+          message: `Missing comma separator after country/state "${parts[0]}".`,
+        });
+        // Skip further processing for this line
+        return;
+      }
+  
       const name = parts[0];
-      const valueRaw = parts.length > 1 ? parts[1] : '';
+      const valueRaw = parts[1];
       const value = valueRaw !== '' ? parseFloat(valueRaw) : null;
-
+  
       // Validate Country/State Name
       const dataItem = dataSourceLocal.find(
         (item) => item.name.toLowerCase() === name.toLowerCase()
       );
-
+  
       if (!dataItem) {
         errorList.push({
           line: lineNumber,
@@ -154,7 +167,7 @@ export default function DataIntegration({
           message: `Country/State "${name}" is invalid.`,
         });
       }
-
+  
       // Validate Numeric Value
       if (valueRaw === '') {
         errorList.push({
@@ -169,30 +182,31 @@ export default function DataIntegration({
           message: `Value "${valueRaw}" is not a valid number.`,
         });
       }
-
+  
       // If no errors for this line, add to parsedData
       if (dataItem && valueRaw !== '' && !isNaN(value)) {
         parsedData.push({ name, code: dataItem.code, value });
       }
     });
-
-    // Set errors to state
+  
+    // Update state with errors or parsed data
     if (errorList.length > 0) {
       setErrors(errorList);
+    } else {
+      setErrors([]);
     }
-
-    // Set the parsed data and dataSource to state
+  
     setData(parsedData);
     setDataSource(dataSourceLocal);
     setValidData(parsedData);
-
-    // Compute statistics only if there are no errors
+  
+    // Compute statistics if there are no errors
     if (parsedData.length > 0 && errorList.length === 0) {
       const values = parsedData.map((d) => d.value);
       const totalValues = values.length;
       const sumValues = values.reduce((sum, val) => sum + val, 0);
       const averageValue = sumValues / totalValues;
-
+  
       // Sort values for median calculation
       const sortedValues = [...values].sort((a, b) => a - b);
       const middleIndex = Math.floor(totalValues / 2);
@@ -200,19 +214,19 @@ export default function DataIntegration({
         totalValues % 2 !== 0
           ? sortedValues[middleIndex]
           : (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
-
+  
       // Standard Deviation
       const variance =
         values.reduce((sum, val) => sum + Math.pow(val - averageValue, 2), 0) /
         totalValues;
       const standardDeviation = Math.sqrt(variance);
-
+  
       // Find lowest and highest values
       let lowestValue = values[0];
       let highestValue = values[0];
       let lowestCountry = parsedData[0].name;
       let highestCountry = parsedData[0].name;
-
+  
       parsedData.forEach((item) => {
         if (item.value < lowestValue) {
           lowestValue = item.value;
@@ -223,10 +237,10 @@ export default function DataIntegration({
           highestCountry = item.name;
         }
       });
-
+  
       // Total number of countries/states
       const totalCountries = dataSourceLocal.length;
-
+  
       // Update fileStats
       setFileStats({
         lowestValue,
@@ -240,7 +254,7 @@ export default function DataIntegration({
         totalCountries,
       });
     } else {
-      // If there are errors, reset fileStats or handle accordingly
+      // Reset fileStats if there are errors
       setFileStats({
         lowestValue: null,
         lowestCountry: '',
@@ -254,6 +268,8 @@ export default function DataIntegration({
       });
     }
   };
+  
+
 
   const addRange = () => {
     setCustomRanges([
@@ -467,98 +483,104 @@ export default function DataIntegration({
       <h2>Data Integration</h2>
 
       {/* Top Layer: File Upload and File Information */}
-      <div className={styles.topSection}>
-        {/* File Upload Box */}
-        <div className={styles.fileUploadBox}>
-          <h3>Upload CSV File</h3>
-          <p>Selected Map: {selectedMap === 'world' ? 'World Map' : selectedMap === 'europe' ? 'Europe' : 'USA'}</p>
-          <input type="file" accept=".csv" onChange={handleFileUpload} />
-          <button className={styles.secondaryButton} onClick={downloadTemplate}>Download Template</button>
-          <p>Please ensure your CSV file is structured as follows:</p>
-          <ul>
-            <li>First column: Country/State Name</li>
-            <li>Second column: Value</li>
-          </ul>
-          <p>Example:</p>
-          <pre>
-            StateName1,Value1{'\n'}
-            StateName2,Value2{'\n'}
-            ...
-          </pre>
+<div className={styles.topSection}>
+  {/* File Upload Box */}
+  <div className={styles.fileUploadBox}>
+    <h3>Upload CSV File</h3>
+    <p>
+      Selected Map: <b>{selectedMap === 'world' ? 'World Map' : selectedMap === 'europe' ? 'Europe' : 'USA'}</b>
+    </p>
+        <button className={styles.secondaryButton} onClick={downloadTemplate}>Download Template</button>
 
-          {/* Log Area */}
-          {errors.length > 0 ? (
-            <div className={styles.errorBox}>
-              <p className={styles.errorTitle}>There are {errors.length} error{errors.length > 1 ? 's' : ''} in the file:</p>
-              <ul className={styles.errorList}>
-                {errors.map((error, index) => (
-                  <li key={index}>
-                    <strong>Line {error.line}:</strong> {error.message}
-                  </li>
-                ))}
-              </ul>
-              <button className={styles.downloadErrorButton} onClick={downloadErrorLog}>Download Error Log</button>
-            </div>
-          ) : fileName !== '' ? (
-            <p className={styles.validMessage}>File is valid.</p>
-          ) : (
-            <p className={styles.noFileMessage}>No file uploaded.</p>
-          )}
-        </div>
+    <input type="file" accept=".csv" onChange={handleFileUpload} />
+    <p>Please ensure your CSV file is structured as follows:</p>
+    <ul>
+      <li>First column: Country/State Name</li>
+      <li>Second column: Value</li>
+    </ul>
+    <p>Example:</p>
+    <pre>
+      StateName1,Value1{'\n'}
+      StateName2,Value2{'\n'}
+      ...
+    </pre>
 
-        {/* File Information Table */}
-        <div className={styles.fileInfoBox}>
-          {/* File Information Table */}
-          <table className={styles.fileInfoTable}>
-            <tbody>
-              <tr>
-                <th>File Name</th>
-                <td>{fileName || 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>Lowest Value</th>
-                <td>{fileStats.lowestValue !== null ? fileStats.lowestValue : 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>State (Lowest)</th>
-                <td>{fileStats.lowestCountry || 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>Highest Value</th>
-                <td>{fileStats.highestValue !== null ? fileStats.highestValue : 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>State (Highest)</th>
-                <td>{fileStats.highestCountry || 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>Average Value</th>
-                <td>{fileStats.averageValue !== null ? fileStats.averageValue : 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>Median Value</th>
-                <td>{fileStats.medianValue !== null ? fileStats.medianValue : 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>Standard Deviation</th>
-                <td>{fileStats.standardDeviation !== null ? fileStats.standardDeviation : 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>Values Count</th>
-                <td>{fileStats.numberOfValues}</td>
-              </tr>
-              <tr>
-                <th>Total Countries</th>
-                <td>{fileStats.totalCountries}</td>
-              </tr>
-              <tr>
-                <th>Data Completeness (%)</th>
-                <td>{dataCompleteness || 'N/A'}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    {/* File Upload Status */}
+    {fileName !== '' ? (
+      <p className={styles.validMessage}>File is valid.</p>
+    ) : (
+      <p className={styles.noFileMessage}>No file uploaded.</p>
+    )}
+  </div>
+
+  {/* File Information Box */}
+  <div className={styles.fileInfoBox}>
+    {errors.length > 0 ? (
+      /* Display Error Log in place of the table */
+      <div className={styles.errorBox}>
+        <p className={styles.errorTitle}>There are {errors.length} error{errors.length > 1 ? 's' : ''} in the file:</p>
+        <ul className={styles.errorList}>
+          {errors.map((error, index) => (
+            <li key={index}>
+              <strong>Line {error.line}:</strong> {error.message}
+            </li>
+          ))}
+        </ul>
+        <button className={styles.downloadErrorButton} onClick={downloadErrorLog}>Download Error Log</button>
       </div>
+    ) : (
+      /* Display the File Information Table when there are no errors */
+      <table className={styles.fileInfoTable}>
+        <tbody>
+          <tr>
+            <th>File Name</th>
+            <td>{fileName || 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>Lowest Value</th>
+            <td>{fileStats.lowestValue !== null ? fileStats.lowestValue : 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>State (Lowest)</th>
+            <td>{fileStats.lowestCountry || 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>Highest Value</th>
+            <td>{fileStats.highestValue !== null ? fileStats.highestValue : 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>State (Highest)</th>
+            <td>{fileStats.highestCountry || 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>Average Value</th>
+            <td>{fileStats.averageValue !== null ? fileStats.averageValue : 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>Median Value</th>
+            <td>{fileStats.medianValue !== null ? fileStats.medianValue : 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>Standard Deviation</th>
+            <td>{fileStats.standardDeviation !== null ? fileStats.standardDeviation : 'N/A'}</td>
+          </tr>
+          <tr>
+            <th>Values Count</th>
+            <td>{fileStats.numberOfValues}</td>
+          </tr>
+          <tr>
+            <th>Total Countries</th>
+            <td>{fileStats.totalCountries}</td>
+          </tr>
+          <tr>
+            <th>Data Completeness (%)</th>
+            <td>{dataCompleteness || 'N/A'}</td>
+          </tr>
+        </tbody>
+      </table>
+    )}
+  </div>
+</div>
 
       {/* Second Layer: Range Settings */}
       <div className={styles.section}>

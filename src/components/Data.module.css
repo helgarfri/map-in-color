@@ -96,6 +96,7 @@
   min-width: 120px; /* Prevent buttons from being too narrow */
   flex-shrink: 0; /* Prevent buttons from shrinking */
   margin: 0; /* Remove any default margins */
+  max-width: fit-content;
 }
 
 .secondaryButton:hover:not(:disabled) {
@@ -202,69 +203,109 @@
   border: 1px solid #ccc;
   padding: 20px;
   box-sizing: border-box;
+  font-size: 14px;
+  min-height: 500px; /* Ensure consistent height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .fileInfoBox {
-  max-width: none; /* Allow full width */
-  width: 100%; /* Ensure full width */
+  max-width: none;
+  width: 100%;
 }
 
 .fileInfoTable {
-  width: 100%; /* Ensure table takes full width of container */
+  width: 100%;
   border-collapse: collapse;
+  flex: 1; /* Allow the table to fill available space */
 }
 
 .fileInfoTable th,
 .fileInfoTable td {
   border: 1px solid #ccc;
-  padding: 8px 12px; /* Increased padding for better spacing */
-  font-size: 14px; /* Adjusted font size */
+  padding: 8px 12px;
+  font-size: 14px;
 }
 
 .fileInfoTable th {
   background-color: #f0f0f0;
   text-align: left;
-  width: 200px; /* Adjust the width as needed */
+  width: 200px;
 }
 
 .fileInfoTable td {
   text-align: left;
 }
 
-/* New Error Box Styles */
+/* Error Box within File Info Box */
 .errorBox {
-  margin-top: 20px; /* Space above the error box */
-  width: 100%;
-  height: 150px; /* Fixed height */
-  border: 1px solid #ff4d4f; /* Red border */
-  background-color: #ffe6e6; /* Light red background */
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #ff4d4f;
+  background-color: #ffe6e6;
   padding: 10px;
-  box-sizing: border-box; /* Include padding in width and height */
-  font-size: 12px; /* Smaller font to mimic a log */
-  color: #333; /* Dark text */
-  overflow-y: auto; /* Enable vertical scrolling */
-  white-space: pre-wrap; /* Preserve formatting */
-  border-radius: 4px; /* Slightly rounded corners */
+  box-sizing: border-box;
+  font-size: 14px;
+  color: #333;
+  border-radius: 4px;
   text-align: left;
+  max-height: 460px;
+  width: 100%;
+ 
 }
 
-/* Valid Message Styles */
+.errorTitle {
+  color: #ff1a1a;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.errorList {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0;
+  color: #333;
+}
+
+.errorList li {
+  margin-bottom: 5px;
+}
+
+/* Download Error Log Button */
+.downloadErrorButton {
+  margin-top: 10px;
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.downloadErrorButton:hover {
+  background-color: #e04344;
+}
+
+/* File Upload Status Messages */
 .validMessage {
-  margin-top: 20px; /* Space above the message */
+  margin-top: 20px;
   text-align: center;
   font-size: 14px;
-  color: #28a745; /* Green color for valid files */
+  color: #28a745;
   font-weight: bold;
 }
 
-/* No File Message Styles */
 .noFileMessage {
-  margin-top: 20px; /* Space above the message */
+  margin-top: 20px;
   text-align: center;
   font-size: 14px;
   color: #888;
   font-style: italic;
 }
+
 
 /* Error Messages Styling */
 .errorTitle {
@@ -420,3 +461,4 @@
 .errorBox::-webkit-scrollbar-track {
   background-color: #f1f1f1;
 }
+

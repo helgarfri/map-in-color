@@ -109,11 +109,11 @@
 	},
 	{
 		"code": "BN",
-		"name": "Brunei"
+		"name": "Brunei Darussalam"
 	},
 	{
 		"code": "BO",
-		"name": "Bolivia"
+		"name": "Bolivia (Plurinational State of)"
 	},
 	{
 		"code": "BR",
@@ -150,7 +150,7 @@
 
 	{
 		"code": "CD",
-		"name": "The Democratic Republic of Congo"
+		"name": "Congo (Democratic Republic of the)"
 	},
 	{
 		"code": "CF",
@@ -166,7 +166,7 @@
 	},
 	{
 		"code": "CI",
-		"name": "Ivory Coast"
+		"name": "Côte d'Ivoire"
 	},
 	{
 		"code": "CK",
@@ -198,7 +198,7 @@
 	},
 	{
 		"code": "CV",
-		"name": "Cape Verde"
+		"name": "Cabo Verde"
 	},
 	{
 		"code": "CX",
@@ -210,7 +210,7 @@
 	},
 	{
 		"code": "CZ",
-		"name": "Czech Republic"
+		"name": "Czechia"
 	},
 	{
 		"code": "DE",
@@ -278,7 +278,7 @@
 	},
 	{
 		"code": "FM",
-		"name": "Micronesia"
+		"name": "Micronesia (Federated States of)"
 	},
 	{
 		"code": "FO",
@@ -418,7 +418,7 @@
 	},
 	{
 		"code": "IR",
-		"name": "Iran"
+		"name": "Iran (Islamic Republic of)"
 	},
 	{
 		"code": "IS",
@@ -470,11 +470,11 @@
 	},
 	{
 		"code": "KP",
-		"name": "North Korea"
+		"name": "Korea (Democratic People's Rep. of)"
 	},
 	{
 		"code": "KR",
-		"name": "South Korea"
+		"name": "Korea (Republic of)"
 	},
 	{
 		"code": "KW",
@@ -490,7 +490,7 @@
 	},
 	{
 		"code": "LA",
-		"name": "Laos"
+		"name": "Lao People's Democratic Republic"
 	},
 	{
 		"code": "LB",
@@ -530,7 +530,7 @@
 	},
 	{
 		"code": "LY",
-		"name": "Libyan Arab Jamahiriya"
+		"name": "Libya"
 	},
 	{
 		"code": "MA",
@@ -542,7 +542,7 @@
 	},
 	{
 		"code": "MD",
-		"name": "Moldova"
+		"name": "Moldova (Republic of)"
 	},
 	{
 		"code": "ME",
@@ -746,7 +746,7 @@
 	},
 	{
 		"code": "RU",
-		"name": "Russia"
+		"name": "Russian Federation"
 	},
 	{
 		"code": "RW",
@@ -826,11 +826,11 @@
 	},
 	{
 		"code": "SY",
-		"name": "Syria"
+		"name": "Syrian Arab Republic"
 	},
 	{
 		"code": "SZ",
-		"name": "Eswatini"
+		"name": "Eswatini (Kingdom of)"
 	},
 	{
 		"code": "TC",
@@ -878,7 +878,7 @@
 	},
 	{
 		"code": "TR",
-		"name": "Turkey"
+		"name": "Türkiye"
 	},
 	{
 		"code": "TT",
@@ -894,7 +894,7 @@
 	},
 	{
 		"code": "TZ",
-		"name": "Tanzania"
+		"name": "Tanzania (United Republic of)"
 	},
 	{
 		"code": "UA",
@@ -930,7 +930,7 @@
 	},
 	{
 		"code": "VE",
-		"name": "Venezuela"
+		"name": "Venezuela (Bolivarian Republic of)"
 	},
 	{
 		"code": "VG",
@@ -942,7 +942,7 @@
 	},
 	{
 		"code": "VN",
-		"name": "Vietnam"
+		"name": "Viet Nam"
 	},
 	{
 		"code": "VU",
