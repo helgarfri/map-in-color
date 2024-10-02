@@ -298,6 +298,14 @@
   font-weight: bold;
 }
 
+.invalidMessage {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #ff4d4f; /* Red color for invalid messages */
+  font-weight: bold;
+}
+
 .noFileMessage {
   margin-top: 20px;
   text-align: center;

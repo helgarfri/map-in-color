@@ -51,6 +51,7 @@ export default function DataIntegration({
 
   // File information
   const [fileName, setFileName] = useState('');
+  const [ fileIsValid, setFileIsValid ] = useState(null)
   const [fileStats, setFileStats] = useState({
     lowestValue: null,
     lowestCountry: '',
@@ -98,6 +99,8 @@ export default function DataIntegration({
     if (!file) return;
 
     setFileName(file.name); // Set the file name
+    setFileIsValid(null);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target.result;
@@ -192,8 +195,10 @@ export default function DataIntegration({
     // Update state with errors or parsed data
     if (errorList.length > 0) {
       setErrors(errorList);
+      setFileIsValid(false)
     } else {
       setErrors([]);
+      setFileIsValid(true)
     }
   
     setData(parsedData);
@@ -507,11 +512,17 @@ export default function DataIntegration({
 
     {/* File Upload Status */}
     {fileName !== '' ? (
-      <p className={styles.validMessage}>File is valid.</p>
+      fileIsValid === true ? (
+        <p className={styles.validMessage}>File is valid.</p>
+      ) : fileIsValid === false ? (
+        <p className={styles.invalidMessage}>File is not valid.</p>
+      ) : null
     ) : (
       <p className={styles.noFileMessage}>No file uploaded.</p>
     )}
-  </div>
+
+    </div>
+
 
   {/* File Information Box */}
   <div className={styles.fileInfoBox}>
