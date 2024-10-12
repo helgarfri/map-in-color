@@ -1,15 +1,14 @@
 /* DataIntegration.js */
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import styles from "./Data.module.css";
+import styles from "./DataIntergration.module.css";
 import countryCodes from '../countries.json';
 import usStatesCodes from '../usStates.json';
 import euCodes from '../europeanCountries.json';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from "./UsSVG";
 import EuropeSVG from "./EuropeSVG";
-
-import InputFile from "@kiwicom/orbit-components/lib/InputFile";
+import { useNavigate, useLocation } from "react-router";
 
 
 // Define preloaded color themes
@@ -86,13 +85,38 @@ const themes = [
 
 
 export default function DataIntegration({
-  goBack,
-  selectedMap,
-  goToNextStep,
-  setCsvData,
-  csvData,
-  selectedType
+  isAuthenticated,
+  existingMapData = null,
+  isEditing = false,
 }) {
+
+
+  const location = useLocation();
+  const [selectedMap, setSelectedMap] = useState(
+    existingMapData ? existingMapData.selectedMap : location.state?.selectedMap || 'world'
+  );
+  // Initialize state with existing map data if editing
+  useEffect(() => {
+    if (existingMapData) {
+      setMapTitle(existingMapData.title);
+      setData(existingMapData.data);
+      setCustomRanges(existingMapData.customRanges);
+      setGroups(existingMapData.groups);
+      setSelectedMap(existingMapData.selectedMap);
+      setOceanColor(existingMapData.oceanColor);
+      setUnassignedColor(existingMapData.unassignedColor);
+      setFontColor(existingMapData.fontColor);
+      setShowTopHighValues(existingMapData.showTopHighValues);
+      setShowTopLowValues(existingMapData.showTopLowValues);
+      setTopHighValues(existingMapData.topHighValues);
+      setTopLowValues(existingMapData.topLowValues);
+      setSelectedPalette(existingMapData.selectedPalette);
+      setSelectedMapTheme(existingMapData.selectedMapTheme);
+      // ... set other states as needed
+    }
+  }, [existingMapData]);
+
+
   const [groups, setGroups] = useState([]);
   const [data, setData] = useState([]);
   const [customRanges, setCustomRanges] = useState([
@@ -107,6 +131,8 @@ export default function DataIntegration({
   const [numRanges, setNumRanges] = useState(5); // Default to 5 ranges
 
   const [rangeOrder, setRangeOrder] = useState('low-high'); // Default to 'low-high'
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
 
   // File information
@@ -768,6 +794,62 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
  
   };
 
+  const navigate = useNavigate();
+
+  // Modify `handleSaveMap` to update existing map if editing
+  const handleSaveMap = () => {
+    if (isAuthenticated) {
+      // Proceed to save the map
+      saveMapToLocalStorage();
+      navigate('/dashboard');
+    } else {
+      // Show login modal
+      setShowLoginModal(true);
+    }
+  };
+
+
+  const saveMapToLocalStorage = () => {
+    // Get existing maps from localStorage
+    const existingMaps = JSON.parse(localStorage.getItem('maps')) || [];
+  
+    // Create a new map object with all necessary data
+    const newMap = {
+      id: isEditing ? existingMapData.id : Date.now(),
+      title: mapTitle || 'Untitled Map',
+      data: data,
+      customRanges: customRanges,
+      groups: groups,
+      selectedMap: selectedMap,
+      oceanColor: oceanColor,
+      unassignedColor: unassignedColor,
+      fontColor: fontColor,
+      showTopHighValues: showTopHighValues,
+      showTopLowValues: showTopLowValues,
+      topHighValues: topHighValues,
+      topLowValues: topLowValues,
+      selectedPalette: selectedPalette,
+      selectedMapTheme: selectedMapTheme,
+      // Add any other necessary state
+    };
+  
+    let updatedMaps;
+    if (isEditing) {
+      // Update the existing map
+      updatedMaps = existingMaps.map((map) =>
+        map.id === existingMapData.id ? newMap : map
+      );
+    } else {
+      // Add new map
+      updatedMaps = [...existingMaps, newMap];
+    }
+
+    localStorage.setItem('maps', JSON.stringify(updatedMaps));
+  };
+  
+  
+
+  
   return (
     <div className={styles.container}>
 
@@ -779,8 +861,10 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   <div className={styles.fileUploadBox}>
     <h3>Upload CSV File</h3>
     <p>
-      Selected Map: <b>{selectedMap === 'world' ? 'World Map' : selectedMap === 'europe' ? 'Europe' : 'USA'}</b>
+      Selected Map: <b>{selectedMap === 'world' ? 'World Map' : selectedMap === 'europe' ? 'Europe' : 'USA'}</b> 
+      
     </p>
+    
         <button className={styles.secondaryButton} onClick={downloadTemplate}>Download Template</button>
 
     
@@ -1253,20 +1337,43 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
 
 
-  
-
-
-
-
-
-
-
-
       {/* Navigation Buttons */}
       <div className={styles.navigationButtons}>
-        <button className={styles.secondaryButton} onClick={goBack}>Go Back</button>
-        <button className={styles.secondaryButton} onClick={goToNextStep}>Save Map</button>
+        <button className={styles.primaryButton} onClick={handleSaveMap}>Save Map</button>
       </div>
+
+      {showLoginModal && (
+  <div className={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
+    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+      <button className={styles.closeButton} onClick={() => setShowLoginModal(false)}>
+        &times;
+      </button>
+      <h2>Don't Lose Your Progress!</h2>
+      <p>Please log in or sign up to save your map.</p>
+      <div className={styles.modalButtons}>
+        <button
+          className={styles.secondaryButton}
+          onClick={() => {
+            // Navigate to the login page
+            window.location.href = '/login';
+          }}
+        >
+          Log In
+        </button>
+        <button
+          className={styles.primaryButton}
+          onClick={() => {
+            // Navigate to the signup page
+            window.location.href = '/signup';
+          }}
+        >
+          Sign Up
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
       </div>
     );

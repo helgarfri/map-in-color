@@ -1,0 +1,100 @@
+
+  .headerNav {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .headerNav li {
+    font-size: 28px;
+    list-style: none;
+
+    
+    
+  }
+ 
+  
+  .headerNav a {
+    font-size: 20px;
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+    padding: 7px;
+    border-radius: 4px;
+  
+  }
+  
+  .headerNav a:hover {
+    background-color: white;
+    color: #000;
+    
+    
+  }
+
+  .logo {
+    height: 75px;
+    position: relative;
+    float: left;
+    margin: 100px;
+    
+  }
+  
+  .logo-title {
+    font-size: 19px;
+    color: white;
+  }
+  
+
+  .header {
+    height: 100px;
+    width: 100%;
+    background-color: #212529;
+    display: flex;
+  
+  .header-nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .header-nav li {
+    font-size: 28px;
+  }
+  
+  .header-nav a {
+    font-size: 20px;
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+    padding: 7px;
+    border-radius: 4px;
+  }
+  
+  .header-nav a:hover {
+    background-color: white;
+    color: #000;
+  }  color: white;
+
+    align-items: center;
+    
+  }
+
+  .nav-items {
+    display: flex;
+    flex-direction: row;
+  
+  }
+
+  .authLinks {
+    margin-right: 20px;
+  }
+  
+  .authLinks a {
+    margin: 0 5px;
+    text-decoration: none;
+  }
+  
+  
+
+
+
+  

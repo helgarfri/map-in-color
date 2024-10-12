@@ -1,15 +1,16 @@
+// src/components/CreateNew.js
 import React, { useState } from 'react';
 import SelectMap from './SelectMap';
-import SelectType from './SelectType';
-import DataIntergration from './DataIntergration';
-import FinalizeMap from './FinalizeMap'; // Import the new component
+import FinalizeMap from './FinalizeMap';
+import DataIntegration from './DataIntergration';
 
-export default function CreateNew() {
+export default function CreateNew({
+  isAuthenticated,
+  setIsAuthenticated,
+}) {
   const [step, setStep] = useState(1);
   const [selectedMap, setSelectedMap] = useState(null);
-  const [selectedType, setSelectedType] = useState(null);
   const [csvData, setCsvData] = useState(null);
-
 
   const goToNextStep = () => {
     setStep(step + 1);
@@ -19,20 +20,34 @@ export default function CreateNew() {
     setStep(step - 1);
   };
 
- 
-
-  const finalizeCreation = () => {
-    console.log('Finalizing Creation with:', { selectedMap, selectedType });
-    // Here, you would handle the finalization logic,
-    // such as saving to a database, showing a success message, etc.
-    // For this example, we'll just log the selections to the console.
-  };
-
   return (
     <div>
-      {step === 1 && <SelectMap selectedMap={selectedMap} setSelectedMap={setSelectedMap} continueToNextStep={goToNextStep} />}
-      {step === 2 && <DataIntergration selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} setCsvData={setCsvData} goToNextStep={goToNextStep} goBack={goBack} />}
-      {step === 3 && <FinalizeMap selectedMap={selectedMap} selectedType={selectedType} csvData={csvData} goBack={goBack} goToNextStep={goToNextStep} finalize={finalizeCreation} />}
+      {step === 1 && (
+        <SelectMap
+          selectedMap={selectedMap}
+          setSelectedMap={setSelectedMap}
+          continueToNextStep={goToNextStep}
+        />
+      )}
+      {step === 2 && (
+        <DataIntegration
+          selectedMap={selectedMap}
+          csvData={csvData}
+          setCsvData={setCsvData}
+          goToNextStep={goToNextStep}
+          goBack={goBack}
+          isAuthenticated={isAuthenticated}
+          setIsAuthenticated={setIsAuthenticated}
+        />
+      )}
+      {step === 3 && (
+        <FinalizeMap
+          selectedMap={selectedMap}
+          csvData={csvData}
+          goBack={goBack}
+          goToNextStep={goToNextStep}
+        />
+      )}
     </div>
   );
 }

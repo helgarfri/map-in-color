@@ -1,0 +1,49 @@
+/* src/components/Signup.module.css */
+
+.signupContainer {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+  }
+  
+  .signupContainer h2 {
+    text-align: center;
+  }
+  
+  .signupForm {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formGroup {
+    margin-bottom: 15px;
+  }
+  
+  .formGroup label {
+    margin-bottom: 5px;
+    display: block;
+  }
+  
+  .formGroup input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  .signupButton {
+    padding: 10px;
+    background-color: #55957b;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .signupButton:hover {
+    background-color: #49846d;
+  }
+  
+  .signupContainer p {
+    text-align: center;
+  }
+  

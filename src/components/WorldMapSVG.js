@@ -3,6 +3,8 @@ import countryCodes from '../countries.json';
 import usStatesCodes from '../usStates.json';
 import euCodes from '../europeanCountries.json';
 
+import './WorldMap.css'
+
 export default function WorldMapSVG({
   groups,
   mapTitleValue,
@@ -3355,7 +3357,7 @@ const calculateFontSize = (title) => {
   
 	const textStyle = {
 	  x: "240",
-	  y: itemYPosition + labelFontSize / 3 + 3, // Adjust for alignment
+	  y: itemYPosition + labelFontSize / 3 + 2, // Adjust for alignment
 	  fontSize: labelFontSize,
 	  fill: fontColor,
 	  alignmentBaseline: "middle",

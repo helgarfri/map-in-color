@@ -1,0 +1,49 @@
+/* src/components/Login.module.css */
+
+.loginContainer {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+  }
+  
+  .loginContainer h2 {
+    text-align: center;
+  }
+  
+  .loginForm {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formGroup {
+    margin-bottom: 15px;
+  }
+  
+  .formGroup label {
+    margin-bottom: 5px;
+    display: block;
+  }
+  
+  .formGroup input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  .loginButton {
+    padding: 10px;
+    background-color: #80a0b0;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .loginButton:hover {
+    background-color: #6d8e9f;
+  }
+  
+  .loginContainer p {
+    text-align: center;
+  }
+  

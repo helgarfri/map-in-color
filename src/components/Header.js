@@ -1,84 +1,51 @@
 import React, { useState } from "react";
 import GitHubButton from "react-github-btn";
 
+import styles from './Header.module.css'
 
-function Header() {
-  const [showDropdown, setShowDropdown] = useState(false);
+import { Link } from 'react-router-dom';
 
-  function toggleDropdown() {
-    setShowDropdown(!showDropdown);
-  }
+
+
+function Header({ isAuthenticated, setIsAuthenticated }) {
+
 
   return (
     <div >
-      <div className="header">
+      <div className={styles.header}>
 
      
       <a href="/">
       <img
         alt="logo"
         src="../assets/map-in-color-logo-text.png"
-        className="logo"
+        className={styles.logo}
       ></img>
       </a>
      
-      <nav className="header-nav">
-        <ul className="nav-items">
-          <li onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
-            Maps           
-            <img 
-              className="dropdown-icon" 
-              src="../assets/dropdown.png"
-              alt="dropdown"
-              >
-              
-              </img>
+      <nav className={styles.headerNav}>
+      <ul className="nav-items">
+        <li>
+          <Link to="/create">Create a new map</Link>
+        </li>
+        <li>
+          <Link to="/dashboard">Dashboard</Link>
+        </li>
+      </ul>
 
-            {showDropdown && (
-              <ul className="header-dropdown">
-                <li>
-                  <a href="/world-map">
-                    World Map
-                  </a>
-                
-                </li>
+      <div className={styles.authLinks}>
+        {isAuthenticated ? (
+          <button onClick={() => setIsAuthenticated(false)}>Logout</button>
+        ) : (
+          <>
+            <Link to="/login">Login</Link> | <Link to="/signup">Sign Up</Link>
+          </>
+        )}
+      </div>
 
-                <li>
-                  <a href="/us-states">
-                    US States
-                  </a>
-                </li>
-
-
-                <li>
-                  <a href="/europe">
-                    Europe
-                  </a>
-                </li>
-
-               
-               
-              </ul>
-            )}
-      
-              
-          </li>
-
-          <li>
-            <a href="create">Create a new map</a>
-          </li>
-
-        
-
-        </ul>
-
-        
-        
 
     </nav>
-    <div className="header-git">
-        <GitHubButton  href="https://github.com/helgidavidsson/map-in-color" data-size="large" data-show-count="true" aria-label="Star helgidavidsson/map-in-color on GitHub">Star</GitHubButton>
-        </div>
+
     </div>
    
         

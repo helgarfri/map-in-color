@@ -1,0 +1,139 @@
+/* src/components/Dashboard.module.css */
+
+.dashboard {
+    padding: 20px;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .mainContent {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .mapTable {
+    width: 100%;
+    max-width: 1000px;
+    border-collapse: collapse;
+  }
+  
+  .mapTable th,
+  .mapTable td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .mapTable th {
+    background-color: #f8f8f8;
+  }
+  
+  .thumbnail {
+    width: 120px;
+    height: auto;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .viewButton,
+  .editButton,
+  .deleteButton {
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+  }
+  
+  .viewButton {
+    background-color: #80a0b0/* Your primary color */;
+    color: #fff;
+  }
+  
+  .editButton {
+    background-color: #55957b /* Another color from your scheme */;
+    color: #fff;
+  }
+  
+  .deleteButton {
+    background-color: #c4564d /* Another color from your scheme */;
+    color: #fff;
+  }
+  
+  /* Dashboard.module.css */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modalContent {
+    background-color: #fff;
+    padding: 30px;
+    width: 400px;
+    position: relative;
+    text-align: center;
+    border-radius: 8px;
+  }
+  
+  .mapOptions {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+  }
+  
+  .mapOption {
+    width: 100px;
+    height: 100px;
+    background-color: #eaeaea;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  
+  .mapOption:hover {
+    background-color: #ddd;
+  }
+  
+  .selected {
+    border: 2px solid #0078bf;
+  }
+  
+  
+  /* Adjust button colors to match your primary color scheme */
+  
+
+  @media (max-width: 768px) {
+    .mapTable {
+      width: 100%;
+    }
+  
+    .thumbnail {
+      width: 80px;
+    }
+  
+    .actions {
+      flex-direction: column;
+    }
+  
+    .actions button {
+      margin-bottom: 5px;
+    }
+  }
+  
+
