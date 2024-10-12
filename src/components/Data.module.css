@@ -8,6 +8,8 @@
 
 .section {
   margin-bottom: 20px;
+  margin-top: 20px;
+
 }
 
 .rangeTable {
@@ -70,10 +72,13 @@
   min-width: 120px; /* Prevent buttons from being too narrow */
   flex-shrink: 0; /* Prevent buttons from shrinking */
   margin: 0; /* Remove any default margins */
+  border: 1px solid rgba(0, 0, 0, 0.16);
+
 }
 
 .primaryButton:hover:not(:disabled) {
   background-color: #0056b3; /* Darker shade on hover */
+
 }
 
 .primaryButton:disabled {
@@ -97,6 +102,8 @@
   flex-shrink: 0; /* Prevent buttons from shrinking */
   margin: 0; /* Remove any default margins */
   max-width: fit-content;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+
 }
 
 .secondaryButton:hover:not(:disabled) {
@@ -179,6 +186,7 @@
   -moz-appearance: textfield; /* Remove spinner in Firefox */
 }
 
+
 .inputBox:focus {
   border-color: #66afe9; /* Blue border on focus */
   outline: none; /* Remove default outline */
@@ -189,6 +197,8 @@
   color: #999;
   font-style: italic;
 }
+
+
 
 /* File Upload and Info Styles */
 .topSection {
@@ -201,9 +211,8 @@
 .fileInfoBox {
   flex: 1;
   border: 1px solid #ccc;
-  padding: 20px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 15px;
   min-height: 500px; /* Ensure consistent height */
   display: flex;
   flex-direction: column;
@@ -250,7 +259,7 @@
   color: #333;
   border-radius: 4px;
   text-align: left;
-  max-height: 460px;
+  max-height: 515px;
   width: 100%;
  
 }
@@ -348,9 +357,7 @@
   margin-bottom: 60px;
 }
 
-.mapContainer {
-  flex: 1;
-}
+  
 
 .groupsContainer {
   flex: 1;
@@ -470,3 +477,313 @@
   background-color: #f1f1f1;
 }
 
+
+/* Map Layer */
+.mapLayer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: stretch; /* Make child containers the same height */
+}
+
+/* Map Preview Section */
+.mapPreviewSection {
+  flex: 2; /* Adjusted to take more space */
+  display: flex;
+  flex-direction: column;
+}
+
+.mapPreviewContainer {
+  flex: 1;
+
+  padding: 20px; /* Add padding */
+  box-sizing: border-box; /* Include padding and border in size */
+  display: flex;
+  flex-direction: column;
+}
+
+.mapPreviewWrapper {
+  flex: 1; /* Allow content to fill available space */
+  cursor: pointer;
+  /* Remove any fixed heights or margins that might prevent stretching */
+}
+
+/* Map Settings Section */
+.mapSettingsSection {
+  flex: 1; /* Takes less space compared to preview */
+  display: flex;
+  flex-direction: column;
+}
+
+.mapSettingsContainer {
+  flex: 1;
+  padding: 20px; /* Add padding */
+  box-sizing: border-box; /* Include padding and border in size */
+  display: flex;
+  flex-direction: column;
+}
+
+.mapSettings {
+  flex: 1; /* Allow content to fill available space */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  
+}
+
+/* Headings Styling */
+.mapPreviewSection h3,
+.mapSettingsSection h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1200px) {
+  .mapLayer {
+    flex-direction: column;
+    justify-content: center;
+
+  }
+
+  .mapPreviewContainer,
+  .mapSettingsContainer {
+    flex: none;
+    width: 100%;
+  }
+}
+
+
+
+
+
+/* Groups Layer */
+.groupsLayer {
+  margin-top: 20px; /* Adjust as needed */
+}
+
+
+
+
+
+
+
+
+
+/* View Larger Map Button */
+.viewLargerButton {
+  margin-top: 10px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Popup Overlay */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup Content */
+.popupContent {
+  background-color: #e9ecef;
+  padding: 20px;
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  border-radius: 8px;
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #333;
+}
+
+.mapContainer {
+  cursor: pointer;
+
+}
+
+/* Large Map Container */
+.largeMapContainer {
+  width: 100%;
+  height: auto;
+
+
+}
+
+/* Adjust the map size in the popup */
+.largeMapContainer svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Map Settings Layer */
+.mapSettingsLayer {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  
+}
+
+/* Map Settings Container */
+.mapSettings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 auto;
+
+}
+
+/* Map Settings Row */
+.mapSettingsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Setting Item */
+.settingItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Radio Group Styling */
+.radioGroup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Adjust label styling if needed */
+.settingItem label {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Input Box */
+.inputBox {
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  height: 32px;
+}
+
+/* Ensure color inputs are displayed properly */
+.inputBox[type="color"] {
+  padding: 0;
+  height: 32px;
+  width: 50px;
+}
+
+/* Adjust the select input to match other inputs */
+.inputBox select {
+  padding: 6px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+/* Checkbox Styling */
+.settingItem input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mapSettingsRow {
+    flex-direction: column;
+  }
+}
+
+/* Theme Selector Container */
+.themeSelectorContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px; /* Optional: Add spacing above the theme selector */
+}
+
+/* Theme Preview */
+.themePreview {
+  display: flex;
+  height: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px; /* Optional: Rounded corners */
+  overflow: hidden;
+}
+
+.themeColor {
+  width: 20px;
+  height: 100%;
+}
+
+/* Error Message Styling */
+.errorMessage {
+  color: #555;
+  font-size: 12px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin:0px
+
+}
+
+.warningIcon {
+  height: 15px;
+  margin: 2px;
+  
+  
+}
+
+.fileInput {
+  text-align: center;
+  
+}
+
+
+/* file upload button */
+input[type="file"]::file-selector-button {
+  border-radius: 4px;
+  padding: 0 16px;
+  height: 30px;
+  cursor: pointer;
+  background-color: #dadada;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+  margin-right: 16px;
+  transition: background-color 200ms;
+  display: flex;
+  align-items: center;
+  margin: 5px auto;
+
+
+
+ 
+}
+
+/* file upload button hover state */
+input[type="file"]::file-selector-button:hover {
+  background-color: #f3f4f6;
+}
+
+/* file upload button active state */
+input[type="file"]::file-selector-button:active {
+  background-color: #e5e7eb;}

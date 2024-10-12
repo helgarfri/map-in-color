@@ -1,5 +1,6 @@
 /* DataIntegration.js */
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import styles from "./Data.module.css";
 import countryCodes from '../countries.json';
 import usStatesCodes from '../usStates.json';
@@ -8,8 +9,15 @@ import WorldMapSVG from './WorldMapSVG';
 import UsSVG from "./UsSVG";
 import EuropeSVG from "./EuropeSVG";
 
+import InputFile from "@kiwicom/orbit-components/lib/InputFile";
+
+
 // Define preloaded color themes
 const themes = [
+  {
+    name: 'None',
+    colors: ['#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3'],
+  },
   {
     name: 'Blues',
     colors: ['#f7fbff', '#e1edf8', '#c3def1', '#a6d0ea', '#88c1e3', '#6ab3dc', '#4da4d5', '#2f95ce', '#1187c7', '#0078bf'],
@@ -19,14 +27,63 @@ const themes = [
     colors: ['#fff5f0', '#ffe0d9', '#ffccc2', '#ffb7ab', '#ffa295', '#ff8e7e', '#ff7967', '#ff6450', '#ff5039', '#ff3b22'],
   },
   {
-    name: 'Rainbow',
-    colors: ['#ff0000', '#ff7f00', '#ffff00', '#7fff00', '#00ff00', '#00ff7f', '#00ffff', '#007fff', '#0000ff', '#7f00ff'],
+    name: 'Greens',
+    colors: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#33a34d', '#26873c', '#1c6b31'],
   },
   {
-    name: 'Grayscale',
-    colors: ['#ffffff', '#e6e6e6', '#cccccc', '#b3b3b3', '#999999', '#808080', '#666666', '#4d4d4d', '#333333', '#1a1a1a'],
+    name: 'Yellows',
+    colors: ['#ffffe5', '#fff7bc', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#d5600e', '#b04d0b', '#8a3907'],
+  },
+  {
+    name: 'Red to Green',
+    colors: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#d9ef8b', '#a6d96a', '#66bd63', '#4daf4a'],
+  },
+  {
+    name: 'Heatmap',
+    colors: ['#ffffff', '#ffffcc', '#ffeda0', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#8e0152'],
+  },
+  {
+    name: 'Oranges',
+    colors: ['#fff5eb', '#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d55a0d', '#a94703', '#853200'],
+  },
+  {
+    name: 'Purples',
+    colors: ['#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6b65ab', '#564699', '#453480'],
+  },
+  {
+    name: 'GNBu',
+    colors: ['#f7fcf0', '#e0f3db', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#3791b7', '#1d7295', '#0f4d6f'],
+  },
+  {
+    name: 'PuBu',
+    colors: ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#7a4ea0', '#65348b', '#50216e'],
   },
 ];
+
+
+  // Define preloaded map themes
+  const mapThemes = [
+    {
+      name: 'Default',
+      oceanColor: '#ffffff',
+      fontColor: 'black',
+      unassignedColor: '#c0c0c0',
+    },
+    {
+      name: 'Muted Twilight',
+      oceanColor: '#3D3846',
+      fontColor: 'white',
+      unassignedColor: '#5E5C64',
+    },
+    {
+      name: 'Oceanic',
+      oceanColor: '#006994',
+      fontColor: 'white',
+      unassignedColor: '#004c70',
+    },
+    // Add more themes as needed
+  ];
+
 
 export default function DataIntegration({
   goBack,
@@ -49,6 +106,9 @@ export default function DataIntegration({
   ]);
   const [numRanges, setNumRanges] = useState(5); // Default to 5 ranges
 
+  const [rangeOrder, setRangeOrder] = useState('low-high'); // Default to 'low-high'
+
+
   // File information
   const [fileName, setFileName] = useState('');
   const [ fileIsValid, setFileIsValid ] = useState(null)
@@ -64,6 +124,31 @@ export default function DataIntegration({
     totalCountries: 0,
   });
 
+  // Map settings
+  const [mapTitle, setMapTitle] = useState('');
+  const [oceanColor, setOceanColor] = useState('#ffffff'); // Default ocean color
+  const [unassignedColor, setUnassignedColor] = useState('#c0c0c0'); // Default unassigned color
+  const [showTopHighValues, setShowTopHighValues] = useState(false);
+  const [showTopLowValues, setShowTopLowValues] = useState(false);
+  const [fontColor, setFontColor] = useState('black'); // Default to black font color
+  const [topHighValues, setTopHighValues] = useState([]);
+  const [topLowValues, setTopLowValues] = useState([]);
+
+  // State for selected color palette
+const [selectedPalette, setSelectedPalette] = useState('None'); // Default palette
+
+// State for selected map theme
+const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default map theme
+
+
+
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+
+
+
+
   // State variables to store dataSource and validData
   const [dataSource, setDataSource] = useState([]);
   const [validData, setValidData] = useState([]);
@@ -71,6 +156,10 @@ export default function DataIntegration({
 
   // State for error messages
   const [errors, setErrors] = useState([]);
+
+  let updateState = (event) => {
+    console.log(event.detail);
+  };
 
   const dataCompleteness =
     fileStats.totalCountries > 0
@@ -93,6 +182,32 @@ export default function DataIntegration({
       setMissingCountries(missingCountriesList);
     }
   }, [dataSource, validData]);
+
+  const togglePopup = () => {
+    setIsPopupOpen(!isPopupOpen);
+  };
+
+  useEffect(() => {
+    if (isPopupOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isPopupOpen]);
+
+  useEffect(() => {
+    const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+    if (paletteColors) {
+      applyPaletteToRanges(customRanges, paletteColors);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array ensures this runs once on mount
+  
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -117,7 +232,8 @@ export default function DataIntegration({
   
     // Clear previous errors
     setErrors([]);
-  
+
+
     // Determine the dataSource based on the selectedMap
     let dataSourceLocal;
     switch (selectedMap) {
@@ -191,6 +307,8 @@ export default function DataIntegration({
         parsedData.push({ name, code: dataItem.code, value });
       }
     });
+
+    
   
     // Update state with errors or parsed data
     if (errorList.length > 0) {
@@ -204,9 +322,39 @@ export default function DataIntegration({
     setData(parsedData);
     setDataSource(dataSourceLocal);
     setValidData(parsedData);
+    
+        // After parsing the data and before computing statistics
+    // Sort the data in descending order for highest values
+    const sortedDataDesc = [...parsedData].sort((a, b) => b.value - a.value);
+
+    // Assign ranks (descending order)
+    sortedDataDesc.forEach((item, index) => {
+      item.rankDesc = index + 1; // Rank starts from 1
+    });
+
+    // Sort the data in ascending order for lowest values
+    const sortedDataAsc = [...parsedData].sort((a, b) => a.value - b.value);
+
+    // Assign ranks (ascending order)
+    sortedDataAsc.forEach((item, index) => {
+      item.rankAsc = index + 1; // Rank starts from 1
+    });
+
+
+
   
     // Compute statistics if there are no errors
     if (parsedData.length > 0 && errorList.length === 0) {
+
+    // Compute top high and low values with ranks
+    const topHighValuesLocal = sortedDataDesc.slice(0, Math.min(3, sortedDataDesc.length));
+    const topLowValuesLocal = sortedDataAsc.slice(0, Math.min(3, sortedDataAsc.length));
+
+    // Update state
+    setTopHighValues(topHighValuesLocal);
+    setTopLowValues(topLowValuesLocal);
+
+
       const values = parsedData.map((d) => d.value);
       const totalValues = values.length;
       const sumValues = values.reduce((sum, val) => sum + val, 0);
@@ -270,14 +418,46 @@ export default function DataIntegration({
         standardDeviation: null,
         numberOfValues: 0,
         totalCountries: dataSourceLocal.length,
+        
       });
+
+      setTopHighValues([]);
+      setTopLowValues([]);
+    }
+  };
+  
+
+  const handlePaletteChange = (e) => {
+    const paletteName = e.target.value;
+    setSelectedPalette(paletteName);
+    const paletteColors = themes.find((theme) => theme.name === paletteName)?.colors;
+    if (paletteColors) {
+      applyPaletteToRanges(customRanges, paletteColors); // Apply the color palette to the current ranges
+    }
+  };
+  
+  
+
+  const handleThemeChange = (e) => {
+    const themeName = e.target.value;
+    setSelectedMapTheme(themeName);
+    const mapTheme = mapThemes.find((theme) => theme.name === themeName);
+    if (mapTheme) {
+      // Update the map settings based on the selected theme
+      setOceanColor(mapTheme.oceanColor);
+      setFontColor(mapTheme.fontColor);
+      setUnassignedColor(mapTheme.unassignedColor);
     }
   };
   
 
 
+
+  
+
+
   const addRange = () => {
-    setCustomRanges([
+    const newRanges = [
       ...customRanges,
       {
         id: Date.now(),
@@ -286,16 +466,35 @@ export default function DataIntegration({
         color: '#c0c0c0',
         name: '',
       },
-    ]);
+    ];
+  
+    // Apply palette to new ranges
+    const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+    if (paletteColors) {
+      applyPaletteToRanges(newRanges, paletteColors);
+    } else {
+      setCustomRanges(newRanges);
+    }
   };
+  
 
   const removeRange = (id) => {
     if (customRanges.length > 1) {
-      setCustomRanges(customRanges.filter((range) => range.id !== id));
+      const newRanges = customRanges.filter((range) => range.id !== id);
+      setCustomRanges(newRanges);
+  
+      // Apply palette to new ranges
+      const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+      if (paletteColors) {
+        applyPaletteToRanges(newRanges, paletteColors);
+      } else {
+        setCustomRanges(newRanges);
+      }
     } else {
       alert("Cannot delete the last range.");
     }
   };
+  
 
   const handleRangeChange = (id, field, value) => {
     setCustomRanges(
@@ -304,38 +503,57 @@ export default function DataIntegration({
       )
     );
   };
-
-  const areRangesValid = () => {
-    if (customRanges.length === 0) return false;
-
-    // Check for overlapping ranges
-    const sortedRanges = [...customRanges].sort((a, b) => a.lowerBound - b.lowerBound);
-    for (let i = 0; i < sortedRanges.length - 1; i++) {
-      if (sortedRanges[i].upperBound > sortedRanges[i + 1].lowerBound) {
-        return false;
-      }
+  const getRangesValidationResult = () => {
+    if (customRanges.length === 0) {
+      return {
+        isValid: false,
+        errorMessage: 'Please define at least one range.',
+      };
     }
-
+  
     // Ensure all ranges have valid lower and upper bounds
-    for (let range of sortedRanges) {
+    for (let range of customRanges) {
       if (
         isNaN(range.lowerBound) ||
         isNaN(range.upperBound) ||
         range.lowerBound > range.upperBound
       ) {
-        return false;
+        return {
+          isValid: false,
+          errorMessage: 'Please ensure all ranges are valid.',
+        };
       }
     }
-
-    return true;
+  
+    // Check for overlapping ranges
+    const sortedRanges = [...customRanges].sort((a, b) => a.lowerBound - b.lowerBound);
+    for (let i = 0; i < sortedRanges.length - 1; i++) {
+      if (sortedRanges[i].upperBound > sortedRanges[i + 1].lowerBound) {
+        return {
+          isValid: false,
+          errorMessage: 'Ranges are overlapping. Please adjust them.',
+        };
+      }
+    }
+  
+    return {
+      isValid: true,
+      errorMessage: '',
+    };
   };
+  
+  
+  const rangesValidation = getRangesValidationResult();
+  const isGenerateGroupsDisabled = data.length === 0 || !rangesValidation.isValid;
+
+  
 
   const generateGroups = () => {
     if (data.length === 0) {
       alert("Please upload a CSV file first.");
       return;
     }
-
+  
     // Validate ranges
     const validRanges = customRanges.filter(
       (range) =>
@@ -343,31 +561,23 @@ export default function DataIntegration({
         !isNaN(range.upperBound) &&
         range.lowerBound <= range.upperBound
     );
-
-    // Check for overlapping ranges
-    let isOverlapping = false;
-    for (let i = 0; i < validRanges.length - 1; i++) {
-      if (validRanges[i].upperBound > validRanges[i + 1].lowerBound) {
-        isOverlapping = true;
-        break;
+  
+    // Ensure validRanges are sorted based on rangeOrder
+    const sortedRanges = [...validRanges].sort((a, b) => {
+      if (rangeOrder === 'low-high') {
+        return a.lowerBound - b.lowerBound;
+      } else {
+        return b.lowerBound - a.lowerBound;
       }
-    }
-
-    if (isOverlapping) {
-      alert('Ranges are overlapping. Please adjust them.');
-      return;
-    }
-
-    // Sort ranges by lowerBound
-    const sortedRanges = validRanges.sort((a, b) => a.lowerBound - b.lowerBound);
-
+    });
+  
     // Initialize groups
     const newGroups = sortedRanges.map((range) => ({
       ...range,
       countries: [],
       rangeLabel: range.name || `${range.lowerBound} - ${range.upperBound}`,
     }));
-
+  
     // Assign countries to groups
     data.forEach((item) => {
       const group = newGroups.find(
@@ -378,36 +588,110 @@ export default function DataIntegration({
         group.countries.push(item);
       }
     });
-
+  
     setGroups(newGroups);
   };
+  
 
   const suggestRanges = () => {
     if (data.length === 0) {
       alert("Please upload a CSV file first.");
       return;
     }
-
-    const values = data.map((d) => d.value);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-
-    const rangeWidth = (maxValue - minValue) / numRanges;
-
-    const suggestedRanges = Array.from({ length: numRanges }, (_, i) => {
-      const lowerBound = minValue + i * rangeWidth;
-      const upperBound = i === numRanges - 1 ? maxValue : minValue + (i + 1) * rangeWidth;
-      return {
-        id: Date.now() + i,
-        lowerBound: parseFloat(lowerBound.toFixed(2)),
-        upperBound: parseFloat(upperBound.toFixed(2)),
-        color: '#c0c0c0',
-        name: '',
-      };
-    });
-
-    setCustomRanges(suggestedRanges);
+  
+    const values = data.map((d) => d.value).sort((a, b) => a - b);
+    const numValues = values.length;
+    const suggestedRanges = [];
+  
+    if (rangeOrder === 'low-high') {
+      // Generate ranges from low to high
+      for (let i = 0; i < numRanges; i++) {
+        const lowerQuantile = i / numRanges;
+        const upperQuantile = (i + 1) / numRanges;
+  
+        const lowerBound = getQuantile(values, lowerQuantile);
+        const upperBound = getQuantile(values, upperQuantile);
+  
+        suggestedRanges.push({
+          id: Date.now() + i,
+          lowerBound: parseFloat(lowerBound.toFixed(2)),
+          upperBound: parseFloat(upperBound.toFixed(2)),
+          color: '#c0c0c0',
+          name: '',
+        });
+      }
+    } else {
+      // Generate ranges from high to low
+      for (let i = 0; i < numRanges; i++) {
+        const lowerQuantile = (numRanges - i - 1) / numRanges;
+        const upperQuantile = (numRanges - i) / numRanges;
+  
+        const lowerBound = getQuantile(values, lowerQuantile);
+        const upperBound = getQuantile(values, upperQuantile);
+  
+        suggestedRanges.push({
+          id: Date.now() + i,
+          lowerBound: parseFloat(lowerBound.toFixed(2)),
+          upperBound: parseFloat(upperBound.toFixed(2)),
+          color: '#c0c0c0',
+          name: '',
+        });
+      }
+    }
+  
+    // Apply palette to suggested ranges
+    const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+    if (paletteColors) {
+      applyPaletteToRanges(suggestedRanges, paletteColors, rangeOrder);
+    } else {
+      setCustomRanges(suggestedRanges);
+    }
   };
+  
+
+  
+
+  const applyPaletteToRanges = (ranges, paletteColors) => {
+    const numRanges = ranges.length;
+    const numColors = paletteColors.length;
+  
+    const indices = [];
+    if (numRanges === 1) {
+      // Single range: use the middle color
+      indices.push(Math.floor((numColors - 1) / 2));
+    } else {
+      // Multiple ranges: distribute colors evenly
+      const step = (numColors - 1) / (numRanges - 1);
+      for (let i = 0; i < numRanges; i++) {
+        indices.push(Math.round(i * step));
+      }
+    }
+  
+    // Assign colors to ranges based on calculated indices
+    const newRanges = ranges.map((range, index) => ({
+      ...range,
+      color: paletteColors[indices[index]] || '#c0c0c0', // Fallback color
+    }));
+  
+    setCustomRanges(newRanges);
+  };
+  
+  
+  
+  
+  // Helper function to calculate quantiles
+  const getQuantile = (sortedValues, quantile) => {
+    const pos = (sortedValues.length - 1) * quantile;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+  
+    if ((sortedValues[base + 1] !== undefined)) {
+      return sortedValues[base] + rest * (sortedValues[base + 1] - sortedValues[base]);
+    } else {
+      return sortedValues[base];
+    }
+  };
+  
 
   const applyTheme = (themeColors) => {
     const numRanges = customRanges.length;
@@ -480,6 +764,8 @@ export default function DataIntegration({
 
     link.click();
     document.body.removeChild(link);
+
+ 
   };
 
   return (
@@ -488,7 +774,7 @@ export default function DataIntegration({
       <h2>Data Integration</h2>
 
       {/* Top Layer: File Upload and File Information */}
-<div className={styles.topSection}>
+      <div className={styles.topSection}>
   {/* File Upload Box */}
   <div className={styles.fileUploadBox}>
     <h3>Upload CSV File</h3>
@@ -497,7 +783,8 @@ export default function DataIntegration({
     </p>
         <button className={styles.secondaryButton} onClick={downloadTemplate}>Download Template</button>
 
-    <input type="file" accept=".csv" onChange={handleFileUpload} />
+    
+   
     <p>Please ensure your CSV file is structured as follows:</p>
     <ul>
       <li>First column: Country/State Name</li>
@@ -509,6 +796,8 @@ export default function DataIntegration({
       StateName2,Value2{'\n'}
       ...
     </pre>
+
+    <input className={styles.fileInput} type="file" accept=".csv" onChange={handleFileUpload} />
 
     {/* File Upload Status */}
     {fileName !== '' ? (
@@ -593,6 +882,8 @@ export default function DataIntegration({
   </div>
 </div>
 
+
+
       {/* Second Layer: Range Settings */}
       <div className={styles.section}>
         <h3>Define Custom Ranges</h3>
@@ -673,117 +964,309 @@ export default function DataIntegration({
           </tbody>
         </table>
 
-        {/* Number of Ranges Select Input, Suggest Ranges Button, Add Range Button, Generate Groups Button, and Theme Buttons */}
-        <div className={styles.rangeControls}>
-          <div className={styles.leftControls}>
-            <label htmlFor="numRanges" title="Select the total number of ranges you want to define">
-              Ranges:
-            </label>
-            <select
-              id="numRanges"
-              className={styles.inputBox} /* Apply input styles to select */
-              value={numRanges}
-              onChange={(e) => setNumRanges(parseInt(e.target.value))}
-            >
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-                <option key={num} value={num}>
-                  {num}
-                </option>
-              ))}
-            </select>
-            <button
-              className={styles.secondaryButton}
-              onClick={suggestRanges}
-              disabled={data.length === 0}
-            >
-              Suggest Ranges
-            </button>
-            <button
-              className={styles.secondaryButton}
-              onClick={addRange}
-            >
-              Add Range
-            </button>
-            <button
-              className={styles.primaryButton}
-              onClick={generateGroups}
-              disabled={data.length === 0 || !areRangesValid()}
-            >
-              Generate Groups
-            </button>
-          </div>
+{/* Number of Ranges Select Input, Suggest Ranges Button, Add Range Button, Generate Groups Button, and Theme Selector */}
+<div className={styles.rangeControls}>
+  <div className={styles.leftControls}>
+    <label htmlFor="numRanges" title="Select the total number of ranges you want to define">
+      Ranges:
+    </label>
+    <select
+      id="numRanges"
+      className={styles.inputBox}
+      value={numRanges}
+      onChange={(e) => setNumRanges(parseInt(e.target.value))}
+    >
+      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+        <option key={num} value={num}>
+          {num}
+        </option>
+      ))}
+    </select>
 
-          {/* Theme Buttons */}
-          <div className={styles.themeButtons}>
-            {themes.map((theme, index) => (
-              <button
-                key={index}
-                className={styles.themeButton}
-                onClick={() => applyTheme(theme.colors)}
-                title={theme.name}
-              >
-                {/* Display theme colors */}
-                <div className={styles.themePreview}>
-                  {theme.colors.map((color, idx) => (
-                    <div
-                      key={idx}
-                      className={styles.themeColor}
-                      style={{ backgroundColor: color }}
-                    ></div>
-                  ))}
-                </div>
-              </button>
-            ))}
-          </div>
+{/* Range Order Selector */}
+<div className={styles.rangeOrderSelector}>
+  <select
+    id="rangeOrder"
+    className={styles.inputBox}
+    value={rangeOrder}
+    onChange={(e) => setRangeOrder(e.target.value)}
+  >
+    <option value="low-high">Low to High</option>
+    <option value="high-low">High to Low</option>
+  </select>
+</div>
+
+    
+    <button
+      className={styles.secondaryButton}
+      onClick={suggestRanges}
+      disabled={data.length === 0}
+    >
+      Suggest Ranges
+    </button>
+    <button
+      className={styles.secondaryButton}
+      onClick={addRange}
+    >
+      Add Range
+    </button>
+    <button
+      className={styles.primaryButton}
+      onClick={generateGroups}
+      disabled={isGenerateGroupsDisabled}
+    >
+      Generate Groups
+    </button>
+
+
+     {/* Error Message */}
+
+
+    {isGenerateGroupsDisabled && (
+      
+      <p className={styles.errorMessage}>
+        <img className={styles.warningIcon} src={`${process.env.PUBLIC_URL}/assets/warning_icon.png`} alt="Warning Icon" />
+
+        
+        {data.length === 0
+          ? 'Please upload a CSV file first.'
+          : rangesValidation.errorMessage}
+      </p>
+    )}
+  </div>
+
+{/* Palette Selector */}
+<div className={styles.themeSelectorContainer}>
+  <label htmlFor="paletteSelector">Palette:</label>
+  <select
+    id="paletteSelector"
+    className={styles.inputBox}
+    value={selectedPalette}
+    onChange={handlePaletteChange}
+  >
+    {themes.map((theme, index) => (
+      <option key={index} value={theme.name}>
+        {theme.name}
+      </option>
+    ))}
+  </select>
+  {/* Display the color pattern of the selected palette */}
+  <div className={styles.themePreview}>
+    {themes.find((theme) => theme.name === selectedPalette)?.colors.map((color, idx) => (
+      <div
+        key={idx}
+        className={styles.themeColor}
+        style={{ backgroundColor: color }}
+      ></div>
+    ))}
+  </div>
+</div>
+</div>
+
+{/* Map Layer: Map Preview and Map Settings */}
+<div className={styles.mapLayer}>
+
+
+  {/* Map Preview Section */}
+  <div className={styles.mapPreviewSection}>
+    <h3>Preview</h3>
+    <div className={styles.mapPreviewContainer}>
+      <div onClick={togglePopup} className={styles.mapPreviewWrapper}>
+        {selectedMap === 'world' && (
+          <WorldMapSVG
+            groups={groups}
+            mapTitleValue={mapTitle}
+            oceanColor={oceanColor}
+            unassignedColor={unassignedColor}
+            showTopHighValues={showTopHighValues}
+            showTopLowValues={showTopLowValues}
+            data={data}
+            selectedMap={selectedMap}
+            fontColor={fontColor}
+            topHighValues={topHighValues}
+            topLowValues={topLowValues}
+            isLargeMap={false}
+          />
+        )}
+        {/* Include other map components as needed */}
+      </div>
+    </div>
+  </div>
+
+
+  {/* Map Settings */}
+  <div className={styles.mapSettingsSection}>
+    <h3>Map Settings</h3>
+    <div className={styles.mapSettingsContainer}>
+      <div className={styles.mapSettings}>
+      {/* Map Title */}
+      <div className={styles.settingItem}>
+        <label htmlFor="mapTitle">Map Title:</label>
+        <input
+          id="mapTitle"
+          type="text"
+          className={styles.inputBox}
+          value={mapTitle}
+          onChange={(e) => setMapTitle(e.target.value)}
+          placeholder="Enter map title"
+          maxLength="40"
+        />
+      </div>
+
+
+      {/* Map Theme Selector */}
+<div className={styles.settingItem}>
+  <label htmlFor="mapThemeSelector">Map Theme:</label>
+  <select
+    id="mapThemeSelector"
+    className={styles.inputBox}
+    value={selectedMapTheme}
+    onChange={handleThemeChange}
+  >
+    {mapThemes.map((theme) => (
+      <option key={theme.name} value={theme.name}>
+        {theme.name}
+      </option>
+    ))}
+  </select>
+</div>
+
+
+      {/* Font Color Option */}
+      <div className={styles.settingItem}>
+        <label>Font Color:</label>
+        <div className={styles.radioGroup}>
+          <label>
+            <input
+              type="radio"
+              value="black"
+              checked={fontColor === 'black'}
+              onChange={(e) => setFontColor(e.target.value)}
+            />
+            Black
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="white"
+              checked={fontColor === 'white'}
+              onChange={(e) => setFontColor(e.target.value)}
+            />
+            White
+          </label>
         </div>
       </div>
 
-      {/* Bottom Layer: Map Preview and Displayed Groups */}
-      <div className={styles.bottomSection}>
-        {/* Map Preview */}
-        <div className={styles.mapContainer}>
-          <h3>Preview</h3>
-          {selectedMap === 'world' && <WorldMapSVG groups={groups} />}
-          {selectedMap === 'usa' && <UsSVG groups={groups} />}
-          {selectedMap === 'europe' && <EuropeSVG groups={groups} />}
-        </div>
-
-        {/* Displayed Groups */}
-        <div className={styles.groupsContainer}>
-          <h3>Groups</h3>
-          <div>
-            {groups.length > 0 ? (
-              groups.map((group, index) => (
-                <div key={group.id} className={styles.group}>
-                  <span><b>{group.rangeLabel}</b></span>
-                  <div
-                    className={styles.colorBox}
-                    style={{ backgroundColor: group.color }}
-                  ></div>
-                  {group.countries.length > 0 && (
-                    <div className={styles.countriesContainer}>
-                      {group.countries.map((c) => (
-                        <div key={c.code} className={styles.countryBox}>
-                          {c.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className={styles.placeholderMessage}>
-                No groups defined yet. Please define ranges and generate groups.
-              </p>
-            )}
-          </div>
-        </div>
+      {/* Ocean Color */}
+      <div className={styles.settingItem}>
+        <label htmlFor="oceanColor">Ocean Color:</label>
+        <input
+          id="oceanColor"
+          type="color"
+          className={styles.inputBox}
+          value={oceanColor}
+          onChange={(e) => setOceanColor(e.target.value)}
+        />
       </div>
+
+      {/* Unassigned Countries Color */}
+      <div className={styles.settingItem}>
+        <label htmlFor="unassignedColor">Unassigned Countries Color:</label>
+        <input
+          id="unassignedColor"
+          type="color"
+          className={styles.inputBox}
+          value={unassignedColor}
+          onChange={(e) => setUnassignedColor(e.target.value)}
+        />
+      </div>
+
+
+      {/* Display Top 3 Highest Values */}
+      <div className={styles.settingItem}>
+        <label htmlFor="showTopHighValues">
+          <input
+            id="showTopHighValues"
+            type="checkbox"
+            checked={showTopHighValues}
+            onChange={(e) => setShowTopHighValues(e.target.checked)}
+          />
+          Display Top 3 Highest Values
+        </label>
+      </div>
+
+      {/* Display Top 3 Lowest Values */}
+      <div className={styles.settingItem}>
+        <label htmlFor="showTopLowValues">
+          <input
+            id="showTopLowValues"
+            type="checkbox"
+            checked={showTopLowValues}
+            onChange={(e) => setShowTopLowValues(e.target.checked)}
+          />
+          Display Top 3 Lowest Values
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+
+     
+
+     
+
+
+{/* Popup Modal */}
+{isPopupOpen && (
+  <div className={styles.popupOverlay} onClick={togglePopup}>
+    <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+      {/* Close Button */}
+      <button className={styles.closeButton} onClick={togglePopup}>
+        &times;
+      </button>
+      {/* Larger Map */}
+      <div className={styles.largeMapContainer}>
+        {selectedMap === 'world' && (
+          <WorldMapSVG
+            groups={groups}
+            mapTitleValue={mapTitle}
+            oceanColor={oceanColor}
+            unassignedColor={unassignedColor}
+            showTopHighValues={showTopHighValues}
+            showTopLowValues={showTopLowValues}
+            data={data}
+            selectedMap={selectedMap}
+            fontColor={fontColor}
+            topHighValues={topHighValues}
+            topLowValues={topLowValues}
+            isLargeMap={true} // Pass a prop to adjust map size if needed
+          />
+        )}
+        {/* ...Other map components... */}
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+  
+
+
+
+
+
+
+
 
       {/* Navigation Buttons */}
       <div className={styles.navigationButtons}>
         <button className={styles.secondaryButton} onClick={goBack}>Go Back</button>
-        <button className={styles.secondaryButton} onClick={goToNextStep}>Finalize</button>
+        <button className={styles.secondaryButton} onClick={goToNextStep}>Save Map</button>
+      </div>
       </div>
       </div>
     );

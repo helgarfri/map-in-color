@@ -17,7 +17,7 @@
 {
 	opacity: 0;
 	fill: #c0c0c0;
-	stroke: #000000;
+	stroke: #4b4b4b;
 	stroke-width: 0.5;
 }
 
@@ -30,7 +30,7 @@
 {
 	opacity: 0;
 	fill: #c0c0c0;
-	stroke: #000000;
+	stroke: #4b4b4b;
 	stroke-width: 1;
 
 }
@@ -42,7 +42,7 @@
  */
 .landxx
 {
-	stroke: #ffffff;
+	stroke: #4b4b4b;
 	stroke-width: 1;
 	fill-rule: evenodd;
 	fill: #c0c0c0;
@@ -57,6 +57,7 @@
 .coastxx
 {
 	stroke-width: 0.5;
+	stroke: #4b4b4b;
 }
 
 
@@ -67,6 +68,8 @@
  */
 .antxx
 {
+	stroke: #4b4b4b;
+	stroke-width: 1;
 	opacity: 1;
 	fill: #c0c0c0;
 }
@@ -80,7 +83,7 @@
 {
 	opacity: 0;
 	fill: #c0c0c0;
-	stroke: #000000;
+	stroke: #4b4b4b;
 	stroke-width: 0.5;
 }
 
@@ -164,7 +167,7 @@
  }
 
  .title-map {
-	font-size: 28px;
+	font-size: 30px;
 	letter-spacing: 1.3px;
 	font-weight: 500;
 	font-weight: 600;
@@ -175,18 +178,17 @@
 	padding-top: 10px;
 	padding-bottom: 6px;
 	padding-left: 1.5%;
-	width: 90%;
 	display: flex;
 	align-items: center;
 	margin: 0 auto;
+	justify-content: center;
+	
 
 	
 	
 }
 
-
-@media (max-width: 735px) {
- #worldMap {
-	width: 98%;
- }
+.groupsContainer {
+	border: #4b4b4b 1px solid;
 }
+
