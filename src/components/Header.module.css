@@ -1,100 +1,98 @@
+.header {
+  height: 70px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end; /* Right-align the auth section */
+  align-items: center;
+  background-color: #2c3e50;
+  padding: 0 20px;
+  position: relative; /* For positioning the logo in the center */
+  box-sizing: border-box;
+}
 
-  .headerNav {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-  .headerNav li {
-    font-size: 28px;
-    list-style: none;
-
-    
-    
-  }
- 
-  
-  .headerNav a {
-    font-size: 20px;
-    color: white;
-    text-decoration: none;
-    transition: 0.3s;
-    padding: 7px;
-    border-radius: 4px;
-  
-  }
-  
-  .headerNav a:hover {
-    background-color: white;
-    color: #000;
-    
-    
-  }
-
-  .logo {
-    height: 75px;
-    position: relative;
-    float: left;
-    margin: 100px;
-    
-  }
-  
-  .logo-title {
-    font-size: 19px;
-    color: white;
-  }
+.header h1 {
+  text-decoration: none;
+  color: #fff;
   
 
-  .header {
-    height: 100px;
-    width: 100%;
-    background-color: #212529;
-    display: flex;
-  
-  .header-nav {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-  
-  .header-nav li {
-    font-size: 28px;
-  }
-  
-  .header-nav a {
-    font-size: 20px;
-    color: white;
-    text-decoration: none;
-    transition: 0.3s;
-    padding: 7px;
-    border-radius: 4px;
-  }
-  
-  .header-nav a:hover {
-    background-color: white;
-    color: #000;
-  }  color: white;
+}
 
-    align-items: center;
-    
-  }
+.logoContainer {
 
-  .nav-items {
-    display: flex;
-    flex-direction: row;
-  
-  }
+  display: flex;
+  align-items: center;
+}
 
-  .authLinks {
-    margin-right: 20px;
-  }
-  
-  .authLinks a {
-    margin: 0 5px;
-    text-decoration: none;
-  }
-  
-  
+.logo {
+  height: 50px;
+  margin-right: 10px;
+}
 
+.authContainer {
+  position: relative; /* For positioning the dropdown */
+  margin-left: auto; /* Pushes the login/user info to the right */
+}
 
+.loginLink {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+}
 
-  
+.loginLink:hover {
+  text-decoration: underline;
+}
+
+.userMenu {
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.username {
+  font-size: 1rem;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  top: 100%; /* Position below the username */
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 150px;
+  z-index: 1000;
+  margin-top: 5px;
+}
+
+.dropdownItem {
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  color: #333;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.dropdownItem:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdownItem button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1rem;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdownItem button:hover {
+  background-color: #f0f0f0;
+}

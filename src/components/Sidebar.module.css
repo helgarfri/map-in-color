@@ -1,0 +1,44 @@
+/* src/components/Sidebar.module.css */
+
+.sidebar {
+    width: 200px;
+    background-color: #fff;
+    color: #000;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  
+  .sidebar h2 {
+    color: #ecf0f1;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  .sidebar nav ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar nav ul li {
+    margin-bottom: 15px;
+  }
+  
+  .navLink {
+    color: #000;
+    text-decoration: none;
+    font-size: 1rem;
+  }
+  
+  .navLink:hover {
+    text-decoration: underline;
+  }
+  
+  .activeNavLink {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  .logo {
+    width: 170px;
+  }
+  

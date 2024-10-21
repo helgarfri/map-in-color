@@ -17,8 +17,11 @@ export default function WorldMapSVG({
   fontColor,
   topHighValues,
   topLowValues,
-  isLargeMap = false
+  isLargeMap = false,
+  isThumbnail = false,
 }) {
+
+
 
 // State to store x positions
 const [highValuesXPositions, setHighValuesXPositions] = useState([]);
@@ -224,8 +227,25 @@ const calculateFontSize = (title) => {
         
 <div id="worldMap"   >
 
-<svg ref={svgRef} viewBox="0 0 2754 1398 " version="1.1"   width={isLargeMap ? '1500px' : '800px'} height={isLargeMap ? '800px' : '400px'} >
-	<title>World Map</title>
+<svg
+  ref={svgRef}
+  viewBox="0 0 2754 1398"
+  version="1.1"
+  width={
+    isLargeMap
+      ? '1500px'
+      : isThumbnail
+      ? '180px' // Adjust the width for thumbnail
+      : '800px'
+  }
+  height={
+    isLargeMap
+      ? '800px'
+      : isThumbnail
+      ? '100px' // Adjust the height for thumbnail
+      : '400px'
+  }
+>	<title>World Map</title>
 	
 
 
@@ -3424,6 +3444,8 @@ const calculateFontSize = (title) => {
 	  ))}
 	</g>
   )}
+
+  
   
   
   

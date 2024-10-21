@@ -9,6 +9,9 @@ import WorldMapSVG from './WorldMapSVG';
 import UsSVG from "./UsSVG";
 import EuropeSVG from "./EuropeSVG";
 import { useNavigate, useLocation } from "react-router";
+import { updateMap, createMap } from "../api";
+import Footer from "./Footer";
+import Header from "./Header";
 
 
 // Define preloaded color themes
@@ -90,6 +93,7 @@ export default function DataIntegration({
   isEditing = false,
 }) {
 
+ 
 
   const location = useLocation();
   const [selectedMap, setSelectedMap] = useState(
@@ -98,6 +102,8 @@ export default function DataIntegration({
   // Initialize state with existing map data if editing
   useEffect(() => {
     if (existingMapData) {
+      setFileName(existingMapData.fileName);
+      setFileStats(existingMapData.fileStats);
       setMapTitle(existingMapData.title);
       setData(existingMapData.data);
       setCustomRanges(existingMapData.customRanges);
@@ -226,14 +232,6 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
     };
   }, [isPopupOpen]);
 
-  useEffect(() => {
-    const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
-    if (paletteColors) {
-      applyPaletteToRanges(customRanges, paletteColors);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this runs once on mount
-  
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -796,18 +794,42 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
   const navigate = useNavigate();
 
-  // Modify `handleSaveMap` to update existing map if editing
-  const handleSaveMap = () => {
+  const handleSaveMap = async () => {
     if (isAuthenticated) {
-      // Proceed to save the map
-      saveMapToLocalStorage();
-      navigate('/dashboard');
+      const mapData = {
+        id: isEditing ? existingMapData.id : Date.now(),
+        title: mapTitle || '',
+        data: data,
+        customRanges: customRanges,
+        groups: groups,
+        selectedMap: selectedMap,
+        oceanColor: oceanColor,
+        unassignedColor: unassignedColor,
+        fontColor: fontColor,
+        showTopHighValues: showTopHighValues,
+        showTopLowValues: showTopLowValues,
+        topHighValues: topHighValues,
+        topLowValues: topLowValues,
+        selectedPalette: selectedPalette,
+        selectedMapTheme: selectedMapTheme,
+        fileName: fileName,
+        fileStats: fileStats,
+      };
+  
+      try {
+        if (isEditing) {
+          await updateMap(existingMapData.id, mapData);
+        } else {
+          await createMap(mapData);
+        }
+        navigate('/dashboard');
+      } catch (err) {
+        console.error(err);
+      }
     } else {
-      // Show login modal
       setShowLoginModal(true);
     }
   };
-
 
   const saveMapToLocalStorage = () => {
     // Get existing maps from localStorage
@@ -816,7 +838,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
     // Create a new map object with all necessary data
     const newMap = {
       id: isEditing ? existingMapData.id : Date.now(),
-      title: mapTitle || 'Untitled Map',
+      title: mapTitle || '',
       data: data,
       customRanges: customRanges,
       groups: groups,
@@ -830,6 +852,8 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       topLowValues: topLowValues,
       selectedPalette: selectedPalette,
       selectedMapTheme: selectedMapTheme,
+      fileName: fileName,
+      fileStats: fileStats,
       // Add any other necessary state
     };
   
@@ -838,7 +862,9 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       // Update the existing map
       updatedMaps = existingMaps.map((map) =>
         map.id === existingMapData.id ? newMap : map
+      
       );
+      
     } else {
       // Add new map
       updatedMaps = [...existingMaps, newMap];
@@ -849,13 +875,14 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   
   
 
-  
   return (
     <div className={styles.container}>
 
-      <h2>Data Integration</h2>
+      {/* Main Content */}
+      <div className={styles.content}>
 
-      {/* Top Layer: File Upload and File Information */}
+        <h2>Data Intergration</h2>
+
       <div className={styles.topSection}>
   {/* File Upload Box */}
   <div className={styles.fileUploadBox}>
@@ -883,16 +910,17 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
     <input className={styles.fileInput} type="file" accept=".csv" onChange={handleFileUpload} />
 
-    {/* File Upload Status */}
+   {/* File Upload Status */}
     {fileName !== '' ? (
       fileIsValid === true ? (
-        <p className={styles.validMessage}>File is valid.</p>
+        <p className={styles.validMessage}>File is valid</p>
       ) : fileIsValid === false ? (
-        <p className={styles.invalidMessage}>File is not valid.</p>
+        <p className={styles.invalidMessage}>File is not valid</p>
       ) : null
     ) : (
       <p className={styles.noFileMessage}>No file uploaded.</p>
     )}
+
 
     </div>
 
@@ -1372,8 +1400,10 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       </div>
     </div>
   </div>
+
 )}
 
+      </div>
       </div>
       </div>
     );

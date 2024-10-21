@@ -2,9 +2,14 @@
 
 .container {
   width: 100%;
-  max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+}
+
+.content {
+  padding: 20px; /* Add padding to the content area */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .section {

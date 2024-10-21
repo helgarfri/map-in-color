@@ -15,14 +15,16 @@ import { useState } from 'react';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DataIntegration from './components/DataIntergration';
+import Profile from './components/Profile';
 
 function App() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   return (
     <Router>
-      <Header isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+      <Header isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> 
       <Routes>
+      
         <Route path="/" element={<Home />} />
         <Route path="/create" 
           element={<DataIntegration 
@@ -34,6 +36,8 @@ function App() {
           element={
             <PrivateRoute isAuthenticated={isAuthenticated}>
               <Dashboard
+                isAuthenticated={isAuthenticated}
+                setIsAuthenticated={setIsAuthenticated}
                  />
             </PrivateRoute>
           }
@@ -56,8 +60,10 @@ function App() {
             />
           }
         />
+
+        <Route path="/profile" element={<Profile />} />
       </Routes>
-      <Footer />
+        <Footer/>
     </Router>
   );
 }
