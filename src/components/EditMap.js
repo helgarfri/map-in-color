@@ -5,7 +5,12 @@ import DataIntegration from './DataIntergration';
 import { API } from '../api'; // Named import
 
 
-export default function EditMap({ isAuthenticated, setIsAuthenticated }) {
+export default function EditMap({ 
+  isAuthenticated, 
+  setIsAuthenticated,
+  isCollapsed,
+  setIsCollapsed
+}) {
   const { mapId } = useParams();
   const [mapData, setMapData] = useState(null);
   const [error, setError] = useState(null); // Optional: track errors
@@ -39,6 +44,8 @@ export default function EditMap({ isAuthenticated, setIsAuthenticated }) {
       setIsAuthenticated={setIsAuthenticated}
       existingMapData={mapData}
       isEditing={true}
+      isCollapsed={isCollapsed}
+      setIsCollapsed={setIsCollapsed}
     />
   );
 }

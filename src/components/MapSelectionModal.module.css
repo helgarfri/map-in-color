@@ -1,0 +1,77 @@
+/* src/components/MapSelectionModal.module.css */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modalContent {
+    background-color: #fff;
+    padding: 30px;
+    width: 450px;
+    position: relative;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .mapOptions {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+  }
+  
+  .mapOption {
+    width: 100px;
+    height: 100px;
+    background-color: #eaeaea;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border-radius: 8px;
+  }
+  
+  .mapOption:hover {
+    background-color: #ddd;
+  }
+  
+  .selected {
+    border: 2px solid #0078bf;
+  }
+  
+  .viewButton {
+    background-color: #55957b;
+    color: #fff;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    margin-right: 10px;
+  }
+  
+  .cancelButton {
+    background-color: #cccccc;
+    color: #333;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+  }
+  
+  .viewButton:hover,
+  .cancelButton:hover {
+    filter: brightness(0.9);
+  }
+  

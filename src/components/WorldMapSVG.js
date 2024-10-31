@@ -235,14 +235,14 @@ const calculateFontSize = (title) => {
     isLargeMap
       ? '1500px'
       : isThumbnail
-      ? '180px' // Adjust the width for thumbnail
+      ? '120px' // Adjust the width for thumbnail
       : '800px'
   }
   height={
     isLargeMap
       ? '800px'
       : isThumbnail
-      ? '100px' // Adjust the height for thumbnail
+      ? '50px' // Adjust the height for thumbnail
       : '400px'
   }
 >	<title>World Map</title>

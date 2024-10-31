@@ -1,0 +1,91 @@
+/* src/components/MyMaps.module.css */
+
+/* Container styles */
+.myMapsContainer {
+    display: flex;
+    min-height: 100vh;
+    color: black;
+  }
+  
+  /* Main content styling */
+  .myMapsContent {
+    flex: 1;
+    padding: 20px;
+    margin-left: 250px; /* Adjust based on sidebar width */
+    transition: margin-left 0.3s ease;
+  }
+  
+  .contentCollapsed {
+    margin-left: 70px; /* Adjust based on collapsed sidebar */
+  }
+  
+  .myMapsContent h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  /* Table styles (copy from Dashboard.module.css) */
+  .mapTable {
+    width: 100%;
+    max-width: 1500px;
+    border-collapse: collapse;
+    margin: 0 auto;
+  }
+  
+  .mapTable th,
+  .mapTable td {
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  .mapTable thead th {
+    background-color: #f8f9fa;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .mapTable tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+  }
+  
+  .mapTable tbody tr:nth-child(even) {
+    background-color: #ffffff;
+  }
+  
+  .mapTable tbody tr:hover {
+    background-color: #e6f7ff;
+  }
+  
+  /* Action buttons and other styles */
+  .actionButtons button {
+    /* ... styles ... */
+  }
+  
+  .editButton {
+    background-color: #80a0b0;
+    color: #fff;
+  }
+  
+  .deleteButton {
+    background-color: #c4564d;
+    color: #fff;
+  }
+  
+  .button {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    filter: brightness(0.9);
+  }
+  
+  /* Modal styles */
+  /* ... styles ... */
+  

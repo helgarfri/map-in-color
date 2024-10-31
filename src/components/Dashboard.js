@@ -1,32 +1,30 @@
 // src/components/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import styles from './Dashboard.module.css';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { fetchMaps, deleteMap } from '../api';
-
+import Sidebar from './Sidebar';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
-
-import { formatDistanceToNow } from 'date-fns'; // Importing date-fns function
-import Sidebar from './Sidebar';
-import Footer from './Footer';
+import MapSelectionModal from './MapSelectionModal';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function Dashboard({
   isAuthenticated,
-  setIsAuthenticated
+  setIsAuthenticated,
+  isCollapsed,
+  setIsCollapsed,
 }) {
   const [maps, setMaps] = useState([]);
   const navigate = useNavigate();
 
-  const [selectedMap, setSelectedMap] = useState();
-  const [showMapModal, setShowMapModal] = useState(false);
-
-  // New state variables for delete confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState(null);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   useEffect(() => {
+    // Fetch maps data
     const getMaps = async () => {
       try {
         const res = await fetchMaps();
@@ -41,18 +39,22 @@ export default function Dashboard({
     getMaps();
   }, []);
 
+  // Get top 3 recently modified maps
+  const recentMaps = maps.slice(0, 3);
+
+  // Placeholder for favorite maps
+  const favoriteMaps = []; // You can populate this with actual data later
+
   const handleEdit = (mapId) => {
     navigate(`/edit/${mapId}`);
   };
 
-  // Updated handleDelete function
   const handleDelete = (mapId) => {
     const map = maps.find((m) => m.id === mapId);
     setMapToDelete(map);
     setShowDeleteModal(true);
   };
 
-  // Confirm delete function
   const confirmDelete = async () => {
     if (mapToDelete) {
       try {
@@ -66,14 +68,18 @@ export default function Dashboard({
     }
   };
 
-  // Cancel delete function
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setMapToDelete(null);
   };
 
   const handleCreateMap = () => {
+    setShowMapModal(true);
+  };
+
+  const handleMapSelection = (selectedMap) => {
     if (selectedMap) {
+      setShowMapModal(false);
       navigate('/create', { state: { selectedMap } });
     } else {
       alert('Please select a map type.');
@@ -82,122 +88,267 @@ export default function Dashboard({
 
   return (
     <div className={styles.dashboardContainer}>
-     <Sidebar
-      isAuthenticated={isAuthenticated}
-      setIsAuthenticated={setIsAuthenticated}
-     />
+      {/* Sidebar */}
+      <Sidebar
+        isAuthenticated={isAuthenticated}
+        setIsAuthenticated={setIsAuthenticated}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+
       {/* Main Content */}
-      <div className={styles.dashboardContent}>
-        <h1>Dashboard</h1>
-        <button className={styles.viewButton} onClick={() => setShowMapModal(true)}>Start a new map</button>
+      <div
+        className={`${styles.dashboardContent} ${
+          isCollapsed ? styles.contentCollapsed : ''
+        }`}
+      >
+        {/* Header Section */}
+        <header className={styles.header}>
+          <h1>Welcome Back, [User]!</h1>
+          <div className={styles.quickActions}>
+            <button className={styles.primaryButton} onClick={handleCreateMap}>
+              Create New Map
+            </button>
+            <button className={styles.secondaryButton}>Import Data</button>
+            {/* Add more quick action buttons as needed */}
+          </div>
 
-        <h2>Your library:</h2>
-        {maps.length > 0 ? (
-          <table className={styles.mapTable}>
-            <thead>
-              <tr>
-                <th>Map</th>
-                <th>Title</th>
-                <th>Date Modified</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {maps.map((map) => (
-                <tr key={map.id}>
-                  <td>
-                    <div className={styles.thumbnail}>
-                      {map.selectedMap === 'world' && (
-                        <WorldMapSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          oceanColor={map.oceanColor}
-                          unassignedColor={map.unassignedColor}
-                          showTopHighValues={false}
-                          showTopLowValues={false}
-                          data={map.data}
-                          selectedMap={map.selectedMap}
-                          fontColor={map.fontColor}
-                          topHighValues={[]}
-                          topLowValues={[]}
-                          isThumbnail={true}
-                        />
-                      )}
-                      {map.selectedMap === 'usa' && <UsSVG />}
-                      {map.selectedMap === 'europe' && <EuropeSVG />}
-                    </div>
-                  </td>
-                  <td>{map.title}</td>
-                  <td>{formatDistanceToNow(new Date(map.updatedAt), { addSuffix: true })}</td>
-                  <td className={styles.actions}>
-                    <div className={styles.actionButtons}>
-                      <button className={styles.editButton} onClick={() => handleEdit(map.id)}>Edit</button>
-                      <button className={styles.deleteButton} onClick={() => handleDelete(map.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>You have no saved maps.</p>
-        )}
+          {/* Statistics Panel */}
+          <div className={styles.statisticsPanel}>
+            <div className={styles.statistic}>
+              <h3>Total Maps</h3>
+              <p>{maps.length}</p>
+            </div>
+            {/* Add more statistics as needed */}
+          </div>
+        </header>
 
-        {showMapModal && (
-          <div className={styles.modalOverlay} onClick={() => setShowMapModal(false)}>
-            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-              <h2>Select a Map</h2>
-              <div className={styles.mapOptions}>
-                <div
-                  className={`${styles.mapOption} ${selectedMap === 'world' ? styles.selected : ''}`}
-                  onClick={() => setSelectedMap('world')}
-                >
-                  World Map
-                </div>
-                <div
-                  className={`${styles.mapOption} ${selectedMap === 'usa' ? styles.selected : ''}`}
-                  onClick={() => setSelectedMap('usa')}
-                >
-                  USA Map
-                </div>
-                <div
-                  className={`${styles.mapOption} ${selectedMap === 'europe' ? styles.selected : ''}`}
-                  onClick={() => setSelectedMap('europe')}
-                >
-                  Europe Map
-                </div>
+        {/* Main Content Area */}
+        <div className={styles.mainContent}>
+          {/* Recently Modified Maps */}
+          <section className={styles.recentMaps}>
+            <h2>Recently Modified Maps</h2>
+            {recentMaps.length > 0 ? (
+              <div className={styles.cardsContainer}>
+                {recentMaps.map((map) => {
+                  const mapTitle = map.title || 'Untitled Map';
+                  return (
+                    <div className={styles.mapCard} key={map.id}>
+                      <div className={styles.thumbnail}>
+                        {map.selectedMap === 'world' && (
+                          <WorldMapSVG
+                            groups={map.groups}
+                            mapTitleValue={mapTitle}
+                            oceanColor={map.oceanColor}
+                            unassignedColor={map.unassignedColor}
+                            showTopHighValues={false}
+                            showTopLowValues={false}
+                            data={map.data}
+                            selectedMap={map.selectedMap}
+                            fontColor={map.fontColor}
+                            topHighValues={[]}
+                            topLowValues={[]}
+                            isThumbnail={true}
+                          />
+                        )}
+                        {map.selectedMap === 'usa' && (
+                          <UsSVG
+                            groups={map.groups}
+                            mapTitleValue={mapTitle}
+                            oceanColor={map.oceanColor}
+                            unassignedColor={map.unassignedColor}
+                            showTopHighValues={false}
+                            showTopLowValues={false}
+                            data={map.data}
+                            selectedMap={map.selectedMap}
+                            fontColor={map.fontColor}
+                            topHighValues={[]}
+                            topLowValues={[]}
+                            isThumbnail={true}
+                          />
+                        )}
+                        {map.selectedMap === 'europe' && (
+                          <EuropeSVG
+                            groups={map.groups}
+                            mapTitleValue={mapTitle}
+                            oceanColor={map.oceanColor}
+                            unassignedColor={map.unassignedColor}
+                            showTopHighValues={false}
+                            showTopLowValues={false}
+                            data={map.data}
+                            selectedMap={map.selectedMap}
+                            fontColor={map.fontColor}
+                            topHighValues={[]}
+                            topLowValues={[]}
+                            isThumbnail={true}
+                          />
+                        )}
+                      </div>
+                      <div className={styles.cardOverlay}>
+                        <h3>{mapTitle}</h3>
+                        <p>
+                          Modified{' '}
+                          {map.updatedAt
+                            ? formatDistanceToNow(new Date(map.updatedAt), {
+                                addSuffix: true,
+                              })
+                            : 'Unknown time'}
+                        </p>
+                        <div className={styles.cardActions}>
+                          <button
+                            className={styles.editButton}
+                            onClick={() => handleEdit(map.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className={styles.deleteButton}
+                            onClick={() => handleDelete(map.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <button className={styles.viewButton} onClick={handleCreateMap}>Create</button>
-              <button className={styles.deleteButton} onClick={() => setShowMapModal(false)}>Cancel</button>
-            </div>
-          </div>
-        )}
+            ) : (
+              <p>No recent maps.</p>
+            )}
+          </section>
 
-      </div>
-           {/* Delete Confirmation Modal */}
-           {showDeleteModal && (
-          <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2>Confirm Delete</h2>
-              <p>
-                Are you sure you want to delete the map titled "
-                <strong>{mapToDelete?.title}</strong>"? This action cannot be
-                undone.
-              </p>
-              <button className={styles.deleteButton} onClick={confirmDelete}>
-                Delete
-              </button>
-              <button className={styles.cancelButton} onClick={cancelDelete}>
-                Cancel
-              </button>
-            </div>
+          {/* Favorite Maps */}
+          <section className={styles.favoriteMaps}>
+            <h2>Favorite Maps</h2>
+            {favoriteMaps.length > 0 ? (
+              <div className={styles.cardsContainer}>
+                {favoriteMaps.map((map) => {
+                  const mapTitle = map.title || 'Untitled Map';
+                  return (
+                    <div className={styles.mapCard} key={map.id}>
+                      <div className={styles.thumbnail}>
+                        {/* Render SVG component based on map type */}
+                        {map.selectedMap === 'world' && (
+                          <WorldMapSVG
+                            groups={map.groups}
+                            mapTitleValue={mapTitle}
+                            oceanColor={map.oceanColor}
+                            unassignedColor={map.unassignedColor}
+                            showTopHighValues={false}
+                            showTopLowValues={false}
+                            data={map.data}
+                            selectedMap={map.selectedMap}
+                            fontColor={map.fontColor}
+                            topHighValues={[]}
+                            topLowValues={[]}
+                            isThumbnail={true}
+                          />
+                        )}
+                        {map.selectedMap === 'usa' && (
+                          <UsSVG
+                            groups={map.groups}
+                            mapTitleValue={mapTitle}
+                            oceanColor={map.oceanColor}
+                            unassignedColor={map.unassignedColor}
+                            showTopHighValues={false}
+                            showTopLowValues={false}
+                            data={map.data}
+                            selectedMap={map.selectedMap}
+                            fontColor={map.fontColor}
+                            topHighValues={[]}
+                            topLowValues={[]}
+                            isThumbnail={true}
+                          />
+                        )}
+                        {map.selectedMap === 'europe' && (
+                          <EuropeSVG
+                            groups={map.groups}
+                            mapTitleValue={mapTitle}
+                            oceanColor={map.oceanColor}
+                            unassignedColor={map.unassignedColor}
+                            showTopHighValues={false}
+                            showTopLowValues={false}
+                            data={map.data}
+                            selectedMap={map.selectedMap}
+                            fontColor={map.fontColor}
+                            topHighValues={[]}
+                            topLowValues={[]}
+                            isThumbnail={true}
+                          />
+                        )}
+                      </div>
+                      <div className={styles.cardOverlay}>
+                        <h3>{mapTitle}</h3>
+                        {/* Add more details if needed */}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p>You have no favorite maps.</p>
+            )}
+          </section>
+
+          {/* Notifications and Recent Activity */}
+          <div className={styles.bottomContent}>
+            {/* Notifications */}
+            <section className={styles.notifications}>
+              <h2>Notifications</h2>
+              <p>No new notifications.</p>
+            </section>
+
+            {/* Recent Activity */}
+            <section className={styles.recentActivity}>
+              <h2>Recent Activity</h2>
+              <p>No recent activity.</p>
+            </section>
           </div>
-        )}
-    
-    
+        </div>
+
+        {/* Help and Support */}
+        <footer className={styles.helpSupport}>
+          <h2>Help and Support</h2>
+          <p>
+            Need assistance? Visit our{' '}
+            <a href="/help">Help Center</a> or{' '}
+            <a href="/contact">Contact Support</a>.
+          </p>
+        </footer>
+      </div>
+
+      {/* Map Selection Modal */}
+      {showMapModal && (
+        <MapSelectionModal
+          show={showMapModal}
+          onClose={() => setShowMapModal(false)}
+          onCreateMap={handleMapSelection}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className={styles.modalOverlay} onClick={cancelDelete}>
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>Confirm Delete</h2>
+            <p>
+              Are you sure you want to delete the map titled "
+              <strong>{mapToDelete?.title || 'Untitled Map'}</strong>"? This
+              action cannot be undone.
+            </p>
+            <button className={styles.deleteButton} onClick={confirmDelete}>
+              Delete
+            </button>
+            <button className={styles.cancelButton} onClick={cancelDelete}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

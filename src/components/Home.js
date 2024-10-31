@@ -3,6 +3,7 @@ function Home() {
     
     return(
         <div>
+            
             <div>
                 <div className="home-sec">
                 <div className="home-row-text">

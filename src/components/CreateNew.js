@@ -7,6 +7,7 @@ import DataIntegration from './DataIntergration';
 export default function CreateNew({
   isAuthenticated,
   setIsAuthenticated,
+
 }) {
   const [step, setStep] = useState(1);
   const [selectedMap, setSelectedMap] = useState(null);

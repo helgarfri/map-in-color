@@ -4,12 +4,15 @@
   width: 100%;
   margin: 0 auto;
   text-align: center;
+  display: flex;
+  flex-direction: row;
 }
 
 .content {
   padding: 20px; /* Add padding to the content area */
   max-width: 1200px;
   margin: 0 auto;
+  flex:1;
 }
 
 .section {

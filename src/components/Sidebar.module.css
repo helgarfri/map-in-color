@@ -1,44 +1,178 @@
 /* src/components/Sidebar.module.css */
 
 .sidebar {
-    width: 200px;
-    background-color: #fff;
-    color: #000;
-    padding: 20px;
-    min-height: 100vh;
-  }
-  
-  .sidebar h2 {
-    color: #ecf0f1;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-  }
-  
-  .sidebar nav ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .sidebar nav ul li {
-    margin-bottom: 15px;
-  }
-  
-  .navLink {
-    color: #000;
-    text-decoration: none;
-    font-size: 1rem;
-  }
-  
-  .navLink:hover {
-    text-decoration: underline;
-  }
-  
-  .activeNavLink {
-    font-weight: bold;
-    text-decoration: underline;
+  width: 250px;
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  position: fixed;
+  text-align: left;
+  transition: width 0.3s ease;
+}
+
+.logo {
+  height: 40px;
+  margin: 10px 0px 10px 0px;
+}
+
+.logoSection{
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.appName {
+  font-size: 22px;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.profileSection {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  transition: opacity 0.3s ease; /* Add transition */
+}
+
+.username {
+  margin-left: 15px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  transition: opacity 0.3s ease; /* Add transition */
+  font-size: 18px;
+}
+
+.nav {
+  width: 100%;
+
+}
+
+.nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.nav li {
+  margin-bottom: 25px;
+}
+
+.navLink {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  transition: padding 0.3s ease; /* Add transition */
+}
+
+.navLink:hover {
+  color: #1abc9c;
+}
+
+.navLink.active {
+  color: #1abc9c;
+  font-weight: bold;
+}
+
+.icon {
+  margin-right: 15px;
+  font-size: 1.2rem;
+
+}
+
+.navLink span {
+  flex-grow: 1;
+  transition: opacity 0.3s ease; /* Add transition */
+}
+
+/* Hover Effects */
+.navLink:hover .icon {
+  color: #1abc9c;
+}
+
+/* Collapsed Sidebar */
+.collapsed {
+  width: 70px;
+}
+
+
+/* Toggle Button */
+.toggleButton {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 20px;
+  position: absolute;
+  top: 20px;
+  right: -20px;
+  background-color: #333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.toggleButton:hover {
+  background-color: #444;
+}
+
+.collapsed .toggleButton {
+  right: -20px;
+}
+
+.collapsed .username,
+.collapsed .navLink span {
+  display: none;
+}
+
+.collapsed .appName {
+  display: none;
+}
+
+.collapsed .icon {
+  margin-right: 0;
+}
+
+
+.collapsed .navLink span {
+  opacity: 0;
+  visibility: hidden;
+}
+
+
+.navLink span {
+  transition: opacity 0.3s ease; /* Add transition */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px;
+    padding: 10px;
   }
 
-  .logo {
-    width: 170px;
+  .username {
+    display: none;
   }
-  
+
+  .navLink span {
+    display: none;
+  }
+
+  .icon {
+    margin-right: 0;
+  }
+}

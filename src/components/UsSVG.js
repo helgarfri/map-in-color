@@ -1,20 +1,143 @@
-import { useEffect } from "react";
-export default function UsSVG({mapTitleValue, groups}) {
+import { useEffect, useRef } from "react";
+export default function UsSVG({
+  mapTitleValue, 
+  groups,
+  isLargeMap = false,
+  isThumbnail = false,
+  oceanColor = '#AADAFF',
+  unassignedColor = '#D3D3D3',
+  fontColor = '#000000',
+
+
+}) {
+
+  const svgRef = useRef(null)
   useEffect(() => {
-    Object.entries(groups).forEach(([category, { countries, color }]) => {
-      countries.forEach(state => {
-        const stateCode = state.code.toLowerCase();
-        const svgPath = document.getElementById(stateCode);
-        if (svgPath) {
-          svgPath.style.fill = color;
-        }
+    if (svgRef.current) {
+      // Set the ocean color
+      const oceanElement = svgRef.current.getElementById("ocean");
+      if (oceanElement) {
+        oceanElement.style.fill = oceanColor;
+      }
+
+      // Set the default color for unassigned states
+      const statePaths = svgRef.current.querySelectorAll("path[id]");
+      statePaths.forEach((state) => {
+        state.style.fill = unassignedColor;
       });
-    });
-  }, [groups]); // Re-run when groups change
+
+      // Apply colors to states based on groups
+      groups.forEach((group) => {
+        group.countries.forEach((state) => {
+          const stateCode = state.code.toLowerCase();
+          const svgPath = svgRef.current.getElementById(stateCode);
+          if (svgPath) {
+            svgPath.style.fill = group.color;
+          }
+        });
+      });
+    }
+  }, [groups, oceanColor, unassignedColor, fontColor, mapTitleValue]);
+
+  // Functions to calculate font sizes for the title and legend
+  const calculateFontSize = (title) => {
+    const maxFontSize = 36; // Adjust max font size based on map size
+    const minFontSize = 12; // Minimum font size
+    const maxLength = 10;   // Character limit before font size decreases
+
+    if (title.length <= maxLength) {
+      return maxFontSize;
+    } else {
+      const excessLength = title.length - maxLength;
+      const shrinkFactor = 1; // Adjust as needed
+      const fontSize = maxFontSize - (excessLength * shrinkFactor);
+      return fontSize > minFontSize ? fontSize : minFontSize;
+    }
+  };
+
+  const calculateLegendFontSize = (label) => {
+    const maxFontSize = 18; // Adjust max font size based on map size
+    const minFontSize = 10; // Minimum font size
+    const maxLength = 10;   // Character limit before font size decreases
+
+    if (label.length <= maxLength) {
+      return maxFontSize;
+    } else {
+      const excessLength = label.length - maxLength;
+      const shrinkFactor = 0.5; // Adjust as needed
+      const fontSize = maxFontSize - (excessLength * shrinkFactor);
+      return fontSize > minFontSize ? fontSize : minFontSize;
+    }
+  };
+
+  // Define central Y position based on map size
+  const centerY = 450; // Adjust based on your SVG's coordinate system
+
+  // Define minimum and maximum values
+  const minFontSizeLegend = 10; // Minimum font size for legend text
+  const maxFontSizeLegend = 14; // Maximum font size for legend text
+
+  const minCircleSize = 4;    // Minimum circle radius
+  const maxCircleSize = 6;   // Maximum circle radius
+
+  const minSpacing = 20;     // Minimum spacing between legend items
+  const maxSpacing = 30;     // Maximum spacing between legend items
+
+  const maxGroupsForScaling = 10; // Number of groups after which sizes stop decreasing
+
+  // Calculate the number of groups
+  const numberOfGroups = groups.length > 0 ? groups.length : 1;
+
+  // Calculate scaling factor
+  const scalingFactor = numberOfGroups <= maxGroupsForScaling
+    ? (maxGroupsForScaling - numberOfGroups) / (maxGroupsForScaling - 1)
+    : 0;
+
+  // Calculate dynamic sizes
+  const fontSizeLegend = minFontSizeLegend + (maxFontSizeLegend - minFontSizeLegend) * scalingFactor;
+  const circleRadius = minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
+  const spacingBetweenItems = minSpacing + (maxSpacing - minSpacing) * scalingFactor;
+
+  // Calculate total legend height
+  const totalLegendHeight = (numberOfGroups - 1) * spacingBetweenItems;
+
+  // Calculate starting Y position for the first legend item
+  const startY = centerY - (totalLegendHeight / 2);
+
+  // Adjust the title's Y position (above the legend)
+  const titleY = startY - spacingBetweenItems; // Adjust as needed
+
+  // Calculate font size for the map title
+  const fontSizeTitle = calculateFontSize(mapTitleValue);
     return(
         <div id='usMap' >
 
-<svg xmlns="http://www.w3.org/2000/svg"  className='svg-us' viewBox='0 0 1100 593' width="100%" height="auto"><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
+<svg 
+  ref={svgRef}
+  xmlns="http://www.w3.org/2000/svg"  
+  className='svg-us' 
+  viewBox='0 0 1100 593' 
+  width={
+    isLargeMap
+      ? '1500px'
+      : isThumbnail
+      ? '180px' // Adjust the width for thumbnail
+      : '800px'
+  }
+  height={
+    isLargeMap
+      ? '800px'
+      : isThumbnail
+      ? '100px' // Adjust the height for thumbnail
+      : '400px'
+  }
+  style={{
+    backgroundColor: oceanColor,
+  }}
+  
+  >
+    
+    <link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
   <title>United States</title>
 <defs>
 
@@ -290,31 +413,53 @@ export default function UsSVG({mapTitleValue, groups}) {
 
 
 
-<text>
-    <tspan className='title-map-us' x="870" y='340' dy="1.2em" >{mapTitleValue}</tspan>
-  </text>
-
-{Object.entries(groups).map(([category, { color }], index) => {
-  const circleStyle = {
-    fill: color,
-    cx: "890",
-    cy: String(400 + index * 30),
-    r: "5",
-  };
-  const textStyle = {
-    x: "900",
-    y: String(405 + index * 30),
-    fontSize: "15px",
-  };
-  return (
-    <g key={category}>
-      <circle {...circleStyle}></circle>
-      <text {...textStyle}>{category}</text>
-    </g>
-  );
-})}
+       {/* Map title */}
+       <text
+       x="850"
+       y={titleY}
+       style={{ fill: fontColor, fontSize: `${fontSizeTitle}px` }}
+     >
+       {mapTitleValue}
+     </text>
 
 
+
+
+        {/* Legend */}
+        <g id="legend">
+          {groups.map((group, index) => {
+            const circleStyle = {
+              fill: group.color,
+              cx: '860', // Adjust X position as percentage
+              cy: startY + index * spacingBetweenItems,
+              r: circleRadius,
+            };
+            const textStyle = {
+              x: '875', // Adjust X position as percentage
+              y:
+                startY +
+                index * spacingBetweenItems +
+                circleRadius / 2 +
+                2.5, // Adjust for text alignment
+              fontSize: `${fontSizeLegend}px`,
+              fill: fontColor,
+            };
+            const rangeLabel =
+              group.name || `${group.lowerBound} - ${group.upperBound}`;
+            const fontSizeLabel = calculateLegendFontSize(rangeLabel);
+            return (
+              <g key={group.id || index}>
+                <circle {...circleStyle}></circle>
+                <text
+                  {...textStyle}
+                  style={{ fontSize: `${fontSizeLabel}px` }}
+                >
+                  {rangeLabel}
+                </text>
+              </g>
+            );
+          })}
+        </g>
 
 
 

@@ -12,6 +12,7 @@ import { useNavigate, useLocation } from "react-router";
 import { updateMap, createMap } from "../api";
 import Footer from "./Footer";
 import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 
 // Define preloaded color themes
@@ -91,6 +92,8 @@ export default function DataIntegration({
   isAuthenticated,
   existingMapData = null,
   isEditing = false,
+  isCollapsed,
+  setIsCollapsed
 }) {
 
  
@@ -878,6 +881,11 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   return (
     <div className={styles.container}>
 
+      <Sidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+
       {/* Main Content */}
       <div className={styles.content}>
 
@@ -1180,30 +1188,62 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
 
   {/* Map Preview Section */}
-  <div className={styles.mapPreviewSection}>
-    <h3>Preview</h3>
-    <div className={styles.mapPreviewContainer}>
-      <div onClick={togglePopup} className={styles.mapPreviewWrapper}>
-        {selectedMap === 'world' && (
-          <WorldMapSVG
-            groups={groups}
-            mapTitleValue={mapTitle}
-            oceanColor={oceanColor}
-            unassignedColor={unassignedColor}
-            showTopHighValues={showTopHighValues}
-            showTopLowValues={showTopLowValues}
-            data={data}
-            selectedMap={selectedMap}
-            fontColor={fontColor}
-            topHighValues={topHighValues}
-            topLowValues={topLowValues}
-            isLargeMap={false}
-          />
-        )}
-        {/* Include other map components as needed */}
-      </div>
+<div className={styles.mapPreviewSection}>
+  <h3>Preview</h3>
+  <div className={styles.mapPreviewContainer}>
+    <div onClick={togglePopup} className={styles.mapPreviewWrapper}>
+      {selectedMap === 'world' && (
+        <WorldMapSVG
+          groups={groups}
+          mapTitleValue={mapTitle}
+          oceanColor={oceanColor}
+          unassignedColor={unassignedColor}
+          showTopHighValues={showTopHighValues}
+          showTopLowValues={showTopLowValues}
+          data={data}
+          selectedMap={selectedMap}
+          fontColor={fontColor}
+          topHighValues={topHighValues}
+          topLowValues={topLowValues}
+          isLargeMap={false}
+        />
+      )}
+      {selectedMap === 'usa' && (
+        <UsSVG
+          groups={groups}
+          mapTitleValue={mapTitle}
+          oceanColor={oceanColor}
+          unassignedColor={unassignedColor}
+          showTopHighValues={showTopHighValues}
+          showTopLowValues={showTopLowValues}
+          data={data}
+          selectedMap={selectedMap}
+          fontColor={fontColor}
+          topHighValues={topHighValues}
+          topLowValues={topLowValues}
+          isLargeMap={false}
+        />
+      )}
+      {selectedMap === 'europe' && (
+        <EuropeSVG
+          groups={groups}
+          mapTitleValue={mapTitle}
+          oceanColor={oceanColor}
+          unassignedColor={unassignedColor}
+          showTopHighValues={showTopHighValues}
+          showTopLowValues={showTopLowValues}
+          data={data}
+          selectedMap={selectedMap}
+          fontColor={fontColor}
+          topHighValues={topHighValues}
+          topLowValues={topLowValues}
+          isLargeMap={false}
+        />
+      )}
     </div>
   </div>
+</div>
+
 
 
   {/* Map Settings */}
@@ -1340,25 +1380,57 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         &times;
       </button>
       {/* Larger Map */}
-      <div className={styles.largeMapContainer}>
-        {selectedMap === 'world' && (
-          <WorldMapSVG
-            groups={groups}
-            mapTitleValue={mapTitle}
-            oceanColor={oceanColor}
-            unassignedColor={unassignedColor}
-            showTopHighValues={showTopHighValues}
-            showTopLowValues={showTopLowValues}
-            data={data}
-            selectedMap={selectedMap}
-            fontColor={fontColor}
-            topHighValues={topHighValues}
-            topLowValues={topLowValues}
-            isLargeMap={true} // Pass a prop to adjust map size if needed
-          />
-        )}
-        {/* ...Other map components... */}
-      </div>
+<div className={styles.largeMapContainer}>
+  {selectedMap === 'world' && (
+    <WorldMapSVG
+      groups={groups}
+      mapTitleValue={mapTitle}
+      oceanColor={oceanColor}
+      unassignedColor={unassignedColor}
+      showTopHighValues={showTopHighValues}
+      showTopLowValues={showTopLowValues}
+      data={data}
+      selectedMap={selectedMap}
+      fontColor={fontColor}
+      topHighValues={topHighValues}
+      topLowValues={topLowValues}
+      isLargeMap={true} // Pass a prop to adjust map size if needed
+    />
+  )}
+  {selectedMap === 'usa' && (
+    <UsSVG
+      groups={groups}
+      mapTitleValue={mapTitle}
+      oceanColor={oceanColor}
+      unassignedColor={unassignedColor}
+      showTopHighValues={showTopHighValues}
+      showTopLowValues={showTopLowValues}
+      data={data}
+      selectedMap={selectedMap}
+      fontColor={fontColor}
+      topHighValues={topHighValues}
+      topLowValues={topLowValues}
+      isLargeMap={true}
+    />
+  )}
+  {selectedMap === 'europe' && (
+    <EuropeSVG
+      groups={groups}
+      mapTitleValue={mapTitle}
+      oceanColor={oceanColor}
+      unassignedColor={unassignedColor}
+      showTopHighValues={showTopHighValues}
+      showTopLowValues={showTopLowValues}
+      data={data}
+      selectedMap={selectedMap}
+      fontColor={fontColor}
+      topHighValues={topHighValues}
+      topLowValues={topLowValues}
+      isLargeMap={true}
+    />
+  )}
+</div>
+
     </div>
   </div>
 )}
