@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DataIntegration from './components/DataIntergration';
 import ProfileSettings from './components/ProfileSettings';
+import MapDetail from './components/MapDetail';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,6 +52,17 @@ function App() {
                 setIsCollapsed={setIsCollapsed}
               />
             </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/map/:id"
+          element={
+            <MapDetail
+              isAuthenticated={isAuthenticated}
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />
           }
         />
 

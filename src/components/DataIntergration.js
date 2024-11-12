@@ -121,6 +121,9 @@ export default function DataIntegration({
       setTopLowValues(existingMapData.topLowValues);
       setSelectedPalette(existingMapData.selectedPalette);
       setSelectedMapTheme(existingMapData.selectedMapTheme);
+      setDescription(existingMapData.description || '');
+      setTags(existingMapData.tags || []);
+      setIsPublic(existingMapData.isPublic || false);
       // ... set other states as needed
     }
   }, [existingMapData]);
@@ -188,6 +191,11 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   const [dataSource, setDataSource] = useState([]);
   const [validData, setValidData] = useState([]);
   const [missingCountries, setMissingCountries] = useState([]);
+
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState([]);
+  const [isPublic, setIsPublic] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // State for error messages
   const [errors, setErrors] = useState([]);
@@ -797,51 +805,27 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
   const navigate = useNavigate();
 
-  const handleSaveMap = async () => {
+  const handleSaveMap = () => {
     if (isAuthenticated) {
-      const mapData = {
-        id: isEditing ? existingMapData.id : Date.now(),
-        title: mapTitle || '',
-        data: data,
-        customRanges: customRanges,
-        groups: groups,
-        selectedMap: selectedMap,
-        oceanColor: oceanColor,
-        unassignedColor: unassignedColor,
-        fontColor: fontColor,
-        showTopHighValues: showTopHighValues,
-        showTopLowValues: showTopLowValues,
-        topHighValues: topHighValues,
-        topLowValues: topLowValues,
-        selectedPalette: selectedPalette,
-        selectedMapTheme: selectedMapTheme,
-        fileName: fileName,
-        fileStats: fileStats,
-      };
-  
-      try {
-        if (isEditing) {
-          await updateMap(existingMapData.id, mapData);
-        } else {
-          await createMap(mapData);
-        }
-        navigate('/dashboard');
-      } catch (err) {
-        console.error(err);
+      if (!isEditing) {
+        // Show the settings modal
+        setShowSettingsModal(true);
+      } else {
+        // Save directly when editing
+        saveMapData();
       }
     } else {
       setShowLoginModal(true);
     }
   };
-
-  const saveMapToLocalStorage = () => {
-    // Get existing maps from localStorage
-    const existingMaps = JSON.parse(localStorage.getItem('maps')) || [];
   
-    // Create a new map object with all necessary data
-    const newMap = {
+  const saveMapData = async () => {
+    const mapData = {
       id: isEditing ? existingMapData.id : Date.now(),
       title: mapTitle || '',
+      description,
+      tags,
+      isPublic,
       data: data,
       customRanges: customRanges,
       groups: groups,
@@ -860,21 +844,18 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       // Add any other necessary state
     };
   
-    let updatedMaps;
-    if (isEditing) {
-      // Update the existing map
-      updatedMaps = existingMaps.map((map) =>
-        map.id === existingMapData.id ? newMap : map
-      
-      );
-      
-    } else {
-      // Add new map
-      updatedMaps = [...existingMaps, newMap];
+    try {
+      if (isEditing) {
+        await updateMap(existingMapData.id, mapData);
+      } else {
+        await createMap(mapData);
+      }
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
     }
-
-    localStorage.setItem('maps', JSON.stringify(updatedMaps));
   };
+  
   
   
 
@@ -1474,6 +1455,138 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   </div>
 
 )}
+
+{showSettingsModal && (
+  <div className={styles.modalOverlay} onClick={() => setShowSettingsModal(false)}>
+    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+      <button className={styles.closeButton} onClick={() => setShowSettingsModal(false)}>
+        &times;
+      </button>
+      <div className={styles.settingsModalContainer}>
+        {/* Map Image on the Left */}
+        <div className={styles.mapImagePreview}>
+          {selectedMap === 'world' && (
+            <WorldMapSVG
+              groups={groups}
+              mapTitleValue={mapTitle}
+              oceanColor={oceanColor}
+              unassignedColor={unassignedColor}
+              showTopHighValues={showTopHighValues}
+              showTopLowValues={showTopLowValues}
+              data={data}
+              selectedMap={selectedMap}
+              fontColor={fontColor}
+              topHighValues={topHighValues}
+              topLowValues={topLowValues}
+              isLargeMap={false}
+            />
+          )}
+          {selectedMap === 'usa' && (
+            <UsSVG
+            groups={groups}
+            mapTitleValue={mapTitle}
+            oceanColor={oceanColor}
+            unassignedColor={unassignedColor}
+            showTopHighValues={showTopHighValues}
+            showTopLowValues={showTopLowValues}
+            data={data}
+            selectedMap={selectedMap}
+            fontColor={fontColor}
+            topHighValues={topHighValues}
+            topLowValues={topLowValues}
+            isLargeMap={false}
+            />
+          )}
+          {selectedMap === 'europe' && (
+            <EuropeSVG
+            groups={groups}
+            mapTitleValue={mapTitle}
+            oceanColor={oceanColor}
+            unassignedColor={unassignedColor}
+            showTopHighValues={showTopHighValues}
+            showTopLowValues={showTopLowValues}
+            data={data}
+            selectedMap={selectedMap}
+            fontColor={fontColor}
+            topHighValues={topHighValues}
+            topLowValues={topLowValues}
+            isLargeMap={false}
+            />
+          )}
+        </div>
+        {/* Input Fields on the Right */}
+        <div className={styles.settingsInputFields}>
+          <h2>Finalize</h2>
+          {/* Map Title */}
+          <div className={styles.settingItem}>
+            <label htmlFor="mapTitleInput">Map Title:</label>
+            <input
+              id="mapTitleInput"
+              type="text"
+              className={styles.inputBox}
+              value={mapTitle}
+              onChange={(e) => setMapTitle(e.target.value)}
+              placeholder="Enter map title"
+              maxLength="40"
+            />
+          </div>
+          {/* Description */}
+          <div className={styles.settingItem}>
+            <label htmlFor="descriptionInput">Description:</label>
+            <textarea
+              id="descriptionInput"
+              className={styles.inputBox}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description"
+            />
+          </div>
+          {/* Tags */}
+          <div className={styles.settingItem}>
+            <label htmlFor="tagsInput">Tags:</label>
+            <input
+              id="tagsInput"
+              type="text"
+              className={styles.inputBox}
+              value={tags.join(', ')}
+              onChange={(e) =>
+                setTags(
+                  e.target.value
+                    .split(',')
+                    .map((tag) => tag.trim())
+                    .filter((tag) => tag !== '')
+                )
+              }
+              placeholder="Enter tags separated by commas"
+            />
+          </div>
+          {/* Public/Private Toggle */}
+          <div className={styles.settingItem}>
+            <label htmlFor="isPublicInput">
+              <input
+                id="isPublicInput"
+                type="checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+              />
+              Make map public
+            </label>
+          </div>
+          {/* Buttons */}
+          <div className={styles.modalButtons}>
+            <button className={styles.secondaryButton} onClick={() => setShowSettingsModal(false)}>
+              Go Back
+            </button>
+            <button className={styles.primaryButton} onClick={saveMapData}>
+              Save Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
       </div>
       </div>

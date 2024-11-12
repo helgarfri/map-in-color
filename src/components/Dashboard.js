@@ -23,6 +23,9 @@ export default function Dashboard({
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
 
+
+
+
   useEffect(() => {
     // Fetch maps data
     const getMaps = async () => {
@@ -45,11 +48,13 @@ export default function Dashboard({
   // Placeholder for favorite maps
   const favoriteMaps = []; // You can populate this with actual data later
 
-  const handleEdit = (mapId) => {
+  const handleEdit = (event, mapId) => {
+    event.stopPropagation();
     navigate(`/edit/${mapId}`);
   };
 
-  const handleDelete = (mapId) => {
+  const handleDelete = (event, mapId) => {
+    event.stopPropagation();
     const map = maps.find((m) => m.id === mapId);
     setMapToDelete(map);
     setShowDeleteModal(true);
@@ -133,7 +138,7 @@ export default function Dashboard({
                 {recentMaps.map((map) => {
                   const mapTitle = map.title || 'Untitled Map';
                   return (
-                    <div className={styles.mapCard} key={map.id}>
+                    <div className={styles.mapCard} key={map.id} onClick={() => navigate(`/map/${map.id}`)}>
                       <div className={styles.thumbnail}>
                         {map.selectedMap === 'world' && (
                           <WorldMapSVG
@@ -195,15 +200,15 @@ export default function Dashboard({
                             : 'Unknown time'}
                         </p>
                         <div className={styles.cardActions}>
-                          <button
+                        <button
                             className={styles.editButton}
-                            onClick={() => handleEdit(map.id)}
+                            onClick={(event) => handleEdit(event, map.id)}
                           >
                             Edit
                           </button>
                           <button
                             className={styles.deleteButton}
-                            onClick={() => handleDelete(map.id)}
+                            onClick={(event) => handleDelete(event, map.id)}
                           >
                             Delete
                           </button>
@@ -218,9 +223,9 @@ export default function Dashboard({
             )}
           </section>
 
-          {/* Favorite Maps */}
+          {/* Saved Maps */}
           <section className={styles.favoriteMaps}>
-            <h2>Favorite Maps</h2>
+            <h2>Saved Maps</h2>
             {favoriteMaps.length > 0 ? (
               <div className={styles.cardsContainer}>
                 {favoriteMaps.map((map) => {
@@ -287,7 +292,7 @@ export default function Dashboard({
                 })}
               </div>
             ) : (
-              <p>You have no favorite maps.</p>
+              <p>You have no saved maps.</p>
             )}
           </section>
 

@@ -2,12 +2,13 @@
 require('dotenv').config(); // Load environment variables first
 
 const express = require('express');
-const sequelize = require('./models/index');
+const { sequelize } = require('./models'); // Destructure sequelize from models
 const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const mapRoutes = require('./routes/maps');
 const profileRoutes = require('./routes/profile');
+const commentsRoutes = require('./routes/comments');
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -29,7 +30,8 @@ app.use(limiter);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/maps', mapRoutes);
-app.use('/api/profile', profileRoutes); // Correct route registration
+app.use('/api/profile', profileRoutes);
+app.use('/api', commentsRoutes);
 
 // Optional: Handle undefined routes
 app.use((req, res, next) => {

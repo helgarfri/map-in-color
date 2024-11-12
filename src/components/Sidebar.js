@@ -13,7 +13,7 @@ function Sidebar({
   setIsCollapsed
 }) {
   const username = localStorage.getItem('username') || 'User';
-  const avatarUrl = localStorage.getItem('avatarUrl') || '/assets/default-avatar.png';
+  const avatarUrl = localStorage.getItem('avatarUrl') || '/public/assets/default-avatar.png';
 
 
   return (

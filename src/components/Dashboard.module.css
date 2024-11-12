@@ -169,6 +169,7 @@
 /* Favorite Maps */
 .favoriteMaps {
   /* Similar styles as recentMaps */
+  margin: 0 auto;
 }
 
 .favoriteMaps h2 {
@@ -188,6 +189,8 @@
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
+  text-align: center;
+  
 }
 
 .notifications h2,

@@ -33,6 +33,7 @@
     "react-script": "^2.0.5",
     "react-scripts": "^5.0.1",
     "react-select": "^5.7.0",
+    "react-svg-pan-zoom": "^3.13.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
