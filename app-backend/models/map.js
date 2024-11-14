@@ -32,7 +32,10 @@ const Map = sequelize.define('Map', {
   fileStats: { type: DataTypes.JSON },
 });
 
-User.hasMany(Map, { onDelete: 'CASCADE' });
-Map.belongsTo(User);
+
+
+// Define associations with explicit foreignKey
+User.hasMany(Map, { foreignKey: 'UserId', onDelete: 'CASCADE' });
+Map.belongsTo(User, { foreignKey: 'UserId' });
 
 module.exports = Map;

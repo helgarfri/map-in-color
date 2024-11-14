@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import { signUp } from '../api';
 
-export default function Signup({ setIsAuthenticated }) {
+export default function Signup() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState(''); // New state for username
   const [password, setPassword] = useState('');
@@ -24,7 +24,6 @@ export default function Signup({ setIsAuthenticated }) {
       const res = await signUp({ email, password, username }); // Include username in the request
       // Save token in local storage
       localStorage.setItem('token', res.data.token);
-      setIsAuthenticated(true);
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {

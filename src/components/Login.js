@@ -1,11 +1,12 @@
 // src/components/Login.js
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react'; // Import useEffect
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 import { logIn } from '../api';
-import Header from './Header';
+import { UserContext } from '../context/UserContext';
 
-export default function Login({ setIsAuthenticated }) {
+export default function Login() {
+  const { setAuthToken, authToken, loadingProfile } = useContext(UserContext); // Include authToken and loadingProfile
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -14,14 +15,14 @@ export default function Login({ setIsAuthenticated }) {
     e.preventDefault();
     try {
       const res = await logIn({ email, password });
-      // Save token and username in local storage
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('username', res.data.user.username); // Add this line
-      setIsAuthenticated(true);
-      // Redirect to dashboard
-      navigate('/dashboard');
-  
+      const token = res.data.token;
+      // Save token in localStorage
+      localStorage.setItem('token', token);
+      // Update authToken in UserContext
+      setAuthToken(token);
+      // Remove navigate('/dashboard') from here
     } catch (err) {
+      console.error('Login Error:', err); // Log the error
       if (err.response) {
         // If there's a response from the server
         console.error('Server Error:', err.response.data.msg);
@@ -37,7 +38,12 @@ export default function Login({ setIsAuthenticated }) {
       }
     }
   };
-  
+    // Use useEffect to navigate after authToken is set and loadingProfile is false
+    useEffect(() => {
+      if (authToken && !loadingProfile) {
+        navigate('/dashboard');
+      }
+    }, [authToken, loadingProfile, navigate]);
 
   return (
     <div className={styles.loginContainer}>

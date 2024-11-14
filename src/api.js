@@ -10,6 +10,19 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Token has expired or is invalid
+      localStorage.removeItem('token');
+      // Optionally, redirect to login page
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export { API };
 
 // Existing exports
@@ -22,7 +35,13 @@ export const deleteMap = (id) => API.delete(`/maps/${id}`);
 
 // New exports for profile
 export const fetchUserProfile = () => API.get('/profile'); // GET /profile
-export const updateUserProfile = (profileData) => API.put('/profile', profileData); // PUT /profile
+
+export const updateUserProfile = (profileData) =>
+  API.put('/profile', profileData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 
 // Fetch a map by ID
 export const fetchMapById = (id) => API.get(`/maps/${id}`);
@@ -39,3 +58,14 @@ export const fetchComments = (mapId) => API.get(`/maps/${mapId}/comments`);
 // Post a comment on a map
 export const postComment = (mapId, commentData) =>
   API.post(`/maps/${mapId}/comments`, commentData);
+
+
+// Fetch user profile by username
+export const fetchUserProfileByUsername = (username) => API.get(`/profile/${username}`);
+
+// Fetch maps by user ID
+export const fetchMapsByUserId = (userId) => API.get(`/maps/user/${userId}`);
+
+// Fetch saved maps for the authenticated user
+export const fetchSavedMaps = () => API.get('/maps/saved');
+

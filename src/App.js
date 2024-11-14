@@ -1,6 +1,5 @@
 // src/components/App.js
 import './components/App.css';
-import Header from './components/Header';
 
 import Footer from './components/Footer';
 import Home from './components/Home';
@@ -19,12 +18,15 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DataIntegration from './components/DataIntergration';
 import ProfileSettings from './components/ProfileSettings';
 import MapDetail from './components/MapDetail';
+import ProfilePage from './components/ProfilePage'
+import StarredMaps from './components/StarredMaps';
+
+import { UserProvider } from './context/UserContext';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
-
   return (
+    <UserProvider>
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -33,8 +35,6 @@ function App() {
           path="/create"
           element={
             <DataIntegration
-              isAuthenticated={isAuthenticated}
-              setIsAuthenticated={setIsAuthenticated}
               isCollapsed={isCollapsed}
               setIsCollapsed={setIsCollapsed}
             />
@@ -44,10 +44,10 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
+            <PrivateRoute >
               <Dashboard
-                isAuthenticated={isAuthenticated}
-                setIsAuthenticated={setIsAuthenticated}
+                
+                
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}
               />
@@ -59,7 +59,7 @@ function App() {
           path="/map/:id"
           element={
             <MapDetail
-              isAuthenticated={isAuthenticated}
+              
               isCollapsed={isCollapsed}
               setIsCollapsed={setIsCollapsed}
             />
@@ -69,10 +69,10 @@ function App() {
         <Route
           path="/my-maps"
           element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
+            <PrivateRoute >
               <MyMaps
-                isAuthenticated={isAuthenticated}
-                setIsAuthenticated={setIsAuthenticated}
+                
+                
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}
               />
@@ -80,34 +80,51 @@ function App() {
           }
         />
 
+        <Route 
+          path="/starred-maps" 
+          element={<StarredMaps
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />} />
+
         <Route
           path="/login"
-          element={<Login setIsAuthenticated={setIsAuthenticated} />}
+          element={<Login  />}
         />
 
         <Route
           path="/signup"
-          element={<Signup setIsAuthenticated={setIsAuthenticated} />}
+          element={<Signup  />}
         />
 
         <Route
           path="/edit/:mapId"
           element={
             <EditMap
-              isAuthenticated={isAuthenticated}
-              setIsAuthenticated={setIsAuthenticated}
+              
+              
               isCollapsed={isCollapsed}
               setIsCollapsed={setIsCollapsed}
             />
           }
         />
 
+          <Route
+            path="/profile/:username"
+            element={
+              <ProfilePage
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
+              />
+            }
+          />
+
         <Route
           path="/profile-settings"
           element={
             <ProfileSettings
-              isAuthenticated={isAuthenticated}
-              setIsAuthenticated={setIsAuthenticated}
+              
+              
               isCollapsed={isCollapsed}
               setIsCollapsed={setIsCollapsed}
             />
@@ -116,6 +133,7 @@ function App() {
       </Routes>
 
     </Router>
+    </UserProvider>
   );
 }
 

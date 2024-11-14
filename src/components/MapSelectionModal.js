@@ -1,12 +1,10 @@
 // src/components/MapSelectionModal.js
-import React, { useState } from 'react';
+import React, {useState} from 'react';
+import ReactDOM from 'react-dom';
 import styles from './MapSelectionModal.module.css';
 
-function MapSelectionModal({ 
-  show, 
-  onClose, 
-  onCreateMap,
- }) {
+function MapSelectionModal({ show, onClose, onCreateMap }) {
+  
   const [selectedMap, setSelectedMap] = useState(null);
 
   const handleCreateMap = () => {
@@ -18,11 +16,11 @@ function MapSelectionModal({
   };
 
   if (!show) {
-    return null; // Don't render anything if the modal is not shown
+    return null;
   }
 
-  return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+  const modalContent = (
+       <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <h2>Select a Map</h2>
         <div className={styles.mapOptions}>
@@ -49,6 +47,12 @@ function MapSelectionModal({
         <button className={styles.cancelButton} onClick={onClose}>Cancel</button>
       </div>
     </div>
+    
+  );
+
+  return ReactDOM.createPortal(
+    modalContent,
+    document.getElementById('modal-root') // Ensure this matches the id in index.html
   );
 }
 

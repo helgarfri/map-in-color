@@ -1,52 +1,76 @@
 // src/components/Dashboard.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styles from './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
-import { fetchMaps, deleteMap } from '../api';
+import { fetchMaps, deleteMap, fetchSavedMaps } from '../api';
 import Sidebar from './Sidebar';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 import MapSelectionModal from './MapSelectionModal';
 import { formatDistanceToNow } from 'date-fns';
+import { formatDistance } from 'date-fns';
+import { UserContext } from '../context/UserContext';
+import { FaStar, FaPlus, FaMap, FaCalendarAlt } from 'react-icons/fa';
+
 
 export default function Dashboard({
-  isAuthenticated,
-  setIsAuthenticated,
+
   isCollapsed,
   setIsCollapsed,
 }) {
+
+  const { profile } = useContext(UserContext);
+
   const [maps, setMaps] = useState([]);
+  const [favoriteMaps, setFavoriteMaps] = useState([]);
   const navigate = useNavigate();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
 
+  const totalStarsReceived = maps.reduce((total, map) => total + (map.saveCount || 0), 0);
+
+  const profileAge = profile
+  ? formatDistance(new Date(profile.createdAt), new Date(), { addSuffix: false })
+  : '';
 
 
+ // Ensure profile is loaded before fetching maps
+ useEffect(() => {
+  if (!profile) return;
+  // Fetch maps data
+  const getMaps = async () => {
+    try {
+      const res = await fetchMaps();
+      const sortedMaps = res.data.sort(
+        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+      );
+      setMaps(sortedMaps);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+   // Fetch user's saved maps
+   const getSavedMaps = async () => {
+    try {
+      const res = await fetchSavedMaps();
+      setFavoriteMaps(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  useEffect(() => {
-    // Fetch maps data
-    const getMaps = async () => {
-      try {
-        const res = await fetchMaps();
-        const sortedMaps = res.data.sort(
-          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-        );
-        setMaps(sortedMaps);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    getMaps();
-  }, []);
+  getMaps();
+  getSavedMaps();
+}, [profile]);
 
   // Get top 3 recently modified maps
   const recentMaps = maps.slice(0, 3);
 
-  // Placeholder for favorite maps
-  const favoriteMaps = []; // You can populate this with actual data later
+  const displayedFavoriteMaps = favoriteMaps.slice(0, 4);
+
 
   const handleEdit = (event, mapId) => {
     event.stopPropagation();
@@ -95,8 +119,7 @@ export default function Dashboard({
     <div className={styles.dashboardContainer}>
       {/* Sidebar */}
       <Sidebar
-        isAuthenticated={isAuthenticated}
-        setIsAuthenticated={setIsAuthenticated}
+
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
       />
@@ -109,24 +132,35 @@ export default function Dashboard({
       >
         {/* Header Section */}
         <header className={styles.header}>
-          <h1>Welcome Back, [User]!</h1>
-          <div className={styles.quickActions}>
-            <button className={styles.primaryButton} onClick={handleCreateMap}>
-              Create New Map
+          {/* Create New Map Button at the top right */}
+          <div className={styles.headerTop}>
+            <button className={styles.createMapButton} onClick={handleCreateMap}>
+              <FaPlus className={styles.plusIcon} /> Create New Map
             </button>
-            <button className={styles.secondaryButton}>Import Data</button>
-            {/* Add more quick action buttons as needed */}
           </div>
-
-          {/* Statistics Panel */}
-          <div className={styles.statisticsPanel}>
-            <div className={styles.statistic}>
-              <h3>Total Maps</h3>
-              <p>{maps.length}</p>
-            </div>
-            {/* Add more statistics as needed */}
-          </div>
+          {/* Centered Welcome Text */}
+          <h1 className={styles.welcomeText}>
+            Welcome Back{profile && `, ${profile.firstName}`}!
+          </h1>
         </header>
+
+        <div className={styles.statisticsPanel}>
+  <div className={styles.statistic}>
+    <FaMap className={styles.statIcon} />
+    <h3>Maps Created</h3>
+    <p>{maps.length}</p>
+  </div>
+  <div className={styles.statistic}>
+    <FaStar className={styles.statIcon} />
+    <h3>Stars Received</h3>
+    <p>{totalStarsReceived}</p>
+  </div>
+  <div className={styles.statistic}>
+    <FaCalendarAlt className={styles.statIcon} />
+    <h3>Profile Age</h3>
+    <p>{profileAge}</p>
+  </div>
+</div>
 
         {/* Main Content Area */}
         <div className={styles.mainContent}>
@@ -223,16 +257,20 @@ export default function Dashboard({
             )}
           </section>
 
-          {/* Saved Maps */}
-          <section className={styles.favoriteMaps}>
-            <h2>Saved Maps</h2>
+      {/* Starred Maps */}
+      <section className={styles.favoriteMaps}>
+            <h2>Starred Maps</h2>
             {favoriteMaps.length > 0 ? (
-              <div className={styles.cardsContainer}>
-                {favoriteMaps.map((map) => {
+              <div className={styles.starredMapsContainer}>
+                {displayedFavoriteMaps.map((map) => {
                   const mapTitle = map.title || 'Untitled Map';
                   return (
-                    <div className={styles.mapCard} key={map.id}>
-                      <div className={styles.thumbnail}>
+                    <div
+                      className={styles.starredMapCard}
+                      key={map.id}
+                      onClick={() => navigate(`/map/${map.id}`)}
+                    >
+                      <div className={styles.starredThumbnail}>
                         {/* Render SVG component based on map type */}
                         {map.selectedMap === 'world' && (
                           <WorldMapSVG
@@ -283,9 +321,13 @@ export default function Dashboard({
                           />
                         )}
                       </div>
-                      <div className={styles.cardOverlay}>
+                      <div className={styles.starredMapInfo}>
                         <h3>{mapTitle}</h3>
-                        {/* Add more details if needed */}
+                        <p>Created by {map.User.username}</p>
+                        <div className={styles.starCount}>
+                          <FaStar className={styles.starIcon} />
+                          {map.saveCount || 0}
+                        </div>
                       </div>
                     </div>
                   );
@@ -293,6 +335,12 @@ export default function Dashboard({
               </div>
             ) : (
               <p>You have no saved maps.</p>
+            )}
+            {/* View All Starred Maps Link */}
+            {favoriteMaps.length > 4 && (
+              <div className={styles.viewAllLink}>
+                <a href="/starred-maps">View All Starred Maps</a>
+              </div>
             )}
           </section>
 

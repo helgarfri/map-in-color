@@ -1,25 +1,55 @@
 // src/components/Sidebar.js
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
-import { useState } from 'react';
-import '../'
+import {
+  FaHome,
+  FaMap,
+  FaStar,
+  FaPlus,
+  FaBell,
+  FaUserCog,
+  FaChevronLeft,
+  FaChevronRight,
+} from 'react-icons/fa';
+import { UserContext } from '../context/UserContext';
+import LogoutButton from './LogoutButton';
+import MapSelectionModal from './MapSelectionModal';
 
-// Import icons from a library like react-icons
-import { FaHome, FaMap, FaPlus, FaBell, FaUserCog,FaChevronLeft,FaChevronRight, } from 'react-icons/fa';
+function Sidebar({ isCollapsed, setIsCollapsed }) {
 
-function Sidebar({
-  isCollapsed,
-  setIsCollapsed
-}) {
-  const username = localStorage.getItem('username') || 'User';
-  const avatarUrl = localStorage.getItem('avatarUrl') || '/public/assets/default-avatar.png';
+  const { profile, profilePictureUrl, loadingProfile } = useContext(UserContext);
+
+  const [showMapModal, setShowMapModal] = useState(false)
+  const navigate = useNavigate();
+
+  if (loadingProfile) {
+    return null; // Or a loading spinner if you prefer
+  }
+
+  if (!profile) {
+    return null; // Or a placeholder, or redirect to login
+  }
+
+
+  const handleCreateMap = () => {
+    setShowMapModal(true);
+  };
+
+  const handleMapSelection = (selectedMap) => {
+    if (selectedMap) {
+      setShowMapModal(false);
+      navigate('/create', { state: { selectedMap } });
+    } else {
+      alert('Please select a map type.');
+    }
+  };
+
 
 
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
-    
-    {/* Toggle Button */}
+      {/* Toggle Button */}
       <button
         className={styles.toggleButton}
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -27,61 +57,86 @@ function Sidebar({
         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
 
-      <div className={styles.logoSection}>
-      <img
-          alt="Map in Color Logo"
-          src="/assets/map-in-color-logo.png" // Adjust the path as needed
-          className={styles.logo}
-        />
-        <span className={styles.appName}>Map in Color</span>
-
+      <div className={styles.contentWrapper}>
+        {/* Logo Section */}
+        <div className={styles.logoSection}>
+          <img
+            alt="Map in Color Logo"
+            src="/assets/map-in-color-logo.png"
+            className={styles.logo}
+          />
+          <span className={styles.appName}>Map in Color</span>
         </div>
-      {/* User Profile Section */}
-      
-      <div className={styles.profileSection}>
-        <img src={avatarUrl} alt="User Avatar" className={styles.avatar} />
-        <span className={styles.username}>@{username}</span>
+
+        {/* Navigation Links */}
+        <nav className={styles.nav}>
+          <ul>
+          <li>
+              {/* Change NavLink to button to trigger modal */}
+              <button
+                className={styles.navLink} // Create a new class for button styling
+                onClick={handleCreateMap}
+              >
+                <FaPlus className={styles.icon} />
+                {!isCollapsed && <span>Create New Map</span>}
+              </button>
+            </li>
+            <br />
+            <li>
+              <NavLink to="/dashboard" className={styles.navLink}>
+                <FaHome className={styles.icon} />
+                <span>Dashboard</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/my-maps" className={styles.navLink}>
+                <FaMap className={styles.icon} />
+                <span>My Maps</span>
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink to="/starred-maps" className={styles.navLink}>
+          <FaStar className={styles.icon} />
+          {!isCollapsed && 'Starred Maps'}
+        </NavLink>
+        </li>
+            <li>
+              <NavLink to="/notifications" className={styles.navLink}>
+                <FaBell className={styles.icon} />
+                <span>Notifications</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/profile-settings" className={styles.navLink}>
+                <FaUserCog className={styles.icon} />
+                <span>Profile Settings</span>
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
       </div>
 
-      {/* Navigation Links */}
-      <nav className={styles.nav}>
-        <ul>
-        <li>
-            <NavLink to="/create" className={styles.navLink}>
-              <FaPlus className={styles.icon} />
-              <span>Create New Map</span>
-            </NavLink>
-          </li>
-          <br></br>
-          <li>
-            <NavLink to="/dashboard" className={styles.navLink}>
-              <FaHome className={styles.icon} />
-              <span>Dashboard</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/my-maps" className={styles.navLink}>
-              <FaMap className={styles.icon} />
-              <span>My Maps</span>
-            </NavLink>
-          </li>
+      <LogoutButton/>
 
-          <li>
-            <NavLink to="/notifications" className={styles.navLink}>
-              <FaBell className={styles.icon} />
-              <span>Notifications</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/profile-settings" className={styles.navLink}>
-              <FaUserCog className={styles.icon} />
-              <span>Profile Settings</span>
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
+   {/* User Profile Section at the Bottom */}
+   <NavLink to={`/profile/${profile.username}`} className={styles.profileSection}>
+        <img src={profilePictureUrl} alt="User Avatar" className={styles.avatar} />
+        <span className={styles.username}>@{profile.username}</span>
+      </NavLink>
+              {/* Map Selection Modal */}
+              {showMapModal && (
+        <MapSelectionModal
+          show={showMapModal}
+          onClose={() => setShowMapModal(false)}
+          onCreateMap={handleMapSelection}
+        />
+      )}
+
     </div>
-  );
+  
+
+);
 }
 
 export default Sidebar;

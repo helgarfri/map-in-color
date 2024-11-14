@@ -85,7 +85,7 @@ router.post('/login', [
     
     // Sign JWT token with user id
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    
+
     res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
   } catch (err) {
     console.error(err);

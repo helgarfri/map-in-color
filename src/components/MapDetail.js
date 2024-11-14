@@ -16,7 +16,7 @@ import {
 // Import a mapping from country codes to country names
 import countries from '../countries.json';
 
-export default function MapDetail({ isAuthenticated, isCollapsed, setIsCollapsed }) {
+export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   const { id } = useParams();
   const [mapData, setMapData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -63,7 +63,7 @@ export default function MapDetail({ isAuthenticated, isCollapsed, setIsCollapsed
   }, [id]);
 
   const handleSave = async () => {
-    if (!isAuthenticated) {
+    if (!true) {
       // Redirect to login or show a message
       navigate('/login');
       return;

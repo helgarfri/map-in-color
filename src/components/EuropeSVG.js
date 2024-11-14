@@ -125,20 +125,7 @@ export default function EuropeSVG({
         <svg
             ref={svgRef}
            id="svgEuropeMap"
-           width={
-            isLargeMap
-              ? '900px'
-              : isThumbnail
-              ? '180px' // Adjust the width for thumbnail
-              : '600px'
-          }
-          height={
-            isLargeMap
-              ? '800px'
-              : isThumbnail
-              ? '100px' // Adjust the height for thumbnail
-              : '500px'
-          }
+         
            version="1.1"
            viewBox="-50 0 680 520"
            className='svg-eu'

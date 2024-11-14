@@ -117,20 +117,7 @@ export default function UsSVG({
   xmlns="http://www.w3.org/2000/svg"  
   className='svg-us' 
   viewBox='0 0 1100 593' 
-  width={
-    isLargeMap
-      ? '1500px'
-      : isThumbnail
-      ? '180px' // Adjust the width for thumbnail
-      : '800px'
-  }
-  height={
-    isLargeMap
-      ? '800px'
-      : isThumbnail
-      ? '100px' // Adjust the height for thumbnail
-      : '400px'
-  }
+  
   style={{
     backgroundColor: oceanColor,
   }}

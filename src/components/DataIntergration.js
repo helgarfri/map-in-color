@@ -11,7 +11,6 @@ import EuropeSVG from "./EuropeSVG";
 import { useNavigate, useLocation } from "react-router";
 import { updateMap, createMap } from "../api";
 import Footer from "./Footer";
-import Header from "./Header";
 import Sidebar from "./Sidebar";
 
 
@@ -89,7 +88,7 @@ const themes = [
 
 
 export default function DataIntegration({
-  isAuthenticated,
+
   existingMapData = null,
   isEditing = false,
   isCollapsed,
@@ -806,7 +805,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   const navigate = useNavigate();
 
   const handleSaveMap = () => {
-    if (isAuthenticated) {
+    if (true) {
       if (!isEditing) {
         // Show the settings modal
         setShowSettingsModal(true);

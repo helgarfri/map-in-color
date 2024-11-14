@@ -8,13 +8,14 @@ const { Map, User, MapSaves } = require('../models');
 // Get all maps for a user
 router.get('/', auth, async (req, res) => {
   try {
-    const maps = await Map.findAll({ where: { UserId: req.user.id } }); // Use req.user.id
+    const maps = await Map.findAll({ where: { UserId: req.user.id } }); // Correct
     res.json(maps);
   } catch (err) {
     console.error('Error fetching maps:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 // Create a new map
 router.post('/', auth, async (req, res) => {
@@ -28,6 +29,30 @@ router.post('/', auth, async (req, res) => {
     res.json(map);
   } catch (err) {
     console.error('Error creating map:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// Get saved maps for the authenticated user
+router.get('/saved', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get the user by ID
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Fetch saved maps using Sequelize's association methods
+    const savedMaps = await user.getSavedMaps({
+      include: [{ model: User, attributes: ['username'] }], // Include map owner's username
+    });
+
+    res.json(savedMaps);
+  } catch (err) {
+    console.error('Error fetching saved maps:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
@@ -139,6 +164,25 @@ router.post('/:id/unsave', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
+
+
+// Get maps by user ID
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const maps = await Map.findAll({
+      where: { UserId: req.params.userId }, // Changed to 'UserId'
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.json(maps);
+  } catch (err) {
+    console.error('Error fetching maps:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
 
 
 

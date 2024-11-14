@@ -1,122 +1,66 @@
-// src/components/MyMaps.js
+// src/components/StarredMaps.js
 
 import React, { useState, useEffect } from 'react';
-import styles from './MyMaps.module.css';
+import styles from './StarredMaps.module.css';
 import { useNavigate } from 'react-router-dom';
-import { fetchMaps, deleteMap } from '../api';
-
+import { fetchSavedMaps } from '../api'; // Assume this API call exists
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
-
-import { formatDistanceToNow } from 'date-fns';
+import { FaStar } from 'react-icons/fa'; // Import star icon
 import Sidebar from './Sidebar';
-import { FaStar, FaPlus } from 'react-icons/fa'; // Import star icon
+import { formatDistanceToNow } from 'date-fns';
 
-import MapSelectionModal from './MapSelectionModal';
-
-export default function MyMaps({
-  isCollapsed,
-  setIsCollapsed,
-}) {
+export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
   const [maps, setMaps] = useState([]);
   const navigate = useNavigate();
 
-  const [showMapModal, setShowMapModal] = useState(false)
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [mapToDelete, setMapToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const getMaps = async () => {
+    const getStarredMaps = async () => {
       try {
-        const res = await fetchMaps();
+        const res = await fetchSavedMaps(); // Fetch starred maps
         const sortedMaps = res.data.sort(
           (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
         );
         setMaps(sortedMaps);
+        setLoading(false);
       } catch (err) {
         console.error(err);
+        setError(true);
+        setLoading(false);
       }
     };
-    getMaps();
+    getStarredMaps();
   }, []);
 
-  const handleEdit = (event, mapId) => {
-    event.stopPropagation();
-    navigate(`/edit/${mapId}`);
-  };
-
-  const handleDelete = (event, mapId) => {
-    event.stopPropagation();
-    const map = maps.find((m) => m.id === mapId);
-    setMapToDelete(map);
-    setShowDeleteModal(true);
-  };
-
-  const handleView = (event, mapId) => {
-    event.stopPropagation();
-    navigate(`/map/${mapId}`);
-  };
-
-
-  const handleCreateMap = () => {
-    setShowMapModal(true);
-  };
-
-  const handleMapSelection = (selectedMap) => {
-    if (selectedMap) {
-      setShowMapModal(false);
-      navigate('/create', { state: { selectedMap } });
-    } else {
-      alert('Please select a map type.');
-    }
-  };
-
-
-  const confirmDelete = async () => {
-    if (mapToDelete) {
-      try {
-        await deleteMap(mapToDelete.id);
-        setMaps(maps.filter((map) => map.id !== mapToDelete.id));
-        setShowDeleteModal(false);
-        setMapToDelete(null);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
-
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setMapToDelete(null);
-  };
-
   return (
-    <div className={styles.myMapsContainer}>
+    <div className={styles.starredMapsContainer}>
       {/* Sidebar */}
-      <Sidebar
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-      />
-
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       {/* Main Content */}
       <div
-        className={`${styles.myMapsContent} ${
+        className={`${styles.starredMapsContent} ${
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-    <div className={styles.header}>
+        {/* Header with centered title and description */}
+        <div className={styles.header}>
           <div className={styles.headerText}>
-            <h1>My Maps</h1>
-            <p>You own {maps.length} {maps.length === 1 ? 'map' : 'maps'}.</p>
+            <h1>Starred Maps</h1>
+            <p>You have starred {maps.length} {maps.length === 1 ? 'map' : 'maps'}.</p>
           </div>
-          <button className={styles.createMapButton} onClick={handleCreateMap}>
-            <FaPlus className={styles.plusIcon} /> Create New Map
-          </button>
         </div>
-        {maps.length > 0 ? (
+
+        {/* Table */}
+        {loading ? (
+          <p>Loading starred maps...</p>
+        ) : error ? (
+          <p>Error fetching starred maps. Please try again later.</p>
+        ) : maps.length > 0 ? (
           <table className={styles.mapTable}>
             <thead>
               <tr>
@@ -124,12 +68,13 @@ export default function MyMaps({
                 <th>Title</th>
                 <th>Modified</th>
                 <th>Stars</th>
-                <th>Actions</th>
+                <th>Created By</th>
               </tr>
             </thead>
             <tbody>
               {maps.map((map) => {
                 const mapTitle = map.title || 'Untitled Map';
+                const creatorUsername = map.creator?.username || 'Unknown';
                 return (
                   <tr key={map.id} className={styles.mapRow}>
                     <td className={styles.thumbnailCell}>
@@ -197,68 +142,14 @@ export default function MyMaps({
                         {map.saveCount || 0}
                       </div>
                     </td>
-                    <td className={styles.actionsCell}>
-                      <div className={styles.cardActions}>
-                        <button
-                          className={styles.viewButton}
-                          onClick={(event) => handleView(event, map.id)}
-                        >
-                          View
-                        </button>
-                        <button
-                          className={styles.editButton}
-                          onClick={(event) => handleEdit(event, map.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className={styles.deleteButton}
-                          onClick={(event) => handleDelete(event, map.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+                    <td className={styles.createdByCell}>{map.User.username}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         ) : (
-          <p>You have no saved maps.</p>
-        )}
-
-         {/* Map Selection Modal */}
-      {showMapModal && (
-        <MapSelectionModal
-          show={showMapModal}
-          onClose={() => setShowMapModal(false)}
-          onCreateMap={handleMapSelection}
-        />
-      )}
-
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2>Confirm Delete</h2>
-              <p>
-                Are you sure you want to delete the map titled "
-                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>"? This action cannot be
-                undone.
-              </p>
-              <button className={styles.deleteButton} onClick={confirmDelete}>
-                Delete
-              </button>
-              <button className={styles.cancelButton} onClick={cancelDelete}>
-                Cancel
-              </button>
-            </div>
-          </div>
+          <p>You have no starred maps.</p>
         )}
       </div>
     </div>

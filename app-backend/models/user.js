@@ -2,6 +2,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./db'); // Import the sequelize instance
 
+
 const User = sequelize.define(
   'User',
   {
@@ -30,6 +31,34 @@ const User = sequelize.define(
       validate: {
         len: [3, 50],
       },
+    },
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    dateOfBirth: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    location: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    profilePicture: {
+      type: DataTypes.STRING, // or DataTypes.BLOB for binary data
+      allowNull: true,
     },
   },
   {

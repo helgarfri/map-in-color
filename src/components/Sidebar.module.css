@@ -1,5 +1,6 @@
 /* src/components/Sidebar.module.css */
 
+/* Sidebar Container */
 .sidebar {
   width: 250px;
   background-color: #333;
@@ -10,6 +11,16 @@
   position: fixed;
   text-align: left;
   transition: width 0.3s ease;
+
+  /* Flexbox properties */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Content Wrapper */
+.contentWrapper {
+  flex-grow: 1;
 }
 
 .logo {
@@ -29,25 +40,34 @@
   font-weight: 600;
 }
 
+/* Profile Section */
 .profileSection {
   display: flex;
   align-items: center;
-  margin-bottom: 40px;
+  padding: 10px 0;
+  cursor: pointer;
+  text-decoration: none;
+  color: #fff;
+}
+
+
+.profileSection:hover {
+  background-color: #444;
 }
 
 .avatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  transition: opacity 0.3s ease; /* Add transition */
+  transition: opacity 0.3s ease;
 }
+
 
 .username {
   margin-left: 15px;
   font-size: 1.2rem;
   font-weight: 500;
-  transition: opacity 0.3s ease; /* Add transition */
-  font-size: 18px;
+  transition: opacity 0.3s ease;
 }
 
 .nav {
@@ -65,12 +85,14 @@
 }
 
 .navLink {
+  all: unset;
   color: #fff;
   text-decoration: none;
   font-size: 1rem;
   display: flex;
   align-items: center;
   transition: padding 0.3s ease; /* Add transition */
+  cursor: pointer;
 }
 
 .navLink:hover {
@@ -102,6 +124,14 @@
 .collapsed {
   width: 70px;
 }
+/* Collapsed Sidebar Adjustments */
+.collapsed .username {
+  display: none;
+}
+
+.collapsed .avatar {
+  margin: 0 auto;
+}
 
 
 /* Toggle Button */
@@ -113,7 +143,7 @@
   cursor: pointer;
   margin-bottom: 20px;
   position: absolute;
-  top: 20px;
+  top: 80px;
   right: -20px;
   background-color: #333;
   border-radius: 50%;

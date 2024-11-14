@@ -21,9 +21,28 @@
 
 /* Header Section */
 .header {
+  position: relative; /* For positioning elements inside */
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center horizontally */
   margin-bottom: 20px;
+}
+
+/* New styles for the top part of the header */
+.headerTop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 40px;
+  margin-right: 20px;
+  margin-left: 20px;
+}
+
+/* Welcome text styles */
+.welcomeText {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  margin-top: 40px; /* Add top margin to compensate for the button */
 }
 
 .header h1 {
@@ -31,11 +50,67 @@
   margin-bottom: 10px;
 }
 
-.quickActions {
+/* Create New Map Button */
+.createMapButton {
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #f0f0f0; /* Light gray background */
+  color: #333;
   display: flex;
-  gap: 10px;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.createMapButton:hover {
+  background-color: #e0e0e0; /* Darker gray on hover */
+}
+
+.plusIcon {
+  margin-right: 8px;
+}
+
+
+/* Statistics Panel */
+.statisticsPanel {
+  display: flex;
+  justify-content: space-around; /* Space between items */
+  align-items: center;
+  background-color: #f5f5f5; /* Light background */
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%; /* Stretch across the width */
   margin-bottom: 20px;
 }
+
+.statistic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1; /* Equal width */
+  text-align: center;
+}
+
+.statIcon {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.statistic h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.statistic p {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #000;
+}
+
 
 .primaryButton,
 .secondaryButton {
@@ -279,5 +354,104 @@
 
   .bottomContent {
     flex-direction: column;
+  }
+}
+
+
+/* Starred Maps */
+.starredMapsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  /* Ensure the container fills the available width */
+  width: 100%;
+}
+.starredMapCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 10px;
+  box-sizing: border-box; /* Include padding and border in width calculations */
+  flex: 1 1 calc(25% - 20px); /* Base width for four cards per row */
+}
+
+
+.starredMapCard:hover {
+  transform: scale(1.02);
+}
+
+/* Thumbnail and Info Styles */
+.starredThumbnail {
+  width: 50%;
+  height: 150px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 20px;
+}
+
+.starredThumbnail svg {
+  width: 100%;
+  height: 100%;
+}
+
+.starredMapInfo {
+  margin-top: 10px;
+}
+
+.starredMapInfo h3 {
+  margin: 0 0 5px 0;
+}
+
+.starredMapInfo p {
+  margin: 0 0 5px 0;
+  color: #666;
+}
+
+.starCount {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.starIcon {
+  color: black;
+  margin-right: 5px;
+}
+
+/* View All Link */
+.viewAllLink {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.viewAllLink a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.viewAllLink a:hover {
+  text-decoration: underline;
+}
+
+
+@media (max-width: 1800px) {
+  .starredMapCard {
+    flex: 1 1 calc(50% - 20px); /* Two cards per row */
+  }
+}
+
+@media (max-width: 1200px) {
+  .starredMapCard {
+    flex: 1 1 calc(100% - 20px); /* One card per row */
   }
 }

@@ -1,0 +1,157 @@
+/* src/components/ProfilePage.module.css */
+
+.profilePageContainer {
+    display: flex;
+  }
+  
+  .profileContent {
+    margin-left: 250px; /* Adjust based on sidebar width */
+    padding: 40px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .profileHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .profilePicture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 30px;
+  }
+  
+  .profileInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .fullName {
+    font-size: 2.5rem;
+    margin: 0;
+  }
+  
+  .username {
+    font-size: 1.2rem;
+    color: gray;
+    margin-top: 5px;
+  }
+  
+  .infoRow {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+  }
+  
+  .infoItem {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+  }
+  
+  .icon {
+    margin-right: 8px;
+    color: gray;
+  }
+  
+  .bio {
+    margin-top: 30px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  
+  /* Loader and Error Styles */
+  .loader {
+    margin-left: 250px;
+    padding: 20px;
+  }
+  
+  .error {
+    margin-left: 250px;
+    padding: 20px;
+    color: red;
+  }
+
+  /* User Maps Section */
+.userMapsSection {
+    margin-top: 40px;
+  }
+  
+  .userMapsSection h2 {
+    margin-bottom: 20px;
+    font-size: 2rem;
+  }
+  
+  .mapsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .mapCard {
+    display: flex;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .mapCard:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .mapThumbnail {
+    flex-shrink: 0;
+    width: 200px;
+    height: 150px;
+    overflow: hidden;
+  }
+  
+  .mapThumbnail svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .mapDetails {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .mapTitle {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .mapCreatedAt {
+    margin: 8px 0;
+    color: gray;
+  }
+  
+  .mapDescription {
+    margin: 8px 0;
+  }
+  
+  .mapStats {
+    display: flex;
+    align-items: center;
+  }
+  
+  .starIcon {
+    color: black;
+    margin-right: 8px;
+  }
+  
+  /* Adjustments for Collapsed Sidebar */
+  @media (max-width: 768px) {
+    .profileContent {
+      margin-left: 70px; /* Adjust based on collapsed sidebar width */
+    }
+  }
+  
