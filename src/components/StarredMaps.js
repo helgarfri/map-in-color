@@ -94,6 +94,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                         {map.selectedMap === 'usa' && (
@@ -110,6 +111,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                         {map.selectedMap === 'europe' && (
@@ -126,6 +128,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                       </div>

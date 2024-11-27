@@ -20,8 +20,14 @@ import ProfileSettings from './components/ProfileSettings';
 import MapDetail from './components/MapDetail';
 import ProfilePage from './components/ProfilePage'
 import StarredMaps from './components/StarredMaps';
+import NotificationList from './components/NotificationList';
 
 import { UserProvider } from './context/UserContext';
+
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+
+library.add(fas);
 
 function App() {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -130,6 +136,18 @@ function App() {
             />
           }
         />
+
+          <Route
+            path="/notifications"
+            element={
+              <PrivateRoute>
+                <NotificationList
+                  isCollapsed={isCollapsed}
+                  setIsCollapsed={setIsCollapsed}
+                />
+              </PrivateRoute>
+            }
+          />
       </Routes>
 
     </Router>

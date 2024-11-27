@@ -1,0 +1,100 @@
+/* src/components/NotificationList.module.css */
+
+.notificationsContainer {
+    display: flex;
+    min-height: 100vh;
+    color: black;
+  }
+  
+  /* Main content styling */
+  .mainContent {
+    flex: 1;
+    padding: 20px;
+    margin-left: 250px; /* Sidebar width when expanded */
+    transition: margin-left 0.3s ease;
+  }
+  
+  .contentCollapsed {
+    margin-left: 70px; /* Sidebar width when collapsed */
+  }
+  
+  .notificationList {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .notificationItem {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+  }
+  
+  .notificationItem:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .unread {
+    background-color: #e6f7ff; /* Light blue background for unread notifications */
+  }
+  
+  .read {
+    background-color: #fff;
+  }
+  
+  .notificationContent {
+    margin: 0;
+    font-size: 16px;
+  }
+  
+  .notificationMeta {
+    margin: 5px 0 0 0;
+    color: #999;
+    font-size: 12px;
+  }
+  
+  /* src/components/NotificationList.module.css */
+
+/* ... existing styles ... */
+
+/* Wrapper for the notification content */
+.notificationContentWrapper {
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  /* Profile Picture */
+  .profilePicture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+  }
+  
+  /* Notification Text */
+  .notificationText {
+    flex: 1;
+  }
+  
+  /* Sender Name Link */
+  .senderName {
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .senderName:hover {
+    text-decoration: underline;
+  }
+  
+  /* Map Title Link */
+  .mapTitle {
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .mapTitle:hover {
+    text-decoration: underline;
+  }
+  

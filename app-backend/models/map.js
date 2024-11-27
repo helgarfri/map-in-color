@@ -10,11 +10,12 @@ const Map = sequelize.define('Map', {
     primaryKey: true,
   },
   title: { type: DataTypes.STRING },
-  description: { type: DataTypes.TEXT }, // Add description
-  tags: { type: DataTypes.ARRAY(DataTypes.STRING) }, // Add tags
-  sources: { type: DataTypes.JSON }, // Add sources
-  isPublic: { type: DataTypes.BOOLEAN, defaultValue: false }, // Add isPublic
-  saveCount: { type: DataTypes.INTEGER, defaultValue: 0 }, // Add saveCount
+  isTitleHidden: { type: DataTypes.BOOLEAN, defaultValue: false }, // Add this line
+  description: { type: DataTypes.TEXT },
+  tags: { type: DataTypes.ARRAY(DataTypes.STRING) },
+  sources: { type: DataTypes.JSON },
+  isPublic: { type: DataTypes.BOOLEAN, defaultValue: false },
+  saveCount: { type: DataTypes.INTEGER, defaultValue: 0 },
   data: { type: DataTypes.JSON },
   customRanges: { type: DataTypes.JSON },
   groups: { type: DataTypes.JSON },
@@ -31,8 +32,6 @@ const Map = sequelize.define('Map', {
   fileName: { type: DataTypes.STRING },
   fileStats: { type: DataTypes.JSON },
 });
-
-
 
 // Define associations with explicit foreignKey
 User.hasMany(Map, { foreignKey: 'UserId', onDelete: 'CASCADE' });

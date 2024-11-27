@@ -138,6 +138,7 @@ function ProfilePage({ isCollapsed, setIsCollapsed }) {
                         topHighValues={[]}
                         topLowValues={[]}
                         isThumbnail={true}
+                        isTitleHidden={map.isTitleHidden}
                       />
                     )}
                     {map.selectedMap === 'usa' && (
@@ -154,6 +155,7 @@ function ProfilePage({ isCollapsed, setIsCollapsed }) {
                         topHighValues={[]}
                         topLowValues={[]}
                         isThumbnail={true}
+                        isTitleHidden={map.isTitleHidden}
                       />
                     )}
                     {map.selectedMap === 'europe' && (
@@ -170,6 +172,7 @@ function ProfilePage({ isCollapsed, setIsCollapsed }) {
                         topHighValues={[]}
                         topLowValues={[]}
                         isThumbnail={true}
+                        isTitleHidden={map.isTitleHidden}
                       />
                     )}
                   </div>

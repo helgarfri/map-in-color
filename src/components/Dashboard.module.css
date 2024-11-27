@@ -309,15 +309,21 @@
   z-index: 1000;
 }
 
+/* Modal Content */
 .modalContent {
   background-color: #fff;
   padding: 30px;
-  width: 450px;
   position: relative;
   text-align: center;
   border-radius: 8px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  max-width: 900px; /* Increase the max-width */
+  width: 90%; /* Adjust the width */
 }
+
+
+
+
+
 
 /* Button styles */
 .cancelButton {
@@ -442,6 +448,95 @@
 .viewAllLink a:hover {
   text-decoration: underline;
 }
+
+/* Notifications Section */
+.notificationList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notificationItem {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.notificationItem:hover {
+  background-color: #f5f5f5;
+}
+
+.notificationContentWrapper {
+  display: flex;
+  align-items: flex-start;
+}
+
+.profilePicture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+
+
+.notificationContent {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  text-align: left;
+}
+
+.notificationMeta {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #999;
+  text-align: left;
+}
+
+.senderName,
+.mapTitle {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.senderName:hover,
+.mapTitle:hover {
+  text-decoration: underline;
+}
+
+.unread {
+  background-color: #e6f7ff;
+}
+
+.read {
+  background-color: #fff;
+}
+
+.viewAllLink {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.viewAllLink a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.viewAllLink a:hover {
+  text-decoration: underline;
+}
+.bottomContent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
 
 
 @media (max-width: 1800px) {

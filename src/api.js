@@ -69,3 +69,19 @@ export const fetchMapsByUserId = (userId) => API.get(`/maps/user/${userId}`);
 // Fetch saved maps for the authenticated user
 export const fetchSavedMaps = () => API.get('/maps/saved');
 
+// Fetch notifications
+export const fetchNotifications = () => API.get('/notifications');
+
+// Mark notification as read
+export const markNotificationAsRead = (id) =>
+  API.put(`/notifications/${id}/read`);
+
+// Mark all notifications as read
+export const markAllNotificationsAsRead = () =>
+  API.put('/notifications/read-all');
+
+// Like a comment
+export const likeComment = (commentId) => API.post(`/comments/${commentId}/like`);
+
+// Dislike a comment
+export const dislikeComment = (commentId) => API.post(`/comments/${commentId}/dislike`);

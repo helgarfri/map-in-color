@@ -506,7 +506,7 @@
 
 /* Map Preview Section */
 .mapPreviewSection {
-  flex: 2; /* Adjusted to take more space */
+  flex: 1; /* Adjusted to take more space */
   display: flex;
   flex-direction: column;
 }
@@ -514,7 +514,6 @@
 .mapPreviewContainer {
   flex: 1;
 
-  padding: 20px; /* Add padding */
   box-sizing: border-box; /* Include padding and border in size */
   display: flex;
   flex-direction: column;
@@ -525,29 +524,155 @@
   cursor: pointer;
   /* Remove any fixed heights or margins that might prevent stretching */
 }
-
-/* Map Settings Section */
-.mapSettingsSection {
-  flex: 1; /* Takes less space compared to preview */
+/* Map Theme Container */
+.mapThemeContainer {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  margin-top: 40px;
+  align-items: stretch; /* Ensure children stretch to same height */
+  border:1px solid #d1d9e6;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  padding: 20px;
 }
 
-.mapSettingsContainer {
+
+/* Map Preview Section */
+.mapPreviewSection {
   flex: 1;
-  padding: 20px; /* Add padding */
-  box-sizing: border-box; /* Include padding and border in size */
-  display: flex;
-  flex-direction: column;
+  margin-right: 20px; /* Space between preview and settings */
 }
 
-.mapSettings {
-  flex: 1; /* Allow content to fill available space */
+.mapPreviewSection h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 18px;
+}
+
+/* Map Preview Container */
+.mapPreviewContainer {
+  cursor: pointer;
+}
+
+.mapPreviewWrapper {
+  width: 100%;
+  height: auto;
+}
+
+.mapPreviewWrapper svg {
+  width: 100%;
+  height: auto;
+}
+
+.mapThemeSection {
+  flex: 0.4;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  background-color: #f9fafb;
+  border: 1px solid #d1d9e6;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
   
 }
+
+.mapThemeSection h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 18px;
+}
+
+/* Map Theme Settings */
+.mapThemeSettings {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-top: 20px;
+}
+
+/* Setting Items */
+.settingItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settingItem label {
+  font-weight: 500;
+}
+
+/* Color Inputs */
+.colorInputBox {
+  padding: 0;
+  height: 32px;
+  width: 100%;
+  border: none;
+}
+
+
+
+/* Map Theme Selector */
+.mapThemeSelector {
+  font-weight: bold;
+  background-color: #f5f7fa;
+  width: 100%;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.mapThemeSelector:hover,
+.mapThemeSelector:focus {
+  border-color: #80a0b0;
+  outline: none;
+}
+
+/* Radio Group */
+.radioGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.radioGroup label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.radioGroup label input[type="radio"] {
+  margin: 0;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mapThemeContainer {
+    flex-direction: column;
+  }
+
+  .mapPreviewSection,
+  .mapThemeSection {
+    margin-right: 0;
+    min-width: auto;
+  }
+
+  .settingItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settingItem label {
+    width: auto;
+  }
+}
+
+
+
 
 /* Headings Styling */
 .mapPreviewSection h3,
@@ -708,7 +833,7 @@
 .inputBox[type="color"] {
   padding: 0;
   height: 32px;
-  width: 50px;
+  width: 100%;
 }
 
 /* Adjust the select input to match other inputs */
@@ -825,10 +950,15 @@ input[type="file"]::file-selector-button:active {
 .modalContent {
   background-color: #fff;
   padding: 30px;
-  position: relative;
+  position: fixed;
   text-align: center;
   border-radius: 8px;
+  width: 60%;
+  overflow: hidden;
+
 }
+
+
 
 /* Close Button */
 .closeButton {
@@ -864,18 +994,61 @@ input[type="file"]::file-selector-button:active {
   border: none;
 }
 
+
+
 /* Settings Modal Container */
 .settingsModalContainer {
   display: flex;
   gap: 20px;
-  max-width: 800px;
   margin: 0 auto;
+}
+
+/* Tags Container */
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Individual Tag Item */
+.tagItem {
+  display: flex;
+  align-items: center;
+  background-color: #e0e0e0;
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+/* Remove Tag Button */
+.removeTagButton {
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.removeTagButton:hover {
+  color: #ff4d4f;
+}
+
+
+.settingItem {
+  display: flex;
+  flex-direction: column; /* Stack label and input vertically */
+  align-items: flex-start; /* Align items to the left */
+  gap: 5px;
+  margin-bottom: 15px;
 }
 
 /* Map Image Preview */
 .mapImagePreview {
   flex: 1;
-  max-width: 400px;
+  max-width: 800px;
+  margin: auto;
 }
 
 /* Settings Input Fields */
@@ -884,11 +1057,94 @@ input[type="file"]::file-selector-button:active {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  max-width: 400px;
 }
 
 .settingsInputFields h2 {
   margin-top: 0;
 }
+
+/* Description Input Wrapper */
+.descriptionInputWrapper {
+  width: 100%;
+}
+
+/* Description Input */
+.descriptionInput {
+  resize: none; /* Prevent resizing */
+  height: 80px; /* Set a fixed height */
+  overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+
+
+/* Custom Select Container */
+.customSelect {
+  position: relative;
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+/* Visibility Icon */
+.visibilityIcon {
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+/* Select Arrow */
+.selectArrow {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+/* Options Dropdown */
+.selectOptions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  z-index: 100;
+}
+
+.selectOption {
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.selectOption:hover {
+  background-color: #f0f0f0;
+}
+
+/* Checkbox Item Styling */
+.checkboxItem {
+  margin-top: 5px; /* Adjust spacing as needed */
+}
+
+.checkboxItem label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.checkboxItem input[type="checkbox"] {
+  margin-right: 5px;
+}
+
 
 
 .inputBox[type="text"],
@@ -897,8 +1153,9 @@ input[type="file"]::file-selector-button:active {
 }
 
 .settingItem textarea {
-  resize: vertical;
+  resize: none;
   min-height: 80px;
+  
 }
 
 /* Modal Buttons */

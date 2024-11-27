@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional'); // Import authOptional
 
 const { Map, User, MapSaves } = require('../models');
+const Notification = require('../models/notification'); // Add this line
 // Get all maps for a user
 router.get('/', auth, async (req, res) => {
   try {
@@ -87,13 +88,14 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// routes/maps.js
+
 // Get a single map by ID
 router.get('/:id', authOptional, async (req, res) => {
   try {
     const map = await Map.findOne({
       where: { id: req.params.id },
-      include: [{ model: User, attributes: ['username'] }],
-    });
+      include: [{ model: User, attributes: ['id', 'username', 'firstName', 'lastName', 'profilePicture'] }],    });
 
     if (!map) {
       return res.status(404).json({ msg: 'Map not found' });
@@ -105,7 +107,10 @@ router.get('/:id', authOptional, async (req, res) => {
     }
 
     let isSavedByCurrentUser = false;
+    let isOwner = false;
     if (req.user) {
+      isOwner = map.UserId === req.user.id; // Determine if the current user is the owner
+
       const mapSave = await MapSaves.findOne({
         where: { MapId: map.id, UserId: req.user.id },
       });
@@ -114,6 +119,8 @@ router.get('/:id', authOptional, async (req, res) => {
 
     const mapData = map.toJSON();
     mapData.isSavedByCurrentUser = isSavedByCurrentUser;
+    mapData.isOwner = isOwner; // Add isOwner to the response
+
     res.json(mapData);
   } catch (err) {
     console.error('Error fetching map:', err);
@@ -121,7 +128,7 @@ router.get('/:id', authOptional, async (req, res) => {
   }
 });
 
-// save a map
+// Save a map
 router.post('/:id/save', auth, async (req, res) => {
   try {
     const map = await Map.findByPk(req.params.id);
@@ -136,16 +143,29 @@ router.post('/:id/save', auth, async (req, res) => {
     if (created) {
       map.saveCount += 1;
       await map.save();
+
+      // Fetch current user to get the username
+      const currentUser = await User.findByPk(req.user.id);
+
+      // Create a notification for the map owner
+      if (map.UserId !== req.user.id) {
+        await Notification.create({
+          type: 'star',
+          UserId: map.UserId,
+          SenderId: req.user.id,
+          MapId: map.id,
+        });
+      }
+
       res.json({ msg: 'Map saved' });
     } else {
-      res.status(400).json({ msg: 'Map already saved' });
+      res.status(200).json({ msg: 'Map already saved' }); // Change status code to 200
     }
   } catch (err) {
     console.error('Error saving map:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
-
 
 // Unsave a map
 router.post('/:id/unsave', auth, async (req, res) => {

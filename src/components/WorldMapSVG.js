@@ -19,7 +19,8 @@ export default function WorldMapSVG({
   topLowValues,
   isLargeMap = false,
   isThumbnail = false,
-  viewBox = "0 0 2754 1398"
+  viewBox = "0 0 2754 1398",
+  isTitleHidden
 }) {
 
 
@@ -3422,6 +3423,7 @@ const calculateFontSize = (title) => {
 	
 
   {/* Title */}
+  {!isTitleHidden && (
   <g>
   <text
 	className="title-map"
@@ -3435,6 +3437,7 @@ const calculateFontSize = (title) => {
 	{mapTitleValue}
   </text>
 </g>
+  )}
 
 
 

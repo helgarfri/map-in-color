@@ -1,22 +1,26 @@
+/* MapDetail.module.css */
+
+/* Map Detail Container */
 .mapDetailContainer {
   display: flex;
 }
 
+/* Map Detail Content */
 .mapDetailContent {
   flex: 1;
   padding: 20px;
-  margin-left: 250px; /* Sidebar width when expanded */
+  margin-left: 250px; /* Adjust as needed */
   display: flex;
   flex-direction: column;
   transition: margin-left 0.3s ease;
 }
 
 .contentCollapsed {
-  margin-left: 70px; /* Sidebar width when collapsed */
+  margin-left: 70px; /* Adjust as needed */
 }
 
+/* Map Display */
 .mapDisplay {
-  flex: 1;
   position: relative;
   overflow: hidden;
   border: 2px solid #ccc;
@@ -31,7 +35,7 @@
   right: 10px;
   display: flex;
   flex-direction: column;
-  z-index: 1; /* Ensure controls are above the map */
+  z-index: 1;
 }
 
 .zoomControls button {
@@ -51,21 +55,35 @@
 .detailsAndStats {
   display: flex;
   margin-top: 20px;
+  align-items: stretch;
+  gap: 20px; /* Add gap between the left and right columns */
 }
 
-.mapDetails {
+/* Left Content: Map Details and Comments */
+.leftContent {
   flex: 3;
-  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-.mapStats {
-  flex: 1;
+/* Map Details */
+.mapDetails {
   background-color: #fafafa;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
 }
 
+/* Discussion Section */
+.discussionSection {
+  margin-top: 20px;
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Title Section */
 .titleSection {
   display: flex;
   align-items: center;
@@ -84,9 +102,83 @@
   border: none;
 }
 
+.createdAt {
+  margin-top: 5px ;
+  margin-bottom: 10px;
+}
+/* Creator Info */
 .creatorInfo {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  /* Remove flex-direction: column; */
+}
+
+.creatorProfileLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  margin-right: 10px; /* Add space between the profile link and the 'Made by' text */
+}
+
+.creatorProfilePicture {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.creatorName {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+.creatorUsername {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.creatorUsername:hover {
+  text-decoration: underline;
+}
+
+/* Comment Author Link */
+.commentAuthorLink {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.commentAuthorLink:hover {
+  text-decoration: underline;
+}
+
+/* Adjustments for Profile Pictures in Comments */
+.commentProfilePicture {
+  width: 50px; /* Adjust as needed */
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+/* Ensure the comment header aligns properly */
+.commentHeader {
+  align-items: flex-start;
+}
+
+
+/* Visibility Tag */
+.visibilityTag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 6px;
+  background-color: #e0e0e0;
+  color: #333;
   font-size: 14px;
-  color: #666;
+  border-radius: 4px;
 }
 
 .description {
@@ -94,6 +186,7 @@
   font-size: 16px;
 }
 
+/* Tags */
 .tags {
   margin-top: 10px;
 }
@@ -108,6 +201,7 @@
   font-size: 14px;
 }
 
+/* Sources */
 .sources {
   margin-top: 20px;
 }
@@ -115,6 +209,316 @@
 .sources ul {
   list-style-type: disc;
   padding-left: 20px;
+}
+
+/* Discussion Section */
+.discussionSection h2 {
+  margin-top: 0;
+}
+
+/* Comment Form */
+.commentForm {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.commentTextarea {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  resize: none; /* Disable resizing */
+  min-height: 40px; /* Adjust height as needed */
+}
+
+.commentTextarea:focus {
+  outline: none;
+  border-color: #80a0b0;
+}
+
+.commentButton {
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  background-color: #55957b;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 40px; /* Match the height of the textarea */
+  align-self: center; /* Align button to the top */
+}
+
+.commentButton:hover {
+  background-color: #6999b1;
+}
+
+/* Comments List */
+.commentsList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.commentItem {
+  display: flex;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.commentHeader {
+  display: flex;
+  width: 100%;
+}
+
+.commentProfilePicture,
+.commentPlaceholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+}
+
+.commentPlaceholder {
+  background-color: #ccc;
+}
+
+.commentContentWrapper {
+  flex: 1;
+}
+
+.commentInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.commentAuthor {
+  font-weight: bold;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.commentTime {
+  font-size: 12px;
+  color: #888;
+}
+
+.commentContent {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Adjustments for Existing Classes */
+.commentHeader {
+  align-items: flex-start;
+}
+
+/* Comment Actions */
+.commentActions {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.reactionButton {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 10px;
+  padding: 4px 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.reactionButton:hover {
+  background-color: #e0e0e0;
+}
+
+.reactionButton.active {
+  background-color: #80a0b0;
+  color: #fff;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  fill: currentColor;
+}
+
+/* Reply Button */
+.replyButton {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.replyButton:hover {
+  text-decoration: underline;
+}
+
+/* Reply Form */
+.replyForm {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  margin-left: 65px; /* Indent to align with reply */
+}
+
+.replyTextarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  resize: none;
+  min-height: 60px;
+}
+
+.replyTextarea:focus {
+  outline: none;
+  border-color: #80a0b0;
+}
+
+.replyButtonSubmit {
+  align-self: flex-end;
+  margin-top: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  background-color: #80a0b0;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.replyButtonSubmit:hover {
+  background-color: #6999b1;
+}
+
+/* Replies List */
+.repliesList {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 10px;
+  margin-left: 65px; /* Indent replies */
+}
+
+/* Reply Item */
+.replyItem {
+  display: flex;
+  margin-bottom: 15px; /* Increase margin between replies */
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+/* Adjust the indentation of replies */
+.replyItem {
+  margin-left: 0; /* Reset margin-left to align properly */
+}
+
+/* Reply Content Adjustments */
+.replyItem .commentHeader {
+  display: flex;
+  width: 100%;
+}
+
+/* Smaller Profile Picture */
+.replyItem .commentProfilePicture,
+.replyItem .commentPlaceholder {
+  width: 40px; /* Reduce size */
+  height: 40px; /* Reduce size */
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+/* Smaller Text and Buttons */
+.replyItem .commentContentWrapper {
+  flex: 1;
+  font-size: 14px; /* Reduce font size */
+}
+
+.replyItem .commentAuthor {
+  font-weight: bold;
+  font-size: 13px; /* Reduce font size */
+  margin-right: 8px;
+}
+
+.replyItem .commentTime {
+  font-size: 11px; /* Reduce font size */
+  color: #888;
+}
+
+.replyItem .commentContent {
+  font-size: 14px; /* Reduce font size */
+  margin: 0;
+}
+
+/* Smaller Reaction Buttons */
+.replyItem .commentActions {
+  margin-top: 8px;
+}
+
+.replyItem .reactionButton {
+  font-size: 12px; /* Reduce font size */
+  padding: 3px 6px; /* Reduce padding */
+  margin-right: 8px; /* Adjust margin */
+}
+
+.replyItem .icon {
+  width: 14px; /* Reduce size */
+  height: 14px; /* Reduce size */
+  margin-right: 3px; /* Adjust margin */
+}
+
+/* Increase margin between replies */
+.replyItem + .replyItem {
+  margin-top: 15px;
+}
+
+/* Toggle Replies Button */
+.toggleRepliesButton {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  margin-left: 65px; /* Align with replies */
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.toggleRepliesButton:hover {
+  text-decoration: underline;
+}
+
+
+
+
+/* Map Statistics */
+.mapStats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.statsSummary {
+  flex-shrink: 0; /* Prevent this section from shrinking */
 }
 
 .mapStats h2 {
@@ -148,17 +552,13 @@
 
 /* Country List Table */
 .countryList {
-  max-height: 300px;
-  overflow-y: auto;
+  flex-grow: 1; /* Allow this section to grow and fill available space */
+  overflow-y: auto; /* Make it scrollable when content overflows */
   margin-top: 10px;
   background-color: #f9f9f9;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
-}
-
-.countryList h3 {
-  margin-top: 0;
 }
 
 .countryList table {
@@ -178,6 +578,7 @@
 
 .countryList th {
   background-color: #e0e0e0;
+  position: sticky;
   top: 0;
 }
 
@@ -187,46 +588,8 @@
     flex-direction: column;
   }
 
-  .mapDetails,
+  .leftContent,
   .mapStats {
     min-width: 100%;
   }
-}
-
-
-
-.commentsList {
-  list-style-type: none;
-  padding: 0;
-}
-
-.commentItem {
-  margin-bottom: 20px;
-}
-
-.commentAuthor {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.commentContent {
-  margin-top: 5px;
-  font-size: 16px;
-}
-
-.commentForm {
-  margin-top: 20px;
-}
-
-.commentForm textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 10px;
-  font-size: 16px;
-}
-
-.commentForm button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
 }

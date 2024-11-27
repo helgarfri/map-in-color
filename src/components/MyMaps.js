@@ -11,9 +11,10 @@ import EuropeSVG from './EuropeSVG';
 
 import { formatDistanceToNow } from 'date-fns';
 import Sidebar from './Sidebar';
-import { FaStar, FaPlus } from 'react-icons/fa'; // Import star icon
+import { FaStar, FaPlus, FaLock, FaLockOpen, FaGlobe } from 'react-icons/fa'; // Import star icon
 
 import MapSelectionModal from './MapSelectionModal';
+
 
 export default function MyMaps({
   isCollapsed,
@@ -95,11 +96,7 @@ export default function MyMaps({
   return (
     <div className={styles.myMapsContainer}>
       {/* Sidebar */}
-      <Sidebar
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-      />
-
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       {/* Main Content */}
       <div
@@ -107,10 +104,12 @@ export default function MyMaps({
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-    <div className={styles.header}>
+        <div className={styles.header}>
           <div className={styles.headerText}>
             <h1>My Maps</h1>
-            <p>You own {maps.length} {maps.length === 1 ? 'map' : 'maps'}.</p>
+            <p>
+              You own {maps.length} {maps.length === 1 ? 'map' : 'maps'}.
+            </p>
           </div>
           <button className={styles.createMapButton} onClick={handleCreateMap}>
             <FaPlus className={styles.plusIcon} /> Create New Map
@@ -123,6 +122,7 @@ export default function MyMaps({
                 <th>Thumbnail</th>
                 <th>Title</th>
                 <th>Modified</th>
+                <th>Visibility</th> {/* New Column */}
                 <th>Stars</th>
                 <th>Actions</th>
               </tr>
@@ -133,7 +133,7 @@ export default function MyMaps({
                 return (
                   <tr key={map.id} className={styles.mapRow}>
                     <td className={styles.thumbnailCell}>
-                      <div className={styles.thumbnail}>
+                    <div className={styles.thumbnail}>
                         {/* Render SVG component based on map type */}
                         {map.selectedMap === 'world' && (
                           <WorldMapSVG
@@ -149,6 +149,7 @@ export default function MyMaps({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                         {map.selectedMap === 'usa' && (
@@ -165,6 +166,7 @@ export default function MyMaps({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                         {map.selectedMap === 'europe' && (
@@ -181,15 +183,26 @@ export default function MyMaps({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                       </div>
+                      
+                      
+                      
                     </td>
                     <td className={styles.titleCell}>{mapTitle}</td>
                     <td className={styles.modifiedCell}>
                       {formatDistanceToNow(new Date(map.updatedAt), {
                         addSuffix: true,
                       })}
+                    </td>
+                    <td className={styles.visibilityCell}>
+                      {map.isPublic ? (
+                        <FaGlobe className={styles.visibilityIcon} title="Public" />
+                      ) : (
+                        <FaLock className={styles.visibilityIcon} title="Private" />
+                      )}
                     </td>
                     <td className={styles.starsCell}>
                       <div className={styles.starCount}>
@@ -198,7 +211,7 @@ export default function MyMaps({
                       </div>
                     </td>
                     <td className={styles.actionsCell}>
-                      <div className={styles.cardActions}>
+                    <div className={styles.cardActions}>
                         <button
                           className={styles.viewButton}
                           onClick={(event) => handleView(event, map.id)}
@@ -228,15 +241,14 @@ export default function MyMaps({
           <p>You have no saved maps.</p>
         )}
 
-         {/* Map Selection Modal */}
-      {showMapModal && (
-        <MapSelectionModal
-          show={showMapModal}
-          onClose={() => setShowMapModal(false)}
-          onCreateMap={handleMapSelection}
-        />
-      )}
-
+        {/* Map Selection Modal */}
+        {showMapModal && (
+          <MapSelectionModal
+            show={showMapModal}
+            onClose={() => setShowMapModal(false)}
+            onCreateMap={handleMapSelection}
+          />
+        )}
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
@@ -248,8 +260,8 @@ export default function MyMaps({
               <h2>Confirm Delete</h2>
               <p>
                 Are you sure you want to delete the map titled "
-                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>"? This action cannot be
-                undone.
+                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>"? This
+                action cannot be undone.
               </p>
               <button className={styles.deleteButton} onClick={confirmDelete}>
                 Delete

@@ -11,13 +11,14 @@ const authRoutes = require('./routes/auth');
 const mapRoutes = require('./routes/maps');
 const profileRoutes = require('./routes/profile');
 const commentsRoutes = require('./routes/comments');
+const notificationsRoutes = require('./routes/notifications');
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:3003', // Correct frontend origin
+	origin: 'http://localhost:3000', // Correct frontend origin
   credentials: true,
 }));
 
@@ -42,6 +43,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/maps', mapRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api', commentsRoutes);
+app.use('/api/notifications', notificationsRoutes); // Add this line
 
 // Handle undefined routes
 app.use((req, res, next) => {

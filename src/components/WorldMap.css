@@ -43,7 +43,7 @@
 .landxx
 {
 	stroke: #4b4b4b;
-	stroke-width: 1;
+	stroke-width: 0.5;
 	fill-rule: evenodd;
 	fill: #c0c0c0;
 	
@@ -56,7 +56,7 @@
  */
 .coastxx
 {
-	stroke-width: 0.5;
+	stroke-width: 0.3;
 	stroke: #4b4b4b;
 }
 
@@ -69,7 +69,7 @@
 .antxx
 {
 	stroke: #4b4b4b;
-	stroke-width: 1;
+	stroke-width: 0.5;
 	opacity: 1;
 	fill: #c0c0c0;
 }

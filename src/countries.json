@@ -274,11 +274,11 @@
 	},
 	{
 		"code": "FK",
-		"name": "Falkland Islands (Malvinas)"
+		"name": "Falkland Islands"
 	},
 	{
 		"code": "FM",
-		"name": "Micronesia (Federated States of)"
+		"name": "Micronesia"
 	},
 	{
 		"code": "FO",
@@ -418,7 +418,7 @@
 	},
 	{
 		"code": "IR",
-		"name": "Iran (Islamic Republic of)"
+		"name": "Iran"
 	},
 	{
 		"code": "IS",
@@ -470,11 +470,11 @@
 	},
 	{
 		"code": "KP",
-		"name": "Korea (Democratic People's Rep. of)"
+		"name": "North Korea"
 	},
 	{
 		"code": "KR",
-		"name": "Korea (Republic of)"
+		"name": "South Korea"
 	},
 	{
 		"code": "KW",
@@ -878,7 +878,7 @@
 	},
 	{
 		"code": "TR",
-		"name": "Türkiye"
+		"name": "Turkey"
 	},
 	{
 		"code": "TT",

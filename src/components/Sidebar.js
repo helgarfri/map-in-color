@@ -102,10 +102,10 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
         </NavLink>
         </li>
             <li>
-              <NavLink to="/notifications" className={styles.navLink}>
-                <FaBell className={styles.icon} />
-                <span>Notifications</span>
-              </NavLink>
+            <NavLink to="/notifications" className={styles.navLink}>
+              <FaBell className={styles.icon} />
+              {!isCollapsed && <span>Notifications</span>}
+            </NavLink>
             </li>
             <li>
               <NavLink to="/profile-settings" className={styles.navLink}>

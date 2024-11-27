@@ -5,8 +5,6 @@ import FinalizeMap from './FinalizeMap';
 import DataIntegration from './DataIntergration';
 
 export default function CreateNew({
-  isAuthenticated,
-  setIsAuthenticated,
 
 }) {
   const [step, setStep] = useState(1);
@@ -37,8 +35,7 @@ export default function CreateNew({
           setCsvData={setCsvData}
           goToNextStep={goToNextStep}
           goBack={goBack}
-          isAuthenticated={isAuthenticated}
-          setIsAuthenticated={setIsAuthenticated}
+
         />
       )}
       {step === 3 && (

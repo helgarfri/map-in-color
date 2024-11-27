@@ -13,6 +13,10 @@ import { updateMap, createMap } from "../api";
 import Footer from "./Footer";
 import Sidebar from "./Sidebar";
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGlobe, faLock, faCaretDown } from '@fortawesome/free-solid-svg-icons';
+
+
 
 // Define preloaded color themes
 const themes = [
@@ -123,7 +127,7 @@ export default function DataIntegration({
       setDescription(existingMapData.description || '');
       setTags(existingMapData.tags || []);
       setIsPublic(existingMapData.isPublic || false);
-      // ... set other states as needed
+      setIsTitleHidden(existingMapData.isTitleHidden || false);
     }
   }, [existingMapData]);
 
@@ -193,8 +197,15 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+
+  const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
+
   const [isPublic, setIsPublic] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+
+  const [isTitleHidden, setIsTitleHidden] = useState(false);
 
   // State for error messages
   const [errors, setErrors] = useState([]);
@@ -840,7 +851,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       selectedMapTheme: selectedMapTheme,
       fileName: fileName,
       fileStats: fileStats,
-      // Add any other necessary state
+      isTitleHidden
     };
   
     try {
@@ -854,6 +865,22 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       console.error(err);
     }
   };
+
+  const handleTagInputKeyDown = (e) => {
+    if (e.key === 'Enter' && tagInput.trim() !== '') {
+      e.preventDefault();
+      const newTag = tagInput.trim();
+      if (!tags.includes(newTag)) {
+        setTags([...tags, newTag]);
+      }
+      setTagInput('');
+    }
+  };
+  
+  const removeTag = (index) => {
+    setTags(tags.filter((_, i) => i !== index));
+  };
+  
   
   
   
@@ -1162,18 +1189,31 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
   </div>
 </div>
 </div>
-
-{/* Map Layer: Map Preview and Map Settings */}
-<div className={styles.mapLayer}>
-
-
+{/* Map Theme Container */}
+<div className={styles.mapThemeContainer}>
   {/* Map Preview Section */}
-<div className={styles.mapPreviewSection}>
-  <h3>Preview</h3>
-  <div className={styles.mapPreviewContainer}>
-    <div onClick={togglePopup} className={styles.mapPreviewWrapper}>
-      {selectedMap === 'world' && (
-        <WorldMapSVG
+  <div className={styles.mapPreviewSection}>
+    <div className={styles.mapPreviewContainer}>
+      <div onClick={togglePopup} className={styles.mapPreviewWrapper}>
+        {selectedMap === 'world' && (
+          <WorldMapSVG
+            groups={groups}
+            mapTitleValue={mapTitle}
+            oceanColor={oceanColor}
+            unassignedColor={unassignedColor}
+            showTopHighValues={showTopHighValues}
+            showTopLowValues={showTopLowValues}
+            data={data}
+            selectedMap={selectedMap}
+            fontColor={fontColor}
+            topHighValues={topHighValues}
+            topLowValues={topLowValues}
+            isLargeMap={false}
+            isTitleHidden={isTitleHidden}
+          />
+        )}
+        {selectedMap === 'usa' && (
+          <UsSVG
           groups={groups}
           mapTitleValue={mapTitle}
           oceanColor={oceanColor}
@@ -1186,10 +1226,11 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
           topHighValues={topHighValues}
           topLowValues={topLowValues}
           isLargeMap={false}
-        />
-      )}
-      {selectedMap === 'usa' && (
-        <UsSVG
+          isTitleHidden={isTitleHidden}
+          />
+        )}
+        {selectedMap === 'europe' && (
+          <EuropeSVG
           groups={groups}
           mapTitleValue={mapTitle}
           oceanColor={oceanColor}
@@ -1202,67 +1243,32 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
           topHighValues={topHighValues}
           topLowValues={topLowValues}
           isLargeMap={false}
-        />
-      )}
-      {selectedMap === 'europe' && (
-        <EuropeSVG
-          groups={groups}
-          mapTitleValue={mapTitle}
-          oceanColor={oceanColor}
-          unassignedColor={unassignedColor}
-          showTopHighValues={showTopHighValues}
-          showTopLowValues={showTopLowValues}
-          data={data}
-          selectedMap={selectedMap}
-          fontColor={fontColor}
-          topHighValues={topHighValues}
-          topLowValues={topLowValues}
-          isLargeMap={false}
-        />
-      )}
+          isTitleHidden={isTitleHidden}
+          />
+        )}
+      </div>
     </div>
   </div>
-</div>
 
-
-
-  {/* Map Settings */}
-  <div className={styles.mapSettingsSection}>
-    <h3>Map Settings</h3>
-    <div className={styles.mapSettingsContainer}>
-      <div className={styles.mapSettings}>
-      {/* Map Title */}
-      <div className={styles.settingItem}>
-        <label htmlFor="mapTitle">Map Title:</label>
-        <input
-          id="mapTitle"
-          type="text"
-          className={styles.inputBox}
-          value={mapTitle}
-          onChange={(e) => setMapTitle(e.target.value)}
-          placeholder="Enter map title"
-          maxLength="40"
-        />
-      </div>
-
-
+  {/* Map Theme Section */}
+  <div className={styles.mapThemeSection}>
+    <h3>Map Theme</h3>
+    <div className={styles.mapThemeSettings}>
       {/* Map Theme Selector */}
-<div className={styles.settingItem}>
-  <label htmlFor="mapThemeSelector">Map Theme:</label>
-  <select
-    id="mapThemeSelector"
-    className={styles.inputBox}
-    value={selectedMapTheme}
-    onChange={handleThemeChange}
-  >
-    {mapThemes.map((theme) => (
-      <option key={theme.name} value={theme.name}>
-        {theme.name}
-      </option>
-    ))}
-  </select>
-</div>
-
+      <div className={styles.settingItem}>
+        <select
+          id="mapThemeSelector"
+          className={`${styles.inputBox} ${styles.mapThemeSelector}`}
+          value={selectedMapTheme}
+          onChange={handleThemeChange}
+        >
+          {mapThemes.map((theme) => (
+            <option key={theme.name} value={theme.name}>
+              {theme.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Font Color Option */}
       <div className={styles.settingItem}>
@@ -1295,7 +1301,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         <input
           id="oceanColor"
           type="color"
-          className={styles.inputBox}
+          className={styles.colorInputBox}
           value={oceanColor}
           onChange={(e) => setOceanColor(e.target.value)}
         />
@@ -1307,41 +1313,13 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         <input
           id="unassignedColor"
           type="color"
-          className={styles.inputBox}
+          className={styles.colorInputBox}
           value={unassignedColor}
           onChange={(e) => setUnassignedColor(e.target.value)}
         />
       </div>
-
-
-      {/* Display Top 3 Highest Values */}
-      <div className={styles.settingItem}>
-        <label htmlFor="showTopHighValues">
-          <input
-            id="showTopHighValues"
-            type="checkbox"
-            checked={showTopHighValues}
-            onChange={(e) => setShowTopHighValues(e.target.checked)}
-          />
-          Display Top 3 Highest Values
-        </label>
-      </div>
-
-      {/* Display Top 3 Lowest Values */}
-      <div className={styles.settingItem}>
-        <label htmlFor="showTopLowValues">
-          <input
-            id="showTopLowValues"
-            type="checkbox"
-            checked={showTopLowValues}
-            onChange={(e) => setShowTopLowValues(e.target.checked)}
-          />
-          Display Top 3 Lowest Values
-        </label>
-      </div>
     </div>
   </div>
-</div>
 </div>
 
 
@@ -1375,6 +1353,8 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       topHighValues={topHighValues}
       topLowValues={topLowValues}
       isLargeMap={true} // Pass a prop to adjust map size if needed
+      isTitleHidden={isTitleHidden}
+
     />
   )}
   {selectedMap === 'usa' && (
@@ -1391,6 +1371,9 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       topHighValues={topHighValues}
       topLowValues={topLowValues}
       isLargeMap={true}
+      isTitleHidden={isTitleHidden}
+
+
     />
   )}
   {selectedMap === 'europe' && (
@@ -1407,6 +1390,8 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       topHighValues={topHighValues}
       topLowValues={topLowValues}
       isLargeMap={true}
+      isTitleHidden={isTitleHidden}
+
     />
   )}
 </div>
@@ -1478,6 +1463,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
               topHighValues={topHighValues}
               topLowValues={topLowValues}
               isLargeMap={false}
+              isTitleHidden={isTitleHidden} // Add this line
             />
           )}
           {selectedMap === 'usa' && (
@@ -1494,6 +1480,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
             topHighValues={topHighValues}
             topLowValues={topLowValues}
             isLargeMap={false}
+            isTitleHidden={isTitleHidden} // Add this line
             />
           )}
           {selectedMap === 'europe' && (
@@ -1510,74 +1497,152 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
             topHighValues={topHighValues}
             topLowValues={topLowValues}
             isLargeMap={false}
+            isTitleHidden={isTitleHidden} // Add this line
             />
           )}
         </div>
         {/* Input Fields on the Right */}
         <div className={styles.settingsInputFields}>
-          <h2>Finalize</h2>
-          {/* Map Title */}
-          <div className={styles.settingItem}>
-            <label htmlFor="mapTitleInput">Map Title:</label>
-            <input
-              id="mapTitleInput"
-              type="text"
-              className={styles.inputBox}
-              value={mapTitle}
-              onChange={(e) => setMapTitle(e.target.value)}
-              placeholder="Enter map title"
-              maxLength="40"
-            />
+          <h2>My Map</h2>
+        {/* Map Title */}
+<div className={styles.settingItem}>
+  <label htmlFor="mapTitleInput">Map Title:</label>
+  <input
+    id="mapTitleInput"
+    type="text"
+    className={styles.inputBox}
+    value={mapTitle}
+    onChange={(e) => setMapTitle(e.target.value)}
+    placeholder="Enter map title"
+    maxLength="40"
+  />
+  {/* Hide Map Title Checkbox */}
+  <div className={styles.checkboxItem}>
+    <label htmlFor="isTitleHidden">
+      <input
+        id="isTitleHidden"
+        type="checkbox"
+        checked={isTitleHidden}
+        onChange={(e) => setIsTitleHidden(e.target.checked)}
+      />
+      Hide Map Title
+    </label>
+  </div>
+</div>
+
+        {/* Description */}
+<div className={styles.settingItem}>
+  <label htmlFor="descriptionInput">Description:</label>
+  <textarea
+    id="descriptionInput"
+    className={`${styles.inputBox} ${styles.descriptionInput}`}
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+    placeholder="Enter description"
+  />
+</div>
+
+      {/* Tags */}
+        <div className={styles.settingItem}>
+          <label htmlFor="tagsInput">Tags:</label>
+          <input
+            id="tagsInput"
+            type="text"
+            className={styles.inputBox}
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagInputKeyDown}
+            placeholder="Type a tag and press Enter"
+          />
+          {/* Display tags */}
+          <div className={styles.tagsContainer}>
+            {tags.map((tag, index) => (
+              <div key={index} className={styles.tagItem}>
+                {tag}
+                <button
+                  className={styles.removeTagButton}
+                  onClick={() => removeTag(index)}
+                  aria-label={`Remove tag ${tag}`}
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
           </div>
-          {/* Description */}
-          <div className={styles.settingItem}>
-            <label htmlFor="descriptionInput">Description:</label>
-            <textarea
-              id="descriptionInput"
-              className={styles.inputBox}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter description"
-            />
-          </div>
-          {/* Tags */}
-          <div className={styles.settingItem}>
-            <label htmlFor="tagsInput">Tags:</label>
-            <input
-              id="tagsInput"
-              type="text"
-              className={styles.inputBox}
-              value={tags.join(', ')}
-              onChange={(e) =>
-                setTags(
-                  e.target.value
-                    .split(',')
-                    .map((tag) => tag.trim())
-                    .filter((tag) => tag !== '')
-                )
-              }
-              placeholder="Enter tags separated by commas"
-            />
-          </div>
-          {/* Public/Private Toggle */}
-          <div className={styles.settingItem}>
-            <label htmlFor="isPublicInput">
-              <input
-                id="isPublicInput"
-                type="checkbox"
-                checked={isPublic}
-                onChange={(e) => setIsPublic(e.target.checked)}
-              />
-              Make map public
-            </label>
-          </div>
+        </div>
+
+            {/* Display Top 3 Highest Values */}
+      <div className={styles.settingItem}>
+        <label htmlFor="showTopHighValues">
+          <input
+            id="showTopHighValues"
+            type="checkbox"
+            checked={showTopHighValues}
+            onChange={(e) => setShowTopHighValues(e.target.checked)}
+          />
+          Display Top 3 Highest Values
+        </label>
+      </div>
+
+      {/* Display Top 3 Lowest Values */}
+      <div className={styles.settingItem}>
+        <label htmlFor="showTopLowValues">
+          <input
+            id="showTopLowValues"
+            type="checkbox"
+            checked={showTopLowValues}
+            onChange={(e) => setShowTopLowValues(e.target.checked)}
+          />
+          Display Top 3 Lowest Values
+        </label>
+      </div>
+
+{/* Public/Private Select */}
+<div className={styles.settingItem}>
+  <label htmlFor="isPublicSelect">Visibility:</label>
+  <div
+    className={styles.customSelect}
+    onClick={() => setShowVisibilityOptions(!showVisibilityOptions)}
+  >
+    <FontAwesomeIcon
+      icon={isPublic ? faGlobe : faLock}
+      className={styles.visibilityIcon}
+    />
+    {isPublic ? 'Public' : 'Private'}
+    <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
+    {showVisibilityOptions && (
+      <div className={styles.selectOptions}>
+        <div
+          className={styles.selectOption}
+          onClick={() => {
+            setIsPublic(true);
+            setShowVisibilityOptions(false);
+          }}
+        >
+          <FontAwesomeIcon icon={faGlobe} className={styles.visibilityIcon} />
+          Public
+        </div>
+        <div
+          className={styles.selectOption}
+          onClick={() => {
+            setIsPublic(false);
+            setShowVisibilityOptions(false);
+          }}
+        >
+          <FontAwesomeIcon icon={faLock} className={styles.visibilityIcon} />
+          Private
+        </div>
+      </div>
+    )}
+  </div>
+</div>
           {/* Buttons */}
           <div className={styles.modalButtons}>
             <button className={styles.secondaryButton} onClick={() => setShowSettingsModal(false)}>
               Go Back
             </button>
             <button className={styles.primaryButton} onClick={saveMapData}>
-              Save Settings
+              Save Map
             </button>
           </div>
         </div>

@@ -6,8 +6,7 @@ import { API } from '../api'; // Named import
 
 
 export default function EditMap({ 
-  isAuthenticated, 
-  setIsAuthenticated,
+
   isCollapsed,
   setIsCollapsed
 }) {
@@ -40,8 +39,7 @@ export default function EditMap({
 
   return (
     <DataIntegration
-      isAuthenticated={isAuthenticated}
-      setIsAuthenticated={setIsAuthenticated}
+
       existingMapData={mapData}
       isEditing={true}
       isCollapsed={isCollapsed}

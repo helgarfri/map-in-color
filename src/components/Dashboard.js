@@ -12,6 +12,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { formatDistance } from 'date-fns';
 import { UserContext } from '../context/UserContext';
 import { FaStar, FaPlus, FaMap, FaCalendarAlt } from 'react-icons/fa';
+import { fetchNotifications, markNotificationAsRead } from '../api';
+import { Link } from 'react-router-dom'; // Add this import
 
 
 export default function Dashboard({
@@ -29,6 +31,9 @@ export default function Dashboard({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
+
+  const [notifications, setNotifications] = useState([]);
+
 
   const totalStarsReceived = maps.reduce((total, map) => total + (map.saveCount || 0), 0);
 
@@ -62,9 +67,23 @@ export default function Dashboard({
     }
   };
 
+    // Fetch notifications
+    const getNotifications = async () => {
+      try {
+        const res = await fetchNotifications();
+        setNotifications(res.data.slice(0, 6)); // Limit to 6 notifications
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
   getMaps();
   getSavedMaps();
+  getNotifications();
 }, [profile]);
+
+
+
 
   // Get top 3 recently modified maps
   const recentMaps = maps.slice(0, 3);
@@ -114,6 +133,56 @@ export default function Dashboard({
       alert('Please select a map type.');
     }
   };
+
+  const handleNotificationClick = async (notification) => {
+    // Mark as read and navigate to the map
+    try {
+      await markNotificationAsRead(notification.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+      );
+      navigate(`/map/${notification.MapId}`);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  // Helper function to generate notification message
+const getNotificationMessage = (notification) => {
+  const senderName = notification.Sender.firstName || notification.Sender.username;
+  const mapLink = (
+    <Link
+      to={`/map/${notification.Map.id}`}
+      className={styles.mapTitle}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {notification.Map.title}
+    </Link>
+  );
+
+  switch (notification.type) {
+    case 'star':
+      return <>starred your map {mapLink}.</>;
+    case 'comment':
+      return <>commented on your map {mapLink}.</>;
+    case 'like':
+      return (
+        <>
+          liked your comment on map {mapLink}.
+        </>
+      );
+    case 'reply':
+      return (
+        <>
+          replied to your comment on map {mapLink}.
+        </>
+      );
+    default:
+      return <>performed an action on your map {mapLink}.</>;
+  }
+};
+
+
 
   return (
     <div className={styles.dashboardContainer}>
@@ -171,6 +240,7 @@ export default function Dashboard({
               <div className={styles.cardsContainer}>
                 {recentMaps.map((map) => {
                   const mapTitle = map.title || 'Untitled Map';
+                  console.log(map.isTitleHidden)
                   return (
                     <div className={styles.mapCard} key={map.id} onClick={() => navigate(`/map/${map.id}`)}>
                       <div className={styles.thumbnail}>
@@ -188,6 +258,7 @@ export default function Dashboard({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
                           />
                         )}
                         {map.selectedMap === 'usa' && (
@@ -204,6 +275,8 @@ export default function Dashboard({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
+
                           />
                         )}
                         {map.selectedMap === 'europe' && (
@@ -220,6 +293,8 @@ export default function Dashboard({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
+
                           />
                         )}
                       </div>
@@ -286,6 +361,8 @@ export default function Dashboard({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
+
                           />
                         )}
                         {map.selectedMap === 'usa' && (
@@ -302,6 +379,8 @@ export default function Dashboard({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
+
                           />
                         )}
                         {map.selectedMap === 'europe' && (
@@ -318,6 +397,8 @@ export default function Dashboard({
                             topHighValues={[]}
                             topLowValues={[]}
                             isThumbnail={true}
+                            isTitleHidden={map.isTitleHidden}
+
                           />
                         )}
                       </div>
@@ -344,13 +425,65 @@ export default function Dashboard({
             )}
           </section>
 
-          {/* Notifications and Recent Activity */}
-          <div className={styles.bottomContent}>
-            {/* Notifications */}
-            <section className={styles.notifications}>
-              <h2>Notifications</h2>
-              <p>No new notifications.</p>
-            </section>
+         {/* Notifications and Recent Activity */}
+<div className={styles.bottomContent}>
+  {/* Notifications */}
+  <section className={styles.notifications}>
+    <h2>Notifications</h2>
+    {notifications.length > 0 ? (
+      <ul className={styles.notificationList}>
+        {notifications.map((notification) => (
+          <li
+            key={notification.id}
+            className={`${styles.notificationItem} ${
+              notification.isRead ? styles.read : styles.unread
+            }`}
+            onClick={() => handleNotificationClick(notification)}
+          >
+            <div className={styles.notificationContentWrapper}>
+              <img
+                src={
+                  notification.Sender.profilePicture
+                    ? `http://localhost:5000${notification.Sender.profilePicture}`
+                    : '/default-profile-pic.jpg'
+                }
+                alt={`${
+                  notification.Sender.firstName || notification.Sender.username
+                }'s profile`}
+                className={styles.profilePicture}
+              />
+              <div className={styles.notificationText}>
+              <p className={styles.notificationContent}>
+                <Link
+                  to={`/profile/${notification.Sender.username}`}
+                  className={styles.senderName}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {notification.Sender.firstName || notification.Sender.username}
+                </Link>{' '}
+                {getNotificationMessage(notification)}
+              </p>
+
+
+                <p className={styles.notificationMeta}>
+                  {formatDistanceToNow(new Date(notification.createdAt), {
+                    addSuffix: true,
+                  })}
+                </p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>No new notifications.</p>
+    )}
+    <div className={styles.viewAllLink}>
+      <Link to="/notifications">View All Notifications</Link>
+    </div>
+  </section>
+
+
 
             {/* Recent Activity */}
             <section className={styles.recentActivity}>
