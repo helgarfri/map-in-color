@@ -27,8 +27,10 @@
   background-color: #333;
   width: 100%;
   max-height: 700px;
+  /* flex-shrink: 0;  Remove this if it causes issues */
 }
 
+/* Zoom Controls */
 .zoomControls {
   position: absolute;
   top: 10px;
@@ -51,19 +53,45 @@
   background-color: #f0f0f0;
 }
 
+/* View Mode Button */
+.viewModeButton {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 24px;
+  cursor: pointer;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.viewModeButton:hover {
+  background-color: #f0f0f0;
+}
+
 /* Details and Statistics Section */
 .detailsAndStats {
-  display: flex;
+  display: table; /* Changed from flex to table */
+  width: 100%;
   margin-top: 20px;
-  align-items: stretch;
-  gap: 20px; /* Add gap between the left and right columns */
 }
 
 /* Left Content: Map Details and Comments */
 .leftContent {
-  flex: 3;
-  display: flex;
-  flex-direction: column;
+  display: table-cell; /* Changed from flex to table-cell */
+  vertical-align: top;
+  padding-right: 20px; /* To simulate gap */
+  width: 75%; /* Adjust as needed */
+}
+
+/* Right Side: Statistics */
+.mapStats {
+  display: table-cell; /* Changed from flex to table-cell */
+  vertical-align: top;
+  padding-left: 20px; /* To simulate gap */
+  width: 25%; /* Adjust as needed */
 }
 
 /* Map Details */
@@ -103,15 +131,15 @@
 }
 
 .createdAt {
-  margin-top: 5px ;
+  margin-top: 5px;
   margin-bottom: 10px;
 }
+
 /* Creator Info */
 .creatorInfo {
   display: flex;
   align-items: center;
   margin-top: 10px;
-  /* Remove flex-direction: column; */
 }
 
 .creatorProfileLink {
@@ -119,7 +147,7 @@
   align-items: center;
   text-decoration: none;
   color: inherit;
-  margin-right: 10px; /* Add space between the profile link and the 'Made by' text */
+  margin-right: 10px;
 }
 
 .creatorProfilePicture {
@@ -134,7 +162,6 @@
   font-size: 16px;
   font-weight: bold;
 }
-
 
 .creatorUsername {
   color: #007bff;
@@ -157,7 +184,7 @@
 
 /* Adjustments for Profile Pictures in Comments */
 .commentProfilePicture {
-  width: 50px; /* Adjust as needed */
+  width: 50px;
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
@@ -168,7 +195,6 @@
 .commentHeader {
   align-items: flex-start;
 }
-
 
 /* Visibility Tag */
 .visibilityTag {
@@ -229,8 +255,8 @@
   border-radius: 8px;
   padding: 10px;
   font-size: 16px;
-  resize: none; /* Disable resizing */
-  min-height: 40px; /* Adjust height as needed */
+  resize: none;
+  min-height: 40px;
 }
 
 .commentTextarea:focus {
@@ -247,8 +273,8 @@
   color: #fff;
   border-radius: 8px;
   cursor: pointer;
-  height: 40px; /* Match the height of the textarea */
-  align-self: center; /* Align button to the top */
+  height: 40px;
+  align-self: center;
 }
 
 .commentButton:hover {
@@ -273,6 +299,7 @@
 .commentHeader {
   display: flex;
   width: 100%;
+  align-items: flex-start;
 }
 
 .commentProfilePicture,
@@ -312,11 +339,6 @@
 .commentContent {
   font-size: 18px;
   margin: 0;
-}
-
-/* Adjustments for Existing Classes */
-.commentHeader {
-  align-items: flex-start;
 }
 
 /* Comment Actions */
@@ -374,7 +396,7 @@
   display: flex;
   flex-direction: column;
   margin-top: 10px;
-  margin-left: 65px; /* Indent to align with reply */
+  margin-left: 65px;
 }
 
 .replyTextarea {
@@ -412,75 +434,66 @@
   list-style-type: none;
   padding: 0;
   margin-top: 10px;
-  margin-left: 65px; /* Indent replies */
+  margin-left: 65px;
 }
 
 /* Reply Item */
 .replyItem {
   display: flex;
-  margin-bottom: 15px; /* Increase margin between replies */
+  margin-bottom: 15px;
   padding: 10px;
   background-color: #f9f9f9;
 }
 
-/* Adjust the indentation of replies */
-.replyItem {
-  margin-left: 0; /* Reset margin-left to align properly */
-}
-
-/* Reply Content Adjustments */
 .replyItem .commentHeader {
   display: flex;
   width: 100%;
 }
 
-/* Smaller Profile Picture */
 .replyItem .commentProfilePicture,
 .replyItem .commentPlaceholder {
-  width: 40px; /* Reduce size */
-  height: 40px; /* Reduce size */
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 10px;
 }
 
-/* Smaller Text and Buttons */
 .replyItem .commentContentWrapper {
   flex: 1;
-  font-size: 14px; /* Reduce font size */
+  font-size: 14px;
 }
 
 .replyItem .commentAuthor {
   font-weight: bold;
-  font-size: 13px; /* Reduce font size */
+  font-size: 13px;
   margin-right: 8px;
 }
 
 .replyItem .commentTime {
-  font-size: 11px; /* Reduce font size */
+  font-size: 11px;
   color: #888;
 }
 
 .replyItem .commentContent {
-  font-size: 14px; /* Reduce font size */
+  font-size: 14px;
   margin: 0;
 }
 
-/* Smaller Reaction Buttons */
 .replyItem .commentActions {
   margin-top: 8px;
 }
 
 .replyItem .reactionButton {
-  font-size: 12px; /* Reduce font size */
-  padding: 3px 6px; /* Reduce padding */
-  margin-right: 8px; /* Adjust margin */
+  font-size: 12px;
+  padding: 3px 6px;
+  margin-right: 8px;
 }
 
 .replyItem .icon {
-  width: 14px; /* Reduce size */
-  height: 14px; /* Reduce size */
-  margin-right: 3px; /* Adjust margin */
+  width: 14px;
+  height: 14px;
+  margin-right: 3px;
 }
 
 /* Increase margin between replies */
@@ -494,7 +507,7 @@
   border: none;
   color: #007bff;
   cursor: pointer;
-  margin-left: 65px; /* Align with replies */
+  margin-left: 65px;
   margin-bottom: 10px;
   font-size: 13px;
 }
@@ -503,22 +516,20 @@
   text-decoration: underline;
 }
 
-
-
-
 /* Map Statistics */
 .mapStats {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: table-cell; /* Changed from flex to table-cell */
+  vertical-align: top;
+  padding-left: 20px; /* To simulate gap */
   background-color: #fafafa;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
+  width: 25%; /* Adjust as needed */
 }
 
 .statsSummary {
-  flex-shrink: 0; /* Prevent this section from shrinking */
+  flex-shrink: 0;
 }
 
 .mapStats h2 {
@@ -552,8 +563,7 @@
 
 /* Country List Table */
 .countryList {
-  flex-grow: 1; /* Allow this section to grow and fill available space */
-  overflow-y: auto; /* Make it scrollable when content overflows */
+  overflow-y: auto; /* Enable vertical scrolling when content overflows */
   margin-top: 10px;
   background-color: #f9f9f9;
   padding: 10px;
@@ -578,18 +588,22 @@
 
 .countryList th {
   background-color: #e0e0e0;
-  position: sticky;
   top: 0;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .detailsAndStats {
-    flex-direction: column;
+    display: block; /* Revert to block layout on small screens */
   }
 
   .leftContent,
   .mapStats {
-    min-width: 100%;
+    display: block;
+    width: 100%;
+  }
+
+  .mapStats {
+    margin-top: 20px;
   }
 }

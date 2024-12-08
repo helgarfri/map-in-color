@@ -2,7 +2,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./db'); // Import the sequelize instance
 
-
 const User = sequelize.define(
   'User',
   {
@@ -65,5 +64,17 @@ const User = sequelize.define(
     timestamps: true,
   }
 );
+
+
+// Define associations
+User.associate = (models) => {
+  User.hasMany(models.Map, { foreignKey: 'UserId' });
+  User.belongsToMany(models.Map, {
+    through: models.MapSaves,
+    as: 'SavedMaps',
+    foreignKey: 'UserId',
+  });
+};
+
 
 module.exports = User;

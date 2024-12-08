@@ -1,4 +1,5 @@
 // src/api.js
+
 import axios from 'axios';
 
 const API = axios.create({ baseURL: 'http://localhost:5000/api' });
@@ -59,12 +60,18 @@ export const fetchComments = (mapId) => API.get(`/maps/${mapId}/comments`);
 export const postComment = (mapId, commentData) =>
   API.post(`/maps/${mapId}/comments`, commentData);
 
-
 // Fetch user profile by username
 export const fetchUserProfileByUsername = (username) => API.get(`/profile/${username}`);
 
-// Fetch maps by user ID
-export const fetchMapsByUserId = (userId) => API.get(`/maps/user/${userId}`);
+
+// Fetch maps by user ID with pagination
+export const fetchMapsByUserId = (userId, offset = 0, limit = 10) =>
+  API.get(`/maps/user/${userId}?offset=${offset}&limit=${limit}`);
+
+
+// **Add this function** to fetch starred maps by user ID
+export const fetchStarredMapsByUserId = (userId, offset = 0, limit = 10) =>
+  API.get(`/maps/user/${userId}/starred?offset=${offset}&limit=${limit}`);
 
 // Fetch saved maps for the authenticated user
 export const fetchSavedMaps = () => API.get('/maps/saved');
@@ -73,15 +80,29 @@ export const fetchSavedMaps = () => API.get('/maps/saved');
 export const fetchNotifications = () => API.get('/notifications');
 
 // Mark notification as read
-export const markNotificationAsRead = (id) =>
-  API.put(`/notifications/${id}/read`);
+export const markNotificationAsRead = (id) => API.put(`/notifications/${id}/read`);
 
 // Mark all notifications as read
-export const markAllNotificationsAsRead = () =>
-  API.put('/notifications/read-all');
+export const markAllNotificationsAsRead = () => API.put('/notifications/read-all');
 
 // Like a comment
 export const likeComment = (commentId) => API.post(`/comments/${commentId}/like`);
 
 // Dislike a comment
 export const dislikeComment = (commentId) => API.post(`/comments/${commentId}/dislike`);
+
+// Delete a notification
+export const deleteNotification = (id) => API.delete(`/notifications/${id}`);
+
+// Fetch user activity with pagination
+export const fetchUserActivity = (username, offset = 0, limit = 10) =>
+  API.get(`/users/${username}/activity?offset=${offset}&limit=${limit}`);
+
+// Fetch user map stats (total maps and total stars)
+export const fetchUserMapStats = (userId) =>
+  API.get(`/maps/user/${userId}/stats`);
+
+// Fetch the most starred map by user ID
+export const fetchMostStarredMapByUserId = (userId) =>
+  API.get(`/maps/user/${userId}/most-starred`);
+

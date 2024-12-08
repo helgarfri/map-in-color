@@ -8,8 +8,10 @@ const MapSaves = require('./mapSaves');
 const Comment = require('./comment');
 const CommentReaction = require('./commentReaction');
 const Notification = require('./notification');
-
+const Activity = require('./activity'); // Import Activity model
 // Define associations
+
+
 
 // User and MapSaves association
 User.belongsToMany(Map, {
@@ -25,6 +27,14 @@ Map.belongsToMany(User, {
   foreignKey: 'MapId',
   otherKey: 'UserId',
 });
+
+// MapSaves associations
+MapSaves.belongsTo(Map, { foreignKey: 'MapId' });
+Map.hasMany(MapSaves, { foreignKey: 'MapId' });
+
+MapSaves.belongsTo(User, { foreignKey: 'UserId' });
+User.hasMany(MapSaves, { foreignKey: 'UserId' });
+
 
 // User and Map associations
 User.hasMany(Map, { foreignKey: 'UserId', onDelete: 'CASCADE' });
@@ -59,6 +69,11 @@ User.hasMany(Notification, { as: 'SentNotifications', foreignKey: 'SenderId', on
 Map.hasMany(Notification, { foreignKey: 'MapId', onDelete: 'CASCADE' });
 Comment.hasMany(Notification, { foreignKey: 'CommentId', onDelete: 'CASCADE' });
 
+// Activity associations
+Activity.belongsTo(User, { foreignKey: 'UserId', onDelete: 'CASCADE' });
+User.hasMany(Activity, { foreignKey: 'UserId', onDelete: 'CASCADE' });
+
+
 module.exports = {
   sequelize,
   Sequelize,
@@ -68,4 +83,6 @@ module.exports = {
   Comment,
   CommentReaction,
   Notification,
+  Activity
+  
 };

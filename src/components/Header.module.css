@@ -1,0 +1,249 @@
+/* src/components/Header.module.css */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .headerLeft {
+    flex: 1;
+  }
+  
+  .title {
+    margin: 0;
+    font-size: 28px;
+  }
+  
+  .headerRight {
+    display: flex;
+    align-items: center;
+  }
+  
+  .createMapButton {
+    display: flex;
+    align-items: center;
+    background-color: none;
+    color: black;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 15px;
+  }
+  
+  .createMapButton .plusIcon {
+    margin-right: 5px;
+  }
+  
+  .createMapButton:hover {
+    background-color: #6999b1;
+  }
+  
+  .notificationWrapper {
+    position: relative;
+    margin-left: 15px;
+  }
+  
+  .notificationBell {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+  }
+  
+  .unreadBadge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #c4564d;
+    color: #fff;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+  }
+  
+  .notificationPopout {
+    position: absolute;
+    right: 0;
+    top: 35px;
+    width: 350px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+  
+  .notificationHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  }
+  
+  .notificationHeader h3 {
+    margin: 0;
+  }
+  
+  .markAllAsRead {
+    background: none;
+    border: none;
+    color: #80a0b0;
+    cursor: pointer;
+  }
+  
+  .notificationList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .notificationItem {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+  }
+  
+  .notificationItem:last-child {
+    border-bottom: none;
+  }
+  
+  .notificationItem.unread {
+    background-color: #f9f9f9;
+  }
+  
+  .notificationContentWrapper {
+    display: flex;
+  }
+  
+  .profilePicture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+  }
+  
+  .notificationText {
+    flex: 1;
+  }
+  
+  .notificationContent {
+    margin: 0;
+    font-size: 14px;
+  }
+  
+  .notificationMeta {
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .senderName {
+    font-weight: bold;
+    color: #55957b;
+    text-decoration: none;
+  }
+  
+  .senderName:hover {
+    text-decoration: underline;
+  }
+  
+  .mapTitle {
+    font-weight: bold;
+    color: #55957b;
+    text-decoration: none;
+  }
+  
+  .mapTitle:hover {
+    text-decoration: underline;
+  }
+  
+  .viewAllLink {
+    text-align: center;
+    padding: 10px;
+  }
+  
+  .viewAllLink a {
+    color: #80a0b0;
+    text-decoration: none;
+  }
+  
+  .viewAllLink a:hover {
+    text-decoration: underline;
+  }
+  
+  .noNotifications {
+    padding: 20px;
+    text-align: center;
+    color: #888;
+  }
+  
+
+/* Profile Picture and Dropdown Menu Styles */
+.profileWrapper {
+    position: relative;
+    margin-left: 15px;
+  }
+  
+  .headerProfilePicture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    object-fit: cover;
+  }
+  
+  .profileMenu {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-width: 150px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+  
+  .profileMenu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .profileMenu li {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .profileMenu li:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .profileMenu a,
+  .logoutButton {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 16px;
+  }
+  
+  .logoutButton {
+    cursor: pointer;
+  }
+  
+  .logoutButton:hover {
+    background-color: #f0f0f0;
+  }

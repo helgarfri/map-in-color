@@ -1,5 +1,9 @@
+// MapDetail.js
+
+//may lord have mercy on my soul for this giant mess
+
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom'; // Added Link
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
@@ -7,6 +11,7 @@ import EuropeSVG from './EuropeSVG';
 import styles from './MapDetail.module.css';
 import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
+import FullScreenMap from './FullScreenMap';
 import {
   fetchMapById,
   saveMap,
@@ -15,38 +20,65 @@ import {
   postComment,
   likeComment,
   dislikeComment,
+  fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
 } from '../api';
 import countries from '../countries.json';
+import Header from './Header'; // Import Header component
+import LoadingSpinner from './LoadingSpinner'; // Import LoadingSpinner component
 
 export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   const { id } = useParams();
+  const navigate = useNavigate();
+
+  // --------------------- Hook Calls ---------------------
+
+  // State Hooks
   const [mapData, setMapData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [saveCount, setSaveCount] = useState(0);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const navigate = useNavigate();
+  const [isOwner, setIsOwner] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [expandedReplies, setExpandedReplies] = useState({});
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [viewBox, setViewBox] = useState('0 0 2754 1398');
+  const [isLoading, setIsLoading] = useState(true); // Loading state
+  const [notifications, setNotifications] = useState([]);
 
+  // Context Hook
   const { authToken, profile } = useContext(UserContext);
 
-  // Determine if the user is logged in
-  const isUserLoggedIn = !!authToken && !!profile;
-
-  // State for the SVG's viewBox
-  const [viewBox, setViewBox] = useState('0 0 2754 1398');
-
-  // Refs for panning
+  // Ref Hooks
+  const discussionRef = useRef(null);
+  const countryListRef = useRef(null);
   const isPanning = useRef(false);
   const lastMousePosition = useRef({ x: 0, y: 0 });
 
-  const [isOwner, setIsOwner] = useState(false);
-  const [isPublic, setIsPublic] = useState(true);
+  // --------------------- Effect Hooks ---------------------
 
-  const [replyingTo, setReplyingTo] = useState(null); // New state to track which comment is being replied to
+  // Adjust country list height
+  useEffect(() => {
+    const updateCountryListHeight = () => {
+      if (discussionRef.current && countryListRef.current) {
+        const discussionHeight = discussionRef.current.offsetHeight;
+        countryListRef.current.style.height = `${discussionHeight}px`;
+      }
+    };
 
-  // NEW: State to manage expanded replies for each comment
-  const [expandedReplies, setExpandedReplies] = useState({});
+    updateCountryListHeight();
 
+    window.addEventListener('resize', updateCountryListHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateCountryListHeight);
+    };
+  }, [comments]);
+
+  // Fetch Map Data
   useEffect(() => {
     const getMapData = async () => {
       try {
@@ -58,13 +90,15 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
         setIsPublic(res.data.isPublic);
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoading(false); // Set loading to false after data is fetched
       }
     };
     getMapData();
   }, [id]);
 
+  // Fetch Comments
   useEffect(() => {
-    // Fetch comments for the map
     const getComments = async () => {
       try {
         const res = await fetchComments(id);
@@ -77,11 +111,26 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     getComments();
   }, [id]);
 
+  // Fetch Notifications
+  useEffect(() => {
+    const getNotifications = async () => {
+      try {
+        const res = await fetchNotifications();
+        setNotifications(res.data.slice(0, 6));
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
+    getNotifications();
+  }, []);
+
+  // --------------------- Event Handlers ---------------------
+
   const handleSave = async () => {
     if (!isPublic) {
       return;
     } else if (!isUserLoggedIn) {
-      // Redirect to login or show a message
       navigate('/login');
       return;
     }
@@ -99,6 +148,10 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
   };
 
   const handleCommentSubmit = async (e) => {
@@ -280,9 +333,61 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     e.currentTarget.style.cursor = 'grab';
   };
 
-  if (!mapData) {
-    return <div>Loading...</div>;
+  // Handle notification click
+  const handleNotificationClick = async (notification) => {
+    // Mark as read and navigate to the map
+    try {
+      await markNotificationAsRead(notification.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+      );
+      navigate(`/map/${notification.MapId}`);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  // Handle marking all notifications as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
+
+  // --------------------- Early Return ---------------------
+
+  if (isLoading || !mapData) {
+    return (
+      <div className={styles.mapDetailContainer}>
+        {/* Sidebar */}
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+        {/* Main Content */}
+        <div
+          className={`${styles.mapDetailContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
+   {/* Header Section */}
+   <Header
+            title="Map View"
+            notifications={notifications.slice(0, 6)}
+            onNotificationClick={handleNotificationClick}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            profilePicture={profile?.profilePicture}
+          />
+
+          {/* Loading Spinner */}
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
   }
+
+  // --------------------- Computed Variables ---------------------
 
   // Compute relative time ago
   const timeAgo = formatDistanceToNow(new Date(mapData.createdAt), { addSuffix: true });
@@ -318,14 +423,30 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
   entries.sort((a, b) => b.value - a.value); // Sort descending
 
+  const isUserLoggedIn = !!authToken && !!profile;
+
+  // --------------------- Render ---------------------
+
   return (
     <div className={styles.mapDetailContainer}>
+      {/* Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+      {/* Main Content */}
       <div
         className={`${styles.mapDetailContent} ${
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
+      {/* Header Section */}
+      <Header
+            title="Map View"
+            notifications={notifications.slice(0, 6)}
+            onNotificationClick={handleNotificationClick}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            profilePicture={profile?.profilePicture}
+          />
+
         {/* Map Display */}
         <div
           className={styles.mapDisplay}
@@ -367,6 +488,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               topHighValues={mapData.topHighValues}
               topLowValues={mapData.topLowValues}
               isLargeMap={true}
+              viewBox={viewBox}
               isTitleHidden={mapData.isTitleHidden}
             />
           )}
@@ -384,6 +506,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               topHighValues={mapData.topHighValues}
               topLowValues={mapData.topLowValues}
               isLargeMap={true}
+              viewBox={viewBox}
               isTitleHidden={mapData.isTitleHidden}
             />
           )}
@@ -399,7 +522,27 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
             <button onClick={() => handleZoom(1.2)}>+</button>
             <button onClick={() => handleZoom(0.8)}>-</button>
           </div>
+
+          {/* View Mode Button */}
+          <button className={styles.viewModeButton} onClick={toggleFullScreen}>
+            🖵
+          </button>
         </div>
+
+        {/* Full-Screen Map */}
+        {isFullScreen && (
+          <FullScreenMap
+            mapData={mapData}
+            handleZoom={handleZoom}
+            viewBox={viewBox}
+            setViewBox={setViewBox}
+            handleMouseDown={handleMouseDown}
+            handleMouseMove={handleMouseMove}
+            handleMouseUp={handleMouseUp}
+            handleMouseLeave={handleMouseLeave}
+            toggleFullScreen={toggleFullScreen}
+          />
+        )}
 
         {/* Map Details and Statistics */}
         <div className={styles.detailsAndStats}>
@@ -424,7 +567,10 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                 )}
               </div>
               <p className={styles.createdAt}>
-                Created {timeAgo} by {mapData.User ? mapData.User.username : 'Unknown'} 
+                Created {timeAgo} by{' '}
+                <Link to={`/profile/${mapData.User.username}`}>
+                  {mapData.User ? mapData.User.username : 'Unknown'}
+                </Link>
               </p>
               {/* Creator Info */}
               <div className={styles.creatorInfo}>
@@ -445,9 +591,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                     {mapData.User.firstName || ''} {mapData.User.lastName || ''}
                   </span>
                 </Link>
-
               </div>
-
 
               <p className={styles.description}>{mapData.description}</p>
               {/* Tags */}
@@ -476,8 +620,9 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               )}
             </div>
 
+
             {/* Comments Section */}
-            <div className={styles.discussionSection}>
+            <div className={styles.discussionSection} ref={discussionRef}>
               <h2>Discussion</h2>
               {/* Comment Form */}
               <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
@@ -506,6 +651,8 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                     const repliesToShow = areRepliesExpanded
                       ? repliesArray.slice(0, 10)
                       : repliesArray.slice(0, 3);
+
+                      
 
                     return (
                       <li key={index} className={styles.commentItem}>
@@ -715,7 +862,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               </div>
             </div>
             {/* Country List Table */}
-            <div className={styles.countryList}>
+            <div className={styles.countryList} ref={countryListRef}>
               <table>
                 <thead>
                   <tr>

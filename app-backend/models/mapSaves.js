@@ -1,5 +1,5 @@
 // models/mapSaves.js
-const { DataTypes } = require('sequelize');
+const { DataTypes, Sequelize } = require('sequelize'); // Import Sequelize
 const sequelize = require('./db');
 
 const MapSaves = sequelize.define(
@@ -21,9 +21,19 @@ const MapSaves = sequelize.define(
         key: 'id',
       },
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.NOW, // Set default value
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.NOW, // Set default value
+    },
   },
   {
-    timestamps: false,
+    timestamps: true,
   }
 );
 

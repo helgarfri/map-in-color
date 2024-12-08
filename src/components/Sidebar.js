@@ -1,4 +1,5 @@
 // src/components/Sidebar.js
+
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
@@ -13,14 +14,11 @@ import {
   FaChevronRight,
 } from 'react-icons/fa';
 import { UserContext } from '../context/UserContext';
-import LogoutButton from './LogoutButton';
 import MapSelectionModal from './MapSelectionModal';
 
 function Sidebar({ isCollapsed, setIsCollapsed }) {
-
-  const { profile, profilePictureUrl, loadingProfile } = useContext(UserContext);
-
-  const [showMapModal, setShowMapModal] = useState(false)
+  const { profile, loadingProfile } = useContext(UserContext);
+  const [showMapModal, setShowMapModal] = useState(false);
   const navigate = useNavigate();
 
   if (loadingProfile) {
@@ -30,7 +28,6 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
   if (!profile) {
     return null; // Or a placeholder, or redirect to login
   }
-
 
   const handleCreateMap = () => {
     setShowMapModal(true);
@@ -44,8 +41,6 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
       alert('Please select a map type.');
     }
   };
-
-
 
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -71,7 +66,7 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
         {/* Navigation Links */}
         <nav className={styles.nav}>
           <ul>
-          <li>
+            <li>
               {/* Change NavLink to button to trigger modal */}
               <button
                 className={styles.navLink} // Create a new class for button styling
@@ -97,46 +92,36 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
 
             <li>
               <NavLink to="/starred-maps" className={styles.navLink}>
-          <FaStar className={styles.icon} />
-          {!isCollapsed && 'Starred Maps'}
-        </NavLink>
-        </li>
-            <li>
-            <NavLink to="/notifications" className={styles.navLink}>
-              <FaBell className={styles.icon} />
-              {!isCollapsed && <span>Notifications</span>}
-            </NavLink>
+                <FaStar className={styles.icon} />
+                {!isCollapsed && 'Starred Maps'}
+              </NavLink>
             </li>
             <li>
-              <NavLink to="/profile-settings" className={styles.navLink}>
+              <NavLink to="/notifications" className={styles.navLink}>
+                <FaBell className={styles.icon} />
+                {!isCollapsed && <span>Notifications</span>}
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/settings" className={styles.navLink}>
                 <FaUserCog className={styles.icon} />
-                <span>Profile Settings</span>
+                <span>Settings</span>
               </NavLink>
             </li>
           </ul>
         </nav>
       </div>
 
-      <LogoutButton/>
-
-   {/* User Profile Section at the Bottom */}
-   <NavLink to={`/profile/${profile.username}`} className={styles.profileSection}>
-        <img src={profilePictureUrl} alt="User Avatar" className={styles.avatar} />
-        <span className={styles.username}>@{profile.username}</span>
-      </NavLink>
-              {/* Map Selection Modal */}
-              {showMapModal && (
+      {/* Map Selection Modal */}
+      {showMapModal && (
         <MapSelectionModal
           show={showMapModal}
           onClose={() => setShowMapModal(false)}
           onCreateMap={handleMapSelection}
         />
       )}
-
     </div>
-  
-
-);
+  );
 }
 
 export default Sidebar;

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import DataIntegration from './DataIntergration';
 import { API } from '../api'; // Named import
+import LoadingSpinner from './LoadingSpinner';
 
 
 export default function EditMap({ 
@@ -34,7 +35,7 @@ export default function EditMap({
   }
 
   if (!mapData) {
-    return <p>Loading...</p>;
+    return <LoadingSpinner/>;
   }
 
   return (

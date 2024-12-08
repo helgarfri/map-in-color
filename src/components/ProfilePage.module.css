@@ -1,157 +1,326 @@
 /* src/components/ProfilePage.module.css */
 
 .profilePageContainer {
-    display: flex;
-  }
-  
+  display: flex;
+}
+
+.profileContent {
+  flex: 1;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+  margin-left: 250px; /* Width of expanded sidebar */
+}
+
+.contentCollapsed {
+  margin-left: 80px; /* Width of collapsed sidebar */
+}
+
+/* Main Content */
+.mainContent {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Profile Section */
+.profileSection {
+  background-color: #fff;
+  padding: 20px;
+}
+
+.profilePictureWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.profilePicture {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.username {
+  font-size: 1.8rem;
+  color: gray;
+  margin: 0;
+}
+
+.fullName {
+  font-size: 2.5rem;
+  margin: 5px 0;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.icon {
+  margin-right: 8px;
+  color: gray;
+}
+
+.statsRow {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.statsItem {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.bio {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 350px;
+}
+
+/* Recent Activity Section */
+.recentActivitySection {
+  margin-top: 30px;
+}
+
+.activityTimeline {
+  position: relative;
+  margin-left: 20px;
+}
+
+.activityItem {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timelineDot {
+  position: absolute;
+  left: -30px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.activityContent {
+  padding-left: 20px;
+}
+
+.activityContent p {
+  margin: 0;
+}
+
+.activityTime {
+  display: block;
+  color: gray;
+  font-size: 0.8rem;
+  margin-top: 5px;
+}
+
+.activityTimeline::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #ddd;
+}
+
+/* Maps Section */
+.mapsSection {
+  flex: 1;
+  background-color: #f0f0f0; /* Grayish background */
+  padding: 20px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Map Card (Giant Map) */
+.mapCard {
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  margin-bottom: 20px;
+}
+
+.mapCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mapThumbnail {
+  width: 100%;
+  overflow: hidden;
+}
+
+.mapThumbnail svg {
+  width: 100%;
+  height: auto;
+}
+
+.mapDetails {
+  padding: 16px;
+  text-align: center;
+}
+
+.mostStarredLabel {
+  display: inline-block;
+  background-color: #e0e0e0;
+  color: #666;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.mapTitle {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.mapStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.starIcon {
+  color: black;
+  margin-right: 5px;
+}
+
+/* Navigation Tabs */
+.mapsNav {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.mapsNav button {
+  flex: 1;
+  padding: 10px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.mapsNav button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.activeTab {
+  border-bottom: 2px solid #000;
+}
+
+/* Maps List */
+.mapsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.mapListItem {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #ccc;
+}
+
+.mapListItem:last-child {
+  border-bottom: none;
+}
+
+.mapListItem:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.mapListThumbnail {
+  width: 100px;
+  height: 70px;
+  overflow: hidden;
+  margin-right: 20px;
+}
+
+.mapListThumbnail svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mapListInfo {
+  flex: 1;
+}
+
+.mapListTitle {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.mapListTime {
+  color: gray;
+  font-size: 0.9rem;
+}
+
+.mapListStats {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.mapListStats .starIcon {
+  color: gold;
+  margin-right: 5px;
+}
+
+/* Loading Container */
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.error {
+  color: red;
+  padding: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
   .profileContent {
-    margin-left: 250px; /* Adjust based on sidebar width */
-    padding: 40px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .profileHeader {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .profilePicture {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 30px;
-  }
-  
-  .profileInfo {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .fullName {
-    font-size: 2.5rem;
-    margin: 0;
-  }
-  
-  .username {
-    font-size: 1.2rem;
-    color: gray;
-    margin-top: 5px;
-  }
-  
-  .infoRow {
-    display: flex;
-    align-items: center;
-    margin-top: 15px;
-  }
-  
-  .infoItem {
-    display: flex;
-    align-items: center;
-    margin-right: 20px;
-  }
-  
-  .icon {
-    margin-right: 8px;
-    color: gray;
-  }
-  
-  .bio {
-    margin-top: 30px;
-    font-size: 1.1rem;
-    line-height: 1.6;
-  }
-  
-  /* Loader and Error Styles */
-  .loader {
-    margin-left: 250px;
-    padding: 20px;
-  }
-  
-  .error {
-    margin-left: 250px;
-    padding: 20px;
-    color: red;
+    margin-left: 80px;
   }
 
-  /* User Maps Section */
-.userMapsSection {
-    margin-top: 40px;
-  }
-  
-  .userMapsSection h2 {
-    margin-bottom: 20px;
-    font-size: 2rem;
-  }
-  
-  .mapsContainer {
-    display: flex;
+  .mainContent {
     flex-direction: column;
-    gap: 20px;
-  }
-  
-  .mapCard {
-    display: flex;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .mapCard:hover {
-    background-color: #f1f1f1;
-  }
-  
-  .mapThumbnail {
-    flex-shrink: 0;
-    width: 200px;
-    height: 150px;
-    overflow: hidden;
-  }
-  
-  .mapThumbnail svg {
-    width: 100%;
-    height: 100%;
-  }
-  
-  .mapDetails {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  
-  .mapTitle {
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  
-  .mapCreatedAt {
-    margin: 8px 0;
-    color: gray;
-  }
-  
-  .mapDescription {
-    margin: 8px 0;
-  }
-  
-  .mapStats {
-    display: flex;
     align-items: center;
   }
-  
-  .starIcon {
-    color: black;
-    margin-right: 8px;
+
+  .profileSection,
+  .mapsSection {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
   }
-  
-  /* Adjustments for Collapsed Sidebar */
-  @media (max-width: 768px) {
-    .profileContent {
-      margin-left: 70px; /* Adjust based on collapsed sidebar width */
-    }
+
+  .profilePicture {
+    width: 200px;
+    height: 200px;
   }
-  
+}

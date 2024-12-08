@@ -7,6 +7,106 @@ const { check, validationResult } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
 
+const { Map, Comment, MapSaves } = require('../models'); // Import necessary models
+
+
+// Get user activity by username
+router.get('/:username/activity', async (req, res) => {
+  const username = req.params.username;
+  console.log(`Fetching activity for username: ${username}`);
+
+  try {
+    const user = await User.findOne({
+      where: { username },
+      attributes: ['id', 'firstName'],
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const userId = user.id;
+
+    // Fetch recent maps created by the user
+    const createdMaps = await Map.findAll({
+      where: { UserId: userId },
+      attributes: ['id', 'title', 'createdAt'],
+      order: [['createdAt', 'DESC']],
+      limit: 10,
+    });
+
+    // Fetch recent comments made by the user
+    const comments = await Comment.findAll({
+      where: { UserId: userId },
+      attributes: ['id', 'content', 'createdAt', 'MapId'],
+      include: [
+        {
+          model: Map,
+          attributes: ['id', 'title'],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 10,
+    });
+
+    // Fetch recent maps starred by the user
+    const mapSaves = await MapSaves.findAll({
+      where: { UserId: userId },
+      attributes: ['createdAt'],
+      include: [
+        {
+          model: Map,
+          attributes: ['id', 'title'],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 10,
+    });
+
+    // Combine all activities into a single array
+    const activities = [];
+
+    createdMaps.forEach((map) => {
+      activities.push({
+        type: 'createdMap',
+        mapId: map.id,
+        mapTitle: map.title,
+        createdAt: map.createdAt,
+      });
+    });
+
+    comments.forEach((comment) => {
+      activities.push({
+        type: 'commented',
+        mapId: comment.Map.id,
+        mapTitle: comment.Map.title,
+        commentId: comment.id,
+        commentContent: comment.content,
+        createdAt: comment.createdAt,
+      });
+    });
+
+    mapSaves.forEach((save) => {
+      activities.push({
+        type: 'starredMap',
+        mapId: save.Map.id,
+        mapTitle: save.Map.title,
+        createdAt: save.createdAt,
+      });
+    });
+
+    // Sort activities by createdAt descending
+    activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Limit to most recent 20 activities
+    const recentActivities = activities.slice(0, 20);
+
+    res.json(recentActivities);
+  } catch (err) {
+    console.error('Error fetching user activity:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
 // Configure storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

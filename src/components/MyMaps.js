@@ -4,22 +4,26 @@ import React, { useState, useEffect } from 'react';
 import styles from './MyMaps.module.css';
 import { useNavigate } from 'react-router-dom';
 import { fetchMaps, deleteMap } from '../api';
-
+import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../api';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
-
+import Header from './Header';
+import { UserContext } from '../context/UserContext';
 import { formatDistanceToNow } from 'date-fns';
 import Sidebar from './Sidebar';
 import { FaStar, FaPlus, FaLock, FaLockOpen, FaGlobe } from 'react-icons/fa'; // Import star icon
+import LoadingSpinner from './LoadingSpinner';
 
-import MapSelectionModal from './MapSelectionModal';
 
 
 export default function MyMaps({
   isCollapsed,
   setIsCollapsed,
 }) {
+
+  const [isLoading, setIsLoading] = useState(true);
+
   const [maps, setMaps] = useState([]);
   const navigate = useNavigate();
 
@@ -27,6 +31,37 @@ export default function MyMaps({
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState(null);
+
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const getMaps = async () => {
+      try {
+        const res = await fetchMaps();
+        const sortedMaps = res.data.sort(
+          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+        );
+        setMaps(sortedMaps);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    const getNotifications = async () => {
+      try {
+        const res = await fetchNotifications();
+        setNotifications(res.data.slice(0, 6));
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+  
+    getMaps();
+    getNotifications();
+  }, []);
+  
 
   useEffect(() => {
     const getMaps = async () => {
@@ -40,8 +75,44 @@ export default function MyMaps({
         console.error(err);
       }
     };
+
+    const getNotifications = async () => {
+      try {
+        const res = await fetchNotifications();
+        setNotifications(res.data.slice(0, 6)); // Fetch latest 6 notifications
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
     getMaps();
+    getNotifications()
   }, []);
+
+  // Handle notification click
+  const handleNotificationClick = async (notification) => {
+    // Mark as read and navigate to the map
+    try {
+      await markNotificationAsRead(notification.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+      );
+      navigate(`/map/${notification.MapId}`);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+// Handle marking all notifications as read
+const handleMarkAllAsRead = async () => {
+  try {
+    await markAllNotificationsAsRead();
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  } catch (err) {
+    console.error('Error marking all notifications as read:', err);
+  }
+};
+
 
   const handleEdit = (event, mapId) => {
     event.stopPropagation();
@@ -61,18 +132,7 @@ export default function MyMaps({
   };
 
 
-  const handleCreateMap = () => {
-    setShowMapModal(true);
-  };
 
-  const handleMapSelection = (selectedMap) => {
-    if (selectedMap) {
-      setShowMapModal(false);
-      navigate('/create', { state: { selectedMap } });
-    } else {
-      alert('Please select a map type.');
-    }
-  };
 
 
   const confirmDelete = async () => {
@@ -104,20 +164,20 @@ export default function MyMaps({
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-        <div className={styles.header}>
-          <div className={styles.headerText}>
-            <h1>My Maps</h1>
-            <p>
-              You own {maps.length} {maps.length === 1 ? 'map' : 'maps'}.
-            </p>
-          </div>
-          <button className={styles.createMapButton} onClick={handleCreateMap}>
-            <FaPlus className={styles.plusIcon} /> Create New Map
-          </button>
-        </div>
-        {maps.length > 0 ? (
-          <table className={styles.mapTable}>
-            <thead>
+   
+   <Header
+      title="My Maps"
+      notifications={notifications}
+      onNotificationClick={handleNotificationClick}
+      onMarkAllAsRead={handleMarkAllAsRead}
+    />
+
+
+{isLoading ? (
+        <LoadingSpinner />
+      ) : maps.length > 0 ? (
+        <table className={styles.mapTable}>
+           <thead>
               <tr>
                 <th>Thumbnail</th>
                 <th>Title</th>
@@ -236,19 +296,12 @@ export default function MyMaps({
                 );
               })}
             </tbody>
-          </table>
-        ) : (
-          <p>You have no saved maps.</p>
-        )}
-
-        {/* Map Selection Modal */}
-        {showMapModal && (
-          <MapSelectionModal
-            show={showMapModal}
-            onClose={() => setShowMapModal(false)}
-            onCreateMap={handleMapSelection}
-          />
-        )}
+        </table>
+      ) : (
+        <p>You have no saved maps.</p>
+      )}
+          
+        
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (

@@ -1,22 +1,31 @@
 // src/components/StarredMaps.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styles from './StarredMaps.module.css';
 import { useNavigate } from 'react-router-dom';
-import { fetchSavedMaps } from '../api'; // Assume this API call exists
+import {
+  fetchSavedMaps,
+  fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '../api';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
-import { FaStar } from 'react-icons/fa'; // Import star icon
+import { FaStar } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import { formatDistanceToNow } from 'date-fns';
+import Header from './Header';
+import { UserContext } from '../context/UserContext';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
   const [maps, setMaps] = useState([]);
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const { profile } = useContext(UserContext);
 
   useEffect(() => {
     const getStarredMaps = async () => {
@@ -26,15 +35,50 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
           (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
         );
         setMaps(sortedMaps);
-        setLoading(false);
       } catch (err) {
         console.error(err);
         setError(true);
+      } finally {
         setLoading(false);
       }
     };
+
+    const getNotifications = async () => {
+      try {
+        const res = await fetchNotifications();
+        setNotifications(res.data.slice(0, 6));
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
     getStarredMaps();
+    getNotifications();
   }, []);
+
+  // Handle notification click
+  const handleNotificationClick = async (notification) => {
+    // Mark as read and navigate to the map
+    try {
+      await markNotificationAsRead(notification.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+      );
+      navigate(`/map/${notification.MapId}`);
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  // Handle marking all notifications as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
 
   return (
     <div className={styles.starredMapsContainer}>
@@ -47,17 +91,17 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-        {/* Header with centered title and description */}
-        <div className={styles.header}>
-          <div className={styles.headerText}>
-            <h1>Starred Maps</h1>
-            <p>You have starred {maps.length} {maps.length === 1 ? 'map' : 'maps'}.</p>
-          </div>
-        </div>
+        {/* Header */}
+        <Header
+          title="Starred Maps"
+          notifications={notifications}
+          onNotificationClick={handleNotificationClick}
+          onMarkAllAsRead={handleMarkAllAsRead}
+        />
 
         {/* Table */}
         {loading ? (
-          <p>Loading starred maps...</p>
+          <LoadingSpinner />
         ) : error ? (
           <p>Error fetching starred maps. Please try again later.</p>
         ) : maps.length > 0 ? (
@@ -74,9 +118,13 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
             <tbody>
               {maps.map((map) => {
                 const mapTitle = map.title || 'Untitled Map';
-                const creatorUsername = map.creator?.username || 'Unknown';
+                const creatorUsername = map.User?.username || 'Unknown';
                 return (
-                  <tr key={map.id} className={styles.mapRow}>
+                  <tr
+                    key={map.id}
+                    className={styles.mapRow}
+                    onClick={() => navigate(`/map/${map.id}`)}
+                  >
                     <td className={styles.thumbnailCell}>
                       <div className={styles.thumbnail}>
                         {/* Render SVG component based on map type */}
@@ -145,7 +193,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
                         {map.saveCount || 0}
                       </div>
                     </td>
-                    <td className={styles.createdByCell}>{map.User.username}</td>
+                    <td className={styles.createdByCell}>{creatorUsername}</td>
                   </tr>
                 );
               })}

@@ -50,23 +50,7 @@
   margin-bottom: 10px;
 }
 
-/* Create New Map Button */
-.createMapButton {
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  border-radius: 4px;
-  background-color: #f0f0f0; /* Light gray background */
-  color: #333;
-  display: flex;
-  align-items: center;
-  transition: background-color 0.3s ease;
-}
 
-.createMapButton:hover {
-  background-color: #e0e0e0; /* Darker gray on hover */
-}
 
 .plusIcon {
   margin-right: 8px;
@@ -78,7 +62,7 @@
   display: flex;
   justify-content: space-around; /* Space between items */
   align-items: center;
-  background-color: #f5f5f5; /* Light background */
+  background-color: white; /* Light background */
   padding: 20px;
   border-radius: 8px;
   width: 100%; /* Stretch across the width */
@@ -95,20 +79,20 @@
 
 .statIcon {
   font-size: 2.5rem;
-  color: #333;
+  color: white;
   margin-bottom: 10px;
 }
 
 .statistic h3 {
   margin: 0 0 5px 0;
   font-size: 1.2rem;
-  color: #555;
+  color: #cccccc;
 }
 
 .statistic p {
   font-size: 1.5rem;
   margin: 0;
-  color: #000;
+  color: #cccccc;
 }
 
 
@@ -138,7 +122,7 @@
 }
 
 .statistic {
-  background-color: #f0f0f0;
+  background-color: #333;
   padding: 15px;
   border-radius: 8px;
   flex: 1;
@@ -166,6 +150,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  border: 10px solid #666;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: #222;
 }
 
 /* Map Card */

@@ -37,4 +37,15 @@ const Map = sequelize.define('Map', {
 User.hasMany(Map, { foreignKey: 'UserId', onDelete: 'CASCADE' });
 Map.belongsTo(User, { foreignKey: 'UserId' });
 
+
+// Define associations
+Map.associate = (models) => {
+  Map.belongsTo(models.User, { foreignKey: 'UserId' });
+  Map.belongsToMany(models.User, {
+    through: models.MapSaves,
+    as: 'SavedByUsers',
+    foreignKey: 'MapId',
+  });
+};
+
 module.exports = Map;

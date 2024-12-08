@@ -1,22 +1,21 @@
-// routes/maps.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const authOptional = require('../middleware/authOptional'); // Import authOptional
+const authOptional = require('../middleware/authOptional');
 
-const { Map, User, MapSaves } = require('../models');
-const Notification = require('../models/notification'); // Add this line
+const { Map, User, MapSaves, Activity } = require('../models');
+const Notification = require('../models/notification');
+
 // Get all maps for a user
 router.get('/', auth, async (req, res) => {
   try {
-    const maps = await Map.findAll({ where: { UserId: req.user.id } }); // Correct
+    const maps = await Map.findAll({ where: { UserId: req.user.id } });
     res.json(maps);
   } catch (err) {
     console.error('Error fetching maps:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
-
 
 // Create a new map
 router.post('/', auth, async (req, res) => {
@@ -25,8 +24,17 @@ router.post('/', auth, async (req, res) => {
   try {
     const map = await Map.create({
       ...mapData,
-      UserId: req.user.id, // Use req.user.id
+      UserId: req.user.id,
     });
+
+    // Create an activity record
+    await Activity.create({
+      type: 'createdMap',
+      UserId: req.user.id,
+      mapTitle: map.title,
+      createdAt: new Date(),
+    });
+
     res.json(map);
   } catch (err) {
     console.error('Error creating map:', err);
@@ -61,7 +69,7 @@ router.get('/saved', auth, async (req, res) => {
 // Update a map
 router.put('/:id', auth, async (req, res) => {
   try {
-    const map = await Map.findOne({ where: { id: req.params.id, UserId: req.user.id } }); // Use req.user.id
+    const map = await Map.findOne({ where: { id: req.params.id, UserId: req.user.id } });
     if (!map)
       return res.status(404).json({ msg: 'Map not found or unauthorized' });
 
@@ -76,7 +84,7 @@ router.put('/:id', auth, async (req, res) => {
 // Delete a map
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const map = await Map.findOne({ where: { id: req.params.id, UserId: req.user.id } }); // Use req.user.id
+    const map = await Map.findOne({ where: { id: req.params.id, UserId: req.user.id } });
     if (!map)
       return res.status(404).json({ msg: 'Map not found or unauthorized' });
 
@@ -88,14 +96,13 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// routes/maps.js
-
 // Get a single map by ID
 router.get('/:id', authOptional, async (req, res) => {
   try {
     const map = await Map.findOne({
       where: { id: req.params.id },
-      include: [{ model: User, attributes: ['id', 'username', 'firstName', 'lastName', 'profilePicture'] }],    });
+      include: [{ model: User, attributes: ['id', 'username', 'firstName', 'lastName', 'profilePicture'] }],
+    });
 
     if (!map) {
       return res.status(404).json({ msg: 'Map not found' });
@@ -109,7 +116,7 @@ router.get('/:id', authOptional, async (req, res) => {
     let isSavedByCurrentUser = false;
     let isOwner = false;
     if (req.user) {
-      isOwner = map.UserId === req.user.id; // Determine if the current user is the owner
+      isOwner = map.UserId === req.user.id;
 
       const mapSave = await MapSaves.findOne({
         where: { MapId: map.id, UserId: req.user.id },
@@ -119,7 +126,7 @@ router.get('/:id', authOptional, async (req, res) => {
 
     const mapData = map.toJSON();
     mapData.isSavedByCurrentUser = isSavedByCurrentUser;
-    mapData.isOwner = isOwner; // Add isOwner to the response
+    mapData.isOwner = isOwner;
 
     res.json(mapData);
   } catch (err) {
@@ -144,6 +151,15 @@ router.post('/:id/save', auth, async (req, res) => {
       map.saveCount += 1;
       await map.save();
 
+      // Create an activity record
+      await Activity.create({
+      type: 'starredMap',
+      UserId: req.user.id,
+      mapTitle: map.title,
+      createdAt: new Date(),
+    });
+    
+
       // Fetch current user to get the username
       const currentUser = await User.findByPk(req.user.id);
 
@@ -159,7 +175,7 @@ router.post('/:id/save', auth, async (req, res) => {
 
       res.json({ msg: 'Map saved' });
     } else {
-      res.status(200).json({ msg: 'Map already saved' }); // Change status code to 200
+      res.status(200).json({ msg: 'Map already saved' });
     }
   } catch (err) {
     console.error('Error saving map:', err);
@@ -185,25 +201,117 @@ router.post('/:id/unsave', auth, async (req, res) => {
   }
 });
 
-
-
-// Get maps by user ID
+// Fetch maps by user ID with pagination
 router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
   try {
     const maps = await Map.findAll({
-      where: { UserId: req.params.userId }, // Changed to 'UserId'
+      where: { UserId: userId },
       order: [['createdAt', 'DESC']],
+      offset: offset,
+      limit: limit,
     });
 
     res.json(maps);
   } catch (err) {
     console.error('Error fetching maps:', err);
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
+// Get total maps and total stars for a user
+router.get('/user/:userId/stats', async (req, res) => {
+  const { userId } = req.params;
 
+  try {
+    const maps = await Map.findAll({ where: { UserId: userId } });
+    const totalMaps = maps.length;
+    const totalStars = maps.reduce((total, map) => total + (map.saveCount || 0), 0);
 
+    res.json({ totalMaps, totalStars });
+  } catch (err) {
+    console.error('Error fetching user stats:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get the most starred map for a user
+router.get('/user/:userId/most-starred', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const mostStarredMap = await Map.findOne({
+      where: { UserId: userId },
+      order: [['saveCount', 'DESC']],
+    });
+
+    res.json(mostStarredMap);
+  } catch (err) {
+    console.error('Error fetching most starred map:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get starred maps by user ID with pagination
+router.get('/user/:userId/starred', async (req, res) => {
+  const { userId } = req.params;
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
+  try {
+    // Find the user
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Fetch starred maps using Sequelize's association methods
+    const starredMaps = await user.getSavedMaps({
+      offset: offset,
+      limit: limit,
+      order: [['createdAt', 'DESC']],
+      include: [{ model: User, attributes: ['username'] }], // Include map owner's username
+    });
+
+    res.json(starredMaps);
+  } catch (err) {
+    console.error('Error fetching starred maps:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get starred maps by user ID with pagination
+router.get('/user/:userId/starred', async (req, res) => {
+  const { userId } = req.params;
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
+  try {
+    // Find the user
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Fetch starred maps using the association
+    const starredMaps = await user.getSavedMaps({
+      offset: offset,
+      limit: limit,
+      order: [['createdAt', 'DESC']],
+      include: [{ model: User, attributes: ['id', 'username'] }], // Include map owner's username
+    });
+
+    res.json(starredMaps);
+  } catch (err) {
+    console.error('Error fetching starred maps:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 
 module.exports = router;

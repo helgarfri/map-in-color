@@ -4,11 +4,8 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
-const Comment = require('../models/comment');
-const User = require('../models/user');
-const Map = require('../models/map');
-const Notification = require('../models/notification');
-const CommentReaction = require('../models/commentReaction');
+const { Comment, User, Map, Activity, CommentReaction, Notification } = require('../models');
+
 
 // Fetch comments for a map
 router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
@@ -175,6 +172,13 @@ router.post('/maps/:mapId/comments', auth, async (req, res) => {
         MapId: map.id,
       });
     }
+      // Create an activity record
+      await Activity.create({
+        type: 'commented',
+        UserId: req.user.id,
+        mapTitle: map.title,
+        createdAt: new Date(),
+      });
 
     res.json(createdComment);
   } catch (err) {

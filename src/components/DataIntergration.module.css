@@ -1,18 +1,30 @@
 /* Data.module.css */
 
+/* Container */
 .container {
-  width: 100%;
-  margin: 0 auto;
-  text-align: center;
   display: flex;
   flex-direction: row;
+  width: 100%;
+  margin: 0;
 }
 
+/* Content Area */
 .content {
-  padding: 20px; /* Add padding to the content area */
-  max-width: 1200px;
-  margin: 0 auto;
-  flex:1;
+  
+  flex: 1;
+  margin-left: 250px; /* Width of the expanded sidebar */
+  transition: margin-left 0.3s ease; /* Smooth transition */
+  display: flex;
+  flex-direction: column;
+  
+}
+
+.contentInner {
+ padding: 0 50px;
+}
+
+.contentCollapsed {
+  margin-left: 80px; /* Width of the collapsed sidebar */
 }
 
 .section {
@@ -20,6 +32,11 @@
   margin-top: 20px;
 
 }
+
+.section h3 {
+  text-align: center;
+}
+
 
 .link {
   text-decoration: underline;
@@ -222,9 +239,10 @@
   gap: 20px;
 }
 
+
 .fileUploadBox,
 .fileInfoBox {
-  flex: 1;
+
   border: 1px solid #ccc;
   box-sizing: border-box;
   font-size: 15px;
@@ -237,6 +255,11 @@
 .fileInfoBox {
   max-width: none;
   width: 100%;
+  flex: 1;
+}
+
+.fileUploadBox {
+  flex: 3;
 }
 
 .fileInfoTable {
@@ -523,6 +546,7 @@
   flex: 1; /* Allow content to fill available space */
   cursor: pointer;
   /* Remove any fixed heights or margins that might prevent stretching */
+  
 }
 /* Map Theme Container */
 .mapThemeContainer {
@@ -567,7 +591,7 @@
 }
 
 .mapThemeSection {
-  flex: 0.4;
+  flex: 0.3;
   display: flex;
   flex-direction: column;
   background-color: #f9fafb;
@@ -575,7 +599,8 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-  
+  height: fit-content;
+  margin: auto 0;
 }
 
 .mapThemeSection h3 {

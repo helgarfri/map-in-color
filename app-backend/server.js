@@ -12,7 +12,7 @@ const mapRoutes = require('./routes/maps');
 const profileRoutes = require('./routes/profile');
 const commentsRoutes = require('./routes/comments');
 const notificationsRoutes = require('./routes/notifications');
-
+const usersRoutes = require('./routes/users'); // Import users route
 const app = express();
 
 // Middleware
@@ -44,7 +44,7 @@ app.use('/api/maps', mapRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api', commentsRoutes);
 app.use('/api/notifications', notificationsRoutes); // Add this line
-
+app.use('/api/users', usersRoutes); // Mount users route
 // Handle undefined routes
 app.use((req, res, next) => {
   res.status(404).json({ msg: 'Endpoint not found' });
@@ -61,3 +61,5 @@ sequelize.sync({ alter: true })
   .catch(err => {
     console.error('Unable to connect to the database:', err);
   });
+
+  

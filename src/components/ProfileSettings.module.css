@@ -1,4 +1,4 @@
-/* src/components/Profile.module.css */
+/* src/components/ProfileSettings.module.css */
 
 .profileContainer {
   display: flex;
@@ -9,76 +9,326 @@
 .profileContent {
   flex: 1;
   padding: 20px;
+  margin-left: 250px; /* Sidebar width when expanded */
+  transition: margin-left 0.3s ease;
   font-family: 'Roboto', sans-serif;
   color: #333;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #333;
-  text-align: center;
+.profileContent.contentCollapsed {
+  margin-left: 70px; /* Adjust based on your collapsed sidebar width */
 }
 
-.error {
-  color: red;
-  margin-bottom: 15px;
-}
-
-.success {
-  color: green;
-  margin-bottom: 15px;
+.mainContent {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .profileForm {
   width: 100%;
-  max-width: 500px;
   display: flex;
   flex-direction: column;
 }
 
-.profileForm label {
-  margin-bottom: 15px;
+/* Navigation Tabs */
+.navigationTabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.navTab {
+  margin: 0 15px;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
   font-size: 1rem;
   color: #333;
-  display: flex;
-  flex-direction: column;
+  transition: border-color 0.3s ease;
 }
 
-.profileForm input,
-.profileForm textarea,
-.profileForm select {
+.navTab:hover {
+  color: #0078bf;
+}
+
+.activeTab {
+  border-bottom-color: #0078bf;
+  font-weight: bold;
+  color: #0078bf;
+}
+
+/* Form Rows */
+.formRow {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.formRow:first-child {
+  border-top: 1px solid #ccc;
+}
+
+.formLabel {
+  width: 30%;
+  font-size: 1rem;
+  color: #333;
+}
+
+.formField {
+  width: 70%;
+  text-align: right;
+}
+
+.formField input,
+.formField textarea,
+.formField select {
   width: 100%;
   padding: 10px;
-  margin-top: 5px;
+  margin-top: 0;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 1.1rem;
+}
+
+.formField textarea {
+  resize: vertical;
 }
 
 .saveButton {
   padding: 10px 20px;
-  background-color: #0078bf;
+  background-color: #55957b;
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.3s ease;
-  margin-top: 20px;
+  margin-top: 30px;
+  align-self: center;
 }
 
 .saveButton:hover {
-  background-color: #005f8a;
+  background-color: #3f6d5a;
 }
 
 .loader {
   font-size: 1.5rem;
   text-align: center;
   margin-top: 50px;
+}
+
+/* Success and Error Boxes */
+.successBox {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 5px;
+  border-radius: 4px;
+  margin-top: 20px;
+  text-align: center;
+  width: fit-content;
+  font-size: 14px;
+  border-radius: 10px;
+  margin: 20px auto;
+}
+
+.errorBox {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+/* Buttons */
+.changeButton,
+.deleteButton {
+  padding: 8px 16px;
+  background-color: #e0e0e0; /* Gray background */
+  color: #000; /* Black text */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.changeButton:hover,
+.deleteButton:hover {
+  background-color: #d5d5d5;
+}
+
+.buttonIcon {
+  margin-right: 8px;
+}
+
+/* Editable Value */
+.editableValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.staticValue {
+  font-size: 1rem;
+  color: #555;
+}
+
+.editIcon,
+.emptyIconSpace {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyIconSpace {
+  visibility: hidden;
+}
+
+.editIcon {
+  cursor: pointer;
+  color: #0078bf;
+}
+
+.editIcon:hover {
+  color: #005f8a;
+}
+
+/* Profile Picture */
+.profilePictureContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.profilePicturePreview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+}
+
+.profilePictureEditIcon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  padding: 5px;
+  cursor: pointer;
+  height: 20px;
+  width: 20px;
+  color: #005f8a;
+}
+
+.profilePictureEditIcon:hover {
+  background-color: #f0f0f0;
+}
+
+.profilePictureEditIcon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.profilePictureInput {
+  display: none;
+}
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Content */
+.modalContent {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modalContent h2 {
+  margin-top: 0;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.countryList {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.countryItem {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.countryItem:hover {
+  background-color: #f0f0f0;
+}
+
+.modalCloseButton {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modalCloseButton:hover {
+  background-color: #bbb;
+}
+
+/* Gender Picker Modal */
+.genderList {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.genderItem {
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.genderItem:hover,
+.selectedItem {
+  background-color: #f0f0f0;
+}
+
+.selectedItem {
+  font-weight: bold;
 }
 
 /* Responsive adjustments */
@@ -89,8 +339,39 @@ h2 {
   }
 
   .profileContent {
-    max-width: 100%;
-    margin: 20px;
-    padding: 20px;
+    margin-left: 0;
+  }
+
+  .navigationTabs {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .navTab {
+    margin: 5px 0;
+  }
+
+  .mainContent {
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  .formRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .formLabel,
+  .formField {
+    width: 100%;
+  }
+
+  .formField {
+    margin-top: 5px;
+    text-align: left;
+  }
+
+  .editableValue {
+    justify-content: flex-start;
   }
 }

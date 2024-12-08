@@ -1,0 +1,53 @@
+.fullScreenOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #333; /* Adjust as needed */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: none;
+    border: none;
+    font-size: 48px;
+    cursor: pointer;
+    color: white;
+    z-index: 1001;
+  }
+  
+  .zoomControls {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1001;
+  }
+  
+  .zoomControls button {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    margin-bottom: 5px;
+  }
+  
+  .zoomControls button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .mapContainer {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  

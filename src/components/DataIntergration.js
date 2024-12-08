@@ -14,8 +14,8 @@ import Footer from "./Footer";
 import Sidebar from "./Sidebar";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLock, faCaretDown } from '@fortawesome/free-solid-svg-icons';
-
+import { faGlobe, faLock, faCaretDown, faCog } from '@fortawesome/free-solid-svg-icons';
+import Header from "./Header";
 
 
 // Define preloaded color themes
@@ -87,7 +87,66 @@ const themes = [
       fontColor: 'white',
       unassignedColor: '#004c70',
     },
-    // Add more themes as needed
+    {
+      name: 'Polar Ice',
+      oceanColor: '#E0F7FA', // Light blue ocean
+      fontColor: 'black',
+      unassignedColor: '#ffffff', // White unassigned areas
+    },
+    {
+      name: 'Vintage Sepia',
+      oceanColor: '#704214', // Brown ocean for an old map look
+      fontColor: 'white',
+      unassignedColor: '#D2B48C', // Tan unassigned areas
+    },
+    {
+      name: 'Midnight Blue',
+      oceanColor: '#191970', // Dark blue ocean
+      fontColor: 'white',
+      unassignedColor: '#2F4F4F', // Dark slate gray unassigned areas
+    },
+    {
+      name: 'Emerald Isles',
+      oceanColor: '#50C878', // Emerald green ocean
+      fontColor: 'black',
+      unassignedColor: '#98FB98', // Pale green unassigned areas
+    },
+    {
+      name: 'Desert Sand',
+      oceanColor: '#EDC9AF', // Sand-colored ocean
+      fontColor: 'black',
+      unassignedColor: '#C2B280', // Light brown unassigned areas
+    },
+    {
+      name: 'Fire and Ice',
+      oceanColor: '#1E90FF', // Dodger blue ocean
+      fontColor: 'white',
+      unassignedColor: '#FF4500', // Orange-red unassigned areas
+    },
+    {
+      name: 'Deep Space',
+      oceanColor: '#000000', // Black ocean
+      fontColor: 'white',
+      unassignedColor: '#2E2E2E', // Dark gray unassigned areas
+    },
+    {
+      name: 'Pastel Dreams',
+      oceanColor: '#FFB6C1', // Light pink ocean
+      fontColor: 'black',
+      unassignedColor: '#FFDAB9', // Peach puff unassigned areas
+    },
+    {
+      name: 'Sunset Glow',
+      oceanColor: '#FFA07A', // Light salmon ocean
+      fontColor: 'black',
+      unassignedColor: '#FF6347', // Tomato unassigned areas
+    },
+    {
+      name: 'Forest Green',
+      oceanColor: '#228B22', // Forest green ocean
+      fontColor: 'white',
+      unassignedColor: '#6B8E23', // Olive drab unassigned areas
+    },
   ];
 
 
@@ -892,11 +951,22 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
       />
-
+     
       {/* Main Content */}
-      <div className={styles.content}>
+      <div
+        className={`${styles.content} ${
+          isCollapsed ? styles.contentCollapsed : ''
+        }`}
+      >
 
-        <h2>Data Intergration</h2>
+         {/* Header Section */}
+     <Header
+            title="Data intergration"
+            
+          />
+
+<div className={styles.contentInner}>
+
 
       <div className={styles.topSection}>
   {/* File Upload Box */}
@@ -1403,9 +1473,12 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 
 
       {/* Navigation Buttons */}
-      <div className={styles.navigationButtons}>
-        <button className={styles.primaryButton} onClick={handleSaveMap}>Save Map</button>
-      </div>
+<div className={styles.navigationButtons}>
+  <button className={styles.secondaryButton} onClick={() => setShowSettingsModal(true)}>
+    <FontAwesomeIcon icon={faCog} /> Map Settings
+  </button>
+  <button className={styles.primaryButton} onClick={handleSaveMap}>Save Map</button>
+</div>
 
       {showLoginModal && (
   <div className={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
@@ -1571,32 +1644,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
           </div>
         </div>
 
-            {/* Display Top 3 Highest Values */}
-      <div className={styles.settingItem}>
-        <label htmlFor="showTopHighValues">
-          <input
-            id="showTopHighValues"
-            type="checkbox"
-            checked={showTopHighValues}
-            onChange={(e) => setShowTopHighValues(e.target.checked)}
-          />
-          Display Top 3 Highest Values
-        </label>
-      </div>
-
-      {/* Display Top 3 Lowest Values */}
-      <div className={styles.settingItem}>
-        <label htmlFor="showTopLowValues">
-          <input
-            id="showTopLowValues"
-            type="checkbox"
-            checked={showTopLowValues}
-            onChange={(e) => setShowTopLowValues(e.target.checked)}
-          />
-          Display Top 3 Lowest Values
-        </label>
-      </div>
-
+            
 {/* Public/Private Select */}
 <div className={styles.settingItem}>
   <label htmlFor="isPublicSelect">Visibility:</label>
@@ -1652,6 +1700,7 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
 )}
 
 
+      </div>
       </div>
       </div>
       </div>
