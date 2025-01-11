@@ -6,108 +6,149 @@ const User = require('../models/user');
 const { check, validationResult } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
-
 const { Map, Comment, MapSaves } = require('../models'); // Import necessary models
 
-
-// Get user activity by username
+/***********************************************
+ *   GET USER ACTIVITY (CREATED / COMMENTED / STARRED)
+ ***********************************************/
 router.get('/:username/activity', async (req, res) => {
   const username = req.params.username;
-  console.log(`Fetching activity for username: ${username}`);
+  const offset = parseInt(req.query.offset, 10) || 0;
+  const limit = parseInt(req.query.limit, 10) || 10;
+
+  console.log(`Fetching activity for username: ${username}, offset: ${offset}, limit: ${limit}`);
 
   try {
+    // 1) Find the user by username
     const user = await User.findOne({
       where: { username },
       attributes: ['id', 'firstName'],
     });
-
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
-
     const userId = user.id;
 
-    // Fetch recent maps created by the user
+    // 2) Fetch 'limit' created maps, including the fields needed to render thumbnails
     const createdMaps = await Map.findAll({
       where: { UserId: userId },
-      attributes: ['id', 'title', 'createdAt'],
+      attributes: [
+        'id',
+        'title',
+        'selectedMap',
+        'oceanColor',
+        'unassignedColor',
+        'groups',
+        'data',
+        'fontColor',
+        'isTitleHidden',
+        'saveCount',
+        'createdAt',
+      ],
       order: [['createdAt', 'DESC']],
-      limit: 10,
+      limit,
     });
 
-    // Fetch recent comments made by the user
+    // 3) Fetch 'limit' comments, including the FULL map object
     const comments = await Comment.findAll({
       where: { UserId: userId },
-      attributes: ['id', 'content', 'createdAt', 'MapId'],
+      attributes: ['id', 'content', 'createdAt'],
       include: [
         {
           model: Map,
-          attributes: ['id', 'title'],
+          attributes: [
+            'id',
+            'title',
+            'selectedMap',
+            'oceanColor',
+            'unassignedColor',
+            'groups',
+            'data',
+            'fontColor',
+            'isTitleHidden',
+            'saveCount',
+            'createdAt',
+          ],
         },
       ],
       order: [['createdAt', 'DESC']],
-      limit: 10,
+      limit,
     });
 
-    // Fetch recent maps starred by the user
+    // 4) Fetch 'limit' map saves, including the FULL map object
     const mapSaves = await MapSaves.findAll({
       where: { UserId: userId },
       attributes: ['createdAt'],
       include: [
         {
           model: Map,
-          attributes: ['id', 'title'],
+          attributes: [
+            'id',
+            'title',
+            'selectedMap',
+            'oceanColor',
+            'unassignedColor',
+            'groups',
+            'data',
+            'fontColor',
+            'isTitleHidden',
+            'saveCount',
+            'createdAt',
+          ],
         },
       ],
       order: [['createdAt', 'DESC']],
-      limit: 10,
+      limit,
     });
 
-    // Combine all activities into a single array
+    // Combine all activities into one array
     const activities = [];
 
+    // Created maps => type: 'createdMap'
     createdMaps.forEach((map) => {
       activities.push({
         type: 'createdMap',
-        mapId: map.id,
-        mapTitle: map.title,
+        map: map,            // the entire Map object
         createdAt: map.createdAt,
       });
     });
 
+    // Comments => type: 'commented'
     comments.forEach((comment) => {
       activities.push({
         type: 'commented',
-        mapId: comment.Map.id,
-        mapTitle: comment.Map.title,
+        map: comment.Map,    // the entire Map object
         commentId: comment.id,
         commentContent: comment.content,
         createdAt: comment.createdAt,
       });
     });
 
+    // Starred (map saves) => type: 'starredMap'
     mapSaves.forEach((save) => {
       activities.push({
         type: 'starredMap',
-        mapId: save.Map.id,
-        mapTitle: save.Map.title,
+        map: save.Map,       // the entire Map object
         createdAt: save.createdAt,
       });
     });
 
-    // Sort activities by createdAt descending
+    // Sort all combined activities by createdAt DESC
     activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Limit to most recent 20 activities
-    const recentActivities = activities.slice(0, 20);
+    // Now apply offset and limit for pagination
+    const paginatedActivities = activities.slice(offset, offset + limit);
 
-    res.json(recentActivities);
+    return res.json(paginatedActivities);
   } catch (err) {
     console.error('Error fetching user activity:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
-// Configure storage
+
+/***********************************************
+ *   CONFIGURE MULTER STORAGE FOR PROFILE PICS
+ ***********************************************/
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/profile_pictures/'); // Ensure this directory exists
@@ -116,10 +157,11 @@ const storage = multer.diskStorage({
     cb(null, `${req.user.id}_${Date.now()}${path.extname(file.originalname)}`);
   },
 });
-
 const upload = multer({ storage });
 
-// Update validation rules to include new fields
+/***********************************************
+ *   VALIDATION RULES FOR PROFILE UPDATES
+ ***********************************************/
 const profileValidationRules = [
   [
     check('email', 'Please include a valid email').optional().isEmail(),
@@ -136,14 +178,11 @@ const profileValidationRules = [
 ];
 
 // Combine middleware
-const profileUpdateMiddleware = [
-  auth,
-  upload.single('profilePicture'),
-  ...profileValidationRules,
-];
+const profileUpdateMiddleware = [auth, upload.single('profilePicture'), ...profileValidationRules];
 
-
-// Get current user's profile
+/***********************************************
+ *   GET CURRENT USER'S PROFILE (LOGGED-IN)
+ ***********************************************/
 router.get('/', auth, async (req, res) => {
   console.log(`Fetching profile for user ID: ${req.user.id}`);
   try {
@@ -151,7 +190,7 @@ router.get('/', auth, async (req, res) => {
       attributes: [
         'id',
         'username',
-        'email', // Include email if needed
+        'email',
         'firstName',
         'lastName',
         'dateOfBirth',
@@ -163,19 +202,19 @@ router.get('/', auth, async (req, res) => {
         'updatedAt',
       ],
     });
-
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
-
-    res.json(user);
+    return res.json(user);
   } catch (err) {
     console.error('Error fetching user profile:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// Get user profile by username
+/***********************************************
+ *   GET USER PROFILE BY USERNAME (PUBLIC)
+ ***********************************************/
 router.get('/:username', async (req, res) => {
   const username = req.params.username;
   console.log(`Fetching profile for username: ${username}`);
@@ -197,19 +236,19 @@ router.get('/:username', async (req, res) => {
         'updatedAt',
       ],
     });
-
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
-
-    res.json(user);
+    return res.json(user);
   } catch (err) {
     console.error('Error fetching user profile:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// Combined PUT /api/profile route
+/***********************************************
+ *   UPDATE PROFILE (PUT /api/profile)
+ ***********************************************/
 router.put('/', profileUpdateMiddleware, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -221,7 +260,6 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
 
   try {
     const user = await User.findByPk(req.user.id);
-
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
@@ -255,7 +293,7 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
 
     await user.save();
 
-    res.json({
+    return res.json({
       id: user.id,
       email: user.email,
       username: user.username,
@@ -271,9 +309,8 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Error updating profile:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
-
 
 module.exports = router;

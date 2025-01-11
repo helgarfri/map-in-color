@@ -12,6 +12,7 @@ import {
   FaUserCog,
   FaChevronLeft,
   FaChevronRight,
+  FaSearch
 } from 'react-icons/fa';
 import { UserContext } from '../context/UserContext';
 import MapSelectionModal from './MapSelectionModal';
@@ -81,6 +82,12 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
               <NavLink to="/dashboard" className={styles.navLink}>
                 <FaHome className={styles.icon} />
                 <span>Dashboard</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/explore" className={styles.navLink}>
+                <FaSearch className={styles.icon} />
+                {!isCollapsed && <span>Explore</span>}
               </NavLink>
             </li>
             <li>

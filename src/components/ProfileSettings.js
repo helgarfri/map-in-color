@@ -28,6 +28,7 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     dateOfBirth: '',
   });
 
+
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
   const [error, setError] = useState('');

@@ -26,6 +26,7 @@ import { UserProvider } from './context/UserContext';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
+import Explore from './components/Explore';
 
 library.add(fas);
 
@@ -71,6 +72,13 @@ function App() {
             />
           }
         />
+
+<Route 
+          path="/explore" 
+          element={<Explore
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />} />
 
         <Route
           path="/my-maps"

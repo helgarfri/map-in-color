@@ -204,6 +204,20 @@
   color: #fff; /* White text on hover */
 }
 
+.deleteButtonModal {
+  background-color: #c4564d; /* Original red color on hover */
+  color: white;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.deleteButtonModal:hover {
+  background-color: #a94442; /* Darker red color on hover */
+}
+
 
 /* Modal styles */
 .modalOverlay {

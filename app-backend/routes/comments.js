@@ -13,7 +13,7 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
     const comments = await Comment.findAll({
       where: {
         MapId: req.params.mapId,
-        ParentCommentId: null, // Fetch only top-level comments
+        ParentCommentId: null, // top-level comments
       },
       include: [
         { model: User, attributes: ['username', 'profilePicture'] },
@@ -37,8 +37,9 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
           ],
         },
       ],
-      order: [['createdAt', 'DESC']], // We'll sort after computing Wilson scores
+      order: [['createdAt', 'DESC']],
     });
+
 
     // Compute Wilson score and format comments
     const formattedComments = comments.map((comment) => {
@@ -112,10 +113,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       return commentJson;
     });
 
-    // Sort comments by Wilson score descending
-    formattedComments.sort((a, b) => b.wilsonScore - a.wilsonScore);
-
-    res.json(formattedComments);
+    // Return your sorted / formatted comments
+    res.json(comments);
   } catch (err) {
     console.error('Error fetching comments:', err);
     res.status(500).json({ msg: 'Server error' });
@@ -126,9 +125,10 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
 router.post('/maps/:mapId/comments', auth, async (req, res) => {
   try {
     const map = await Map.findByPk(req.params.mapId);
-    if (!map || (!map.isPublic && map.UserId !== req.user.id)) {
+    if (!map) {
       return res.status(404).json({ msg: 'Map not found' });
     }
+    // optionally check if map.isPublic or if user is the owner, up to your logic
 
     const { content, ParentCommentId } = req.body;
 
@@ -141,44 +141,48 @@ router.post('/maps/:mapId/comments', auth, async (req, res) => {
       }
     }
 
+    // Create the new comment in the DB
     const comment = await Comment.create({
       content,
       UserId: req.user.id,
-      MapId: req.params.mapId,
+      MapId: map.id,
       ParentCommentId: ParentCommentId || null,
     });
 
-    // Fetch the newly created comment with User data
+    // Re-fetch to include user data, if desired
     const createdComment = await Comment.findByPk(comment.id, {
       include: [{ model: User, attributes: ['username', 'profilePicture'] }],
     });
 
-    // Create a notification for the map owner or parent comment owner
+    // 1) If it's a reply
     if (ParentCommentId && parentComment.UserId !== req.user.id) {
-      // Notification for the parent comment's author
       await Notification.create({
         type: 'reply',
-        UserId: parentComment.UserId,
-        SenderId: req.user.id,
+        UserId: parentComment.UserId, // parent comment owner
+        SenderId: req.user.id,        // current user
         MapId: map.id,
-        CommentId: parentComment.id,
-      });
-    } else if (map.UserId !== req.user.id) {
-      // Notification for the map owner
-      await Notification.create({
-        type: 'comment',
-        UserId: map.UserId,
-        SenderId: req.user.id,
-        MapId: map.id,
+        CommentId: comment.id,        // newly created reply
       });
     }
-      // Create an activity record
-      await Activity.create({
-        type: 'commented',
-        UserId: req.user.id,
-        mapTitle: map.title,
-        createdAt: new Date(),
+    // 2) If it's a top-level comment (no ParentCommentId), create a 'comment' notification
+    //    whether or not user is the map owner. (Remove the map.UserId !== req.user.id check.)
+    else if (!ParentCommentId) {
+      await Notification.create({
+        type: 'comment',
+        UserId: map.UserId,     // map owner (or you can set this to req.user.id if you want yourself)
+        SenderId: req.user.id,
+        MapId: map.id,
+        CommentId: comment.id,
       });
+    }
+
+    // Optionally create an activity record
+    await Activity.create({
+      type: 'commented',
+      UserId: req.user.id,
+      mapTitle: map.title,
+      createdAt: new Date(),
+    });
 
     res.json(createdComment);
   } catch (err) {
@@ -186,6 +190,7 @@ router.post('/maps/:mapId/comments', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 // Like a comment
 router.post('/comments/:commentId/like', auth, async (req, res) => {
@@ -317,5 +322,34 @@ router.post('/comments/:commentId/dislike', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
+// DELETE a comment by ID
+router.delete('/comments/:commentId', auth, async (req, res) => {
+  try {
+    // Find the comment and include the Map so we can check the Map owner
+    const comment = await Comment.findByPk(req.params.commentId, {
+      include: [Map],
+    });
+    if (!comment) {
+      return res.status(404).json({ msg: 'Comment not found' });
+    }
+
+    // The map owner can delete any comment on that map
+    const isMapOwner = (comment.Map && comment.Map.UserId === req.user.id);
+    // The comment owner can delete their own comment
+    const isCommentOwner = (comment.UserId === req.user.id);
+
+    if (!isMapOwner && !isCommentOwner) {
+      return res.status(403).json({ msg: 'Not authorized to delete this comment' });
+    }
+
+    await comment.destroy();
+    res.json({ msg: 'Comment deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting comment:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
 
 module.exports = router;

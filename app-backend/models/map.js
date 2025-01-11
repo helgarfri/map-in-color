@@ -16,7 +16,11 @@ const Map = sequelize.define('Map', {
   sources: { type: DataTypes.JSON },
   isPublic: { type: DataTypes.BOOLEAN, defaultValue: false },
   saveCount: { type: DataTypes.INTEGER, defaultValue: 0 },
-  data: { type: DataTypes.JSON },
+  downloadCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false,
+  },  data: { type: DataTypes.JSON },
   customRanges: { type: DataTypes.JSON },
   groups: { type: DataTypes.JSON },
   selectedMap: { type: DataTypes.STRING },

@@ -1,1116 +1,605 @@
-/* Data.module.css */
-
-/* Container */
+/* Container Layout */
 .container {
   display: flex;
-  flex-direction: row;
   width: 100%;
   margin: 0;
 }
-
-/* Content Area */
 .content {
-  
   flex: 1;
-  margin-left: 250px; /* Width of the expanded sidebar */
-  transition: margin-left 0.3s ease; /* Smooth transition */
+  margin-left: 250px; /* sidebar width */
+  transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
-  
 }
-
-.contentInner {
- padding: 0 50px;
-}
-
 .contentCollapsed {
-  margin-left: 80px; /* Width of the collapsed sidebar */
+  margin-left: 80px; /* collapsed sidebar width */
 }
-
+.contentInner {
+  padding: 0 50px;
+}
 .section {
-  margin-bottom: 20px;
   margin-top: 20px;
-
+  margin-bottom: 20px;
 }
-
 .section h3 {
   text-align: center;
 }
 
+/* Top Three Boxes Row */
+.topThreeBoxes {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 
-.link {
-  text-decoration: underline;
-  margin: 5px;
+/* 1) Instructions Box */
+.instructionsBox {
+  flex: 1.1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fafafa;
+  min-height: 320px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  text-align: center;
+}
+.instructionsBox h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+.templateButton {
+  background-color: #55957b;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.templateButton:hover {
+  background-color: #49816b;
+}
+.instructionText {
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left; /* if you want text left-aligned inside the box */
+}
+.csvExample {
+  background-color: #eee;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* 2) CSV Upload Box */
+.csvUploadBox {
+  flex: 0.8; 
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fafafa;
+  min-height: 320px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.csvUploadBox h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+/* Big CSV Icon */
+.csvIconLabel {
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+.bigCsvIcon {
+  font-size: 60px;
+  color: #666;
+  transition: color 0.3s;
+}
+.csvIconLabel:hover .bigCsvIcon {
+  color: #333;
+}
+.csvHiddenInput {
+  display: none;
+}
+
+/* File upload messages */
+.uploadStatus {
+  margin-top: 10px;
+}
+.fileNameLabel {
+  font-weight: bold;
+  font-size: 14px;
+}
+.noFileSelected {
+  font-size: 14px;
+  font-style: italic;
+  color: #666;
+}
+.validMessage {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #28a745;
+  font-weight: bold;
+}
+.invalidMessage {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ff4d4f;
+  font-weight: bold;
+}
+.noFileMessage {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Scrollable Error Box */
+.errorBoxScrollable {
+  border: 1px solid #ff4d4f;
+  background-color: #ffe6e6;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 15px;
+  max-height: 140px;
+  overflow-y: auto;
+  width: 100%;
+  text-align: left;
+}
+.errorTitle {
+  color: #ff1a1a;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.errorList {
+  margin-left: 20px;
+  font-size: 14px;
+}
+.downloadErrorButton {
+  margin-top: 8px;
+  background-color: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
   cursor: pointer;
 }
 
+/* 3) File Info Box + Table */
+.fileInfoBox {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.tableContainer {
+  flex: 1;
+  display: flex;
+}
+.fileInfoTable {
+  flex: 1;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+.fileInfoTable th,
+.fileInfoTable td {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.fileInfoTable th {
+  background-color: #f5f5f5;
+  text-align: left;
+  width: 180px;
+}
+.fileInfoTable td {
+  text-align: right;
+}
+
+/* Range Table */
 .rangeTable {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
-
 .rangeTable th,
 .rangeTable td {
   border-bottom: 1px solid #ccc;
   padding: 8px 12px;
   text-align: center;
-  vertical-align: middle; /* Center align vertically */
-  font-size: 14px; /* Adjust font size for better readability */
+  vertical-align: middle;
+  font-size: 14px;
 }
-
 .rangeTable th {
-  background-color: #f9f9f9; /* Slightly different background for headers */
+  background-color: #f9f9f9;
   font-weight: bold;
 }
 
-/* Corrected Range Controls */
+/* Range Controls */
 .rangeControls {
+  margin-top: 15px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  margin-top: 20px;
 }
-
 .leftControls {
   display: flex;
-  align-items: center;
   gap: 10px;
-  flex-wrap: nowrap; /* Prevent items from wrapping to the next line */
-  flex: 1; /* Allow the container to take up available space */
+  flex-wrap: wrap;
+  align-items: center;
+}
+.errorMessage {
+  color: #555;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+.warningIcon {
+  height: 15px;
+  margin-right: 5px;
 }
 
-.rangeControls label {
-  font-size: 14px;
-  width: auto; /* Adjusted to auto to prevent excessive width */
-  max-width: 150px; /* Optional: Limits the maximum width of the label */
-  white-space: nowrap; /* Prevents the label text from wrapping */
-  flex: 0 0 auto; /* Prevent the label from stretching */
-}
-
-/* Primary Button Styles */
-.primaryButton {
-  white-space: nowrap; /* Prevent text from wrapping */
-  padding: 8px 16px; /* Adjust padding for better spacing */
-  font-size: 14px; /* Consistent font size */
-  border: none; /* Remove default borders */
-  border-radius: 4px; /* Slightly rounded corners */
-  background-color: #55957b; /* Primary color */
-  color: #fff; /* White text */
-  cursor: pointer; /* Pointer cursor on hover */
-  transition: background-color 0.3s ease; /* Smooth transition on hover */
-  min-width: 120px; /* Prevent buttons from being too narrow */
-  flex-shrink: 0; /* Prevent buttons from shrinking */
-  margin: 0; /* Remove any default margins */
-  border: 1px solid rgba(0, 0, 0, 0.16);
-
-}
-
-.primaryButton:hover:not(:disabled) {
-  background-color: #49816b; /* Darker shade on hover */
-
-}
-
-.primaryButton:disabled {
-  background-color: #d6d6d6; /* Gray background when disabled */
-  cursor: not-allowed; /* Indicate non-interactive state */
-  color: #636363;
-}
-
-/* Secondary Button Styles */
+/* Buttons */
+.primaryButton,
 .secondaryButton {
-  white-space: nowrap; /* Prevent text from wrapping */
-  padding: 8px 16px; /* Consistent padding */
-  font-size: 14px; /* Consistent font size */
-  border: none; /* Remove default borders */
-  border-radius: 4px; /* Slightly rounded corners */
-  background-color: #dadada; /* Grey background */
-  color: #000; /* Black text */
-  cursor: pointer; /* Pointer cursor on hover */
-  transition: background-color 0.3s ease; /* Smooth transition on hover */
-  min-width: 120px; /* Prevent buttons from being too narrow */
-  flex-shrink: 0; /* Prevent buttons from shrinking */
-  margin: 0; /* Remove any default margins */
-  max-width: fit-content;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.16);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
 }
-
-.secondaryButton:hover:not(:disabled) {
-  background-color: #bebebe; /* Darker grey on hover */
+.primaryButton {
+  background-color: #55957b;
+  color: #fff;
 }
-
-.secondaryButton:disabled {
-  background-color: #d6d6d6; /* Light grey when disabled */
-  cursor: not-allowed; /* Indicate non-interactive state */
+.primaryButton:hover:not(:disabled) {
+  background-color: #49816b;
+}
+.primaryButton:disabled {
+  background-color: #d6d6d6;
   color: #636363;
-}
-
-/* Theme Buttons */
-.themeButtons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.themeButton {
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.themePreview {
-  display: flex;
-  height: 20px;
-  width: 50px;
-  overflow: hidden;
-  border: 1px solid #ccc;
-}
-
-.themeColor {
-  flex: 1;
-  height: 100%;
-}
-
-/* Remove Button Styles */
-.removeButton {
-  background: none; /* Remove background */
-  color: #000; /* Black color for the "X" */
-  border: none; /* Remove border */
-  cursor: pointer;
-  font-size: 24px; /* Increase font size for better visibility */
-  padding: 0;
-  line-height: 1;
-  transition: color 0.3s ease;
-  margin: 0px;
-}
-
-.removeButton:hover:not(:disabled) {
-  color: #ff4d4f; /* Change color on hover to indicate interactivity */
-}
-
-.removeButton:disabled {
-  color: #ccc; /* Gray color when disabled */
   cursor: not-allowed;
 }
-
-/* Input Box Styles */
-.inputBox {
-  padding: 6px 8px; /* Adjust padding for a slimmer look */
-  font-size: 14px; /* Smaller font size */
-  border: 1px solid #ccc; /* Thin, light gray border */
-  border-radius: 4px; /* Slightly rounded corners */
-  box-sizing: border-box; /* Ensure padding doesn't affect width */
-  transition: border-color 0.3s ease; /* Smooth transition for focus state */
-  height: 32px; /* Consistent height across inputs */
+.secondaryButton {
+  background-color: #dadada;
+  color: #000;
+}
+.secondaryButton:hover:not(:disabled) {
+  background-color: #bebebe;
+}
+.secondaryButton:disabled {
+  background-color: #d6d6d6;
+  color: #636363;
+  cursor: not-allowed;
+}
+.removeButton {
+  background: none;
+  border: none;
+  color: #000;
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.removeButton:hover:not(:disabled) {
+  color: #ff4d4f;
 }
 
+/* Input box */
+.inputBox {
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  height: 32px;
+  transition: border-color 0.3s;
+}
+.inputBox:focus {
+  border-color: #66afe9;
+  outline: none;
+  box-shadow: 0 0 5px rgba(102,175,233,0.6);
+}
 .inputBox[type="number"]::-webkit-inner-spin-button,
 .inputBox[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
 .inputBox[type="number"] {
-  -moz-appearance: textfield; /* Remove spinner in Firefox */
+  -moz-appearance: textfield;
 }
 
-
-.inputBox:focus {
-  border-color: #66afe9; /* Blue border on focus */
-  outline: none; /* Remove default outline */
-  box-shadow: 0 0 5px rgba(102, 175, 233, 0.6); /* Subtle shadow */
-}
-
-.inputBox::placeholder {
-  color: #999;
-  font-style: italic;
-}
-
-
-
-/* File Upload and Info Styles */
-.topSection {
+/* MAP PREVIEW & DETAILS LAYOUT */
+.mapPreviewAndDetails {
   display: flex;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-
-.fileUploadBox,
-.fileInfoBox {
-
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  font-size: 15px;
-  min-height: 500px; /* Ensure consistent height */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.fileInfoBox {
-  max-width: none;
-  width: 100%;
-  flex: 1;
-}
-
-.fileUploadBox {
-  flex: 3;
-}
-
-.fileInfoTable {
-  width: 100%;
-  border-collapse: collapse;
-  flex: 1; /* Allow the table to fill available space */
-}
-
-.fileInfoTable th,
-.fileInfoTable td {
-  border: 1px solid #ccc;
-  padding: 8px 12px;
-  font-size: 14px;
-}
-
-.fileInfoTable th {
-  background-color: #f0f0f0;
-  text-align: left;
-  width: 200px;
-}
-
-.fileInfoTable td {
-  text-align: left;
-}
-
-/* Error Box within File Info Box */
-.errorBox {
-  flex: 1;
-  overflow-y: auto;
-  border: 1px solid #ff4d4f;
-  background-color: #ffe6e6;
-  padding: 10px;
-  box-sizing: border-box;
-  font-size: 14px;
-  color: #333;
-  border-radius: 4px;
-  text-align: left;
-  max-height: 515px;
-  width: 100%;
- 
-}
-
-.errorTitle {
-  color: #ff1a1a;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.errorList {
-  list-style-type: disc;
-  padding-left: 20px;
-  margin: 0;
-  color: #333;
-}
-
-.errorList li {
-  margin-bottom: 5px;
-}
-
-/* Download Error Log Button */
-.downloadErrorButton {
-  margin-top: 10px;
-  padding: 8px 16px;
-  font-size: 14px;
-  background-color: #ff4d4f;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  align-self: flex-start;
-}
-
-.downloadErrorButton:hover {
-  background-color: #e04344;
-}
-
-/* File Upload Status Messages */
-.validMessage {
+  gap: 40px;
   margin-top: 20px;
-  text-align: center;
-  font-size: 14px;
-  color: #28a745;
-  font-weight: bold;
 }
-
-.invalidMessage {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 14px;
-  color: #ff4d4f; /* Red color for invalid messages */
-  font-weight: bold;
-}
-
-.noFileMessage {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 14px;
-  color: #888;
-  font-style: italic;
-}
-
-
-/* Error Messages Styling */
-.errorTitle {
-  color: #ff1a1a; /* Dark red color */
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.errorList {
-  list-style-type: disc;
-  padding-left: 20px;
-  margin: 0;
-  color: #333;
-}
-
-.errorList li {
-  margin-bottom: 5px;
-}
-
-/* Placeholder Message */
-.placeholderMessage {
-  color: #888;
-  font-style: italic;
-}
-
-/* Bottom Section */
-.bottomSection {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 60px;
-  margin-bottom: 60px;
-}
-
-  
-
-.groupsContainer {
-  flex: 1;
-  overflow-y: auto;
-  max-height: 500px; /* Adjust as needed */
-}
-
-.group {
-  background-color: #f5f5f5;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 4px; /* Rounded corners for better aesthetics */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-
-.colorBox {
-  width: 20px;
-  height: 20px;
-  display: inline-block;
-  margin-left: 10px;
-  margin-bottom: 5px;
-  vertical-align: middle;
-}
-
-/* Countries Container */
-.countriesContainer {
-  display: flex;
-  flex-wrap: wrap; /* Allow boxes to wrap to the next line */
-  gap: 8px; /* Space between boxes */
-  margin-top: 10px; /* Space above the container */
-  align-items: center;
-  justify-content: center;
-}
-
-/* Individual Country Box */
-.countryBox {
-  background-color: #f0f0f0; /* Light grey background */
-  color: #333; /* Dark text for readability */
-  padding: 4px 8px; /* Padding inside the box */
-  border-radius: 4px; /* Rounded corners */
-  font-size: 14px; /* Consistent font size */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  white-space: nowrap; /* Prevent text from wrapping */
-  overflow: hidden; /* Hide overflow if text is too long */
-  text-overflow: ellipsis; /* Add ellipsis for overflowing text */
-}
-
-/* Navigation Buttons */
-.navigationButtons {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px 0px 20px 0px;
-}
-
-.navigationButtons button {
-  padding: 10px 20px;
-  margin: 10px;
-
-}
-
-/* Download Error Log Button */
-.downloadErrorButton {
-  margin-top: 10px;
-  padding: 6px 12px;
-  font-size: 12px;
-  background-color: #ff4d4f;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.downloadErrorButton:hover {
-  background-color: #e04344;
-}
-
-/* Tooltip Styles (Optional Enhancement) */
-.tooltip {
-  position: relative;
-  display: inline-block;
-  margin-left: 5px;
-  cursor: pointer;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 220px;
-  background-color: #555;
-  color: #fff;
-  text-align: left;
-  border-radius: 6px;
-  padding: 8px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%; /* Position above the icon */
-  left: 50%;
-  margin-left: -110px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Scrollbar Styling for Error Box (Optional) */
-.errorBox::-webkit-scrollbar {
-  width: 6px;
-}
-
-.errorBox::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.errorBox::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
-}
-
-
-/* Map Layer */
-.mapLayer {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 20px;
-  align-items: stretch; /* Make child containers the same height */
-}
-
-/* Map Preview Section */
 .mapPreviewSection {
-  flex: 1; /* Adjusted to take more space */
+  flex: 2;
   display: flex;
   flex-direction: column;
 }
-
 .mapPreviewContainer {
-  flex: 1;
-
-  box-sizing: border-box; /* Include padding and border in size */
   display: flex;
   flex-direction: column;
-}
-
-.mapPreviewWrapper {
-  flex: 1; /* Allow content to fill available space */
-  cursor: pointer;
-  /* Remove any fixed heights or margins that might prevent stretching */
-  
-}
-/* Map Theme Container */
-.mapThemeContainer {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-  margin-top: 40px;
-  align-items: stretch; /* Ensure children stretch to same height */
-  border:1px solid #d1d9e6;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px;
+  background-color: #f9f9f9;
 }
-
-
-/* Map Preview Section */
-.mapPreviewSection {
-  flex: 1;
-  margin-right: 20px; /* Space between preview and settings */
-}
-
-.mapPreviewSection h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #333;
-  font-size: 18px;
-}
-
-/* Map Preview Container */
-.mapPreviewContainer {
-  cursor: pointer;
-}
-
 .mapPreviewWrapper {
+  flex: 1;
   width: 100%;
   height: auto;
-}
 
+}
 .mapPreviewWrapper svg {
   width: 100%;
   height: auto;
 }
 
-.mapThemeSection {
-  flex: 0.3;
+/* Right side: Map Details Section */
+.mapDetailsSection {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #f9fafb;
-  border: 1px solid #d1d9e6;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-  height: fit-content;
-  margin: auto 0;
-}
-
-.mapThemeSection h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #333;
-  font-size: 18px;
-}
-
-/* Map Theme Settings */
-.mapThemeSettings {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding-top: 20px;
-}
-
-/* Setting Items */
-.settingItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.settingItem label {
-  font-weight: 500;
-}
-
-/* Color Inputs */
-.colorInputBox {
-  padding: 0;
-  height: 32px;
-  width: 100%;
-  border: none;
-}
-
-
-
-/* Map Theme Selector */
-.mapThemeSelector {
-  font-weight: bold;
-  background-color: #f5f7fa;
-  width: 100%;
-  text-align: center;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.mapThemeSelector:hover,
-.mapThemeSelector:focus {
-  border-color: #80a0b0;
-  outline: none;
-}
-
-/* Radio Group */
-.radioGroup {
-  display: flex;
-  gap: 10px;
-}
-
-.radioGroup label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.radioGroup label input[type="radio"] {
-  margin: 0;
-}
-
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .mapThemeContainer {
-    flex-direction: column;
-  }
-
-  .mapPreviewSection,
-  .mapThemeSection {
-    margin-right: 0;
-    min-width: auto;
-  }
-
-  .settingItem {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .settingItem label {
-    width: auto;
-  }
-}
-
-
-
-
-/* Headings Styling */
-.mapPreviewSection h3,
-.mapSettingsSection h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-@media (max-width: 1200px) {
-  .mapLayer {
-    flex-direction: column;
-    justify-content: center;
-
-  }
-
-  .mapPreviewContainer,
-  .mapSettingsContainer {
-    flex: none;
-    width: 100%;
-  }
-}
-
-
-
-
-
-/* Groups Layer */
-.groupsLayer {
-  margin-top: 20px; /* Adjust as needed */
-}
-
-
-
-
-
-
-
-
-
-/* View Larger Map Button */
-.viewLargerButton {
-  margin-top: 10px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-/* Popup Overlay */
-.popupOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* Popup Content */
-.popupContent {
-  background-color: #e9ecef;
-  padding: 20px;
-  position: relative;
-  max-width: 90%;
-  max-height: 90%;
-  overflow: auto;
-  border-radius: 8px;
-}
-
-/* Close Button */
-.closeButton {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: transparent;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  color: #333;
-}
-
-.mapContainer {
-  cursor: pointer;
-
-}
-
-/* Large Map Container */
-.largeMapContainer {
-  width: 100%;
-  height: auto;
-
-
-}
-
-/* Adjust the map size in the popup */
-.largeMapContainer svg {
-  width: 100%;
-  height: auto;
-}
-
-/* Map Settings Layer */
-.mapSettingsLayer {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  
-}
-
-/* Map Settings Container */
-.mapSettings {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0 auto;
-
-}
-
-/* Map Settings Row */
-.mapSettingsRow {
-  display: flex;
-  flex-wrap: wrap;
   gap: 20px;
 }
 
-/* Setting Item */
-.settingItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Radio Group Styling */
-.radioGroup {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* Adjust label styling if needed */
-.settingItem label {
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-/* Input Box */
-.inputBox {
-  padding: 6px 8px;
-  font-size: 14px;
+/* The two boxes inside Map Details (Map Theme + Map Details) */
+.mapDetailsContainer {
   border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  height: 32px;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #f9f9f9;
+}
+.mapDetailsHeader {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: left;
 }
 
-/* Ensure color inputs are displayed properly */
-.inputBox[type="color"] {
-  padding: 0;
-  height: 32px;
-  width: 100%;
-}
-
-/* Adjust the select input to match other inputs */
-.inputBox select {
-  padding: 6px 8px;
-  font-size: 14px;
-  border-radius: 4px;
-}
-
-/* Checkbox Styling */
-.settingItem input[type="checkbox"] {
-  margin-right: 5px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .mapSettingsRow {
-    flex-direction: column;
-  }
-}
-
-/* Theme Selector Container */
-.themeSelectorContainer {
+/* Theme Settings Box => already inside .mapDetailsContainer now, but keep the layout */
+.themeSettingsBox {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px; /* Optional: Add spacing above the theme selector */
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 0; /* override old margin */
+  background-color: #f9f9f9; /* can keep or remove */
+  border: none; /* remove extra border if desired */
+  padding: 0; /* remove extra padding */
 }
 
-/* Theme Preview */
+/* .themeField => same as before */
+.themeField {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
 .themePreview {
   display: flex;
   height: 20px;
   border: 1px solid #ccc;
-  border-radius: 4px; /* Optional: Rounded corners */
+  border-radius: 4px;
   overflow: hidden;
+  margin-top: 5px;
 }
-
 .themeColor {
   width: 20px;
   height: 100%;
 }
 
-/* Error Message Styling */
-.errorMessage {
-  color: #555;
-  font-size: 12px;
-  align-items: center;
+/* Setting Item */
+.settingItem {
   display: flex;
-  justify-content: center;
-  margin:0px
-
+  flex-direction: column;
+  margin-bottom: 15px;
+  align-items: flex-start;
+}
+.settingItem label {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+.settingItemRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.hideTitleLabel {
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
-.warningIcon {
-  height: 15px;
-  margin: 2px;
-  
-  
+/* Description */
+.descriptionInput {
+  resize: none;
+  min-height: 80px;
+  width: 100%;
 }
 
-.fileInput {
-  text-align: center;
-  
+/* Fixed-Size Tag Box */
+.tagBox {
+  margin-top: 10px;
+  width: 100%;
+  height: 60px; /* enough for ~2 lines of smaller tags */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  /* Instead of 'overflow: hidden;' do this: */
+  overflow-y: auto;
+  overflow-x: hidden; 
+  align-content: flex-start;
 }
 
-
-/* file upload button */
-input[type="file"]::file-selector-button {
-  border-radius: 4px;
-  padding: 0 16px;
-  height: 30px;
+.tagItem {
+  background-color: #e0e0e0;
+  border-radius: 16px;
+  font-size: 12px; /* smaller so we can fit more */
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+}
+.removeTagButton {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  margin-left: 5px;
   cursor: pointer;
-  background-color: #dadada;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
-  margin-right: 16px;
-  transition: background-color 200ms;
-  display: flex;
-  align-items: center;
-  margin: 5px auto;
-
-
-
- 
+  color: #333;
+}
+.removeTagButton:hover {
+  color: #ff4d4f;
+}
+.referencesList {
+  /* border: 1px solid #ccc;  // remove border */
+  /* border-radius: 6px;     // remove border radius */
+  /* padding: 8px;           // remove padding */
+  max-height: 120px; 
+  overflow-y: auto;
 }
 
-/* file upload button hover state */
-input[type="file"]::file-selector-button:hover {
-  background-color: #f3f4f6;
+/* Make them display in a vertical line with some spacing: */
+.referenceItem {
+  background-color: transparent; /* no background */
+  margin-bottom: 6px;
+  padding: 0; /* no padding */
+  border-radius: 0;
+  cursor: pointer;
+  text-decoration: underline; /* optional, or remove it if you prefer */
+  color: #333;
+}
+.referenceItem:hover {
+  text-decoration: none; /* or keep underline on hover */
+  background-color: transparent; 
 }
 
-/* file upload button active state */
-input[type="file"]::file-selector-button:active {
-  background-color: #e5e7eb;}
-
-
-  /* Modal Overlay */
+/* Modal Overlay: full-screen dimmed background */
 .modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0,0,0,0.5); 
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  
+  align-items: center;     /* vertically center modal */
+  justify-content: center; /* horizontally center modal */
+  z-index: 9999;           /* ensure it's on top */
 }
 
-/* Modal Content */
+/* Modal Content: the "box" in the middle */
 .modalContent {
   background-color: #fff;
-  padding: 30px;
-  position: fixed;
-  text-align: center;
+  padding: 20px 30px;
   border-radius: 8px;
-  width: 60%;
-  overflow: hidden;
-
+  width: 500px;          /* fixed width, or you can do max-width */
+  max-width: 95%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  position: relative;    /* so we can position the close button inside */
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* space between form rows, button, etc. */
 }
 
-
-
-/* Close Button */
+/* Close button in top-right corner */
 .closeButton {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  background: transparent;
+  top: 12px;
+  right: 12px;
+  background: none;
   border: none;
   font-size: 24px;
   cursor: pointer;
 }
 
-/* Modal Buttons */
-.modalButtons {
-  margin-top: 20px;
+/* Center the modal heading or you can keep left-aligned */
+.modalContent h2 {
+  margin-top: 0;
+  text-align: center; /* optional */
 }
 
-.modalButtons .primaryButton,
-.modalButtons .secondaryButton {
-  margin: 10px;
-  padding: 10px 20px;
-}
-
-.modalButtons .primaryButton {
-  background-color: #55957b;
-  color: #fff;
-  border: none;
-}
-
-.modalButtons .secondaryButton {
-  background-color: #80a0b0;
-  color: #fff;
-  border: none;
-}
-
-
-
-/* Settings Modal Container */
-.settingsModalContainer {
+/* Example “form row” layout for label + input */
+.modalFormRow {
   display: flex;
-  gap: 20px;
-  margin: 0 auto;
+  flex-wrap: nowrap;  /* keep label + input side-by-side on wide screens */
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-/* Tags Container */
-.tagsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
+/* The label in each row */
+.modalFormRow label {
+  flex: 0 0 150px;   /* fixed label width */
+  font-weight: bold;
+  margin-right: 10px;
 }
 
-/* Individual Tag Item */
-.tagItem {
+/* Inputs or textareas occupy remaining space */
+.modalFormRow input,
+.modalFormRow textarea {
+  flex: 1;
+  font-size: 14px;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  min-height: 32px;
+}
+
+/* For the textarea to align well in the row: */
+.modalFormRow textarea {
+  resize: vertical;  /* allow vertical resizing if you like */
+}
+
+/* The Save button at the bottom */
+.modalContent .primaryButton {
+  align-self: flex-end; /* push the button to the right */
+  margin-top: 12px;
+}
+
+.deleteRefLink {
+  color: #666;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-right: auto; /* so it stays on the left if you want */
+}
+.deleteRefLink:hover {
+  color: #333;
+}
+
+/* The row that holds Delete on the left and Save on the right */
+.modalBottomRow {
   display: flex;
   align-items: center;
-  background-color: #e0e0e0;
-  padding: 5px 10px;
-  border-radius: 16px;
-  font-size: 14px;
-}
-
-/* Remove Tag Button */
-.removeTagButton {
-  background: none;
-  border: none;
-  color: #333;
-  font-size: 16px;
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-.removeTagButton:hover {
-  color: #ff4d4f;
-}
-
-
-.settingItem {
-  display: flex;
-  flex-direction: column; /* Stack label and input vertically */
-  align-items: flex-start; /* Align items to the left */
-  gap: 5px;
-  margin-bottom: 15px;
-}
-
-/* Map Image Preview */
-.mapImagePreview {
-  flex: 1;
-  max-width: 800px;
-  margin: auto;
-}
-
-/* Settings Input Fields */
-.settingsInputFields {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-width: 400px;
-}
-
-.settingsInputFields h2 {
-  margin-top: 0;
-}
-
-/* Description Input Wrapper */
-.descriptionInputWrapper {
-  width: 100%;
-}
-
-/* Description Input */
-.descriptionInput {
-  resize: none; /* Prevent resizing */
-  height: 80px; /* Set a fixed height */
-  overflow: auto;
-  width: 100%;
-  box-sizing: border-box;
-  font-family: inherit;
-  font-size: 14px;
+  justify-content: space-between; /* space between so delete is left, save is right */
+  margin-top: 8px;
 }
 
 
 
-/* Custom Select Container */
+
+/* Visibility Select */
 .customSelect {
   position: relative;
-  width: 80px;
+  width: 100px;
   padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -1119,21 +608,16 @@ input[type="file"]::file-selector-button:active {
   display: flex;
   align-items: center;
   user-select: none;
+  margin-top: 5px;
 }
-
-/* Visibility Icon */
 .visibilityIcon {
   font-size: 16px;
-  margin-right: 8px;
+  margin-right: 6px;
 }
-
-/* Select Arrow */
 .selectArrow {
   margin-left: auto;
   font-size: 12px;
 }
-
-/* Options Dropdown */
 .selectOptions {
   position: absolute;
   top: calc(100% + 2px);
@@ -1143,50 +627,34 @@ input[type="file"]::file-selector-button:active {
   border: 1px solid #ccc;
   z-index: 100;
 }
-
 .selectOption {
   padding: 6px 8px;
   display: flex;
   align-items: center;
   cursor: pointer;
 }
-
 .selectOption:hover {
   background-color: #f0f0f0;
 }
 
-/* Checkbox Item Styling */
-.checkboxItem {
-  margin-top: 5px; /* Adjust spacing as needed */
-}
-
-.checkboxItem label {
+/* Navigation Buttons */
+.navigationButtons {
   display: flex;
-  align-items: center;
-  font-size: 14px;
-}
-
-.checkboxItem input[type="checkbox"] {
-  margin-right: 5px;
-}
-
-
-
-.inputBox[type="text"],
-.inputBox[type="textarea"] {
-  width: 100%;
-}
-
-.settingItem textarea {
-  resize: none;
-  min-height: 80px;
-  
-}
-
-/* Modal Buttons */
-.modalButtons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: center;
   margin-top: 20px;
+}
+
+/* (Popup / Modal styles can be removed if not used) */
+
+/* Responsive */
+@media (max-width: 768px) {
+  .topThreeBoxes {
+    flex-direction: column;
+  }
+  .mapPreviewAndDetails {
+    flex-direction: column;
+  }
+  .mapDetailsSection {
+    margin-top: 20px;
+  }
 }

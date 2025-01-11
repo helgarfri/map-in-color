@@ -316,7 +316,7 @@ const handleMarkAllAsRead = async () => {
                 <strong>{mapToDelete?.title || 'Untitled Map'}</strong>"? This
                 action cannot be undone.
               </p>
-              <button className={styles.deleteButton} onClick={confirmDelete}>
+              <button className={styles.deleteButtonModal} onClick={confirmDelete}>
                 Delete
               </button>
               <button className={styles.cancelButton} onClick={cancelDelete}>

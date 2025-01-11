@@ -6,7 +6,6 @@ const auth = require('../middleware/auth');
 const { Notification, User, Map, Comment } = require('../models'); // Added Comment
 const { Op } = require('sequelize');
 
-// Get notifications for the authenticated user
 router.get('/', auth, async (req, res) => {
   try {
     const notifications = await Notification.findAll({
@@ -18,12 +17,39 @@ router.get('/', auth, async (req, res) => {
           attributes: ['id', 'username', 'firstName', 'profilePicture'],
         },
         {
+          // Return enough map fields to build a thumbnail & star count
           model: Map,
-          attributes: ['id', 'title'],
+          attributes: [
+            'id',
+            'title',
+            'selectedMap',
+            'oceanColor',
+            'unassignedColor',
+            'groups',
+            'data',
+            'fontColor',
+            'isTitleHidden',
+            'saveCount',      // so we can show how many stars the map has
+          ],
         },
         {
+          // Return enough comment fields to build comment text or reply text
           model: Comment,
-          attributes: ['id', 'content'],
+          attributes: [
+            'id',
+            'content',        // your "commentText" 
+            'ParentCommentId',
+            'likeCount',
+            'dislikeCount',
+          ],
+          // Include the parent comment if we want "Original Comment" for a reply
+          include: [
+            {
+              model: Comment,
+              as: 'ParentComment',
+              attributes: ['id', 'content'],
+            },
+          ],
         },
       ],
       order: [['createdAt', 'DESC']],

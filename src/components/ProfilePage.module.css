@@ -1,5 +1,3 @@
-/* src/components/ProfilePage.module.css */
-
 .profilePageContainer {
   display: flex;
 }
@@ -8,319 +6,385 @@
   flex: 1;
   padding: 20px;
   transition: margin-left 0.3s ease;
-  margin-left: 250px; /* Width of expanded sidebar */
+  margin-left: 250px; /* expanded sidebar width */
 }
 
 .contentCollapsed {
-  margin-left: 80px; /* Width of collapsed sidebar */
+  margin-left: 80px; /* collapsed sidebar width */
 }
 
-/* Main Content */
-.mainContent {
+/* Overall container limit */
+.mainContainer {
   display: flex;
-  align-items: flex-start;
+  gap: 20px;
+  max-width: 1600px; /* no stretching beyond 1600px wide */
+  margin: 0 auto;
 }
 
-/* Profile Section */
-.profileSection {
+/* ========== LEFT COLUMN ========== */
+.leftColumn {
+  width: 380px; /* bigger/wider profile info section */
+  display: flex;
+  flex-direction: column;
+}
+
+.profileInfoBox {
   background-color: #fff;
-  padding: 20px;
+  padding: 30px; /* bigger padding */
+  border-radius: 8px;
 }
 
+/* Profile Picture Larger */
 .profilePictureWrapper {
   display: flex;
   justify-content: center;
+  margin-bottom: 15px;
 }
-
 .profilePicture {
-  width: 300px;
-  height: 300px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.profileInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-}
-
+/* Username + name + location + stats => bigger text */
 .username {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: gray;
+  text-align: center;
   margin: 0;
 }
-
 .fullName {
-  font-size: 2.5rem;
-  margin: 5px 0;
+  font-size: 2.2rem;
+  text-align: center;
+  margin: 5px 0 10px 0;
 }
-
 .infoRow {
   display: flex;
-  align-items: center;
-  margin-top: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
 }
-
 .infoItem {
   display: flex;
   align-items: center;
-  margin-right: 20px;
+  font-size: 1rem;
 }
-
 .icon {
-  margin-right: 8px;
-  color: gray;
+  margin-right: 5px;
+  color: #888;
 }
-
 .statsRow {
   display: flex;
-  align-items: center;
-  margin-top: 15px;
+  gap: 20px;
+  justify-content: center;
+  margin: 15px 0;
 }
-
 .statsItem {
   display: flex;
   align-items: center;
-  margin-right: 20px;
+  gap: 6px;
+  font-size: 1rem;
 }
-
 .bio {
-  margin-top: 20px;
-  font-size: 1.1rem;
+  margin-top: 10px;
+  font-size: 1.05rem;
   line-height: 1.6;
   text-align: center;
-  max-width: 350px;
+  color: #444;
 }
 
-/* Recent Activity Section */
-.recentActivitySection {
-  margin-top: 30px;
-}
-
-.activityTimeline {
-  position: relative;
-  margin-left: 20px;
-}
-
-.activityItem {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.timelineDot {
-  position: absolute;
-  left: -30px;
-  top: 5px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.activityContent {
-  padding-left: 20px;
-}
-
-.activityContent p {
-  margin: 0;
-}
-
-.activityTime {
-  display: block;
-  color: gray;
-  font-size: 0.8rem;
-  margin-top: 5px;
-}
-
-.activityTimeline::before {
-  content: '';
-  position: absolute;
-  left: -25px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: #ddd;
-}
-
-/* Maps Section */
-.mapsSection {
-  flex: 1;
-  background-color: #f0f0f0; /* Grayish background */
-  padding: 20px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Map Card (Giant Map) */
-.mapCard {
-  overflow: hidden;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-  margin-bottom: 20px;
-}
-
-.mapCard:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.mapThumbnail {
-  width: 100%;
-  overflow: hidden;
-}
-
-.mapThumbnail svg {
-  width: 100%;
-  height: auto;
-}
-
-.mapDetails {
-  padding: 16px;
-  text-align: center;
-}
-
-.mostStarredLabel {
-  display: inline-block;
-  background-color: #e0e0e0;
-  color: #666;
-  padding: 4px 8px;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
+/* Edit Profile button bigger */
+.editProfileButton {
+  margin-top: 20px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  background-color: #55957b;
+  color: #fff;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
+}
+.editProfileButton:hover {
+  background-color: #4a846d;
 }
 
-.mapTitle {
-  margin: 0;
-  font-size: 1.5rem;
+/* ========== RIGHT COLUMN ========== */
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.mapStats {
+/* Tabs row, left-aligned, no big background */
+.tabs {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-top: 10px;
+  gap: 10px;
 }
 
-.starIcon {
-  color: black;
-  margin-right: 5px;
-}
-
-/* Navigation Tabs */
-.mapsNav {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.mapsNav button {
-  flex: 1;
-  padding: 10px;
+/* Each tab */
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background-color: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
+  border: 2px solid transparent;
+  padding: 8px 12px;
+  border-radius: 4px;
   font-size: 1rem;
+  cursor: pointer;
+  color: #444;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.tabButton:hover {
+  background-color: #f0f0f0;
+}
+.tabIcon {
+  font-size: 1.2rem;
+}
+.activeTab {
+  background-color: #eaeaea;
+  border-color: #ccc;
+  font-weight: bold;
+  color: #000;
+}
+
+/* Tab content area */
+.tabContent {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Sort row above the maps grid */
+.sortRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+.sortSelect {
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
   cursor: pointer;
 }
 
-.mapsNav button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+/* MAPS GRID */
+.mapsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 
-.activeTab {
-  border-bottom: 2px solid #000;
-}
-
-/* Maps List */
-.mapsList {
+/* Single map card */
+.mapCard {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  transition: box-shadow 0.2s ease;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
 }
-
-.mapListItem {
+.mapCard:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.mapThumbnail {
+  width: 100%;
+  height: 130px;
+  background: #fafafa;
+  overflow: hidden;
+}
+.mapThumbnail svg {
+  width: 100%;
+  height: 100%;
+}
+.mapInfo {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.mapTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.mapOwner {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+.mapStats {
   display: flex;
   align-items: center;
-  padding: 10px 0;
-  cursor: pointer;
-  border-bottom: 1px solid #ccc;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+.starIcon {
+  color: black;
+}
+.mapTime {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: auto;
 }
 
-.mapListItem:last-child {
-  border-bottom: none;
+/* ========== ACTIVITY FEED ========== */
+.feedContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* bigger gap between items */
 }
 
-.mapListItem:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+.feedItem {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  transition: box-shadow 0.2s ease;
+}
+.feedItem:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
-.mapListThumbnail {
-  width: 100px;
-  height: 70px;
+/* Top line of the feed item (icon, user, action) */
+.feedHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.feedIcon {
+  font-size: 1.6rem;
+  color: #555;
+}
+
+/* If you want a different style for activity icons: */
+.activityIcon {
+  font-size: 1.6rem;
+}
+
+/* Profile pic in the feed (clickable link) */
+.feedProfilePicWrapper {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
   overflow: hidden;
-  margin-right: 20px;
+  border-radius: 50%;
+}
+.feedProfilePic {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
-.mapListThumbnail svg {
+/* The user info (name & action text) */
+.feedUserInfo {
+  display: flex;
+  flex-direction: column;
+}
+.feedUserName {
+  font-weight: 600;
+  text-decoration: none;
+  color: #333;
+}
+.feedUserName:hover {
+  text-decoration: underline;
+}
+.feedActionText {
+  font-size: 0.95rem;
+  color: #555;
+}
+.feedMapTitle {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 500;
+}
+.feedMapTitle:hover {
+  text-decoration: underline;
+}
+.feedTime {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* Large map thumbnail below the feed header */
+.feedMapThumbnail {
+  width: 100%;
+  max-width: 600px;
+  height: 280px; /* bigger */
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+.feedMapThumbnail svg {
   width: 100%;
   height: 100%;
 }
 
-.mapListInfo {
-  flex: 1;
-}
-
-.mapListTitle {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.mapListTime {
-  color: gray;
-  font-size: 0.9rem;
-}
-
-.mapListStats {
-  display: flex;
-  align-items: center;
+/* If there is a comment, show it in a box. */
+.commentBox {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 6px;
   margin-top: 5px;
 }
 
-.mapListStats .starIcon {
-  color: gold;
-  margin-right: 5px;
-}
-
-/* Loading Container */
+/* Loading/Error */
 .loadingContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  min-height: 200px;
 }
-
 .error {
   color: red;
-  padding: 20px;
+  margin-top: 20px;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .profileContent {
-    margin-left: 80px;
-  }
-
-  .mainContent {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .profileSection,
-  .mapsSection {
+/* Responsive */
+@media (max-width: 900px) {
+  .leftColumn {
     width: 100%;
-    margin-right: 0;
     margin-bottom: 20px;
   }
+  .mainContainer {
+    flex-direction: column;
+  }
 
-  .profilePicture {
-    width: 200px;
+  .feedMapThumbnail {
     height: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tabs {
+    flex-wrap: wrap;
+  }
+  .tabButton {
+    flex: 1 1 auto;
+  }
+  .mapsGrid {
+    grid-template-columns: 1fr;
+  }
+  .feedMapThumbnail {
+    height: 180px;
   }
 }

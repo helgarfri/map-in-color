@@ -17,4 +17,6 @@ Map.hasMany(Comment, { onDelete: 'CASCADE' });
 Comment.belongsTo(Map);
 
 
+
+
 module.exports = Comment;

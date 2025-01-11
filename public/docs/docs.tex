@@ -1,0 +1,86 @@
+
+\documentclass{article}
+
+% Pakkar
+\usepackage[utf8]{inputenc} % UTF-8 kóðun
+\usepackage[T1]{fontenc} % Leturkóðun fyrir íslenska stafi
+\usepackage{graphicx} % Fyrir myndir
+\usepackage{listings} % Fyrir kóðalista
+\usepackage{xcolor} % Fyrir sérsniðna liti
+\usepackage{minted} % Fyrir syntax highliting
+
+% Skilgreina sérsniðna liti fyrir syntax highlighting
+\definecolor{keywordcolor}{rgb}{0,0,0.8}
+\definecolor{commentcolor}{rgb}{0,0.5,0}
+\definecolor{stringcolor}{rgb}{0.58,0,0.82}
+
+% Breyta myndamerki yfir á íslensku
+\renewcommand{\figurename}{Mynd}
+
+% Sérsniðin dagsetning
+\makeatletter
+\newcommand{\month@icelandic}[1]{%
+  \ifcase#1\or
+  janúar\or
+  febrúar\or
+  mars\or
+  apríl\or
+  maí\or
+  júní\or
+  júlí\or
+  ágúst\or
+  september\or
+  október\or
+  nóvember\or
+  desember\fi
+}
+\newcommand{\icelandicdate}{\the\day. \month@icelandic{\month} \number\year}
+\makeatother
+\date{\icelandicdate} % Nota sérsniðna dagsetningu
+
+% Kóðalista stillingar
+\lstset{
+    language=[x86masm]Assembler, % Stillum tungumál á Assembly
+    basicstyle=\footnotesize\ttfamily, % Nota skrifvélaleturtýpu fyrir kóða
+    numbers=left, % Línunúmer
+    numberstyle=\tiny, % Stíll fyrir línunúmer
+    stepnumber=1, % Bil milli línunúmera
+    numbersep=5pt, % Fjarlægð milli línunúmera og kóða
+    backgroundcolor=\color{white}, % Bakgrunnslitur fyrir kóðablokk
+    showspaces=false, % Sýna bil
+    showstringspaces=false, % Sýna bil innan strengja
+    showtabs=false, % Sýna tab
+    tabsize=2, % Stærð tabs
+    captionpos=b, % Staðsetning myndatexta
+    breaklines=true, % Sjálfvirk línuskipting
+    breakatwhitespace=false, % Línuskipting aðeins við bil
+    keywordstyle=\color{keywordcolor}\bfseries, % Stíll fyrir lykilorð
+    commentstyle=\color{commentcolor}\itshape, % Stíll fyrir athugasemdir
+    stringstyle=\color{stringcolor}, % Stíll fyrir strengi
+    frame=single, % Rammi utan um kóðann
+    framerule=0.5pt,
+    framesep=2mm, % Bil milli ramma og kóða
+    escapeinside={\%*}{*)}, % Flótti innan kóða
+    morekeywords={MOV, ADD, SUB, MUL, DIV, PUSH, POP, CALL, RET, JMP, JE, JNE, JG, JL, JGE, JLE}, % Viðbótar lykilorð
+}
+
+% Upplýsingar um skjal
+\title{MIC Documentations}
+\author{Helgi Freyr Davíðsson}
+\date{\icelandicdate} % Nota sérsniðna dagsetningu
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+This document is a collection of all the documentation for the MIC (Map in Color) project. The project is a web application that allows users to create and share custom made maps displaying chloropleth data from a CSV file. Techologies used in the project include React for the front end, Node.js for the back end, and Postgres for the database. 
+
+\section{Creating a Map}
+To create a map in MIC, the user must must navigate to the data intergration page. They can select create a new map from the header or the sidebar menu. The user will get a pop up selection where they can select which type of map they would like to use e.g. World Map, US Map, Europe Map etc. The user will then be taken to the data integration page where they can upload a CSV file with the data they would like to display on the map. They have the option of downloading a template with all the countries or regions their selected maps contains. The CSV file must contain a column with the name of the country or region and a column with the data to be displayed. If the CSV file is not correctly formatted, e.g. missing colmuns, wrong region names, or incorrect data types, the user will recive an error log with all the issue and the line number where the issue occured. If all the data is valid the user can procede to define custom ranges for the data. The user also has an option to generate suggested ranges with desired number of ranges. The user can name their ranges and select a color scheme for each range. Ones all the ranges are defined and are valid and do not overlap with eachother the user can generate groups that will be displayed on the map preview below. The user can also customize the map theme either by select from a preset of themes or by selecting custom font color, ocean folor and unasigned countries color. Ones that is doen the user will get a map settings pop uo where the title of the map is defiened with the option to hide it, a map description, map tags and visibility options of public and private. Ones the map is created the user can navigate to the map view page where they can see all the information about the map and share it with others.
+
+
+
+
+\end{document}

@@ -2,20 +2,27 @@
     fill:#c0c0c0
 }                        /* default color for all states not specified below */
 .borders {
-    stroke:#FFFFFF; stroke-width:1
+    stroke:#4b4b4b; stroke-width:1
 }    /* color and width of borders between states */
 .dccircle {
     display:yes
 }                      /* set display to yes to show the circle for the District of Columbia, or none to hide it */
 
 .separator1 {
-    stroke:#B0B0B0; stroke-width:3
+    stroke:#4b4b4b; stroke-width:3
 
 } 
 
 .svg-us {
-    background-color: rgb(255, 255, 255);
+    width: 100%;
+    height: auto;
+    background-color: white;
+    max-height: 750px;
 }
+
+.svg-us--large {
+    max-height: none;
+  }
 
 .groups {
     fill:none;
@@ -45,17 +52,13 @@ Place this code in the empty space below. */
 	
  }
 
- #usMap {
-    display: inline-block;
-    vertical-align: middle;
-    width: 80%;
-	display: flex;
-	align-items: center;
-	margin: 0 auto;
-    margin-top: 15px;
-
-
- }
+#usMap{
+    display: block;
+    height: auto;
+    margin: 0 auto; /* center horizontally */
+    
+    
+}
 
  @media (max-width: 735px) {
     #usMap {

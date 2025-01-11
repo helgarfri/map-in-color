@@ -175,22 +175,25 @@
 
 #worldMap{
 	background-color: rgba(255, 255, 255, 0);
-	padding-top: 10px;
-	padding-bottom: 6px;
 	display: flex;
 	align-items: center;
 	margin: 0 auto;
 	justify-content: center;
 	position: relative;
 	width: 100%;
-	height: 100%;
-	
-
-	
-	
 }
 
 .groupsContainer {
 	border: #4b4b4b 1px solid;
 }
 
+
+.svg-world {
+	width: 100%;
+    height: auto;
+    max-height: 750px;
+}
+
+.svg-world--large {
+  max-height: none;
+}

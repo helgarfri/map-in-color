@@ -1,540 +1,363 @@
 /* src/components/Dashboard.module.css */
 
-/* General container styles */
+/* GENERAL LAYOUT */
 .dashboardContainer {
   display: flex;
   min-height: 100vh;
-  color: black;
+  background-color: #f7f7f7;
 }
 
-/* Main dashboard content */
+/* The main content area (beside your global Sidebar component) */
 .dashboardContent {
   flex: 1;
-  padding: 20px;
-  margin-left: 250px; /* Sidebar width when expanded */
   transition: margin-left 0.3s ease;
+  padding: 20px;
+  margin-left: 250px; /* Adjust for your global sidebar’s expanded width */
 }
 
 .contentCollapsed {
-  margin-left: 70px; /* Sidebar width when collapsed */
+  margin-left: 70px; /* If your sidebar collapses to 70px */
 }
 
-/* Header Section */
-.header {
-  position: relative; /* For positioning elements inside */
+/* MAIN WRAPPER: 3 columns side by side. */
+.mainWrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center; /* Center horizontally */
-  margin-bottom: 20px;
-}
-
-/* New styles for the top part of the header */
-.headerTop {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-top: 40px;
-  margin-right: 20px;
-  margin-left: 20px;
-}
-
-/* Welcome text styles */
-.welcomeText {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  margin-top: 40px; /* Add top margin to compensate for the button */
-}
-
-.header h1 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
-
-
-
-.plusIcon {
-  margin-right: 8px;
-}
-
-
-/* Statistics Panel */
-.statisticsPanel {
-  display: flex;
-  justify-content: space-around; /* Space between items */
-  align-items: center;
-  background-color: white; /* Light background */
-  padding: 20px;
-  border-radius: 8px;
-  width: 100%; /* Stretch across the width */
-  margin-bottom: 20px;
-}
-
-.statistic {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1; /* Equal width */
-  text-align: center;
-}
-
-.statIcon {
-  font-size: 2.5rem;
-  color: white;
-  margin-bottom: 10px;
-}
-
-.statistic h3 {
-  margin: 0 0 5px 0;
-  font-size: 1.2rem;
-  color: #cccccc;
-}
-
-.statistic p {
-  font-size: 1.5rem;
-  margin: 0;
-  color: #cccccc;
-}
-
-
-.primaryButton,
-.secondaryButton {
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  border-radius: 4px;
-}
-
-.primaryButton {
-  background-color: #55957b;
-  color: #fff;
-}
-
-.secondaryButton {
-  background-color: #80a0b0;
-  color: #fff;
-}
-
-.statisticsPanel {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.statistic {
-  background-color: #333;
-  padding: 15px;
-  border-radius: 8px;
-  flex: 1;
-  text-align: center;
-}
-
-.statistic h3 {
-  margin: 0 0 10px 0;
-}
-
-.statistic p {
-  font-size: 1.5rem;
-  margin: 0;
-}
-
-/* Main Content Area */
-.mainContent {
-  display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 20px;
 }
 
-/* Cards Container */
-.cardsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  border: 10px solid #666;
-  padding: 20px;
-  border-radius: 20px;
-  background-color: #222;
-}
-
-/* Map Card */
-.mapCard {
-  position: relative;
-  width: calc(33.333% - 20px); /* Three cards per row */
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.mapCard:hover .cardOverlay {
-  opacity: 1;
-}
-
-.thumbnail {
-  width: 100%;
-  height: 250px; /* Adjust as needed */
-  overflow: hidden;
-}
-
-.thumbnail svg {
-  width: 100%;
-  height: 100%;
-}
-
-.cardOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.cardOverlay h3 {
-  margin: 10px 0px 0px 10px;
-
-}
-
-.cardOverlay p {
-  margin: 0px 10px 10px 10px;
-}
-
-.cardActions {
-  display: flex;
-  gap: 10px;
-  margin: 0px 10px 10px 10px;
-}
-
-.editButton,
-.deleteButton {
-  padding: 6px 12px;
-  font-size: 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.editButton {
-  background-color: #80a0b0;
-  color: #fff;
-}
-
-.deleteButton {
-  background-color: #c4564d;
-  color: #fff;
-}
-
-/* Favorite Maps */
-.favoriteMaps {
-  /* Similar styles as recentMaps */
-  margin: 0 auto;
-}
-
-.favoriteMaps h2 {
-  margin-top: 0;
-}
-
-/* Bottom Content */
-.bottomContent {
-  display: flex;
-  gap: 20px;
-}
-
-/* Notifications and Recent Activity */
-.notifications,
-.recentActivity {
-  flex: 1;
+/* LEFT SIDEBAR: recently modified maps */
+.leftMapsSidebar {
+  width: 350px;           /* Wider than before */
+  flex-shrink: 0;
+  position: sticky;
+  top: 10px;              /* Offset from top, so it's below the Header as user scrolls */
   background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  
+  height: 100%;
 }
 
-.notifications h2,
-.recentActivity h2 {
+.leftMapsSidebar h2 {
   margin-top: 0;
 }
 
-/* Help and Support */
-.helpSupport {
-  margin-top: 40px;
-  padding: 20px;
-  background-color: #f8f8f8;
-  border-radius: 8px;
-  text-align: center;
+/* List of maps inside the left sidebar */
+.recentMapsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.helpSupport h2 {
-  margin-top: 0;
+.mapListItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
 }
 
-.helpSupport a {
-  color: #007bff;
-  text-decoration: none;
+.mapListItem:last-child {
+  border-bottom: none;
 }
 
-.helpSupport a:hover {
+.mapTitle {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #333;
+  margin-right: 10px;
+  cursor: pointer;
+}
+.mapTitle:hover {
   text-decoration: underline;
 }
 
-/* Modal Styling */
+.mapActions {
+  display: flex;
+  gap: 6px;
+  margin-right: 10px;
+}
+
+.editBtn,
+.deleteBtn {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.editBtn:hover {
+  background-color: #9aa9b1;
+}
+.deleteBtn {
+  background-color: #e57c7c;
+}
+.deleteBtn:hover {
+  background-color: #d65b5b;
+}
+
+.mapModifiedDate {
+  margin-left: auto;
+  color: #888;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* CENTER COLUMN: Stats + Activity Feed */
+.centerColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* STATS (top of center column) */
+.statsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  min-height: 40px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.statIcon {
+  font-size: 16px;
+}
+.statLabel {
+  font-weight: 500;
+  color: #444;
+}
+.statValue {
+  font-weight: bold;
+  color: #222;
+}
+
+/* ACTIVITY FEED (below stats) */
+.activityFeedSection {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.activityFeedSection h2 {
+  margin-top: 0;
+}
+.activityFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Single feed item */
+.activityItem {
+  display: flex;
+  background-color: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 15px;
+  gap: 15px;
+}
+.thumbContainer {
+  width: 120px;
+  height: 80px;
+  background-color: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.defaultThumbnail {
+  color: #666;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.activityDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.starCount {
+  color: #444;
+  font-weight: bold;
+}
+.commentBox {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #eee;
+}
+.commentReplyBox {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #eee;
+}
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+  min-width: 40px;
+}
+.commentText {
+  background-color: #f9f9f9;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+.originalComment {
+  background-color: #fafafa;
+  border-left: 4px solid #ccc;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.replyBox {
+  display: flex;
+  gap: 8px;
+}
+.timestamp {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* RIGHT COLUMN: Notifications (not sticky) */
+.rightNotifications {
+  width: 350px; /* wider than before */
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 20px;
+  flex-shrink: 0;
+}
+.rightNotifications h2 {
+  margin-top: 0;
+}
+.markAllBtn {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.markAllBtn:hover {
+  background-color: #b1b1b1;
+}
+.notificationsList {
+  margin: 0;
+  padding: 0;
+  /* no scroll, no max-height to hold only 6 items (we slice in JS) */
+}
+.notificationItem {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.notificationItem:last-child {
+  border-bottom: none;
+}
+.notificationText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+.notificationTime {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #999;
+}
+.unread {
+  background-color: #fdfdfd;
+}
+.read {
+  background-color: #fff;
+}
+
+/* DELETE MODAL */
 .modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 999;
 }
-
-/* Modal Content */
 .modalContent {
   background-color: #fff;
   padding: 30px;
-  position: relative;
-  text-align: center;
   border-radius: 8px;
-  max-width: 900px; /* Increase the max-width */
-  width: 90%; /* Adjust the width */
+  width: 90%;
+  max-width: 450px;
+  box-sizing: border-box;
+  text-align: center;
 }
-
-
-
-
-
-
-/* Button styles */
-.cancelButton {
-  background-color: #cccccc;
-  color: #333;
-  margin-left: 10px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+.confirmDelete,
+.cancelDelete {
   border: none;
+  padding: 8px 20px;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+.confirmDelete {
+  background-color: #d9534f;
+  color: #fff;
+}
+.confirmDelete:hover {
+  background-color: #c9302c;
+}
+.cancelDelete {
+  background-color: #ccc;
+  color: #333;
+}
+.cancelDelete:hover {
+  background-color: #bbb;
 }
 
-.cancelButton:hover {
-  filter: brightness(0.9);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .mapCard {
-    width: calc(50% - 20px); /* Two cards per row */
-  }
-}
-
-@media (max-width: 768px) {
-  .mapCard {
-    width: 100%;
-  }
-
+/* RESPONSIVE (stack columns vertically if narrow) */
+@media (max-width: 992px) {
   .dashboardContent {
     margin-left: 0;
   }
-
-  .bottomContent {
+  .mainWrapper {
     flex-direction: column;
   }
-}
-
-
-/* Starred Maps */
-.starredMapsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  /* Ensure the container fills the available width */
-  width: 100%;
-}
-.starredMapCard {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  padding: 10px;
-  box-sizing: border-box; /* Include padding and border in width calculations */
-  flex: 1 1 calc(25% - 20px); /* Base width for four cards per row */
-}
-
-
-.starredMapCard:hover {
-  transform: scale(1.02);
-}
-
-/* Thumbnail and Info Styles */
-.starredThumbnail {
-  width: 50%;
-  height: 150px;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 20px;
-}
-
-.starredThumbnail svg {
-  width: 100%;
-  height: 100%;
-}
-
-.starredMapInfo {
-  margin-top: 10px;
-}
-
-.starredMapInfo h3 {
-  margin: 0 0 5px 0;
-}
-
-.starredMapInfo p {
-  margin: 0 0 5px 0;
-  color: #666;
-}
-
-.starCount {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-  font-weight: bold;
-  color: #333;
-}
-
-.starIcon {
-  color: black;
-  margin-right: 5px;
-}
-
-/* View All Link */
-.viewAllLink {
-  margin-top: 10px;
-  text-align: right;
-}
-
-.viewAllLink a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.viewAllLink a:hover {
-  text-decoration: underline;
-}
-
-/* Notifications Section */
-.notificationList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.notificationItem {
-  padding: 10px 0;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.notificationItem:last-child {
-  border-bottom: none;
-}
-
-.notificationItem:hover {
-  background-color: #f5f5f5;
-}
-
-.notificationContentWrapper {
-  display: flex;
-  align-items: flex-start;
-}
-
-.profilePicture {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
-}
-
-
-
-.notificationContent {
-  margin: 0;
-  font-size: 14px;
-  color: #333;
-  text-align: left;
-}
-
-.notificationMeta {
-  margin-top: 5px;
-  font-size: 12px;
-  color: #999;
-  text-align: left;
-}
-
-.senderName,
-.mapTitle {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.senderName:hover,
-.mapTitle:hover {
-  text-decoration: underline;
-}
-
-.unread {
-  background-color: #e6f7ff;
-}
-
-.read {
-  background-color: #fff;
-}
-
-.viewAllLink {
-  margin-top: 10px;
-  text-align: right;
-}
-
-.viewAllLink a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.viewAllLink a:hover {
-  text-decoration: underline;
-}
-.bottomContent {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-
-
-@media (max-width: 1800px) {
-  .starredMapCard {
-    flex: 1 1 calc(50% - 20px); /* Two cards per row */
-  }
-}
-
-@media (max-width: 1200px) {
-  .starredMapCard {
-    flex: 1 1 calc(100% - 20px); /* One card per row */
+  .leftMapsSidebar,
+  .rightNotifications {
+    position: static; 
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
+    margin-top: 20px;
   }
 }

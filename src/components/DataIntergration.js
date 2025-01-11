@@ -1,6 +1,4 @@
-/* DataIntegration.js */
 import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
 import styles from "./DataIntergration.module.css";
 import countryCodes from '../countries.json';
 import usStatesCodes from '../usStates.json';
@@ -14,11 +12,10 @@ import Footer from "./Footer";
 import Sidebar from "./Sidebar";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLock, faCaretDown, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faLock, faCaretDown, faFileCsv } from '@fortawesome/free-solid-svg-icons';
 import Header from "./Header";
 
-
-// Define preloaded color themes
+/** Color Palettes **/
 const themes = [
   {
     name: 'None',
@@ -66,105 +63,173 @@ const themes = [
   },
 ];
 
-
-  // Define preloaded map themes
-  const mapThemes = [
-    {
-      name: 'Default',
-      oceanColor: '#ffffff',
-      fontColor: 'black',
-      unassignedColor: '#c0c0c0',
-    },
-    {
-      name: 'Muted Twilight',
-      oceanColor: '#3D3846',
-      fontColor: 'white',
-      unassignedColor: '#5E5C64',
-    },
-    {
-      name: 'Oceanic',
-      oceanColor: '#006994',
-      fontColor: 'white',
-      unassignedColor: '#004c70',
-    },
-    {
-      name: 'Polar Ice',
-      oceanColor: '#E0F7FA', // Light blue ocean
-      fontColor: 'black',
-      unassignedColor: '#ffffff', // White unassigned areas
-    },
-    {
-      name: 'Vintage Sepia',
-      oceanColor: '#704214', // Brown ocean for an old map look
-      fontColor: 'white',
-      unassignedColor: '#D2B48C', // Tan unassigned areas
-    },
-    {
-      name: 'Midnight Blue',
-      oceanColor: '#191970', // Dark blue ocean
-      fontColor: 'white',
-      unassignedColor: '#2F4F4F', // Dark slate gray unassigned areas
-    },
-    {
-      name: 'Emerald Isles',
-      oceanColor: '#50C878', // Emerald green ocean
-      fontColor: 'black',
-      unassignedColor: '#98FB98', // Pale green unassigned areas
-    },
-    {
-      name: 'Desert Sand',
-      oceanColor: '#EDC9AF', // Sand-colored ocean
-      fontColor: 'black',
-      unassignedColor: '#C2B280', // Light brown unassigned areas
-    },
-    {
-      name: 'Fire and Ice',
-      oceanColor: '#1E90FF', // Dodger blue ocean
-      fontColor: 'white',
-      unassignedColor: '#FF4500', // Orange-red unassigned areas
-    },
-    {
-      name: 'Deep Space',
-      oceanColor: '#000000', // Black ocean
-      fontColor: 'white',
-      unassignedColor: '#2E2E2E', // Dark gray unassigned areas
-    },
-    {
-      name: 'Pastel Dreams',
-      oceanColor: '#FFB6C1', // Light pink ocean
-      fontColor: 'black',
-      unassignedColor: '#FFDAB9', // Peach puff unassigned areas
-    },
-    {
-      name: 'Sunset Glow',
-      oceanColor: '#FFA07A', // Light salmon ocean
-      fontColor: 'black',
-      unassignedColor: '#FF6347', // Tomato unassigned areas
-    },
-    {
-      name: 'Forest Green',
-      oceanColor: '#228B22', // Forest green ocean
-      fontColor: 'white',
-      unassignedColor: '#6B8E23', // Olive drab unassigned areas
-    },
-  ];
-
+/** Map Themes **/
+const mapThemes = [
+  {
+    name: 'Default',
+    oceanColor: '#ffffff',
+    fontColor: 'black',
+    unassignedColor: '#c0c0c0',
+  },
+  {
+    name: 'Muted Twilight',
+    oceanColor: '#3D3846',
+    fontColor: 'white',
+    unassignedColor: '#5E5C64',
+  },
+  {
+    name: 'Oceanic',
+    oceanColor: '#006994',
+    fontColor: 'white',
+    unassignedColor: '#004c70',
+  },
+  {
+    name: 'Polar Ice',
+    oceanColor: '#E0F7FA',
+    fontColor: 'black',
+    unassignedColor: '#ffffff',
+  },
+  {
+    name: 'Vintage Sepia',
+    oceanColor: '#704214',
+    fontColor: 'white',
+    unassignedColor: '#D2B48C',
+  },
+  {
+    name: 'Midnight Blue',
+    oceanColor: '#191970',
+    fontColor: 'white',
+    unassignedColor: '#2F4F4F',
+  },
+  {
+    name: 'Emerald Isles',
+    oceanColor: '#50C878',
+    fontColor: 'black',
+    unassignedColor: '#98FB98',
+  },
+  {
+    name: 'Desert Sand',
+    oceanColor: '#EDC9AF',
+    fontColor: 'black',
+    unassignedColor: '#C2B280',
+  },
+  {
+    name: 'Fire and Ice',
+    oceanColor: '#1E90FF',
+    fontColor: 'white',
+    unassignedColor: '#FF4500',
+  },
+  {
+    name: 'Deep Space',
+    oceanColor: '#000000',
+    fontColor: 'white',
+    unassignedColor: '#2E2E2E',
+  },
+  {
+    name: 'Pastel Dreams',
+    oceanColor: '#FFB6C1',
+    fontColor: 'black',
+    unassignedColor: '#FFDAB9',
+  },
+  {
+    name: 'Sunset Glow',
+    oceanColor: '#FFA07A',
+    fontColor: 'black',
+    unassignedColor: '#FF6347',
+  },
+  {
+    name: 'Forest Green',
+    oceanColor: '#228B22',
+    fontColor: 'white',
+    unassignedColor: '#6B8E23',
+  },
+];
 
 export default function DataIntegration({
-
   existingMapData = null,
   isEditing = false,
   isCollapsed,
   setIsCollapsed
 }) {
-
- 
-
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // --- State variables ---
   const [selectedMap, setSelectedMap] = useState(
     existingMapData ? existingMapData.selectedMap : location.state?.selectedMap || 'world'
   );
-  // Initialize state with existing map data if editing
+  const [fileName, setFileName] = useState('');
+  const [fileIsValid, setFileIsValid] = useState(null);
+  const [dataSource, setDataSource] = useState([]);
+  const [validData, setValidData] = useState([]);
+  const [missingCountries, setMissingCountries] = useState([]);
+  const [errors, setErrors] = useState([]);
+  const [data, setData] = useState([]);
+  const [fileStats, setFileStats] = useState({
+    lowestValue: null,
+    lowestCountry: '',
+    highestValue: null,
+    highestCountry: '',
+    averageValue: null,
+    medianValue: null,
+    standardDeviation: null,
+    numberOfValues: 0,
+    totalCountries: 0,
+  });
+
+  const [customRanges, setCustomRanges] = useState([
+    {
+      id: Date.now(),
+      color: '#c0c0c0',
+      name: '',
+      lowerBound: '',
+      upperBound: '',
+    },
+  ]);
+  const [numRanges, setNumRanges] = useState(5);
+  const [rangeOrder, setRangeOrder] = useState('low-high');
+  const [groups, setGroups] = useState([]);
+
+  // Map display
+  const [showTopHighValues, setShowTopHighValues] = useState(false);
+  const [showTopLowValues, setShowTopLowValues] = useState(false);
+  const [topHighValues, setTopHighValues] = useState([]);
+  const [topLowValues, setTopLowValues] = useState([]);
+  const [isTitleHidden, setIsTitleHidden] = useState(false);
+
+  // Colors & theme
+  const [oceanColor, setOceanColor] = useState('#ffffff');
+  const [unassignedColor, setUnassignedColor] = useState('#c0c0c0');
+  const [fontColor, setFontColor] = useState('black');
+  const [selectedPalette, setSelectedPalette] = useState('None');
+  const [selectedMapTheme, setSelectedMapTheme] = useState('Default');
+
+  // Other
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Map title
+  const [mapTitle, setMapTitle] = useState('');
+
+  const [references, setReferences] = useState(existingMapData?.sources || []);
+
+  // Track which reference is being edited (or null for new)
+  const [selectedReference, setSelectedReference] = useState(null);
+  // Show/hide modal
+  const [isReferenceModalOpen, setIsReferenceModalOpen] = useState(false);
+
+  const [tempSourceName, setTempSourceName] = useState('');
+  const [tempYear, setTempYear] = useState('');
+  const [tempUrl, setTempUrl] = useState('');
+  const [tempNotes, setTempNotes] = useState('');
+
+
+  // If existingMapData is provided (editing)
   useEffect(() => {
     if (existingMapData) {
       setFileName(existingMapData.fileName);
@@ -188,210 +253,99 @@ export default function DataIntegration({
       setIsPublic(existingMapData.isPublic || false);
       setIsTitleHidden(existingMapData.isTitleHidden || false);
     }
+    // eslint-disable-next-line
   }, [existingMapData]);
 
-
-  const [groups, setGroups] = useState([]);
-  const [data, setData] = useState([]);
-  const [customRanges, setCustomRanges] = useState([
-    {
-      id: Date.now(),
-      color: '#c0c0c0',
-      name: '',
-      lowerBound: '',
-      upperBound: '',
-    },
-  ]);
-  const [numRanges, setNumRanges] = useState(5); // Default to 5 ranges
-
-  const [rangeOrder, setRangeOrder] = useState('low-high'); // Default to 'low-high'
-
-  const [showLoginModal, setShowLoginModal] = useState(false);
-
-
-  // File information
-  const [fileName, setFileName] = useState('');
-  const [ fileIsValid, setFileIsValid ] = useState(null)
-  const [fileStats, setFileStats] = useState({
-    lowestValue: null,
-    lowestCountry: '',
-    highestValue: null,
-    highestCountry: '',
-    averageValue: null,
-    medianValue: null,
-    standardDeviation: null,
-    numberOfValues: 0,
-    totalCountries: 0,
-  });
-
-  // Map settings
-  const [mapTitle, setMapTitle] = useState('');
-  const [oceanColor, setOceanColor] = useState('#ffffff'); // Default ocean color
-  const [unassignedColor, setUnassignedColor] = useState('#c0c0c0'); // Default unassigned color
-  const [showTopHighValues, setShowTopHighValues] = useState(false);
-  const [showTopLowValues, setShowTopLowValues] = useState(false);
-  const [fontColor, setFontColor] = useState('black'); // Default to black font color
-  const [topHighValues, setTopHighValues] = useState([]);
-  const [topLowValues, setTopLowValues] = useState([]);
-
-  // State for selected color palette
-const [selectedPalette, setSelectedPalette] = useState('None'); // Default palette
-
-// State for selected map theme
-const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default map theme
-
-
-
-
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-
-
-
-
-  // State variables to store dataSource and validData
-  const [dataSource, setDataSource] = useState([]);
-  const [validData, setValidData] = useState([]);
-  const [missingCountries, setMissingCountries] = useState([]);
-
-  const [description, setDescription] = useState('');
-  const [tags, setTags] = useState([]);
-  const [tagInput, setTagInput] = useState('');
-
-  const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
-
-  const [isPublic, setIsPublic] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-
-
-  const [isTitleHidden, setIsTitleHidden] = useState(false);
-
-  // State for error messages
-  const [errors, setErrors] = useState([]);
-
-  let updateState = (event) => {
-    console.log(event.detail);
-  };
-
-  const dataCompleteness =
-    fileStats.totalCountries > 0
-      ? ((fileStats.numberOfValues / fileStats.totalCountries) * 100).toFixed(2)
-      : 'N/A';
-
-  // Handle missing countries when dataSource or validData change
+  // Prevent scrolling when popup is open
   useEffect(() => {
-    if (dataSource.length > 0 && validData.length > 0) {
-      const missingCountriesList = dataSource
-        .filter(
-          (item) =>
-            !validData.some(
-              (dataItem) =>
-                dataItem.name.toLowerCase() === item.name.toLowerCase()
-            )
-        )
-        .map((item) => item.name);
-
-      setMissingCountries(missingCountriesList);
-    }
-  }, [dataSource, validData]);
-
-  const togglePopup = () => {
-    setIsPopupOpen(!isPopupOpen);
-  };
-
-  useEffect(() => {
-    if (isPopupOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-  
-    // Cleanup on unmount
+    document.body.style.overflow = isPopupOpen ? 'hidden' : 'auto';
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [isPopupOpen]);
 
+  // Data completeness
+  const dataCompleteness =
+    fileStats.totalCountries > 0
+      ? ((fileStats.numberOfValues / fileStats.totalCountries) * 100).toFixed(2)
+      : 'N/A';
 
+  // Track missing countries
+  useEffect(() => {
+    if (dataSource.length > 0 && validData.length > 0) {
+      const missingCountriesList = dataSource.filter(
+        (item) =>
+          !validData.some(
+            (dataItem) =>
+              dataItem.name.toLowerCase() === item.name.toLowerCase()
+          )
+      ).map((item) => item.name);
+      setMissingCountries(missingCountriesList);
+    }
+  }, [dataSource, validData]);
+
+  // Toggle popup
+  const togglePopup = () => setIsPopupOpen(!isPopupOpen);
+
+  // File upload
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
-    setFileName(file.name); // Set the file name
+    setFileName(file.name);
     setFileIsValid(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target.result;
-      processCsv(text);
+      processCsv(e.target.result);
     };
     reader.readAsText(file);
   };
 
+  // Parse CSV
   const processCsv = (csvText) => {
     const lines = csvText
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line && !line.startsWith('#'));
-  
-    // Clear previous errors
+
     setErrors([]);
 
-
-    // Determine the dataSource based on the selectedMap
+    // Decide dataSource
     let dataSourceLocal;
-    switch (selectedMap) {
-      case 'usa':
-        dataSourceLocal = usStatesCodes;
-        break;
-      case 'europe':
-        dataSourceLocal = euCodes;
-        break;
-      default:
-        dataSourceLocal = countryCodes;
-        break;
-    }
-  
+    if (selectedMap === 'usa') dataSourceLocal = usStatesCodes;
+    else if (selectedMap === 'europe') dataSourceLocal = euCodes;
+    else dataSourceLocal = countryCodes;
+
     const parsedData = [];
     const errorList = [];
-  
+
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
-  
-      // Split the line by comma
-      const parts = line
-        .split(',')
-        .map((part) => part.trim().replace(/""/g, '"'));
-  
-      // Check if the line is missing a comma separator
+      const parts = line.split(',').map((p) => p.trim().replace(/""/g, '"'));
       if (parts.length < 2) {
         errorList.push({
           line: lineNumber,
           type: 'Missing Separator',
-          message: `Missing comma separator after country/state "${parts[0]}".`,
+          message: `Missing comma separator after "${parts[0]}"`,
         });
-        // Skip further processing for this line
         return;
       }
-  
       const name = parts[0];
       const valueRaw = parts[1];
       const value = valueRaw !== '' ? parseFloat(valueRaw) : null;
-  
-      // Validate Country/State Name
+
+      // Validate name
       const dataItem = dataSourceLocal.find(
         (item) => item.name.toLowerCase() === name.toLowerCase()
       );
-  
       if (!dataItem) {
         errorList.push({
           line: lineNumber,
-          type: 'Invalid Country/State Name',
+          type: 'Invalid Name',
           message: `Country/State "${name}" is invalid.`,
         });
       }
-  
-      // Validate Numeric Value
+      // Validate value
       if (valueRaw === '') {
         errorList.push({
           line: lineNumber,
@@ -405,85 +359,57 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
           message: `Value "${valueRaw}" is not a valid number.`,
         });
       }
-  
-      // If no errors for this line, add to parsedData
       if (dataItem && valueRaw !== '' && !isNaN(value)) {
         parsedData.push({ name, code: dataItem.code, value });
       }
     });
 
-    
-  
-    // Update state with errors or parsed data
     if (errorList.length > 0) {
       setErrors(errorList);
-      setFileIsValid(false)
+      setFileIsValid(false);
     } else {
       setErrors([]);
-      setFileIsValid(true)
+      setFileIsValid(true);
     }
-  
+
     setData(parsedData);
     setDataSource(dataSourceLocal);
     setValidData(parsedData);
-    
-        // After parsing the data and before computing statistics
-    // Sort the data in descending order for highest values
-    const sortedDataDesc = [...parsedData].sort((a, b) => b.value - a.value);
 
-    // Assign ranks (descending order)
-    sortedDataDesc.forEach((item, index) => {
-      item.rankDesc = index + 1; // Rank starts from 1
-    });
-
-    // Sort the data in ascending order for lowest values
-    const sortedDataAsc = [...parsedData].sort((a, b) => a.value - b.value);
-
-    // Assign ranks (ascending order)
-    sortedDataAsc.forEach((item, index) => {
-      item.rankAsc = index + 1; // Rank starts from 1
-    });
-
-
-
-  
-    // Compute statistics if there are no errors
+    // Post-process
     if (parsedData.length > 0 && errorList.length === 0) {
+      // Sort descending
+      const sortedDesc = [...parsedData].sort((a, b) => b.value - a.value);
+      sortedDesc.forEach((item, i) => (item.rankDesc = i + 1));
 
-    // Compute top high and low values with ranks
-    const topHighValuesLocal = sortedDataDesc.slice(0, Math.min(3, sortedDataDesc.length));
-    const topLowValuesLocal = sortedDataAsc.slice(0, Math.min(3, sortedDataAsc.length));
+      // Sort ascending
+      const sortedAsc = [...parsedData].sort((a, b) => a.value - b.value);
+      sortedAsc.forEach((item, i) => (item.rankAsc = i + 1));
 
-    // Update state
-    setTopHighValues(topHighValuesLocal);
-    setTopLowValues(topLowValuesLocal);
+      // Top values
+      setTopHighValues(sortedDesc.slice(0, Math.min(3, sortedDesc.length)));
+      setTopLowValues(sortedAsc.slice(0, Math.min(3, sortedAsc.length)));
 
-
+      // Stats
       const values = parsedData.map((d) => d.value);
-      const totalValues = values.length;
-      const sumValues = values.reduce((sum, val) => sum + val, 0);
-      const averageValue = sumValues / totalValues;
-  
-      // Sort values for median calculation
-      const sortedValues = [...values].sort((a, b) => a - b);
-      const middleIndex = Math.floor(totalValues / 2);
-      const medianValue =
-        totalValues % 2 !== 0
-          ? sortedValues[middleIndex]
-          : (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
-  
-      // Standard Deviation
+      const totalVals = values.length;
+      const sumVals = values.reduce((sum, val) => sum + val, 0);
+      const avg = sumVals / totalVals;
+      const sortedVals = [...values].sort((a, b) => a - b);
+      const midIndex = Math.floor(totalVals / 2);
+      const median =
+        totalVals % 2 !== 0
+          ? sortedVals[midIndex]
+          : (sortedVals[midIndex - 1] + sortedVals[midIndex]) / 2;
       const variance =
-        values.reduce((sum, val) => sum + Math.pow(val - averageValue, 2), 0) /
-        totalValues;
-      const standardDeviation = Math.sqrt(variance);
-  
-      // Find lowest and highest values
+        values.reduce((sum, val) => sum + (val - avg) ** 2, 0) / totalVals;
+      const stdDev = Math.sqrt(variance);
+
+      // Find extremes
       let lowestValue = values[0];
       let highestValue = values[0];
       let lowestCountry = parsedData[0].name;
       let highestCountry = parsedData[0].name;
-  
       parsedData.forEach((item) => {
         if (item.value < lowestValue) {
           lowestValue = item.value;
@@ -494,24 +420,19 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
           highestCountry = item.name;
         }
       });
-  
-      // Total number of countries/states
-      const totalCountries = dataSourceLocal.length;
-  
-      // Update fileStats
+
       setFileStats({
         lowestValue,
         lowestCountry,
         highestValue,
         highestCountry,
-        averageValue: parseFloat(averageValue.toFixed(2)),
-        medianValue: parseFloat(medianValue.toFixed(2)),
-        standardDeviation: parseFloat(standardDeviation.toFixed(2)),
-        numberOfValues: totalValues,
-        totalCountries,
+        averageValue: parseFloat(avg.toFixed(2)),
+        medianValue: parseFloat(median.toFixed(2)),
+        standardDeviation: parseFloat(stdDev.toFixed(2)),
+        numberOfValues: totalVals,
+        totalCountries: dataSourceLocal.length,
       });
     } else {
-      // Reset fileStats if there are errors
       setFileStats({
         lowestValue: null,
         lowestCountry: '',
@@ -522,43 +443,162 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         standardDeviation: null,
         numberOfValues: 0,
         totalCountries: dataSourceLocal.length,
-        
       });
-
       setTopHighValues([]);
       setTopLowValues([]);
     }
   };
-  
 
-  const handlePaletteChange = (e) => {
-    const paletteName = e.target.value;
-    setSelectedPalette(paletteName);
-    const paletteColors = themes.find((theme) => theme.name === paletteName)?.colors;
-    if (paletteColors) {
-      applyPaletteToRanges(customRanges, paletteColors); // Apply the color palette to the current ranges
+  // Download template
+  const downloadTemplate = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    let dataSourceLocal;
+    if (selectedMap === "europe") {
+      dataSourceLocal = euCodes;
+    } else if (selectedMap === "usa") {
+      dataSourceLocal = usStatesCodes;
+    } else {
+      dataSourceLocal = countryCodes;
     }
+    dataSourceLocal.forEach((item) => {
+      const name = item.name.includes(',') ? `"${item.name}"` : item.name;
+      csvContent += `${name},\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute(
+      'download',
+      selectedMap === "europe"
+        ? 'european_countries_template.csv'
+        : selectedMap === "usa"
+        ? 'us_states_template.csv'
+        : 'countries_template.csv'
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-  
-  
 
+  // Download error log
+  const downloadErrorLog = () => {
+    if (errors.length === 0) return;
+    let errorContent = "Line,Error Type,Message\n";
+    errors.forEach((err) => {
+      const escapedMsg = err.message.replace(/"/g, '""');
+      errorContent += `${err.line},"${err.type}","${escapedMsg}"\n`;
+    });
+    const blob = new Blob([errorContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "error_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Palette
+// 1) Make a helper that calculates groups from ranges and data
+function calculateGroups(ranges, data, rangeOrder) {
+  // basically the same logic as your generateGroups():
+  const validRanges = ranges.filter(
+    (r) => !isNaN(r.lowerBound) && !isNaN(r.upperBound) && r.lowerBound <= r.upperBound
+  );
+
+  const sortedRanges = [...validRanges].sort((a, b) => {
+    return rangeOrder === 'low-high'
+      ? a.lowerBound - b.lowerBound
+      : b.lowerBound - a.lowerBound;
+  });
+
+  const newGroups = sortedRanges.map((range) => ({
+    ...range,
+    countries: [],
+    rangeLabel: range.name || `${range.lowerBound} - ${range.upperBound}`,
+  }));
+
+  data.forEach((item) => {
+    const group = newGroups.find(
+      (g) => item.value >= g.lowerBound && item.value <= g.upperBound
+    );
+    if (group) {
+      group.countries.push(item);
+    }
+  });
+  return newGroups;
+}
+
+// 2) Use the functional form inside handlePaletteChange
+const handlePaletteChange = (e) => {
+  const paletteName = e.target.value;
+  setSelectedPalette(paletteName);
+
+  const paletteColors = themes.find((t) => t.name === paletteName)?.colors || [];
+
+  setCustomRanges((prevRanges) => {
+    // Create new ranges with the new palette colors
+    const updatedRanges = applyPalette(prevRanges, paletteColors);
+
+    // If we already have data & valid ranges, build the groups in the same step
+    if (data.length > 0 && rangesValidation.isValid) {
+      // Compute new groups based on updatedRanges
+      const newGroups = calculateGroups(updatedRanges, data, rangeOrder);
+      // Update the groups state, so the map will re-render immediately
+      setGroups(newGroups);
+    }
+
+    // Return updatedRanges as the new customRanges
+    return updatedRanges;
+  });
+};
+
+// 3) Let applyPalette be a pure function that returns new ranges
+function applyPalette(oldRanges, paletteColors) {
+  const numRanges = oldRanges.length;
+  const numColors = paletteColors.length;
+  if (numRanges === 0 || numColors === 0) {
+    return oldRanges; // no change
+  }
+
+  let indices = [];
+  if (numRanges === 1) {
+    // Single range => pick mid color
+    indices.push(Math.floor((numColors - 1) / 2));
+  } else {
+    // Evenly distribute colors
+    const step = (numColors - 1) / (numRanges - 1);
+    for (let i = 0; i < numRanges; i++) {
+      indices.push(Math.round(i * step));
+    }
+  }
+
+  // Return a new array of updated ranges
+  return oldRanges.map((range, i) => ({
+    ...range,
+    color: paletteColors[indices[i]] || '#c0c0c0',
+  }));
+}
+
+
+  // Map theme
   const handleThemeChange = (e) => {
     const themeName = e.target.value;
     setSelectedMapTheme(themeName);
-    const mapTheme = mapThemes.find((theme) => theme.name === themeName);
+    const mapTheme = mapThemes.find((t) => t.name === themeName);
     if (mapTheme) {
-      // Update the map settings based on the selected theme
       setOceanColor(mapTheme.oceanColor);
       setFontColor(mapTheme.fontColor);
       setUnassignedColor(mapTheme.unassignedColor);
     }
   };
-  
 
-
-
-  
-
+  // Ranges
+  const handleRangeChange = (id, field, value) => {
+    setCustomRanges(
+      customRanges.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+    );
+  };
 
   const addRange = () => {
     const newRanges = [
@@ -571,24 +611,18 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         name: '',
       },
     ];
-  
-    // Apply palette to new ranges
-    const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+    const paletteColors = themes.find((t) => t.name === selectedPalette)?.colors;
     if (paletteColors) {
       applyPaletteToRanges(newRanges, paletteColors);
     } else {
       setCustomRanges(newRanges);
     }
   };
-  
 
   const removeRange = (id) => {
     if (customRanges.length > 1) {
-      const newRanges = customRanges.filter((range) => range.id !== id);
-      setCustomRanges(newRanges);
-  
-      // Apply palette to new ranges
-      const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+      const newRanges = customRanges.filter((r) => r.id !== id);
+      const paletteColors = themes.find((t) => t.name === selectedPalette)?.colors;
       if (paletteColors) {
         applyPaletteToRanges(newRanges, paletteColors);
       } else {
@@ -598,29 +632,17 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       alert("Cannot delete the last range.");
     }
   };
-  
 
-  const handleRangeChange = (id, field, value) => {
-    setCustomRanges(
-      customRanges.map((range) =>
-        range.id === id ? { ...range, [field]: value } : range
-      )
-    );
-  };
+  // Validate ranges
   const getRangesValidationResult = () => {
     if (customRanges.length === 0) {
-      return {
-        isValid: false,
-        errorMessage: 'Please define at least one range.',
-      };
+      return { isValid: false, errorMessage: 'Please define at least one range.' };
     }
-  
-    // Ensure all ranges have valid lower and upper bounds
-    for (let range of customRanges) {
+    for (let r of customRanges) {
       if (
-        isNaN(range.lowerBound) ||
-        isNaN(range.upperBound) ||
-        range.lowerBound > range.upperBound
+        isNaN(r.lowerBound) ||
+        isNaN(r.upperBound) ||
+        r.lowerBound > r.upperBound
       ) {
         return {
           isValid: false,
@@ -628,94 +650,60 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         };
       }
     }
-  
-    // Check for overlapping ranges
-    const sortedRanges = [...customRanges].sort((a, b) => a.lowerBound - b.lowerBound);
-    for (let i = 0; i < sortedRanges.length - 1; i++) {
-      if (sortedRanges[i].upperBound > sortedRanges[i + 1].lowerBound) {
+    const sorted = [...customRanges].sort((a, b) => a.lowerBound - b.lowerBound);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i].upperBound > sorted[i + 1].lowerBound) {
         return {
           isValid: false,
           errorMessage: 'Ranges are overlapping. Please adjust them.',
         };
       }
     }
-  
-    return {
-      isValid: true,
-      errorMessage: '',
-    };
+    return { isValid: true, errorMessage: '' };
   };
-  
-  
   const rangesValidation = getRangesValidationResult();
   const isGenerateGroupsDisabled = data.length === 0 || !rangesValidation.isValid;
-
-  
 
   const generateGroups = () => {
     if (data.length === 0) {
       alert("Please upload a CSV file first.");
       return;
     }
-  
-    // Validate ranges
     const validRanges = customRanges.filter(
-      (range) =>
-        !isNaN(range.lowerBound) &&
-        !isNaN(range.upperBound) &&
-        range.lowerBound <= range.upperBound
+      (r) => !isNaN(r.lowerBound) && !isNaN(r.upperBound) && r.lowerBound <= r.upperBound
     );
-  
-    // Ensure validRanges are sorted based on rangeOrder
     const sortedRanges = [...validRanges].sort((a, b) => {
-      if (rangeOrder === 'low-high') {
-        return a.lowerBound - b.lowerBound;
-      } else {
-        return b.lowerBound - a.lowerBound;
-      }
+      if (rangeOrder === 'low-high') return a.lowerBound - b.lowerBound;
+      return b.lowerBound - a.lowerBound;
     });
-  
-    // Initialize groups
     const newGroups = sortedRanges.map((range) => ({
       ...range,
       countries: [],
       rangeLabel: range.name || `${range.lowerBound} - ${range.upperBound}`,
     }));
-  
-    // Assign countries to groups
     data.forEach((item) => {
-      const group = newGroups.find(
-        (g) =>
-          item.value >= g.lowerBound && item.value <= g.upperBound
+      const g = newGroups.find(
+        (gr) => item.value >= gr.lowerBound && item.value <= gr.upperBound
       );
-      if (group) {
-        group.countries.push(item);
-      }
+      if (g) g.countries.push(item);
     });
-  
     setGroups(newGroups);
   };
-  
 
+  // Suggest Ranges
   const suggestRanges = () => {
     if (data.length === 0) {
       alert("Please upload a CSV file first.");
       return;
     }
-  
     const values = data.map((d) => d.value).sort((a, b) => a - b);
-    const numValues = values.length;
     const suggestedRanges = [];
-  
     if (rangeOrder === 'low-high') {
-      // Generate ranges from low to high
       for (let i = 0; i < numRanges; i++) {
-        const lowerQuantile = i / numRanges;
-        const upperQuantile = (i + 1) / numRanges;
-  
-        const lowerBound = getQuantile(values, lowerQuantile);
-        const upperBound = getQuantile(values, upperQuantile);
-  
+        const lowerQ = i / numRanges;
+        const upperQ = (i + 1) / numRanges;
+        const lowerBound = getQuantile(values, lowerQ);
+        const upperBound = getQuantile(values, upperQ);
         suggestedRanges.push({
           id: Date.now() + i,
           lowerBound: parseFloat(lowerBound.toFixed(2)),
@@ -725,14 +713,11 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         });
       }
     } else {
-      // Generate ranges from high to low
       for (let i = 0; i < numRanges; i++) {
-        const lowerQuantile = (numRanges - i - 1) / numRanges;
-        const upperQuantile = (numRanges - i) / numRanges;
-  
-        const lowerBound = getQuantile(values, lowerQuantile);
-        const upperBound = getQuantile(values, upperQuantile);
-  
+        const lowerQ = (numRanges - i - 1) / numRanges;
+        const upperQ = (numRanges - i) / numRanges;
+        const lowerBound = getQuantile(values, lowerQ);
+        const upperBound = getQuantile(values, upperQ);
         suggestedRanges.push({
           id: Date.now() + i,
           lowerBound: parseFloat(lowerBound.toFixed(2)),
@@ -742,152 +727,154 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
         });
       }
     }
-  
-    // Apply palette to suggested ranges
-    const paletteColors = themes.find((theme) => theme.name === selectedPalette)?.colors;
+    const paletteColors = themes.find((t) => t.name === selectedPalette)?.colors;
     if (paletteColors) {
-      applyPaletteToRanges(suggestedRanges, paletteColors, rangeOrder);
+      applyPaletteToRanges(suggestedRanges, paletteColors);
     } else {
       setCustomRanges(suggestedRanges);
     }
   };
-  
 
-  
-
-  const applyPaletteToRanges = (ranges, paletteColors) => {
-    const numRanges = ranges.length;
-    const numColors = paletteColors.length;
-  
-    const indices = [];
-    if (numRanges === 1) {
-      // Single range: use the middle color
-      indices.push(Math.floor((numColors - 1) / 2));
-    } else {
-      // Multiple ranges: distribute colors evenly
-      const step = (numColors - 1) / (numRanges - 1);
-      for (let i = 0; i < numRanges; i++) {
-        indices.push(Math.round(i * step));
-      }
-    }
-  
-    // Assign colors to ranges based on calculated indices
-    const newRanges = ranges.map((range, index) => ({
-      ...range,
-      color: paletteColors[indices[index]] || '#c0c0c0', // Fallback color
-    }));
-  
-    setCustomRanges(newRanges);
-  };
-  
-  
-  
-  
-  // Helper function to calculate quantiles
-  const getQuantile = (sortedValues, quantile) => {
-    const pos = (sortedValues.length - 1) * quantile;
+  // Quantile helper
+  const getQuantile = (sortedValues, q) => {
+    const pos = (sortedValues.length - 1) * q;
     const base = Math.floor(pos);
     const rest = pos - base;
-  
-    if ((sortedValues[base + 1] !== undefined)) {
+    if (sortedValues[base + 1] !== undefined) {
       return sortedValues[base] + rest * (sortedValues[base + 1] - sortedValues[base]);
     } else {
       return sortedValues[base];
     }
   };
-  
 
-  const applyTheme = (themeColors) => {
-    const numRanges = customRanges.length;
-    const numColors = themeColors.length;
-
+  // Apply palette
+  const applyPaletteToRanges = (ranges, paletteColors) => {
+    const numRanges = ranges.length;
+    const numColors = paletteColors.length;
     const indices = [];
     if (numRanges === 1) {
-      // Single range: use the middle color
+      // Single range
       indices.push(Math.floor((numColors - 1) / 2));
     } else {
-      // Multiple ranges: distribute colors evenly
+      // Evenly distribute colors
       const step = (numColors - 1) / (numRanges - 1);
       for (let i = 0; i < numRanges; i++) {
         indices.push(Math.round(i * step));
       }
     }
-
-    // Assign colors to ranges based on calculated indices
-    const newRanges = customRanges.map((range, index) => ({
+    const newRanges = ranges.map((range, i) => ({
       ...range,
-      color: themeColors[indices[index]] || '#c0c0c0', // Fallback color
+      color: paletteColors[indices[i]] || '#c0c0c0',
     }));
-
     setCustomRanges(newRanges);
   };
 
-  const downloadTemplate = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    let dataSourceLocal;
-    if (selectedMap === "europe") {
-      dataSourceLocal = euCodes;
-    } else if (selectedMap === "usa") {
-      dataSourceLocal = usStatesCodes;
-    } else {
-      dataSourceLocal = countryCodes;
-    }
-
-    dataSourceLocal.forEach(item => {
-      const name = item.name.includes(',') ? `"${item.name}"` : item.name;
-      csvContent += `${name},\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', selectedMap === "europe" ? 'european_countries_template.csv' : selectedMap === "usa" ? 'us_states_template.csv' : 'countries_template.csv');
-    document.body.appendChild(link);
-
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Optional: Download Error Log Function
-  const downloadErrorLog = () => {
-    if (errors.length === 0) return;
-
-    let errorContent = "Line,Error Type,Message\n";
-    errors.forEach((error) => {
-      // Escape double quotes and commas in messages
-      const escapedMessage = error.message.replace(/"/g, '""');
-      errorContent += `${error.line},"${error.type}","${escapedMessage}"\n`;
-    });
-
-    const blob = new Blob([errorContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "error_log.csv");
-    document.body.appendChild(link);
-
-    link.click();
-    document.body.removeChild(link);
-
- 
-  };
-
-  const navigate = useNavigate();
-
-  const handleSaveMap = () => {
-    if (true) {
-      if (!isEditing) {
-        // Show the settings modal
-        setShowSettingsModal(true);
-      } else {
-        // Save directly when editing
-        saveMapData();
+  // Tag handling
+  const handleTagInputKeyDown = (e) => {
+    if (e.key === 'Enter' && tagInput.trim() !== '') {
+      e.preventDefault();
+      const newTag = tagInput.trim();
+      if (!tags.includes(newTag)) {
+        setTags([...tags, newTag]);
       }
+      setTagInput('');
+    }
+  };
+  const removeTag = (idx) => setTags(tags.filter((_, i) => i !== idx));
+
+  //REFERENCESES
+  function handleAddReference() {
+    // Clear out any previously selected reference
+    setSelectedReference(null);
+    setIsReferenceModalOpen(true);
+  }
+
+  function handleEditReference(ref) {
+    setSelectedReference(ref);
+    setIsReferenceModalOpen(true);
+  }
+
+  function handleEditReference(ref) {
+    setSelectedReference(ref);
+    setTempSourceName(ref.sourceName);
+    setTempYear(ref.publicationYear);
+    setTempUrl(ref.url);
+    setTempNotes(ref.notes || '');
+    setIsReferenceModalOpen(true);
+  }
+
+  function handleAddReference() {
+    setSelectedReference(null);
+    setTempSourceName('');
+    setTempYear('');
+    setTempUrl('');
+    setTempNotes('');
+    setIsReferenceModalOpen(true);
+  }
+
+  function handleSaveReference() {
+    if (!tempSourceName.trim() || !tempYear.trim()) {
+      alert("Source Name and Publication Year are required.");
+      return;
+    }
+  
+    if (selectedReference) {
+      // Editing existing reference
+      const updated = references.map((r) =>
+        r === selectedReference
+          ? {
+              ...r,
+              sourceName: tempSourceName,
+              publicationYear: tempYear,
+              url: tempUrl,
+              notes: tempNotes,
+            }
+          : r
+      );
+      setReferences(updated);
+    } else {
+      // Creating new
+      const newRef = {
+        id: Date.now(),  // or use a library like uuid
+        sourceName: tempSourceName,
+        publicationYear: tempYear,
+        url: tempUrl,
+        notes: tempNotes,
+      };
+      setReferences([...references, newRef]);
+    }
+  
+    // Close modal
+    setIsReferenceModalOpen(false);
+  }
+
+  function handleDeleteReference() {
+    if (!selectedReference) return; // Shouldn't happen unless there's no reference
+    
+    // Confirm
+    if (window.confirm("Are you sure you want to delete this reference?")) {
+      // Remove from the references array
+      setReferences((prev) => prev.filter((r) => r !== selectedReference));
+      // Close the modal
+      setIsReferenceModalOpen(false);
+    }
+  }
+  
+  
+  
+  
+
+
+  // Save map
+  const handleSaveMap = () => {
+    // If not logged in, show login. For now, we do it directly.
+    if (true) {
+      saveMapData();
     } else {
       setShowLoginModal(true);
     }
   };
-  
+
   const saveMapData = async () => {
     const mapData = {
       id: isEditing ? existingMapData.id : Date.now(),
@@ -895,24 +882,24 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
       description,
       tags,
       isPublic,
-      data: data,
-      customRanges: customRanges,
-      groups: groups,
-      selectedMap: selectedMap,
-      oceanColor: oceanColor,
-      unassignedColor: unassignedColor,
-      fontColor: fontColor,
-      showTopHighValues: showTopHighValues,
-      showTopLowValues: showTopLowValues,
-      topHighValues: topHighValues,
-      topLowValues: topLowValues,
-      selectedPalette: selectedPalette,
-      selectedMapTheme: selectedMapTheme,
-      fileName: fileName,
-      fileStats: fileStats,
-      isTitleHidden
+      data,
+      customRanges,
+      groups,
+      selectedMap,
+      oceanColor,
+      unassignedColor,
+      fontColor,
+      showTopHighValues,
+      showTopLowValues,
+      topHighValues,
+      topLowValues,
+      selectedPalette,
+      selectedMapTheme,
+      fileName,
+      fileStats,
+      isTitleHidden,
+      sources: references,
     };
-  
     try {
       if (isEditing) {
         await updateMap(existingMapData.id, mapData);
@@ -925,784 +912,783 @@ const [selectedMapTheme, setSelectedMapTheme] = useState('Default'); // Default 
     }
   };
 
-  const handleTagInputKeyDown = (e) => {
-    if (e.key === 'Enter' && tagInput.trim() !== '') {
-      e.preventDefault();
-      const newTag = tagInput.trim();
-      if (!tags.includes(newTag)) {
-        setTags([...tags, newTag]);
-      }
-      setTagInput('');
-    }
-  };
-  
-  const removeTag = (index) => {
-    setTags(tags.filter((_, i) => i !== index));
-  };
-  
-  
-  
-  
-
   return (
     <div className={styles.container}>
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <Sidebar
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-      />
-     
-      {/* Main Content */}
       <div
         className={`${styles.content} ${
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
+        <Header title="Data Integration" />
 
-         {/* Header Section */}
-     <Header
-            title="Data intergration"
-            
-          />
+        <div className={styles.contentInner}>
 
-<div className={styles.contentInner}>
+          {/* TOP ROW: 3 Boxes */}
+          <div className={styles.topThreeBoxes}>
+            {/* INSTRUCTIONS BOX */}
+            <div className={styles.instructionsBox}>
+              <h3>Instructions</h3>
+              <p style={{ textAlign: 'center' }}>
+                Selected Map:{' '}
+                <strong>
+                  {selectedMap === 'world'
+                    ? 'World'
+                    : selectedMap === 'europe'
+                    ? 'Europe'
+                    : 'USA'}
+                </strong>
+              </p>
+              <button
+                className={styles.templateButton}
+                onClick={downloadTemplate}
+              >
+                Download Template
+              </button>
+              <p className={styles.instructionText}>
+                Please ensure your CSV file has exactly 2 columns:
+                <br />
+                1) <em>Country/State Name</em>
+                <br />
+                2) <em>Value</em>
+                <br />
+                No value can be left empty.
+              </p>
+              <p className={styles.instructionText}>
+                Example:
+                <pre className={styles.csvExample}>
+                  State1,Value1{'\n'}
+                  State2,Value2{'\n'}
+                  ...
+                </pre>
+              </p>
+              <p className={styles.instructionText}>
+                Check out our <a href="/docs/file-instructions" target="_blank" rel="noreferrer">documentation</a> for more details.
+              </p>
+            </div>
 
+            {/* CSV UPLOAD BOX */}
+            <div className={styles.csvUploadBox}>
+              <h3>Upload Your CSV</h3>
+              <label
+                htmlFor="csvFileInput"
+                className={styles.csvIconLabel}
+                title="Click to browse CSV file"
+              >
+                <FontAwesomeIcon icon={faFileCsv} className={styles.bigCsvIcon} />
+              </label>
+              <input
+                id="csvFileInput"
+                type="file"
+                accept=".csv"
+                className={styles.csvHiddenInput}
+                onChange={handleFileUpload}
+              />
 
-      <div className={styles.topSection}>
-  {/* File Upload Box */}
-  <div className={styles.fileUploadBox}>
-    <h3>Upload CSV File</h3>
-    <p>
-      Selected Map: <b>{selectedMap === 'world' ? 'World Map' : selectedMap === 'europe' ? 'Europe' : 'USA'}</b> 
-      
-    </p>
-    
-        <button className={styles.secondaryButton} onClick={downloadTemplate}>Download Template</button>
+              <div className={styles.uploadStatus}>
+                {fileName ? (
+                  <p className={styles.fileNameLabel}>{fileName}</p>
+                ) : (
+                  <p className={styles.noFileSelected}>No file selected</p>
+                )}
 
-    
-   
-    <p>Please ensure your CSV file is structured as follows:</p>
-    <ul>
-      <li>First column: Country/State Name</li>
-      <li>Second column: Value</li>
-    </ul>
-    <p>Example:</p>
-    <pre>
-      StateName1,Value1{'\n'}
-      StateName2,Value2{'\n'}
-      ...
-    </pre>
+                {fileName && fileIsValid === true && (
+                  <p className={styles.validMessage}>File is valid</p>
+                )}
+                {fileName && fileIsValid === false && (
+                  <p className={styles.invalidMessage}>File is not valid</p>
+                )}
+                {!fileName && (
+                  <p className={styles.noFileMessage}>No file selected.</p>
+                )}
+              </div>
 
-    <input className={styles.fileInput} type="file" accept=".csv" onChange={handleFileUpload} />
+              {/* Errors (scrollable) */}
+              {errors.length > 0 && (
+                <div className={styles.errorBoxScrollable}>
+                  <p className={styles.errorTitle}>
+                    {`There are ${errors.length} error${errors.length > 1 ? 's' : ''}:`}
+                  </p>
+                  <ul className={styles.errorList}>
+                    {errors.map((err, i) => (
+                      <li key={i}>
+                        <strong>Line {err.line}:</strong> {err.message}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    className={styles.downloadErrorButton}
+                    onClick={downloadErrorLog}
+                  >
+                    Download Error Log
+                  </button>
+                </div>
+              )}
+            </div>
 
-   {/* File Upload Status */}
-    {fileName !== '' ? (
-      fileIsValid === true ? (
-        <p className={styles.validMessage}>File is valid</p>
-      ) : fileIsValid === false ? (
-        <p className={styles.invalidMessage}>File is not valid</p>
-      ) : null
-    ) : (
-      <p className={styles.noFileMessage}>No file uploaded.</p>
-    )}
+            {/* FILE INFO BOX / TABLE */}
+            <div className={styles.fileInfoBox}>
+              <div className={styles.tableContainer}>
+                <table className={styles.fileInfoTable}>
+                  <tbody>
+                    <tr>
+                      <th>File Name</th>
+                      <td>{fileName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <th>Lowest Value</th>
+                      <td>
+                        {fileStats.lowestValue !== null
+                          ? fileStats.lowestValue
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>State (Lowest)</th>
+                      <td>{fileStats.lowestCountry || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <th>Highest Value</th>
+                      <td>
+                        {fileStats.highestValue !== null
+                          ? fileStats.highestValue
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>State (Highest)</th>
+                      <td>{fileStats.highestCountry || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <th>Average Value</th>
+                      <td>
+                        {fileStats.averageValue !== null
+                          ? fileStats.averageValue
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Median Value</th>
+                      <td>
+                        {fileStats.medianValue !== null
+                          ? fileStats.medianValue
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Standard Deviation</th>
+                      <td>
+                        {fileStats.standardDeviation !== null
+                          ? fileStats.standardDeviation
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Values Count</th>
+                      <td>{fileStats.numberOfValues}</td>
+                    </tr>
+                    <tr>
+                      <th>Total Countries</th>
+                      <td>{fileStats.totalCountries}</td>
+                    </tr>
+                    <tr>
+                      <th>Data Completeness (%)</th>
+                      <td>{dataCompleteness}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
 
+          {/* RANGE TABLE */}
+          <div className={styles.section}>
+            <h3>Define Custom Ranges</h3>
+            <table className={styles.rangeTable}>
+              <thead>
+                <tr>
+                  <th>Lower Bound</th>
+                  <th>Upper Bound</th>
+                  <th>Name</th>
+                  <th>Color</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customRanges.map((range) => (
+                  <tr key={range.id}>
+                    <td>
+                      <input
+                        type="number"
+                        className={styles.inputBox}
+                        value={range.lowerBound}
+                        onChange={(e) =>
+                          handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
+                        }
+                        placeholder="Min"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className={styles.inputBox}
+                        value={range.upperBound}
+                        onChange={(e) =>
+                          handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
+                        }
+                        placeholder="Max"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className={styles.inputBox}
+                        value={range.name}
+                        onChange={(e) =>
+                          handleRangeChange(range.id, 'name', e.target.value)
+                        }
+                        placeholder="Name"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="color"
+                        className={styles.inputBox}
+                        value={range.color}
+                        onChange={(e) =>
+                          handleRangeChange(range.id, 'color', e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      {customRanges.length > 1 ? (
+                        <button
+                          className={styles.removeButton}
+                          onClick={() => removeRange(range.id)}
+                        >
+                          &times;
+                        </button>
+                      ) : (
+                        <button className={styles.removeButton} disabled>
+                          &times;
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-    </div>
+            <div className={styles.rangeControls}>
+              <div className={styles.leftControls}>
+                <label htmlFor="numRanges" title="Select total ranges">
+                  Ranges:
+                </label>
+                <select
+                  id="numRanges"
+                  className={styles.inputBox}
+                  value={numRanges}
+                  onChange={(e) => setNumRanges(parseInt(e.target.value))}
+                >
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
 
+                <select
+                  id="rangeOrder"
+                  className={styles.inputBox}
+                  value={rangeOrder}
+                  onChange={(e) => setRangeOrder(e.target.value)}
+                >
+                  <option value="low-high">Low to High</option>
+                  <option value="high-low">High to Low</option>
+                </select>
 
-  {/* File Information Box */}
-  <div className={styles.fileInfoBox}>
-    {errors.length > 0 ? (
-      /* Display Error Log in place of the table */
-      <div className={styles.errorBox}>
-        <p className={styles.errorTitle}>There are {errors.length} error{errors.length > 1 ? 's' : ''} in the file:</p>
-        <ul className={styles.errorList}>
-          {errors.map((error, index) => (
-            <li key={index}>
-              <strong>Line {error.line}:</strong> {error.message}
-            </li>
-          ))}
-        </ul>
-        <button className={styles.downloadErrorButton} onClick={downloadErrorLog}>Download Error Log</button>
-      </div>
-    ) : (
-      /* Display the File Information Table when there are no errors */
-      <table className={styles.fileInfoTable}>
-        <tbody>
-          <tr>
-            <th>File Name</th>
-            <td>{fileName || 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Lowest Value</th>
-            <td>{fileStats.lowestValue !== null ? fileStats.lowestValue : 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>State (Lowest)</th>
-            <td>{fileStats.lowestCountry || 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Highest Value</th>
-            <td>{fileStats.highestValue !== null ? fileStats.highestValue : 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>State (Highest)</th>
-            <td>{fileStats.highestCountry || 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Average Value</th>
-            <td>{fileStats.averageValue !== null ? fileStats.averageValue : 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Median Value</th>
-            <td>{fileStats.medianValue !== null ? fileStats.medianValue : 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Standard Deviation</th>
-            <td>{fileStats.standardDeviation !== null ? fileStats.standardDeviation : 'N/A'}</td>
-          </tr>
-          <tr>
-            <th>Values Count</th>
-            <td>{fileStats.numberOfValues}</td>
-          </tr>
-          <tr>
-            <th>Total Countries</th>
-            <td>{fileStats.totalCountries}</td>
-          </tr>
-          <tr>
-            <th>Data Completeness (%)</th>
-            <td>{dataCompleteness || 'N/A'}</td>
-          </tr>
-        </tbody>
-      </table>
-    )}
-  </div>
-</div>
+                <button
+                  className={styles.secondaryButton}
+                  onClick={suggestRanges}
+                  disabled={data.length === 0}
+                >
+                  Suggest Ranges
+                </button>
 
+                <button className={styles.secondaryButton} onClick={addRange}>
+                  Add Range
+                </button>
 
+                <button
+                  className={styles.primaryButton}
+                  onClick={generateGroups}
+                  disabled={data.length === 0 || !rangesValidation.isValid}
+                >
+                  Generate Groups
+                </button>
 
-      {/* Second Layer: Range Settings */}
-      <div className={styles.section}>
-        <h3>Define Custom Ranges</h3>
-        <table className={styles.rangeTable}>
-          <thead>
-            <tr>
-              <th>Lower Bound</th>
-              <th>Upper Bound</th>
-              <th>Name</th>
-              <th>Color</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customRanges.map((range, index) => (
-              <tr key={range.id}>
-                <td>
+                {(!rangesValidation.isValid || data.length === 0) && (
+                  <p className={styles.errorMessage}>
+                    <img
+                      className={styles.warningIcon}
+                      src={`${process.env.PUBLIC_URL}/assets/warning_icon.png`}
+                      alt="Warning"
+                    />
+                    {data.length === 0
+                      ? 'Please upload a CSV file first.'
+                      : rangesValidation.errorMessage}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* MAP PREVIEW & DETAILS */}
+          <div className={styles.mapPreviewAndDetails}>
+
+            {/* LEFT: MAP PREVIEW (No click => no popup) */}
+            <div className={styles.mapPreviewSection}>
+              <div className={styles.mapPreviewContainer}>
+                <div className={styles.mapPreviewWrapper}>
+                  {selectedMap === 'world' && (
+                    <WorldMapSVG
+                      groups={groups}
+                      mapTitleValue={mapTitle}
+                      oceanColor={oceanColor}
+                      unassignedColor={unassignedColor}
+                      showTopHighValues={showTopHighValues}
+                      showTopLowValues={showTopLowValues}
+                      data={data}
+                      selectedMap={selectedMap}
+                      fontColor={fontColor}
+                      topHighValues={topHighValues}
+                      topLowValues={topLowValues}
+                      isLargeMap={false}
+                      isTitleHidden={isTitleHidden}
+                    />
+                  )}
+                  {selectedMap === 'usa' && (
+                    <UsSVG
+                      groups={groups}
+                      mapTitleValue={mapTitle}
+                      oceanColor={oceanColor}
+                      unassignedColor={unassignedColor}
+                      showTopHighValues={showTopHighValues}
+                      showTopLowValues={showTopLowValues}
+                      data={data}
+                      selectedMap={selectedMap}
+                      fontColor={fontColor}
+                      topHighValues={topHighValues}
+                      topLowValues={topLowValues}
+                      isLargeMap={false}
+                      isTitleHidden={isTitleHidden}
+                    />
+                  )}
+                  {selectedMap === 'europe' && (
+                    <EuropeSVG
+                      groups={groups}
+                      mapTitleValue={mapTitle}
+                      oceanColor={oceanColor}
+                      unassignedColor={unassignedColor}
+                      showTopHighValues={showTopHighValues}
+                      showTopLowValues={showTopLowValues}
+                      data={data}
+                      selectedMap={selectedMap}
+                      fontColor={fontColor}
+                      topHighValues={topHighValues}
+                      topLowValues={topLowValues}
+                      isLargeMap={false}
+                      isTitleHidden={isTitleHidden}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT: MAP THEME + MAP DETAILS */}
+            <div className={styles.mapDetailsSection}>
+
+              {/* 1) MAP THEME BOX */}
+              <div className={styles.mapDetailsContainer}>
+                <h4 className={styles.mapDetailsHeader}>Map Theme</h4>
+
+                <div className={styles.themeSettingsBox}>
+
+                  {/* Palette */}
+                  <div className={styles.themeField}>
+                    <label htmlFor="paletteSelector">Palette:</label>
+                    <select
+                      id="paletteSelector"
+                      className={styles.inputBox}
+                      value={selectedPalette}
+                      onChange={handlePaletteChange}
+                    >
+                      {themes.map((theme) => (
+                        <option key={theme.name} value={theme.name}>
+                          {theme.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className={styles.themePreview}>
+                      {themes
+                        .find((t) => t.name === selectedPalette)
+                        ?.colors.map((color, idx) => (
+                          <div
+                            key={idx}
+                            className={styles.themeColor}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Map Theme */}
+                  <div className={styles.themeField}>
+                    <label>Map Theme:</label>
+                    <select
+                      id="mapThemeSelector"
+                      className={`${styles.inputBox} ${styles.mapThemeSelector}`}
+                      value={selectedMapTheme}
+                      onChange={handleThemeChange}
+                    >
+                      {mapThemes.map((theme) => (
+                        <option key={theme.name} value={theme.name}>
+                          {theme.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Font Color */}
+                  <div className={styles.themeField}>
+                    <label>Font Color:</label>
+                    <div className={styles.radioGroup}>
+                      <label>
+                        <input
+                          type="radio"
+                          value="black"
+                          checked={fontColor === 'black'}
+                          onChange={(e) => setFontColor(e.target.value)}
+                        />
+                        Black
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="white"
+                          checked={fontColor === 'white'}
+                          onChange={(e) => setFontColor(e.target.value)}
+                        />
+                        White
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Ocean Color */}
+                  <div className={styles.themeField}>
+                    <label htmlFor="oceanColor">Ocean Color:</label>
+                    <input
+                      id="oceanColor"
+                      type="color"
+                      className={styles.colorInputBox}
+                      value={oceanColor}
+                      onChange={(e) => setOceanColor(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Unassigned Color */}
+                  <div className={styles.themeField}>
+                    <label htmlFor="unassignedColor">Unassigned Color:</label>
+                    <input
+                      id="unassignedColor"
+                      type="color"
+                      className={styles.colorInputBox}
+                      value={unassignedColor}
+                      onChange={(e) => setUnassignedColor(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2) MAP DETAILS BOX */}
+              <div className={styles.mapDetailsContainer}>
+                <h4 className={styles.mapDetailsHeader}>Map Details</h4>
+
+                {/* Title (input + hideTitle on one line) */}
+                <div className={styles.settingItemRow}>
+                  <label htmlFor="mapTitleInput">Map Title:</label>
                   <input
-                    type="number"
-                    className={styles.inputBox}
-                    value={range.lowerBound}
-                    onChange={(e) =>
-                      handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
-                    }
-                    placeholder="Min"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    className={styles.inputBox}
-                    value={range.upperBound}
-                    onChange={(e) =>
-                      handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
-                    }
-                    placeholder="Max"
-                  />
-                </td>
-                <td>
-                  <input
+                    id="mapTitleInput"
                     type="text"
                     className={styles.inputBox}
-                    value={range.name}
-                    onChange={(e) => handleRangeChange(range.id, 'name', e.target.value)}
-                    placeholder="Name"
+                    style={{ width: '220px' }}
+                    value={mapTitle}
+                    onChange={(e) => setMapTitle(e.target.value)}
+                    placeholder="Enter map title"
+                    maxLength="40"
                   />
-                </td>
-                <td>
+                  <label className={styles.hideTitleLabel}>
+                    <input
+                      type="checkbox"
+                      checked={isTitleHidden}
+                      onChange={(e) => setIsTitleHidden(e.target.checked)}
+                    />
+                    Hide
+                  </label>
+                </div>
+
+                {/* Description */}
+                <div className={styles.settingItem}>
+                  <label htmlFor="descriptionInput">Description:</label>
+                  <textarea
+                    id="descriptionInput"
+                    className={`${styles.inputBox} ${styles.descriptionInput}`}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter description"
+                  />
+                </div>
+
+                {/* Tags */}
+                <div className={styles.settingItem}>
+                  <label htmlFor="tagsInput">Tags:</label>
                   <input
-                    type="color"
+                    id="tagsInput"
+                    type="text"
                     className={styles.inputBox}
-                    value={range.color}
-                    onChange={(e) => handleRangeChange(range.id, 'color', e.target.value)}
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagInputKeyDown}
+                    placeholder="Type a tag and press Enter"
                   />
-                </td>
-                <td>
-                  {/* Remove Button */}
-                  {customRanges.length > 1 ? (
-                    <button
-                      className={styles.removeButton}
-                      onClick={() => removeRange(range.id)}
-                      aria-label={`Remove range ${range.name || index + 1}`}
-                    >
-                      &times;
-                    </button>
-                  ) : (
-                    <button
-                      className={styles.removeButton}
-                      disabled
-                      aria-label="Remove range"
-                    >
-                      &times;
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
 
-{/* Number of Ranges Select Input, Suggest Ranges Button, Add Range Button, Generate Groups Button, and Theme Selector */}
-<div className={styles.rangeControls}>
-  <div className={styles.leftControls}>
-    <label htmlFor="numRanges" title="Select the total number of ranges you want to define">
-      Ranges:
-    </label>
-    <select
-      id="numRanges"
-      className={styles.inputBox}
-      value={numRanges}
-      onChange={(e) => setNumRanges(parseInt(e.target.value))}
-    >
-      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-        <option key={num} value={num}>
-          {num}
-        </option>
-      ))}
-    </select>
+                  {/* Fixed-size Tag Box */}
+                  <div className={styles.tagBox}>
+                    {tags.map((tag, i) => (
+                      <div key={i} className={styles.tagItem}>
+                        {tag}
+                        <button
+                          className={styles.removeTagButton}
+                          onClick={() => removeTag(i)}
+                          aria-label={`Remove tag ${tag}`}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-{/* Range Order Selector */}
-<div className={styles.rangeOrderSelector}>
-  <select
-    id="rangeOrder"
-    className={styles.inputBox}
-    value={rangeOrder}
-    onChange={(e) => setRangeOrder(e.target.value)}
+                {/* References Section */}
+                  <div className={styles.settingItem}>
+                    <label>References:</label>
+                    <button
+                      className={styles.secondaryButton}
+                      onClick={handleAddReference}
+                      style={{ marginBottom: '10px' }}
+                    >
+                      + Add Reference
+                    </button>
+
+                    <div className={styles.referencesList}>
+                      {references.length === 0 ? (
+                        <p style={{ fontStyle: 'italic', color: '#777' }}>No references added.</p>
+                      ) : (
+                        references.map((ref) => (
+                          <div
+                            key={ref.id}
+                            className={styles.referenceItem}
+                            onClick={() => handleEditReference(ref)}
+                            title="Click to edit reference"
+                          >
+                            {/* e.g. "United Nations (2023)" */}
+                            {ref.sourceName} ({ref.publicationYear})
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+
+                {/* Visibility */}
+                <div className={styles.settingItem}>
+                  <label>Visibility:</label>
+                  <div
+                    className={styles.customSelect}
+                    onClick={() => setShowVisibilityOptions(!showVisibilityOptions)}
+                  >
+                    <FontAwesomeIcon
+                      icon={isPublic ? faGlobe : faLock}
+                      className={styles.visibilityIcon}
+                    />
+                    {isPublic ? 'Public' : 'Private'}
+                    <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
+                    {showVisibilityOptions && (
+                      <div className={styles.selectOptions}>
+                        <div
+                          className={styles.selectOption}
+                          onClick={() => {
+                            setIsPublic(true);
+                            setShowVisibilityOptions(false);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faGlobe} className={styles.visibilityIcon} />
+                          Public
+                        </div>
+                        <div
+                          className={styles.selectOption}
+                          onClick={() => {
+                            setIsPublic(false);
+                            setShowVisibilityOptions(false);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faLock} className={styles.visibilityIcon} />
+                          Private
+                        </div>
+                      </div>
+                    )}
+                    
+                  </div>
+                  
+                </div>
+
+                     {/* Save Button */}
+                     <div className={styles.navigationButtons}>
+                  <button className={styles.primaryButton} onClick={handleSaveMap}>
+                    Save Map
+                  </button>
+                </div>
+              </div>
+       
+            </div>
+
+          
+          </div>
+              
+          {isReferenceModalOpen && (
+  <div
+    className={styles.modalOverlay}
+    onClick={() => setIsReferenceModalOpen(false)}
   >
-    <option value="low-high">Low to High</option>
-    <option value="high-low">High to Low</option>
-  </select>
-</div>
-
-    
-    <button
-      className={styles.secondaryButton}
-      onClick={suggestRanges}
-      disabled={data.length === 0}
+    <div
+      className={styles.modalContent}
+      onClick={(e) => e.stopPropagation()}
     >
-      Suggest Ranges
-    </button>
-    <button
-      className={styles.secondaryButton}
-      onClick={addRange}
-    >
-      Add Range
-    </button>
-    <button
-      className={styles.primaryButton}
-      onClick={generateGroups}
-      disabled={isGenerateGroupsDisabled}
-    >
-      Generate Groups
-    </button>
+      <button
+        className={styles.closeButton}
+        onClick={() => setIsReferenceModalOpen(false)}
+      >
+        &times;
+      </button>
 
+      <h2>{selectedReference ? 'Edit Reference' : 'Add Reference'}</h2>
 
-     {/* Error Message */}
+      <div className={styles.modalFormRow}>
+        <label>Source Name:</label>
+        <input
+          type="text"
+          value={tempSourceName}
+          onChange={(e) => setTempSourceName(e.target.value)}
+        />
+      </div>
 
+      <div className={styles.modalFormRow}>
+        <label>Publication Year:</label>
+        <input
+          type="text"
+          value={tempYear}
+          onChange={(e) => setTempYear(e.target.value)}
+        />
+      </div>
 
-    {isGenerateGroupsDisabled && (
-      
-      <p className={styles.errorMessage}>
-        <img className={styles.warningIcon} src={`${process.env.PUBLIC_URL}/assets/warning_icon.png`} alt="Warning Icon" />
+      <div className={styles.modalFormRow}>
+        <label>URL or Link:</label>
+        <input
+          type="text"
+          value={tempUrl}
+          onChange={(e) => setTempUrl(e.target.value)}
+        />
+      </div>
 
+      <div className={styles.modalFormRow}>
+        <label>Description/Notes:</label>
+        <textarea
+          rows={3}
+          value={tempNotes}
+          onChange={(e) => setTempNotes(e.target.value)}
+        />
+      </div>
+
+      {/* Container for bottom row (Save on right, Delete on left) */}
+      <div className={styles.modalBottomRow}>
+        {/* Only show “Delete Reference” if editing an existing reference */}
+        {selectedReference && (
+          <span
+            className={styles.deleteRefLink}
+            onClick={handleDeleteReference}
+          >
+            Delete Reference
+          </span>
+        )}
         
-        {data.length === 0
-          ? 'Please upload a CSV file first.'
-          : rangesValidation.errorMessage}
-      </p>
-    )}
-  </div>
-
-{/* Palette Selector */}
-<div className={styles.themeSelectorContainer}>
-  <label htmlFor="paletteSelector">Palette:</label>
-  <select
-    id="paletteSelector"
-    className={styles.inputBox}
-    value={selectedPalette}
-    onChange={handlePaletteChange}
-  >
-    {themes.map((theme, index) => (
-      <option key={index} value={theme.name}>
-        {theme.name}
-      </option>
-    ))}
-  </select>
-  {/* Display the color pattern of the selected palette */}
-  <div className={styles.themePreview}>
-    {themes.find((theme) => theme.name === selectedPalette)?.colors.map((color, idx) => (
-      <div
-        key={idx}
-        className={styles.themeColor}
-        style={{ backgroundColor: color }}
-      ></div>
-    ))}
-  </div>
-</div>
-</div>
-{/* Map Theme Container */}
-<div className={styles.mapThemeContainer}>
-  {/* Map Preview Section */}
-  <div className={styles.mapPreviewSection}>
-    <div className={styles.mapPreviewContainer}>
-      <div onClick={togglePopup} className={styles.mapPreviewWrapper}>
-        {selectedMap === 'world' && (
-          <WorldMapSVG
-            groups={groups}
-            mapTitleValue={mapTitle}
-            oceanColor={oceanColor}
-            unassignedColor={unassignedColor}
-            showTopHighValues={showTopHighValues}
-            showTopLowValues={showTopLowValues}
-            data={data}
-            selectedMap={selectedMap}
-            fontColor={fontColor}
-            topHighValues={topHighValues}
-            topLowValues={topLowValues}
-            isLargeMap={false}
-            isTitleHidden={isTitleHidden}
-          />
-        )}
-        {selectedMap === 'usa' && (
-          <UsSVG
-          groups={groups}
-          mapTitleValue={mapTitle}
-          oceanColor={oceanColor}
-          unassignedColor={unassignedColor}
-          showTopHighValues={showTopHighValues}
-          showTopLowValues={showTopLowValues}
-          data={data}
-          selectedMap={selectedMap}
-          fontColor={fontColor}
-          topHighValues={topHighValues}
-          topLowValues={topLowValues}
-          isLargeMap={false}
-          isTitleHidden={isTitleHidden}
-          />
-        )}
-        {selectedMap === 'europe' && (
-          <EuropeSVG
-          groups={groups}
-          mapTitleValue={mapTitle}
-          oceanColor={oceanColor}
-          unassignedColor={unassignedColor}
-          showTopHighValues={showTopHighValues}
-          showTopLowValues={showTopLowValues}
-          data={data}
-          selectedMap={selectedMap}
-          fontColor={fontColor}
-          topHighValues={topHighValues}
-          topLowValues={topLowValues}
-          isLargeMap={false}
-          isTitleHidden={isTitleHidden}
-          />
-        )}
-      </div>
-    </div>
-  </div>
-
-  {/* Map Theme Section */}
-  <div className={styles.mapThemeSection}>
-    <h3>Map Theme</h3>
-    <div className={styles.mapThemeSettings}>
-      {/* Map Theme Selector */}
-      <div className={styles.settingItem}>
-        <select
-          id="mapThemeSelector"
-          className={`${styles.inputBox} ${styles.mapThemeSelector}`}
-          value={selectedMapTheme}
-          onChange={handleThemeChange}
-        >
-          {mapThemes.map((theme) => (
-            <option key={theme.name} value={theme.name}>
-              {theme.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Font Color Option */}
-      <div className={styles.settingItem}>
-        <label>Font Color:</label>
-        <div className={styles.radioGroup}>
-          <label>
-            <input
-              type="radio"
-              value="black"
-              checked={fontColor === 'black'}
-              onChange={(e) => setFontColor(e.target.value)}
-            />
-            Black
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="white"
-              checked={fontColor === 'white'}
-              onChange={(e) => setFontColor(e.target.value)}
-            />
-            White
-          </label>
-        </div>
-      </div>
-
-      {/* Ocean Color */}
-      <div className={styles.settingItem}>
-        <label htmlFor="oceanColor">Ocean Color:</label>
-        <input
-          id="oceanColor"
-          type="color"
-          className={styles.colorInputBox}
-          value={oceanColor}
-          onChange={(e) => setOceanColor(e.target.value)}
-        />
-      </div>
-
-      {/* Unassigned Countries Color */}
-      <div className={styles.settingItem}>
-        <label htmlFor="unassignedColor">Unassigned Countries Color:</label>
-        <input
-          id="unassignedColor"
-          type="color"
-          className={styles.colorInputBox}
-          value={unassignedColor}
-          onChange={(e) => setUnassignedColor(e.target.value)}
-        />
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-     
-
-     
-
-
-{/* Popup Modal */}
-{isPopupOpen && (
-  <div className={styles.popupOverlay} onClick={togglePopup}>
-    <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
-      {/* Close Button */}
-      <button className={styles.closeButton} onClick={togglePopup}>
-        &times;
-      </button>
-      {/* Larger Map */}
-<div className={styles.largeMapContainer}>
-  {selectedMap === 'world' && (
-    <WorldMapSVG
-      groups={groups}
-      mapTitleValue={mapTitle}
-      oceanColor={oceanColor}
-      unassignedColor={unassignedColor}
-      showTopHighValues={showTopHighValues}
-      showTopLowValues={showTopLowValues}
-      data={data}
-      selectedMap={selectedMap}
-      fontColor={fontColor}
-      topHighValues={topHighValues}
-      topLowValues={topLowValues}
-      isLargeMap={true} // Pass a prop to adjust map size if needed
-      isTitleHidden={isTitleHidden}
-
-    />
-  )}
-  {selectedMap === 'usa' && (
-    <UsSVG
-      groups={groups}
-      mapTitleValue={mapTitle}
-      oceanColor={oceanColor}
-      unassignedColor={unassignedColor}
-      showTopHighValues={showTopHighValues}
-      showTopLowValues={showTopLowValues}
-      data={data}
-      selectedMap={selectedMap}
-      fontColor={fontColor}
-      topHighValues={topHighValues}
-      topLowValues={topLowValues}
-      isLargeMap={true}
-      isTitleHidden={isTitleHidden}
-
-
-    />
-  )}
-  {selectedMap === 'europe' && (
-    <EuropeSVG
-      groups={groups}
-      mapTitleValue={mapTitle}
-      oceanColor={oceanColor}
-      unassignedColor={unassignedColor}
-      showTopHighValues={showTopHighValues}
-      showTopLowValues={showTopLowValues}
-      data={data}
-      selectedMap={selectedMap}
-      fontColor={fontColor}
-      topHighValues={topHighValues}
-      topLowValues={topLowValues}
-      isLargeMap={true}
-      isTitleHidden={isTitleHidden}
-
-    />
-  )}
-</div>
-
-    </div>
-  </div>
-)}
-
-
-
-      {/* Navigation Buttons */}
-<div className={styles.navigationButtons}>
-  <button className={styles.secondaryButton} onClick={() => setShowSettingsModal(true)}>
-    <FontAwesomeIcon icon={faCog} /> Map Settings
-  </button>
-  <button className={styles.primaryButton} onClick={handleSaveMap}>Save Map</button>
-</div>
-
-      {showLoginModal && (
-  <div className={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
-    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-      <button className={styles.closeButton} onClick={() => setShowLoginModal(false)}>
-        &times;
-      </button>
-      <h2>Don't Lose Your Progress!</h2>
-      <p>Please log in or sign up to save your map.</p>
-      <div className={styles.modalButtons}>
-        <button
-          className={styles.secondaryButton}
-          onClick={() => {
-            // Navigate to the login page
-            window.location.href = '/login';
-          }}
-        >
-          Log In
-        </button>
         <button
           className={styles.primaryButton}
-          onClick={() => {
-            // Navigate to the signup page
-            window.location.href = '/signup';
-          }}
+          onClick={handleSaveReference}
         >
-          Sign Up
+          Save
         </button>
       </div>
     </div>
   </div>
-
 )}
 
-{showSettingsModal && (
-  <div className={styles.modalOverlay} onClick={() => setShowSettingsModal(false)}>
-    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-      <button className={styles.closeButton} onClick={() => setShowSettingsModal(false)}>
-        &times;
-      </button>
-      <div className={styles.settingsModalContainer}>
-        {/* Map Image on the Left */}
-        <div className={styles.mapImagePreview}>
-          {selectedMap === 'world' && (
-            <WorldMapSVG
-              groups={groups}
-              mapTitleValue={mapTitle}
-              oceanColor={oceanColor}
-              unassignedColor={unassignedColor}
-              showTopHighValues={showTopHighValues}
-              showTopLowValues={showTopLowValues}
-              data={data}
-              selectedMap={selectedMap}
-              fontColor={fontColor}
-              topHighValues={topHighValues}
-              topLowValues={topLowValues}
-              isLargeMap={false}
-              isTitleHidden={isTitleHidden} // Add this line
-            />
-          )}
-          {selectedMap === 'usa' && (
-            <UsSVG
-            groups={groups}
-            mapTitleValue={mapTitle}
-            oceanColor={oceanColor}
-            unassignedColor={unassignedColor}
-            showTopHighValues={showTopHighValues}
-            showTopLowValues={showTopLowValues}
-            data={data}
-            selectedMap={selectedMap}
-            fontColor={fontColor}
-            topHighValues={topHighValues}
-            topLowValues={topLowValues}
-            isLargeMap={false}
-            isTitleHidden={isTitleHidden} // Add this line
-            />
-          )}
-          {selectedMap === 'europe' && (
-            <EuropeSVG
-            groups={groups}
-            mapTitleValue={mapTitle}
-            oceanColor={oceanColor}
-            unassignedColor={unassignedColor}
-            showTopHighValues={showTopHighValues}
-            showTopLowValues={showTopLowValues}
-            data={data}
-            selectedMap={selectedMap}
-            fontColor={fontColor}
-            topHighValues={topHighValues}
-            topLowValues={topLowValues}
-            isLargeMap={false}
-            isTitleHidden={isTitleHidden} // Add this line
-            />
-          )}
-        </div>
-        {/* Input Fields on the Right */}
-        <div className={styles.settingsInputFields}>
-          <h2>My Map</h2>
-        {/* Map Title */}
-<div className={styles.settingItem}>
-  <label htmlFor="mapTitleInput">Map Title:</label>
-  <input
-    id="mapTitleInput"
-    type="text"
-    className={styles.inputBox}
-    value={mapTitle}
-    onChange={(e) => setMapTitle(e.target.value)}
-    placeholder="Enter map title"
-    maxLength="40"
-  />
-  {/* Hide Map Title Checkbox */}
-  <div className={styles.checkboxItem}>
-    <label htmlFor="isTitleHidden">
-      <input
-        id="isTitleHidden"
-        type="checkbox"
-        checked={isTitleHidden}
-        onChange={(e) => setIsTitleHidden(e.target.checked)}
-      />
-      Hide Map Title
-    </label>
-  </div>
-</div>
 
-        {/* Description */}
-<div className={styles.settingItem}>
-  <label htmlFor="descriptionInput">Description:</label>
-  <textarea
-    id="descriptionInput"
-    className={`${styles.inputBox} ${styles.descriptionInput}`}
-    value={description}
-    onChange={(e) => setDescription(e.target.value)}
-    placeholder="Enter description"
-  />
-</div>
 
-      {/* Tags */}
-        <div className={styles.settingItem}>
-          <label htmlFor="tagsInput">Tags:</label>
-          <input
-            id="tagsInput"
-            type="text"
-            className={styles.inputBox}
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleTagInputKeyDown}
-            placeholder="Type a tag and press Enter"
-          />
-          {/* Display tags */}
-          <div className={styles.tagsContainer}>
-            {tags.map((tag, index) => (
-              <div key={index} className={styles.tagItem}>
-                {tag}
+
+
+          {/* Login Modal */}
+          {showLoginModal && (
+            <div
+              className={styles.modalOverlay}
+              onClick={() => setShowLoginModal(false)}
+            >
+              <div
+                className={styles.modalContent}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
-                  className={styles.removeTagButton}
-                  onClick={() => removeTag(index)}
-                  aria-label={`Remove tag ${tag}`}
+                  className={styles.closeButton}
+                  onClick={() => setShowLoginModal(false)}
                 >
                   &times;
                 </button>
+                <h2>Don't Lose Your Progress!</h2>
+                <p>Please log in or sign up to save your map.</p>
+                <div className={styles.modalButtons}>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => {
+                      window.location.href = '/login';
+                    }}
+                  >
+                    Log In
+                  </button>
+                  <button
+                    className={styles.primaryButton}
+                    onClick={() => {
+                      window.location.href = '/signup';
+                    }}
+                  >
+                    Sign Up
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          )}
 
-            
-{/* Public/Private Select */}
-<div className={styles.settingItem}>
-  <label htmlFor="isPublicSelect">Visibility:</label>
-  <div
-    className={styles.customSelect}
-    onClick={() => setShowVisibilityOptions(!showVisibilityOptions)}
-  >
-    <FontAwesomeIcon
-      icon={isPublic ? faGlobe : faLock}
-      className={styles.visibilityIcon}
-    />
-    {isPublic ? 'Public' : 'Private'}
-    <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
-    {showVisibilityOptions && (
-      <div className={styles.selectOptions}>
-        <div
-          className={styles.selectOption}
-          onClick={() => {
-            setIsPublic(true);
-            setShowVisibilityOptions(false);
-          }}
-        >
-          <FontAwesomeIcon icon={faGlobe} className={styles.visibilityIcon} />
-          Public
-        </div>
-        <div
-          className={styles.selectOption}
-          onClick={() => {
-            setIsPublic(false);
-            setShowVisibilityOptions(false);
-          }}
-        >
-          <FontAwesomeIcon icon={faLock} className={styles.visibilityIcon} />
-          Private
-        </div>
-      </div>
-    )}
-  </div>
-</div>
-          {/* Buttons */}
-          <div className={styles.modalButtons}>
-            <button className={styles.secondaryButton} onClick={() => setShowSettingsModal(false)}>
-              Go Back
-            </button>
-            <button className={styles.primaryButton} onClick={saveMapData}>
-              Save Map
-            </button>
-          </div>
         </div>
       </div>
     </div>
-  </div>
-)}
-
-
-      </div>
-      </div>
-      </div>
-      </div>
-    );
-  }
+  );
+}

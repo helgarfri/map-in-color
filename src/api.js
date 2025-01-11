@@ -91,12 +91,16 @@ export const likeComment = (commentId) => API.post(`/comments/${commentId}/like`
 // Dislike a comment
 export const dislikeComment = (commentId) => API.post(`/comments/${commentId}/dislike`);
 
+// Delete a comment
+export const deleteComment = (commentId) => API.delete(`/comments/${commentId}`);
+
 // Delete a notification
 export const deleteNotification = (id) => API.delete(`/notifications/${id}`);
 
 // Fetch user activity with pagination
 export const fetchUserActivity = (username, offset = 0, limit = 10) =>
   API.get(`/users/${username}/activity?offset=${offset}&limit=${limit}`);
+
 
 // Fetch user map stats (total maps and total stars)
 export const fetchUserMapStats = (userId) =>
@@ -106,3 +110,4 @@ export const fetchUserMapStats = (userId) =>
 export const fetchMostStarredMapByUserId = (userId) =>
   API.get(`/maps/user/${userId}/most-starred`);
 
+export const incrementMapDownloadCount = (mapId) => API.post(`/maps/${mapId}/download`);

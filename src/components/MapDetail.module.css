@@ -26,9 +26,9 @@
   border: 2px solid #ccc;
   background-color: #333;
   width: 100%;
-  max-height: 700px;
-  /* flex-shrink: 0;  Remove this if it causes issues */
+  margin: 0 auto;
 }
+
 
 /* Zoom Controls */
 .zoomControls {
@@ -123,11 +123,15 @@
 }
 
 .saveButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-left: 10px;
-  font-size: 24px;
+  font-size: 24px; /* ensure icons match text size if you want them equal */
   cursor: pointer;
   background: none;
   border: none;
+  gap: 3px;
 }
 
 .createdAt {
@@ -212,30 +216,43 @@
   font-size: 16px;
 }
 
-/* Tags */
-.tags {
-  margin-top: 10px;
-}
 
-.tag {
+/* Tag styling in MapDetail for clickable tags */
+.mapTag {
   display: inline-block;
-  background-color: #e0e0e0;
   color: #333;
   padding: 5px 10px;
   margin: 0 5px 5px 0;
-  border-radius: 4px;
+  border: 0.5px solid #ccc;
+  border-radius: 7px;
   font-size: 14px;
+  cursor: pointer;
+  text-decoration: none; /* Ensure no underline */
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-/* Sources */
-.sources {
-  margin-top: 20px;
+.mapTag:hover {
+  background-color: #80a0b0;
+  color: white; 
+}
+.referencesList {
+  list-style: decimal inside; /* gives us "1. 2. 3." with indentation */
+  margin-left: 0;
+  padding-left: 0; 
+  margin-top: 8px; 
 }
 
-.sources ul {
-  list-style-type: disc;
-  padding-left: 20px;
+.referenceItem {
+  margin-bottom: 10px;
+  line-height: 1.5;
 }
+
+.referenceNotes {
+  margin-top: 5px;
+  margin-left: 20px; /* to indent "Notes:" under the main line if desired */
+  font-style: italic;
+}
+
 
 /* Discussion Section */
 .discussionSection h2 {
@@ -382,9 +399,12 @@
 .replyButton {
   background: none;
   border: none;
-  color: #007bff;
+  color: #80a0b0;
   cursor: pointer;
   margin-left: 10px;
+
+  
+  
 }
 
 .replyButton:hover {
@@ -505,7 +525,7 @@
 .toggleRepliesButton {
   background: none;
   border: none;
-  color: #007bff;
+  color: #80a0b0;
   cursor: pointer;
   margin-left: 65px;
   margin-bottom: 10px;
@@ -515,6 +535,35 @@
 .toggleRepliesButton:hover {
   text-decoration: underline;
 }
+
+.editButton {
+  background: #80a0b0;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editButton:hover {
+  background: #5390ae;
+}
+
+.deleteButton {
+  color: #bb655b;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+  background: none;
+}
+
+.deleteButton:hover {
+  text-decoration: underline;
+}
+
+
 
 /* Map Statistics */
 .mapStats {
@@ -590,6 +639,8 @@
   background-color: #e0e0e0;
   top: 0;
 }
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
