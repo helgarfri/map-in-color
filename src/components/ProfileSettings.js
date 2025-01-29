@@ -1,5 +1,4 @@
 // src/components/ProfileSettings.js
-
 import React, { useState, useEffect } from 'react';
 import styles from './ProfileSettings.module.css';
 import { fetchUserProfile, updateUserProfile } from '../api';
@@ -10,9 +9,13 @@ import countries from '../data/countries';
 import { FaPencilAlt, FaLock, FaHeartBroken } from 'react-icons/fa';
 import { format } from 'date-fns';
 
+/* 
+  Add the DeleteConfirmationModal at the bottom of this file or in a separate file.
+  For simplicity, we'll include it in the same file below.
+*/
+
 export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   const [activeTab, setActiveTab] = useState('account');
-
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState('');
@@ -28,14 +31,15 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     dateOfBirth: '',
   });
 
-
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Modals
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // NEW STATE
 
   const [editFields, setEditFields] = useState({
     firstName: false,
@@ -121,10 +125,10 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
       const res = await updateUserProfile(formDataToSend);
       const updatedProfile = res.data;
 
-      // Update the local profile state
+      // Update local profile
       setProfile(updatedProfile);
 
-      // Update formData with the latest profile data
+      // Update formData with the latest
       setFormData({
         username: updatedProfile.username,
         email: updatedProfile.email,
@@ -156,13 +160,18 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     }
   };
 
+  // Step 1: Show the "Oh no! really?" modal
   const handleDeleteAccount = () => {
-    // Implement account deletion logic here
-    alert('Account deletion is not implemented yet.');
+    setShowDeleteModal(true);
+  };
+
+  // Step 1.5: If user confirms, navigate to the final delete page
+  const confirmDelete = () => {
+    setShowDeleteModal(false);
+    navigate('/delete-account'); // We assume you set up this route in your React Router
   };
 
   const handleChangePassword = () => {
-    // Navigate to change password page or open modal
     navigate('/change-password');
   };
 
@@ -506,11 +515,21 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
           </form>
         </div>
       </div>
+
+      {/* "Oh no! really?" DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   );
 }
 
-// Country Picker Modal Component
+// ------------------------------
+// Country Picker Modal
+// ------------------------------
 function CountryPickerModal({ onSelectCountry, onClose }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -548,9 +567,12 @@ function CountryPickerModal({ onSelectCountry, onClose }) {
   );
 }
 
-// Gender Picker Modal Component
+// ------------------------------
+// Gender Picker Modal
+// ------------------------------
 function GenderPickerModal({ selectedGender, onSelectGender, onClose }) {
   const genders = ['Male', 'Female', 'Prefer not to say'];
+
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
@@ -571,6 +593,28 @@ function GenderPickerModal({ selectedGender, onSelectGender, onClose }) {
         <button className={styles.modalCloseButton} onClick={onClose}>
           Cancel
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ------------------------------
+// Delete Confirmation Modal
+// ------------------------------
+function DeleteConfirmationModal({ onClose, onConfirm }) {
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <h2>Wait...are you sure?</h2>
+        <p>If you delete your account all your data will be lost!</p>
+        <div className={styles.modalButtons}>
+          <button className={styles.cancelDelete} onClick={onClose}>
+            I wanna keep my data
+          </button>
+          <button className={styles.confirmDelete} onClick={onConfirm}>
+            Delete Account
+          </button>
+        </div>
       </div>
     </div>
   );

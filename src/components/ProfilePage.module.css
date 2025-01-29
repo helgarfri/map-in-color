@@ -29,6 +29,8 @@
 }
 
 .profileInfoBox {
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
   padding: 30px; /* bigger padding */
   border-radius: 8px;
@@ -79,7 +81,7 @@
   display: flex;
   gap: 20px;
   justify-content: center;
-  margin: 15px 0;
+  margin: 5px 0;
 }
 .statsItem {
   display: flex;
@@ -91,7 +93,7 @@
   margin-top: 10px;
   font-size: 1.05rem;
   line-height: 1.6;
-  text-align: center;
+  text-align: left;
   color: #444;
 }
 

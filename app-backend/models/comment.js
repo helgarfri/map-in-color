@@ -8,6 +8,12 @@ const Comment = sequelize.define('Comment', {
   content: { type: DataTypes.TEXT, allowNull: false },
   likeCount: { type: DataTypes.INTEGER, defaultValue: 0 },
   dislikeCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+
+  // You can define it here or rely on Sequelize’s “belongsTo” approach
+  ParentCommentId: {
+    type: DataTypes.INTEGER, // or BIGINT if large IDs
+    allowNull: true,
+  },
 });
 
 User.hasMany(Comment, { onDelete: 'CASCADE' });

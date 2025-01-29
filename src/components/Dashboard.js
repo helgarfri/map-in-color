@@ -18,7 +18,7 @@ import {
   FaCalendarAlt,
   FaComment,
   FaReply,
-  FaThumbsUp,
+  // FaThumbsUp, // removed since we don't handle "like" in the feed
 } from 'react-icons/fa';
 
 // Components
@@ -46,7 +46,9 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // ----------------------
   // Basic Stats
+  // ----------------------
   const totalMapsCreated = maps.length;
   const totalStarsReceived = maps.reduce(
     (sum, map) => sum + (map.saveCount || 0),
@@ -56,7 +58,9 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
     ? differenceInDays(new Date(), new Date(profile.createdAt))
     : 0;
 
-  // Fetch data once the profile is loaded
+  // ----------------------
+  // Fetch Data on Mount
+  // ----------------------
   useEffect(() => {
     if (!profile) return;
 
@@ -92,7 +96,9 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
   // Recently modified maps (up to 10)
   const recentMaps = maps.slice(0, 10);
 
-  // ----- Map Deletion Handlers -----
+  // ----------------------
+  // Map Deletion Handlers
+  // ----------------------
   const handleMapClick = (mapId) => {
     navigate(`/map/${mapId}`);
   };
@@ -111,6 +117,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
 
   const confirmDelete = async () => {
     if (!mapToDelete) return;
+
     try {
       await deleteMap(mapToDelete.id);
       setMaps((prev) => prev.filter((map) => map.id !== mapToDelete.id));
@@ -127,7 +134,9 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
     setMapToDelete(null);
   };
 
-  // ----- Notification Handlers -----
+  // ----------------------
+  // Notifications
+  // ----------------------
   const handleNotificationClick = async (notif) => {
     try {
       await markNotificationAsRead(notif.id);
@@ -149,7 +158,6 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
 
   // Handler for entire "Activity Item" click → go to map
   const handleActivityItemClick = (notif) => {
-    // Mark as read or do something else, then navigate to map
     if (notif.MapId) {
       navigate(`/map/${notif.MapId}`);
     }
@@ -163,7 +171,9 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
     }
   };
 
-  // ----- Render Activity Feed (Main Column) -----
+  // ----------------------
+  // Render Activity Feed (Main Column)
+  // ----------------------
   const renderActivityItem = (notif) => {
     const {
       type,
@@ -224,11 +234,12 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
       );
     }
 
-    // For convenience, define "activity text" and "body"
-    let mainText = '';
+    let mainText;
     let body = null;
 
+    // Removed "like" from the feed, so no (type === 'like') case
     if (type === 'star') {
+      // use star icon
       const totalStars = relatedMap?.saveCount || 0;
       mainText = (
         <>
@@ -238,10 +249,17 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           >
             {senderName}
           </strong>{' '}
-          starred your map "<em>{mapTitle}</em>"
+         starred
+          "<em>{mapTitle}</em>"
         </>
       );
-      body = <p className={styles.starCount}>Stars: {totalStars}</p>;
+      body = (
+        <p className={styles.starCount}>
+           <FaStar
+            style={{ marginLeft: '6px', marginRight: '4px', color: 'black' }}
+          /> {totalStars}
+        </p>
+      );
     } else if (type === 'comment') {
       const commentText = commentObj?.content || 'No comment text.';
       mainText = (
@@ -283,7 +301,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
       body = (
         <div className={styles.commentReplyBox}>
           <div className={styles.originalComment}>
-            <strong>Original Comment:</strong> {parentComment}
+            <strong>You:</strong> {parentComment}
           </div>
           <div className={styles.replyBox}>
             <img
@@ -315,7 +333,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
       <div
         className={styles.activityItem}
         key={notif.id}
-        onClick={() => handleActivityItemClick(notif)} // entire item → go to map
+        onClick={() => handleActivityItemClick(notif)}
       >
         <div className={styles.thumbContainer}>{mapThumbnail}</div>
         <div className={styles.activityDetails}>
@@ -332,6 +350,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
   return (
     <div className={styles.dashboardContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
       <div
         className={`${styles.dashboardContent} ${
           isCollapsed ? styles.contentCollapsed : ''
@@ -351,7 +370,42 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           <>
             <div className={styles.mainWrapper}>
               {/* LEFT: Recently Modified Maps */}
-              <div className={styles.leftMapsSidebar}>
+              
+
+              {/* CENTER: Stats + Activity Feed */}
+              <div className={styles.centerColumn}>
+                <div className={styles.statsContainer}>
+                  <div className={styles.statItem}>
+                    <FaMap className={styles.statIcon} />
+                    <span className={styles.statLabel}>Maps Created:</span>
+                    <span className={styles.statValue}>{totalMapsCreated}</span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <FaStar className={styles.statIcon} />
+                    <span className={styles.statLabel}>Stars Received:</span>
+                    <span className={styles.statValue}>{totalStarsReceived}</span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <FaCalendarAlt className={styles.statIcon} />
+                    <span className={styles.statLabel}>Profile Age:</span>
+                    <span className={styles.statValue}>{profileAgeDays} days</span>
+                  </div>
+                </div>
+
+                <section className={styles.activityFeedSection}>
+                  <h2>Activity Feed</h2>
+                  {notifications.length === 0 ? (
+                    <p>No activity yet.</p>
+                  ) : (
+                    <div className={styles.activityFeed}>
+                      {notifications.map(renderActivityItem)}
+                    </div>
+                  )}
+                </section>
+              </div>
+
+                  {/* Right side */}
+                  <div className={styles.leftMapsSidebar}>
                 <h2>Recently Modified Maps</h2>
                 {recentMaps.length === 0 ? (
                   <p>No maps found.</p>
@@ -386,96 +440,12 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
                 )}
               </div>
 
-              {/* CENTER: Stats + Activity Feed */}
-              <div className={styles.centerColumn}>
-                {/* Stats */}
-                <div className={styles.statsContainer}>
-                  <div className={styles.statItem}>
-                    <FaMap className={styles.statIcon} />
-                    <span className={styles.statLabel}>Maps Created:</span>
-                    <span className={styles.statValue}>{totalMapsCreated}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <FaStar className={styles.statIcon} />
-                    <span className={styles.statLabel}>Stars Received:</span>
-                    <span className={styles.statValue}>{totalStarsReceived}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <FaCalendarAlt className={styles.statIcon} />
-                    <span className={styles.statLabel}>Profile Age (Days):</span>
-                    <span className={styles.statValue}>{profileAgeDays}</span>
-                  </div>
-                </div>
-
-                {/* Activity Feed */}
-                <section className={styles.activityFeedSection}>
-                  <h2>Activity Feed</h2>
-                  {notifications.length === 0 ? (
-                    <p>No activity yet.</p>
-                  ) : (
-                    <div className={styles.activityFeed}>
-                      {notifications.map(renderActivityItem)}
-                    </div>
-                  )}
-                </section>
-              </div>
-
-              {/* RIGHT: Notifications */}
-              <div className={styles.rightNotifications}>
-                <h2>Notifications</h2>
-                <button
-                  className={styles.markAllBtn}
-                  onClick={handleViewAllNotifications}
-                >
-                  View All Notifications
-                </button>
-                <div className={styles.notificationsList}>
-                  {notifications.length === 0 && <p>No notifications.</p>}
-                  {notifications.map((notif) => {
-                    const senderName =
-                      notif.Sender?.firstName ||
-                      notif.Sender?.username ||
-                      'Someone';
-                    return (
-                      <div
-                        key={notif.id}
-                        className={`${styles.notificationItem} ${
-                          notif.isRead ? styles.read : styles.unread
-                        }`}
-                        onClick={() => handleNotificationClick(notif)}
-                      >
-                        <p className={styles.notificationText}>
-                          <strong>{senderName}</strong>{' '}
-                          {notif.type === 'star'
-                            ? 'starred your map.'
-                            : notif.type === 'comment'
-                            ? 'commented on your map.'
-                            : notif.type === 'reply'
-                            ? 'replied to your comment.'
-                            : 'did something.'}
-                        </p>
-                        <p className={styles.notificationTime}>
-                          {notif.createdAt
-                            ? formatDistanceToNow(new Date(notif.createdAt), {
-                                addSuffix: true,
-                              })
-                            : ''}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           </>
         )}
 
-        {/* DELETE MODAL */}
         {showDeleteModal && (
-          <div
-            className={styles.modalOverlay}
-            onClick={cancelDelete}
-          >
+          <div className={styles.modalOverlay} onClick={cancelDelete}>
             <div
               className={styles.modalContent}
               onClick={(e) => e.stopPropagation()}
@@ -486,16 +456,10 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
                 <strong>{mapToDelete?.title}</strong>"?
               </p>
               <div className={styles.modalButtons}>
-                <button
-                  className={styles.confirmDelete}
-                  onClick={confirmDelete}
-                >
+                <button className={styles.confirmDelete} onClick={confirmDelete}>
                   Delete
                 </button>
-                <button
-                  className={styles.cancelDelete}
-                  onClick={cancelDelete}
-                >
+                <button className={styles.cancelDelete} onClick={cancelDelete}>
                   Cancel
                 </button>
               </div>

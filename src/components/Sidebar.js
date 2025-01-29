@@ -1,5 +1,4 @@
 // src/components/Sidebar.js
-
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
@@ -23,11 +22,11 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
   const navigate = useNavigate();
 
   if (loadingProfile) {
-    return null; // Or a loading spinner if you prefer
+    return null; // or a spinner
   }
 
   if (!profile) {
-    return null; // Or a placeholder, or redirect to login
+    return null; // or a placeholder, or redirect to login
   }
 
   const handleCreateMap = () => {
@@ -53,6 +52,7 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
 
+      {/* Main content area */}
       <div className={styles.contentWrapper}>
         {/* Logo Section */}
         <div className={styles.logoSection}>
@@ -68,11 +68,7 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
         <nav className={styles.nav}>
           <ul>
             <li>
-              {/* Change NavLink to button to trigger modal */}
-              <button
-                className={styles.navLink} // Create a new class for button styling
-                onClick={handleCreateMap}
-              >
+              <button className={styles.navLink} onClick={handleCreateMap}>
                 <FaPlus className={styles.icon} />
                 {!isCollapsed && <span>Create New Map</span>}
               </button>
@@ -96,7 +92,6 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
                 <span>My Maps</span>
               </NavLink>
             </li>
-
             <li>
               <NavLink to="/starred-maps" className={styles.navLink}>
                 <FaStar className={styles.icon} />
@@ -117,6 +112,40 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
             </li>
           </ul>
         </nav>
+      </div>
+
+      {/* Bottom section (Docs + Copyright) */}
+      <div className={styles.bottomSection}>
+        
+        {/* Docs Link */}
+        <div className={styles.bottomDocsLink}>
+          {!isCollapsed ? (
+            <span className={styles.docsSentence}>
+              Visit the{' '}
+              <NavLink to="/docs" className={styles.docsLink}>
+                docs
+              </NavLink>{' '}
+              for more info
+            </span>
+          ) : (
+            <NavLink to="/docs" className={styles.navLink}>
+              docs
+            </NavLink>
+          )}
+        </div>
+
+        {/* Copyright */}
+        <div className={styles.bottomCopyright}>
+          {!isCollapsed ? (
+            <span className={styles.copyright}>
+              © 2025 Map in Color. All rights reserved.
+            </span>
+          ) : (
+            <span className={styles.copyright}>
+              © 2025
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Map Selection Modal */}

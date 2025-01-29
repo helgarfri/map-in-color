@@ -5,6 +5,7 @@
   display: flex;
   min-height: 100vh;
   background-color: #f7f7f7;
+
 }
 
 /* The main content area (beside your global Sidebar component) */
@@ -24,6 +25,8 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
+  margin: 0 20px 0 20px;
+
 }
 
 /* LEFT SIDEBAR: recently modified maps */
@@ -37,6 +40,7 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   padding: 20px;
   height: 100%;
+  margin-top: 70px;
 }
 
 .leftMapsSidebar h2 {
@@ -191,6 +195,7 @@
 .starCount {
   color: #444;
   font-weight: bold;
+  margin: 0px;
 }
 .commentBox {
   display: flex;

@@ -30,8 +30,7 @@
   width: 100%;
   border-collapse: separate; /* Changed to separate for border-radius on rows */
   border-spacing: 0 10px; /* Add space between rows */
-  max-width: 1600px;
-  margin: 0 auto;
+  margin: 0px 20px 0px 20px;
 }
 
 .mapTable th,

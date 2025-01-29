@@ -111,3 +111,7 @@ export const fetchMostStarredMapByUserId = (userId) =>
   API.get(`/maps/user/${userId}/most-starred`);
 
 export const incrementMapDownloadCount = (mapId) => API.post(`/maps/${mapId}/download`);
+
+export const deleteUserAccount = ({ reason, feedback }) =>
+  API.delete('/users/deleteAccount', { data: { reason, feedback } });
+

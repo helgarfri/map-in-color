@@ -11,6 +11,8 @@ const { Map, Comment, MapSaves } = require('../models'); // Import necessary mod
 /***********************************************
  *   GET USER ACTIVITY (CREATED / COMMENTED / STARRED)
  ***********************************************/
+// routes/profile.js
+
 router.get('/:username/activity', async (req, res) => {
   const username = req.params.username;
   const offset = parseInt(req.query.offset, 10) || 0;
@@ -22,52 +24,47 @@ router.get('/:username/activity', async (req, res) => {
     // 1) Find the user by username
     const user = await User.findOne({
       where: { username },
-      attributes: ['id', 'firstName'],
+      attributes: ['id', 'firstName', 'username'],  // adjust as you like
     });
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
     const userId = user.id;
 
-    // 2) Fetch 'limit' created maps, including the fields needed to render thumbnails
+    // 2) Query the top-level "createdMap" items
     const createdMaps = await Map.findAll({
       where: { UserId: userId },
       attributes: [
-        'id',
-        'title',
-        'selectedMap',
-        'oceanColor',
-        'unassignedColor',
-        'groups',
-        'data',
-        'fontColor',
-        'isTitleHidden',
-        'saveCount',
-        'createdAt',
+        'id','title','selectedMap','oceanColor','unassignedColor',
+        'groups','data','fontColor','isTitleHidden','saveCount','createdAt',
       ],
       order: [['createdAt', 'DESC']],
       limit,
     });
 
-    // 3) Fetch 'limit' comments, including the FULL map object
+    // 3) Query the user’s Comments (both top-level and replies),
+    //    but EAGER-LOAD the ParentComment + its user
     const comments = await Comment.findAll({
-      where: { UserId: userId },
-      attributes: ['id', 'content', 'createdAt'],
+      where: { UserId: userId },  // all comments from this user
+      attributes: ['id', 'content', 'createdAt', 'ParentCommentId'],
       include: [
         {
           model: Map,
           attributes: [
-            'id',
-            'title',
-            'selectedMap',
-            'oceanColor',
-            'unassignedColor',
-            'groups',
-            'data',
-            'fontColor',
-            'isTitleHidden',
-            'saveCount',
-            'createdAt',
+            'id','title','selectedMap','oceanColor','unassignedColor',
+            'groups','data','fontColor','isTitleHidden','saveCount','createdAt',
+          ],
+        },
+        {
+          // Eager-load the parent comment
+          model: Comment,
+          as: 'ParentComment',
+          // Also load the parent’s User
+          include: [
+            {
+              model: User,
+              attributes: ['username','profilePicture'],
+            },
           ],
         },
       ],
@@ -75,7 +72,7 @@ router.get('/:username/activity', async (req, res) => {
       limit,
     });
 
-    // 4) Fetch 'limit' map saves, including the FULL map object
+    // 4) Query the user’s Map saves => starred
     const mapSaves = await MapSaves.findAll({
       where: { UserId: userId },
       attributes: ['createdAt'],
@@ -83,17 +80,8 @@ router.get('/:username/activity', async (req, res) => {
         {
           model: Map,
           attributes: [
-            'id',
-            'title',
-            'selectedMap',
-            'oceanColor',
-            'unassignedColor',
-            'groups',
-            'data',
-            'fontColor',
-            'isTitleHidden',
-            'saveCount',
-            'createdAt',
+            'id','title','selectedMap','oceanColor','unassignedColor',
+            'groups','data','fontColor','isTitleHidden','saveCount','createdAt',
           ],
         },
       ],
@@ -101,50 +89,82 @@ router.get('/:username/activity', async (req, res) => {
       limit,
     });
 
-    // Combine all activities into one array
+    // Combine everything
     const activities = [];
 
-    // Created maps => type: 'createdMap'
+    // createdMap
     createdMaps.forEach((map) => {
       activities.push({
         type: 'createdMap',
-        map: map,            // the entire Map object
+        user: {  // the actor is 'this' user
+          username: user.username,
+          firstName: user.firstName || null,
+          // if you want more fields, add them
+        },
+        map: map,         // the entire Map object
         createdAt: map.createdAt,
       });
     });
 
-    // Comments => type: 'commented'
-    comments.forEach((comment) => {
+    // commented or reply
+    comments.forEach((cmt) => {
+      const isReply = !!cmt.ParentCommentId;  // if ParentCommentId is not null => a reply
       activities.push({
-        type: 'commented',
-        map: comment.Map,    // the entire Map object
-        commentId: comment.id,
-        commentContent: comment.content,
-        createdAt: comment.createdAt,
+        type: isReply ? 'reply' : 'commented',
+        user: {
+          username: user.username,
+          firstName: user.firstName || null,
+          // could also store user.profilePicture if you want
+          profilePicture: user.profilePicture || null,
+        },
+        map: cmt.Map,     // the entire Map object
+        commentId: cmt.id,
+        commentContent: cmt.content,
+        createdAt: cmt.createdAt,
+        commentObj: {
+          // So you can retrieve the parent's text + parent's user
+          ParentComment: cmt.ParentComment
+            ? {
+                id: cmt.ParentComment.id,
+                content: cmt.ParentComment.content,
+                User: cmt.ParentComment.User
+                  ? {
+                      username: cmt.ParentComment.User.username,
+                      profilePicture: cmt.ParentComment.User.profilePicture,
+                    }
+                  : null,
+              }
+            : null,
+        },
       });
     });
 
-    // Starred (map saves) => type: 'starredMap'
+    // starredMap
     mapSaves.forEach((save) => {
       activities.push({
         type: 'starredMap',
-        map: save.Map,       // the entire Map object
+        user: {
+          username: user.username,
+          firstName: user.firstName || null,
+        },
+        map: save.Map,
         createdAt: save.createdAt,
       });
     });
 
-    // Sort all combined activities by createdAt DESC
+    // Sort by createdAt desc
     activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Now apply offset and limit for pagination
-    const paginatedActivities = activities.slice(offset, offset + limit);
+    // Slice for pagination
+    const paginated = activities.slice(offset, offset + limit);
 
-    return res.json(paginatedActivities);
+    return res.json(paginated);
   } catch (err) {
     console.error('Error fetching user activity:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /***********************************************
  *   CONFIGURE MULTER STORAGE FOR PROFILE PICS
@@ -290,6 +310,7 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     if (req.file) {
       user.profilePicture = `/uploads/profile_pictures/${req.file.filename}`;
     }
+    
 
     await user.save();
 

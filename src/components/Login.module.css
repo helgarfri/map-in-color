@@ -1,49 +1,118 @@
-/* src/components/Login.module.css */
+/* Container that splits the screen in two */
+.splitContainer {
+  display: flex;
+  height: 100vh; /* Full viewport height */
+  font-family: Arial, sans-serif;
+}
 
-.loginContainer {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-  }
-  
-  .loginContainer h2 {
-    text-align: center;
-  }
-  
-  .loginForm {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .formGroup {
-    margin-bottom: 15px;
-  }
-  
-  .formGroup label {
-    margin-bottom: 5px;
-    display: block;
-  }
-  
-  .formGroup input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-  }
-  
-  .loginButton {
-    padding: 10px;
-    background-color: #80a0b0;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .loginButton:hover {
-    background-color: #6d8e9f;
-  }
-  
-  .loginContainer p {
-    text-align: center;
-  }
-  
+/* Left side: for the logo and branding */
+.leftSide {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* centers horizontally */
+  align-items: center;     /* centers vertically */
+  background: linear-gradient(to bottom right, #80a0b0, #6d8e9f);
+}
+
+/* Container to hold the logo and brand text side by side */
+.brandContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* space between logo and text */
+}
+
+/* Adjust the logo size to make it wider or bigger */
+.logo {
+  width: 130px; /* or a larger width if desired */
+  height: auto;
+}
+
+/* Make the brand text large and bold */
+.brandText {
+  color: #fff;
+  font-size: 4rem; /* bigger than before */
+  font-weight: bold;
+}
+
+/* Right side: for the form */
+.rightSide {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* center horizontally */
+  align-items: center;     /* center vertically */
+  background-color: #f5f5f5;
+}
+
+/* Container for the login heading and form
+   Removed the box background, border, and shadow to blend with background */
+.loginBox {
+  max-width: 400px;
+  width: 80%; /* Wider form area */
+  text-align: center;
+}
+
+.loginTitle {
+  margin-bottom: 30px;
+  font-size: 28px;
+  color: #333;
+}
+
+/* The login form */
+.loginForm {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual form groups (label + input) */
+.formGroup {
+  margin-bottom: 20px;
+  text-align: left; /* keep label aligned to left for clarity */
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 14px; /* increased padding for a bigger input feel */
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px; /* a bit larger font for readability */
+}
+
+/* Button styling */
+.loginButton {
+  padding: 14px;
+  background-color: #80a0b0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 17px;
+  margin-top: 10px;
+}
+
+.loginButton:hover {
+  background-color: #6d8e9f;
+}
+
+/* Paragraph and link style under the form */
+.loginBox p {
+  margin-top: 30px;
+  font-size: 15px;
+  color: #333;
+}
+
+.loginBox a {
+  color: #80a0b0;
+  text-decoration: none;
+}
+
+.loginBox a:hover {
+  text-decoration: underline;
+}

@@ -662,7 +662,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
       <div className={`${styles.mapDetailContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header
-          title={`${mapData.User.username} - ${mapData.title}`}
+          title={`${mapData.User.username}'s map`}
           notifications={notifications.slice(0, 6)}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={handleMarkAllAsRead}

@@ -187,6 +187,24 @@
   transition: opacity 0.3s ease; /* Add transition */
 }
 
+.docsSentence {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.docsLink {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.docsLink:hover {
+  color: #1abc9c;
+  text-decoration: underline;
+}
+
+.copyright {
+  font-size: 9px;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {

@@ -21,6 +21,8 @@ import MapDetail from './components/MapDetail';
 import ProfilePage from './components/ProfilePage'
 import StarredMaps from './components/StarredMaps';
 import NotificationList from './components/NotificationList';
+import DeleteAccount from './components/DeleteAccount';
+import Docs from './components/Docs';
 
 import { UserProvider } from './context/UserContext';
 
@@ -37,6 +39,11 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+
+        <Route 
+            path="/docs" 
+            element={<Docs />} 
+          />
 
         <Route
           path="/create"
@@ -73,7 +80,7 @@ function App() {
           }
         />
 
-<Route 
+        <Route 
           path="/explore" 
           element={<Explore
             isCollapsed={isCollapsed}
@@ -144,6 +151,9 @@ function App() {
             />
           }
         />
+
+<Route path="/delete-account" element={<DeleteAccount />} />
+
 
           <Route
             path="/notifications"

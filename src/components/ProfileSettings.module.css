@@ -331,6 +331,57 @@
   font-weight: bold;
 }
 
+
+/* DELETE MODAL */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modalContent {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 450px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+.confirmDelete,
+.cancelDelete {
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.confirmDelete {
+  background-color: #d9534f;
+  color: #fff;
+}
+.confirmDelete:hover {
+  background-color: #c9302c;
+}
+.cancelDelete {
+  background-color: #ccc;
+  color: #333;
+}
+.cancelDelete:hover {
+  background-color: #bbb;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .profileContainer {

@@ -9,6 +9,8 @@ const Comment = require('./comment');
 const CommentReaction = require('./commentReaction');
 const Notification = require('./notification');
 const Activity = require('./activity'); // Import Activity model
+const DeletionFeedback = require('./deletionFeedback');
+
 // Define associations
 
 
@@ -57,8 +59,8 @@ User.hasMany(CommentReaction, { foreignKey: 'UserId', onDelete: 'CASCADE' });
 Comment.hasMany(CommentReaction, { foreignKey: 'CommentId', onDelete: 'CASCADE' });
 
 // Notification associations
-Notification.belongsTo(User, { as: 'Recipient', foreignKey: 'UserId' });
-Notification.belongsTo(User, { as: 'Sender', foreignKey: 'SenderId' });
+Notification.belongsTo(User, { as: 'Recipient', foreignKey: 'UserId', onDelete: 'CASCADE' });
+Notification.belongsTo(User, { as: 'Sender', foreignKey: 'SenderId', onDelete: 'CASCADE' });
 Notification.belongsTo(Map, { foreignKey: 'MapId' });
 Notification.belongsTo(Comment, { foreignKey: 'CommentId' });
 
@@ -83,6 +85,8 @@ module.exports = {
   Comment,
   CommentReaction,
   Notification,
-  Activity
+  Activity,
+  DeletionFeedback, // Export the new model
+
   
 };

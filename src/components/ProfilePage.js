@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import Sidebar from './Sidebar';
 import styles from './ProfilePage.module.css';
-
+import ProfileActivityFeed from './ProfileActivityFeed';
 import {
   fetchUserProfileByUsername,
   fetchMapsByUserId,
@@ -487,98 +487,13 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
               )}
 
               {/* ACTIVITY TAB */}
-              {currentTab === 'activity' && (
-                <>
-                  {loadingActivity ? (
-                    <div className={styles.loadingContainer}>
-                      <LoadingSpinner />
-                    </div>
-                  ) : activity.length === 0 ? (
-                    <p>No recent activity.</p>
-                  ) : (
-                    <div className={styles.feedContainer}>
-                      {activity.map((item, index) => {
-                        // item.map is the full Map object (if any)
-                        const mapData = item.map || null;
-                        const timeAgo = formatTimeAgo(item.createdAt);
+          {currentTab === 'activity' && (
+            <div className={styles.activityTabContent}>
+              <h2>Activity</h2>
+              <ProfileActivityFeed username={profile.username} />
+            </div>
+          )}
 
-                        let actionText = '';
-                        if (item.type === 'commented') {
-                          actionText = 'commented on';
-                        } else if (item.type === 'starredMap') {
-                          actionText = 'starred';
-                        } else if (item.type === 'createdMap') {
-                          actionText = 'created a map';
-                        }
-
-                        // If it's a comment, we have item.commentContent
-                        const commentText = item.commentContent || '';
-
-                        return (
-                          <div key={index} className={styles.feedItem}>
-                            <div className={styles.feedHeader}>
-                              <div className={styles.feedIcon}>
-                                {getActivityIcon(item.type)}
-                              </div>
-                              <Link
-                                to={`/profile/${profile.username}`}
-                                className={styles.feedProfilePicWrapper}
-                              >
-                                <img
-                                  src={profilePictureUrl}
-                                  alt="Profile"
-                                  className={styles.feedProfilePic}
-                                />
-                              </Link>
-
-                              <div className={styles.feedUserInfo}>
-                                <Link
-                                  to={`/profile/${profile.username}`}
-                                  className={styles.feedUserName}
-                                >
-                                  {profile.firstName} {profile.lastName}
-                                </Link>
-                                <span className={styles.feedActionText}>
-                                  {actionText}{' '}
-                                  {mapData && (
-                                    <>
-                                      <span>on map </span>
-                                      <Link
-                                        to={`/map/${mapData.id}`}
-                                        className={styles.feedMapTitle}
-                                      >
-                                        {mapData.title || 'Untitled'}
-                                      </Link>
-                                    </>
-                                  )}
-                                </span>
-                                <span className={styles.feedTime}>{timeAgo}</span>
-                              </div>
-                            </div>
-
-                            {/* Large map thumbnail if mapData is present */}
-                            {mapData && (
-                              <div
-                                className={styles.feedMapThumbnail}
-                                onClick={() => navigate(`/map/${mapData.id}`)}
-                              >
-                                {renderMapThumbnail(mapData)}
-                              </div>
-                            )}
-
-                            {/* If it's a comment, show the comment text */}
-                            {item.type === 'commented' && commentText && (
-                              <div className={styles.commentBox}>
-                                <p>{commentText}</p>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
             </div>
           </div>
         </div>

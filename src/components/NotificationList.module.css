@@ -30,8 +30,7 @@
   padding: 10px 15px;
   border-bottom: 1px solid #ddd;
   cursor: pointer;
-  max-width: 1600px;
-  margin: 0 auto;
+  margin: 0px 20px 0px 20px;
 }
 
 .notificationItem:hover {

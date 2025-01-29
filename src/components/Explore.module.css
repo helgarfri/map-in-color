@@ -13,6 +13,7 @@
   transition: margin-left 0.3s ease;
   margin-left: 250px; /* expanded sidebar width */
   padding: 20px;
+
 }
 
 .mainContentWrapper.collapsed {
