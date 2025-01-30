@@ -72,6 +72,23 @@
     .navLink {
         font-size: 0.9rem;
     }
+
+    .brandTitle {
+        font-size: 16px;
+    }
+
+    .logo {
+        width: 30px;
+        height: 30px;
+    }
+
+    .navLink {
+        font-size: 0.8rem;
+    }
+
+    .loginButton {
+        padding: 6px 10px;
+    }
     
   }
   
