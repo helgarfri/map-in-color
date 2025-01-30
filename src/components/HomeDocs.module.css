@@ -6,6 +6,7 @@
     font-family: Arial, sans-serif;
   }
   
+  /* Main container for documentation content */
   .docsMain {
     flex: 1;
     padding: 2rem;
@@ -13,16 +14,21 @@
     margin: 0 auto; /* Center the content */
   }
   
+  /* Default heading style */
   .docsMain h1 {
     color: #55957b; /* Green heading */
     margin-bottom: 1rem;
+    font-size: 2rem; /* Example base heading size */
   }
   
+  /* Default paragraph style */
   .docsMain p {
     color: #000; /* or #6d3261 for purple if you prefer */
     line-height: 1.4;
+    font-size: 1rem;
   }
   
+  /* Links */
   .docsMain a {
     color: #c4564d; /* Red/Orange link color */
     text-decoration: none;
@@ -30,5 +36,58 @@
   
   .docsMain a:hover {
     text-decoration: underline;
+  }
+  
+  /* Code block styling */
+  .codeBlock {
+    background: #f0f0f0;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  
+  /* Images in documentation */
+  .docImage {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+  }
+  
+  /* 
+    Media query for smaller screens (example: max-width 600px).
+    Adjust the breakpoints and font sizes as needed.
+  */
+  @media (max-width: 600px) {
+    .docsMain {
+      padding: 1rem;
+    }
+  
+    /* Scale down the heading and paragraph fonts */
+    .docsMain h1 {
+      font-size: 1.5rem; /* was 2rem on desktop */
+    }
+  
+    .docsMain p {
+      font-size: 0.95rem; /* was 1rem on desktop */
+    }
+  }
+  
+  /* 
+    Another media query for slightly larger screens (e.g., max-width 768px).
+    You can chain multiple queries if you want a smoother responsiveness.
+  */
+  @media (max-width: 768px) {
+    .docsMain {
+      padding: 1.5rem;
+    }
+  
+    .docsMain h1 {
+      font-size: 1.7rem;
+    }
+  
+    .docsMain p {
+      font-size: 0.98rem;
+    }
   }
   
