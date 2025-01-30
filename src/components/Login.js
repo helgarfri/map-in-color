@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 import { logIn } from '../api';
 import { UserContext } from '../context/UserContext';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
 export default function Login() {
   const { setAuthToken, authToken, loadingProfile } = useContext(UserContext);
   const [email, setEmail] = useState('');
@@ -20,13 +21,10 @@ export default function Login() {
     } catch (err) {
       console.error('Login Error:', err);
       if (err.response) {
-        console.error('Server Error:', err.response.data.msg);
         alert(err.response.data.msg);
       } else if (err.request) {
-        console.error('No response from server:', err.request);
         alert('No response from server. Please try again.');
       } else {
-        console.error('Error:', err.message);
         alert('An unexpected error occurred. Please try again.');
       }
     }
@@ -40,6 +38,12 @@ export default function Login() {
 
   return (
     <div className={styles.splitContainer}>
+
+      {/* --- Go Back Button (Top-Left Corner) --- */}
+      <button onClick={() => navigate("/")} className={styles.goBackButton}>
+        <FontAwesomeIcon icon={faHome} />
+      </button>
+
       {/* Left side: Logo + "Map in Color" text */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
@@ -77,9 +81,7 @@ export default function Login() {
                 required
               />
             </div>
-            <button type="submit" className={styles.loginButton}>
-              Login
-            </button>
+            <button type="submit" className={styles.loginButton}>Login</button>
           </form>
           <p>
             Don&rsquo;t have an account? <Link to="/signup">Sign up here</Link>.

@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2025.1.24)  30 JAN 2025 18:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2025.1.24)  30 JAN 2025 22:06
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
-**docs.tex
+**docs.txt
 (./docs.tex
 LaTeX2e <2022-11-01> patch level 1
 L3 programming layer <2023-02-22>
@@ -467,7 +467,7 @@ LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 1
  (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
 ))
-<stats.png, id=55, 550.055pt x 467.7475pt>
+<stats.png, id=53, 550.055pt x 467.7475pt>
 File: stats.png Graphic file (type png)
 <use stats.png>
 Package pdftex.def Info: stats.png  used on input line 138.
@@ -476,7 +476,7 @@ Package pdftex.def Info: stats.png  used on input line 138.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<error.png, id=57, 489.83pt x 467.7475pt>
+<error.png, id=55, 489.83pt x 467.7475pt>
 File: error.png Graphic file (type png)
 <use error.png>
 Package pdftex.def Info: error.png  used on input line 149.
@@ -484,7 +484,7 @@ Package pdftex.def Info: error.png  used on input line 149.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<valid.png, id=58, 489.83pt x 467.7475pt>
+<valid.png, id=56, 489.83pt x 467.7475pt>
 File: valid.png Graphic file (type png)
 <use valid.png>
 Package pdftex.def Info: valid.png  used on input line 157.
@@ -493,18 +493,18 @@ Package pdftex.def Info: valid.png  used on input line 157.
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 [2] [3 <./stats.png> <./error.png>]
-<range_buttons.png, id=77, 709.65125pt x 87.32625pt>
+<range_buttons.png, id=75, 709.65125pt x 87.32625pt>
 File: range_buttons.png Graphic file (type png)
 <use range_buttons.png>
 Package pdftex.def Info: range_buttons.png  used on input line 177.
 (pdftex.def)             Requested size: 241.49895pt x 29.71718pt.
-<map_theme.png, id=78, 562.1pt x 205.76875pt>
+<map_theme.png, id=76, 562.1pt x 205.76875pt>
 File: map_theme.png Graphic file (type png)
 <use map_theme.png>
 Package pdftex.def Info: map_theme.png  used on input line 194.
 (pdftex.def)             Requested size: 241.49895pt x 88.40662pt.
  [4 <./valid.png> <./range_buttons.png>]
-<map_details.png, id=87, 556.0775pt x 612.2875pt>
+<map_details.png, id=85, 556.0775pt x 612.2875pt>
 File: map_details.png Graphic file (type png)
 <use map_details.png>
 Package pdftex.def Info: map_details.png  used on input line 203.
@@ -523,19 +523,17 @@ Here is how much of TeX's memory you used:
  34001 multiletter control sequences out of 15000+600000
  521747 words of font info for 51 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
- 77i,6n,81p,380b,612s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 77i,6n,81p,380b,624s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb></usr
 /share/texlive/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></usr/share/
 texlive/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></usr/share/texlive
 /texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texlive/texmf-
-dist/fonts/type1/public/cm-super/sfrm1200.pfb></usr/share/texlive/texmf-dist/fo
-nts/type1/public/cm-super/sfrm1728.pfb></usr/share/texlive/texmf-dist/fonts/typ
-e1/public/cm-super/sfti1000.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
-ic/cm-super/sftt1000.pfb>
-Output written on docs.pdf (5 pages, 238263 bytes).
+dist/fonts/type1/public/cm-super/sfti1000.pfb></usr/share/texlive/texmf-dist/fo
+nts/type1/public/cm-super/sftt1000.pfb>
+Output written on docs.pdf (5 pages, 213234 bytes).
 PDF statistics:
- 143 PDF objects out of 1000 (max. 8388607)
- 105 compressed objects within 2 object streams
+ 132 PDF objects out of 1000 (max. 8388607)
+ 99 compressed objects within 1 object stream
  28 named destinations out of 1000 (max. 500000)
  103 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -4,6 +4,20 @@
   font-family: Arial, sans-serif;
 }
 
+
+/* The go-back button in the top-left corner */
+.goBackButton {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+
+
 /* Left side: for the logo and branding */
 .leftSide {
   flex: 1;

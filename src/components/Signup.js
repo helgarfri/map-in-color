@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import { signUp } from '../api';
 import countries from '../data/countries'; // <-- Import countries array
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
 export default function Signup() {
   // States for all form fields
   const [firstName, setFirstName] = useState('');
@@ -133,6 +134,12 @@ export default function Signup() {
 
   return (
     <div className={styles.splitContainer}>
+
+          {/* --- Go Back Button (Top-Left Corner) --- */}
+          <button onClick={() => navigate('/')} className={styles.goBackButton}>
+            <FontAwesomeIcon icon={faHome} />
+      </button>
+
       {/* Left side */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>

@@ -15,30 +15,33 @@ const {
 
 // GET /maps/:mapId/comments
 // -------------------------
+// routes/comments.js
+
 router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
   try {
     const mapId = req.params.mapId;
 
+    // 1) Fetch top-level comments only (ParentCommentId = null)
+    //    We do NOT specify any "order" here, because we will sort by Wilson in memory.
     const comments = await Comment.findAll({
-      where: {
-        MapId: mapId,
-        ParentCommentId: null,
-      },
+      where: { MapId: mapId, ParentCommentId: null },
       include: [
         {
           model: User,
           attributes: ['username', 'profilePicture'],
         },
         {
+          // If the user is logged in, we find that user’s reaction. Otherwise skip.
           model: CommentReaction,
           required: false,
           where: req.user ? { UserId: req.user.id } : undefined,
           attributes: ['reaction'],
         },
         {
+          // Fetch replies
           model: Comment,
           as: 'Replies',
-          order: [['createdAt', 'ASC']],
+          // No "order" or "DESC" here. We’ll sort in memory if needed.
           include: [
             {
               model: User,
@@ -53,21 +56,22 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
           ],
         },
       ],
-      order: [['createdAt', 'DESC']],
     });
 
-    // Attach userReaction for both top-level and replies
-    const formattedComments = comments.map((comment) => {
-      const c = comment.toJSON();
+    // 2) Convert everything to plain objects, attach userReaction
+    const plainComments = comments.map((comment) => {
+      const topC = comment.toJSON();
 
-      c.userReaction =
-        c.CommentReactions && c.CommentReactions.length > 0
-          ? c.CommentReactions[0].reaction
+      // userReaction for top-level
+      topC.userReaction =
+        topC.CommentReactions && topC.CommentReactions.length > 0
+          ? topC.CommentReactions[0].reaction
           : null;
-      delete c.CommentReactions;
+      delete topC.CommentReactions;
 
-      if (c.Replies && c.Replies.length > 0) {
-        c.Replies = c.Replies.map((reply) => {
+      // For each reply in topC.Replies
+      if (topC.Replies && topC.Replies.length > 0) {
+        topC.Replies = topC.Replies.map((reply) => {
           const r = reply.CommentReactions || [];
           reply.userReaction = r.length > 0 ? r[0].reaction : null;
           delete reply.CommentReactions;
@@ -75,15 +79,34 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
         });
       }
 
-      return c;
+      return topC;
     });
 
-    res.json(formattedComments);
+    // 3) Compute a Wilson score for each top-level comment (and optionally for replies).
+    plainComments.forEach((c) => {
+      c.wilsonScore = computeWilsonScore(c.likeCount, c.dislikeCount);
+
+      if (c.Replies && c.Replies.length > 0) {
+        // If you want replies also sorted by Wilson:
+        c.Replies.forEach((rep) => {
+          rep.wilsonScore = computeWilsonScore(rep.likeCount, rep.dislikeCount);
+        });
+        // Sort replies in descending Wilson:
+        c.Replies.sort((a, b) => b.wilsonScore - a.wilsonScore);
+      }
+    });
+
+    // 4) Sort the top-level array by Wilson descending
+    plainComments.sort((a, b) => b.wilsonScore - a.wilsonScore);
+
+    // 5) Return them
+    res.json(plainComments);
   } catch (err) {
-    console.error('Error fetching comments:', err);
+    console.error('Error fetching comments with Wilson sorting:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 // POST /maps/:mapId/comments
 // --------------------------
@@ -373,4 +396,35 @@ router.delete('/comments/:commentId', auth, async (req, res) => {
   }
 });
 
+
+
 module.exports = router;
+
+// helper function to compute Wilson score
+
+// For a 95% confidence Wilson Score:
+const Z = 1.96;
+
+function computeWilsonScore(likeCount, dislikeCount) {
+  const up = likeCount || 0;
+  const down = dislikeCount || 0;
+  const n = up + down;
+  if (n === 0) {
+    return 0; // no votes => score = 0
+  }
+  const pHat = up / n;
+  const z2 = Z * Z;
+
+  // Wilson lower bound formula:
+  // score = ( pHat + z^2/(2n) - z * sqrt( (pHat*(1-pHat) + z^2/(4n))/n ) )
+  //         / (1 + z^2/n)
+  const denominator = 1 + (z2 / n);
+  const numerator =
+    pHat +
+    z2 / (2 * n) -
+    Z *
+      Math.sqrt(
+        (pHat * (1 - pHat) + z2 / (4 * n)) / n
+      );
+  return numerator / denominator;
+}

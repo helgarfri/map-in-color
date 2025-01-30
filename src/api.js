@@ -112,6 +112,11 @@ export const fetchMostStarredMapByUserId = (userId) =>
 
 export const incrementMapDownloadCount = (mapId) => API.post(`/maps/${mapId}/download`);
 
+export const changeUserPassword = (payload) => {
+  // payload: { oldPassword, newPassword }
+  return API.put('/users/change-password', payload);
+};
+
 export const deleteUserAccount = ({ reason, feedback }) =>
   API.delete('/users/deleteAccount', { data: { reason, feedback } });
 

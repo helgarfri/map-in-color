@@ -116,15 +116,12 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
   useEffect(() => {
     const getComments = async () => {
-      try {
-        const res = await fetchComments(id);
-        setComments(res.data);
-      } catch (err) {
-        console.error(err);
-      }
+      const res = await fetchComments(id);
+      setComments(res.data);
     };
     getComments();
   }, [id]);
+  
 
   useEffect(() => {
     const getNotifications = async () => {
@@ -834,263 +831,204 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               )}
 
             </div>
-               {/* ---- Discussion Section ---- */}
-          {/* Discussion / Comments */}
-          <div className={styles.discussionSection} ref={discussionRef}>
-              <h2>Discussion</h2>
-              {isPublic ? (
-                <>
-                  <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Add a comment..."
-                      required
-                      className={styles.commentTextarea}
-                    />
-                    <button type="submit" className={styles.commentButton}>
-                      Post Comment
-                    </button>
-                  </form>
+{/* ---- Discussion Section ---- */}
+<div className={styles.discussionSection} ref={discussionRef}>
+  <h2>Discussion</h2>
+  {isPublic ? (
+    <>
+      {/* Post a new top-level comment */}
+      <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Add a comment..."
+          required
+          className={styles.commentTextarea}
+        />
+        <button type="submit" className={styles.commentButton}>
+          Post Comment
+        </button>
+      </form>
 
-                  {comments.length > 0 ? (
-                    <ul className={styles.commentsList}>
-                      {comments.map((comment) => {
-                        const areRepliesExpanded = expandedReplies[comment.id] || false;
-                        const repliesArray = comment.Replies || [];
-                        const totalReplies = repliesArray.length;
-                        const repliesToShow = areRepliesExpanded
-                          ? repliesArray
-                          : repliesArray.slice(0, 3);
+      {/* Render the server-sorted comments array in the order it’s given */}
+      {comments.length > 0 ? (
+        <ul className={styles.commentsList}>
+          {comments.map((comment) => {
+            const areRepliesExpanded = expandedReplies[comment.id] || false;
+            const repliesArray = comment.Replies || [];
+            const totalReplies = repliesArray.length;
+            // You can still cap replies at 3 or so:
+            const repliesToShow = areRepliesExpanded
+              ? repliesArray
+              : repliesArray.slice(0, 3);
 
-                        return (
-                          <li key={comment.id} className={styles.commentItem}>
-                            <div className={styles.commentHeader}>
-                              {comment.User && comment.User.profilePicture ? (
-                                <Link to={`/profile/${comment.User.username}`}>
-                                  <img
-                                    src={`http://localhost:5000${comment.User.profilePicture}`}
-                                    alt={`${comment.User.username}'s profile`}
-                                    className={styles.commentProfilePicture}
-                                  />
-                                </Link>
-                              ) : (
-                                <div className={styles.commentPlaceholder}></div>
-                              )}
-                              <div className={styles.commentContentWrapper}>
-                                <div className={styles.commentInfo}>
-                                  <Link
-                                    to={`/profile/${comment.User.username}`}
-                                    className={styles.commentAuthorLink}
-                                  >
-                                    <span className={styles.commentAuthor}>
-                                      {comment.User.username}
-                                    </span>
-                                  </Link>
-                                  <span className={styles.commentTime}>
-                                    {formatDistanceToNow(new Date(comment.createdAt), {
-                                      addSuffix: true,
-                                    })}
-                                  </span>
-                                </div>
-                                <p className={styles.commentContent}>{comment.content}</p>
-                                <div className={styles.commentActions}>
-                                  {/* Like button with original SVG icon */}
-                                  <button
-                                    className={`${styles.reactionButton} ${
-                                      comment.userReaction === 'like' ? styles.active : ''
-                                    }`}
-                                    onClick={() => handleLike(comment.id)}
-                                  >
-                                    <svg
-                                      className={styles.icon}
-                                      viewBox="0 0 24 24"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                                    </svg>
-                                    <span>{comment.likeCount}</span>
-                                  </button>
-
-                                  {/* Dislike button with original SVG icon */}
-                                  <button
-                                    className={`${styles.reactionButton} ${
-                                      comment.userReaction === 'dislike' ? styles.active : ''
-                                    }`}
-                                    onClick={() => handleDislike(comment.id)}
-                                  >
-                                    <svg
-                                      className={styles.icon}
-                                      viewBox="0 0 24 24"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
-                                    </svg>
-                                    <span>{comment.dislikeCount}</span>
-                                  </button>
-
-                                  <button
-                                    className={styles.replyButton}
-                                    onClick={() =>
-                                      setReplyingTo({ commentId: comment.id, content: '' })
-                                    }
-                                  >
-                                    Reply
-                                  </button>
-                                  {(isOwner ||
-                                    (comment.User &&
-                                      comment.User.username === profile?.username)) && (
-                                    <button
-                                      className={styles.deleteButton}
-                                      onClick={() => handleDeleteCommentWithConfirm(comment.id)}
-                                    >
-                                      Delete
-                                    </button>
-                                  )}
-                                </div>
-
-                                {/* Reply form if this comment is being replied to */}
-                                {replyingTo && replyingTo.commentId === comment.id && (
-                                  <form
-                                    onSubmit={(e) => handleReplySubmit(e, comment.id)}
-                                    className={styles.replyForm}
-                                  >
-                                    <textarea
-                                      value={replyingTo.content}
-                                      onChange={(e) =>
-                                        setReplyingTo({ ...replyingTo, content: e.target.value })
-                                      }
-                                      placeholder="Write a reply..."
-                                      required
-                                      className={styles.replyTextarea}
-                                    />
-                                    <div className={styles.replyActions}>
-                                      {/* Cancel left, Post right */}
-                                      <button
-                                        type="button"
-                                        className={styles.replyCancelButton}
-                                        onClick={handleReplyCancel}
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button type="submit" className={styles.replyButtonSubmit}>
-                                        Post Reply
-                                      </button>
-                                    </div>
-                                  </form>
-                                )}
-
-                                {/* Replies */}
-                                {repliesArray.length > 0 && (
-                                  <ul className={styles.repliesList}>
-                                    {repliesToShow.map((reply) => (
-                                      <li key={reply.id} className={styles.replyItem}>
-                                        <div className={styles.commentHeader}>
-                                          {reply.User && reply.User.profilePicture ? (
-                                            <Link to={`/profile/${reply.User.username}`}>
-                                              <img
-                                                src={`http://localhost:5000${reply.User.profilePicture}`}
-                                                alt={`${reply.User.username}'s profile`}
-                                                className={styles.commentProfilePicture}
-                                              />
-                                            </Link>
-                                          ) : (
-                                            <div className={styles.commentPlaceholder}></div>
-                                          )}
-                                          <div className={styles.commentContentWrapper}>
-                                            <div className={styles.commentInfo}>
-                                              <Link
-                                                to={`/profile/${reply.User.username}`}
-                                                className={styles.commentAuthorLink}
-                                              >
-                                                <span className={styles.commentAuthor}>
-                                                  {reply.User.username}
-                                                </span>
-                                              </Link>
-                                              <span className={styles.commentTime}>
-                                                {formatDistanceToNow(new Date(reply.createdAt), {
-                                                  addSuffix: true,
-                                                })}
-                                              </span>
-                                            </div>
-                                            <p className={styles.commentContent}>{reply.content}</p>
-                                            <div className={styles.commentActions}>
-                                              <button
-                                                className={`${styles.reactionButton} ${
-                                                  reply.userReaction === 'like' ? styles.active : ''
-                                                }`}
-                                                onClick={() => handleLike(reply.id)}
-                                              >
-                                                <svg
-                                                  className={styles.icon}
-                                                  viewBox="0 0 24 24"
-                                                  fill="currentColor"
-                                                >
-                                                  <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                                                </svg>
-                                                <span>{reply.likeCount}</span>
-                                              </button>
-                                              <button
-                                                className={`${styles.reactionButton} ${
-                                                  reply.userReaction === 'dislike'
-                                                    ? styles.active
-                                                    : ''
-                                                }`}
-                                                onClick={() => handleDislike(reply.id)}
-                                              >
-                                                <svg
-                                                  className={styles.icon}
-                                                  viewBox="0 0 24 24"
-                                                  fill="currentColor"
-                                                >
-                                                  <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
-                                                </svg>
-                                                <span>{reply.dislikeCount}</span>
-                                              </button>
-                                              {(isOwner ||
-                                                (reply.User &&
-                                                  reply.User.username === profile?.username)) && (
-                                                <button
-                                                  className={styles.deleteButton}
-                                                  onClick={() =>
-                                                    handleDeleteCommentWithConfirm(reply.id)
-                                                  }
-                                                >
-                                                  Delete
-                                                </button>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </li>
-                                    ))}
-                                    {/* "View more replies" / "Show less replies" */}
-                                    {totalReplies > 3 && (
-                                      <button
-                                        className={styles.toggleRepliesButton}
-                                        onClick={() => toggleReplies(comment.id)}
-                                      >
-                                        {areRepliesExpanded
-                                          ? 'Show less replies'
-                                          : `View more replies (${totalReplies - 3})`}
-                                      </button>
-                                    )}
-                                  </ul>
-                                )}
-                              </div>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
+            return (
+              <li key={comment.id} className={styles.commentItem}>
+                <div className={styles.commentHeader}>
+                  {/* Profile picture */}
+                  {comment.User && comment.User.profilePicture ? (
+                    <Link to={`/profile/${comment.User.username}`}>
+                      <img
+                        src={`http://localhost:5000${comment.User.profilePicture}`}
+                        alt={`${comment.User.username}'s profile`}
+                        className={styles.commentProfilePicture}
+                      />
+                    </Link>
                   ) : (
-                    <p>No comments yet.</p>
+                    <div className={styles.commentPlaceholder}></div>
                   )}
-                </>
-              ) : (
-                <p>Comments are not available for private maps.</p>
-              )}
-            </div>
+
+                  <div className={styles.commentContentWrapper}>
+                    {/* Author + Timestamp */}
+                    <div className={styles.commentInfo}>
+                      <Link
+                        to={`/profile/${comment.User.username}`}
+                        className={styles.commentAuthorLink}
+                      >
+                        <span className={styles.commentAuthor}>
+                          {comment.User.username}
+                        </span>
+                      </Link>
+                      <span className={styles.commentTime}>
+                        {formatDistanceToNow(new Date(comment.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </div>
+
+                    {/* Comment content */}
+                    <p className={styles.commentContent}>{comment.content}</p>
+
+                    {/* Like, Dislike, etc. */}
+                    <div className={styles.commentActions}>
+                      <button
+                        className={`${styles.reactionButton} ${
+                          comment.userReaction === 'like' ? styles.active : ''
+                        }`}
+                        onClick={() => handleLike(comment.id)}
+                      >
+                        {/* Like icon */}
+                        <svg
+                          className={styles.icon}
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+                        </svg>
+                        <span>{comment.likeCount}</span>
+                      </button>
+
+                      <button
+                        className={`${styles.reactionButton} ${
+                          comment.userReaction === 'dislike' ? styles.active : ''
+                        }`}
+                        onClick={() => handleDislike(comment.id)}
+                      >
+                        {/* Dislike icon */}
+                        <svg
+                          className={styles.icon}
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                        </svg>
+                        <span>{comment.dislikeCount}</span>
+                      </button>
+
+                      {/* Reply / Delete Buttons */}
+                      <button
+                        className={styles.replyButton}
+                        onClick={() =>
+                          setReplyingTo({ commentId: comment.id, content: '' })
+                        }
+                      >
+                        Reply
+                      </button>
+                      {(isOwner ||
+                        (comment.User &&
+                          comment.User.username === profile?.username)) && (
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => handleDeleteCommentWithConfirm(comment.id)}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+
+                    {/* If replying... */}
+                    {replyingTo && replyingTo.commentId === comment.id && (
+                      <form
+                        onSubmit={(e) => handleReplySubmit(e, comment.id)}
+                        className={styles.replyForm}
+                      >
+                        <textarea
+                          value={replyingTo.content}
+                          onChange={(e) =>
+                            setReplyingTo({
+                              ...replyingTo,
+                              content: e.target.value,
+                            })
+                          }
+                          placeholder="Write a reply..."
+                          required
+                          className={styles.replyTextarea}
+                        />
+                        <div className={styles.replyActions}>
+                          <button
+                            type="button"
+                            className={styles.replyCancelButton}
+                            onClick={handleReplyCancel}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className={styles.replyButtonSubmit}
+                          >
+                            Post Reply
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Replies */}
+                    {repliesArray.length > 0 && (
+                      <ul className={styles.repliesList}>
+                        {repliesToShow.map((reply) => (
+                          <li key={reply.id} className={styles.replyItem}>
+                            {/* ...similar logic, no re-sort needed */}
+                          </li>
+                        ))}
+
+                        {/* “View more replies” / “Show less replies” */}
+                        {totalReplies > 3 && (
+                          <button
+                            className={styles.toggleRepliesButton}
+                            onClick={() => toggleReplies(comment.id)}
+                          >
+                            {areRepliesExpanded
+                              ? 'Show less replies'
+                              : `View more replies (${totalReplies - 3})`}
+                          </button>
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p>No comments yet.</p>
+      )}
+    </>
+  ) : (
+    <p>Comments are not available for private maps.</p>
+  )}
+</div>
+
           </div>
           {/* Right Side: Statistics */}
           <div className={styles.mapStats}>

@@ -21,6 +21,7 @@ import MapDetail from './components/MapDetail';
 import ProfilePage from './components/ProfilePage'
 import StarredMaps from './components/StarredMaps';
 import NotificationList from './components/NotificationList';
+import ChangePassword from './components/ChangePassword';
 import DeleteAccount from './components/DeleteAccount';
 import Docs from './components/Docs';
 
@@ -156,7 +157,14 @@ function App() {
           }
         />
 
-<Route path="/delete-account" element={<DeleteAccount />} />
+        <Route path="/change-password" 
+        element={<ChangePassword isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}/>}
+        
+        
+        />
+
+<Route path="/delete-account" element={<DeleteAccount />}  />
 
 
           <Route

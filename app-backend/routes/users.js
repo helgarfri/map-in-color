@@ -241,5 +241,41 @@ router.get('/:username/activity', async (req, res) => {
 });
 
 
+const bcrypt = require('bcrypt');
+
+router.put('/change-password', auth, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ msg: 'Missing required fields.' });
+    }
+
+    // Check old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Old password is incorrect.' });
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.json({ msg: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('Error changing password:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
 
 module.exports = router;

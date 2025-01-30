@@ -490,7 +490,11 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
           {currentTab === 'activity' && (
             <div className={styles.activityTabContent}>
               <h2>Activity</h2>
-              <ProfileActivityFeed username={profile.username} />
+              <ProfileActivityFeed 
+                username={profile.username}
+                profilePictureUrl={profilePictureUrl} 
+
+                />
             </div>
           )}
 

@@ -1,16 +1,30 @@
-/* Container that splits the screen in two */
 .splitContainer {
   display: flex;
   height: 100vh; /* Full viewport height */
   font-family: Arial, sans-serif;
+  position: relative; /* so the button can be absolutely positioned */
 }
 
-/* Left side: for the logo and branding */
+/* The go-back button in the top-left corner */
+.goBackButton {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  
+}
+
+
+
+
 .leftSide {
   flex: 1;
   display: flex;
-  justify-content: center; /* centers horizontally */
-  align-items: center;     /* centers vertically */
+  justify-content: center;
+  align-items: center;
   background: linear-gradient(to bottom right, #80a0b0, #6d8e9f);
 }
 

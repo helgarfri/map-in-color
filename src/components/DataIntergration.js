@@ -964,7 +964,7 @@ function applyPalette(oldRanges, paletteColors) {
                 </pre>
               </p>
               <p className={styles.instructionText}>
-                Check out our <a href="/docs/file-instructions" target="_blank" rel="noreferrer">documentation</a> for more details.
+                Check out our <a href="/docs" target="_blank" rel="noreferrer">documentation</a> for more details.
               </p>
             </div>
 

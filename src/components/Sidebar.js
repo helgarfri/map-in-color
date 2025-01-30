@@ -122,13 +122,13 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
           {!isCollapsed ? (
             <span className={styles.docsSentence}>
               Visit the{' '}
-              <NavLink to="/docs" className={styles.docsLink}>
+              <NavLink to="/docs" target="_blank" className={styles.docsLink}>
                 docs
               </NavLink>{' '}
               for more info
             </span>
           ) : (
-            <NavLink to="/docs" className={styles.navLink}>
+            <NavLink to="/docs" target="_blank" className={styles.navLink}>
               docs
             </NavLink>
           )}
