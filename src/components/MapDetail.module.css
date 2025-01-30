@@ -1,0 +1,681 @@
+/* MapDetail.module.css */
+
+/* Map Detail Container */
+.mapDetailContainer {
+  display: flex;
+}
+
+/* Map Detail Content */
+.mapDetailContent {
+  flex: 1;
+  padding: 20px;
+  margin-left: 250px; /* Adjust as needed */
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+.contentCollapsed {
+  margin-left: 70px; /* Adjust as needed */
+}
+
+/* Map Display */
+.mapDisplay {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #ccc;
+  background-color: #333;
+  width: 100%;
+  margin: 0 auto;
+}
+
+
+/* Zoom Controls */
+.zoomControls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.zoomControls button {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.zoomControls button:hover {
+  background-color: #f0f0f0;
+}
+
+/* View Mode Button */
+.viewModeButton {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 24px;
+  cursor: pointer;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.viewModeButton:hover {
+  background-color: #f0f0f0;
+}
+
+/* Details and Statistics Section */
+.detailsAndStats {
+  display: table; /* Changed from flex to table */
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Left Content: Map Details and Comments */
+.leftContent {
+  display: table-cell; /* Changed from flex to table-cell */
+  vertical-align: top;
+  padding-right: 20px; /* To simulate gap */
+  width: 75%; /* Adjust as needed */
+}
+
+/* Right Side: Statistics */
+.mapStats {
+  display: table-cell; /* Changed from flex to table-cell */
+  vertical-align: top;
+  padding-left: 20px; /* To simulate gap */
+  width: 25%; /* Adjust as needed */
+}
+
+/* Map Details */
+.mapDetails {
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Discussion Section */
+.discussionSection {
+  margin-top: 20px;
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Title Section */
+.titleSection {
+  display: flex;
+  align-items: center;
+}
+
+.titleSection h1 {
+  flex: 1;
+  margin: 0;
+}
+
+.saveButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  font-size: 24px; /* ensure icons match text size if you want them equal */
+  cursor: pointer;
+  background: none;
+  border: none;
+  gap: 3px;
+}
+
+.createdAt {
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+/* Creator Info */
+.creatorInfo {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.creatorProfileLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  margin-right: 10px;
+}
+
+.creatorProfilePicture {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.creatorName {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.creatorUsername {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.creatorUsername:hover {
+  text-decoration: underline;
+}
+
+/* Comment Author Link */
+.commentAuthorLink {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.commentAuthorLink:hover {
+  text-decoration: underline;
+}
+
+/* Adjustments for Profile Pictures in Comments */
+.commentProfilePicture {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+/* Ensure the comment header aligns properly */
+.commentHeader {
+  align-items: flex-start;
+}
+
+/* Visibility Tag */
+.visibilityTag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 6px;
+  background-color: #e0e0e0;
+  color: #333;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.description {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+
+/* Tag styling in MapDetail for clickable tags */
+.mapTag {
+  display: inline-block;
+  color: #333;
+  padding: 5px 10px;
+  margin: 0 5px 5px 0;
+  border: 0.5px solid #ccc;
+  border-radius: 7px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none; /* Ensure no underline */
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mapTag:hover {
+  background-color: #80a0b0;
+  color: white; 
+}
+.referencesList {
+  list-style: decimal inside; /* gives us "1. 2. 3." with indentation */
+  margin-left: 0;
+  padding-left: 0; 
+  margin-top: 8px; 
+}
+
+.referenceItem {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.referenceNotes {
+  margin-top: 5px;
+  margin-left: 20px; /* to indent "Notes:" under the main line if desired */
+  font-style: italic;
+}
+
+
+/* Discussion Section */
+.discussionSection h2 {
+  margin-top: 0;
+}
+
+/* Comment Form */
+.commentForm {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.commentTextarea {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  resize: none;
+  min-height: 40px;
+}
+
+.commentTextarea:focus {
+  outline: none;
+  border-color: #80a0b0;
+}
+
+.commentButton {
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  background-color: #55957b;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 40px;
+  align-self: center;
+}
+
+.commentButton:hover {
+  background-color: #6999b1;
+}
+
+/* Comments List */
+.commentsList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.commentItem {
+  display: flex;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.commentHeader {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.commentProfilePicture,
+.commentPlaceholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+}
+
+.commentPlaceholder {
+  background-color: #ccc;
+}
+
+.commentContentWrapper {
+  flex: 1;
+}
+
+.commentInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.commentAuthor {
+  font-weight: bold;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.commentTime {
+  font-size: 12px;
+  color: #888;
+}
+
+.commentContent {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Comment Actions */
+.commentActions {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.reactionButton {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 10px;
+  padding: 4px 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.reactionButton:hover {
+  background-color: #e0e0e0;
+}
+
+.reactionButton.active {
+  background-color: #80a0b0;
+  color: #fff;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  fill: currentColor;
+}
+
+/* Reply Button */
+.replyButton {
+  background: none;
+  border: none;
+  color: #80a0b0;
+  cursor: pointer;
+  margin-left: 10px;
+
+  
+  
+}
+
+.replyButton:hover {
+  text-decoration: underline;
+}
+
+/* Reply Form */
+.replyForm {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  margin-left: 65px;
+}
+
+.replyTextarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  resize: none;
+  min-height: 60px;
+}
+
+.replyTextarea:focus {
+  outline: none;
+  border-color: #80a0b0;
+}
+
+.replyButtonSubmit {
+  align-self: flex-end;
+  margin-top: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  background-color: #80a0b0;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.replyButtonSubmit:hover {
+  background-color: #6999b1;
+}
+
+/* Replies List */
+.repliesList {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 10px;
+  margin-left: 65px;
+}
+
+/* Reply Item */
+.replyItem {
+  display: flex;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.replyItem .commentHeader {
+  display: flex;
+  width: 100%;
+}
+
+.replyItem .commentProfilePicture,
+.replyItem .commentPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.replyItem .commentContentWrapper {
+  flex: 1;
+  font-size: 14px;
+}
+
+.replyItem .commentAuthor {
+  font-weight: bold;
+  font-size: 13px;
+  margin-right: 8px;
+}
+
+.replyItem .commentTime {
+  font-size: 11px;
+  color: #888;
+}
+
+.replyItem .commentContent {
+  font-size: 14px;
+  margin: 0;
+}
+
+.replyItem .commentActions {
+  margin-top: 8px;
+}
+
+.replyItem .reactionButton {
+  font-size: 12px;
+  padding: 3px 6px;
+  margin-right: 8px;
+}
+
+.replyItem .icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 3px;
+}
+
+/* Increase margin between replies */
+.replyItem + .replyItem {
+  margin-top: 15px;
+}
+
+   .replyCancelButton {
+     margin-left: 8px;
+     margin-top: 8px;
+     background: none;
+     border: none;
+     color: #888; 
+     cursor: pointer;
+
+   }
+   .replyCancelButton:hover {
+     text-decoration: underline;
+   }
+   .replyActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Align to the right */
+    gap: 10px;
+    margin-top: 5px;
+  }
+  
+
+/* Toggle Replies Button */
+.toggleRepliesButton {
+  background: none;
+  border: none;
+  color: #80a0b0;
+  cursor: pointer;
+  margin-left: 65px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.toggleRepliesButton:hover {
+  text-decoration: underline;
+}
+
+.editButton {
+  background: #80a0b0;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editButton:hover {
+  background: #5390ae;
+}
+
+.deleteButton {
+  color: #bb655b;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+  background: none;
+}
+
+.deleteButton:hover {
+  text-decoration: underline;
+}
+
+
+
+/* Map Statistics */
+.mapStats {
+  display: table-cell; /* Changed from flex to table-cell */
+  vertical-align: top;
+  padding-left: 20px; /* To simulate gap */
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  width: 25%; /* Adjust as needed */
+}
+
+.statsSummary {
+  flex-shrink: 0;
+}
+
+.mapStats h2 {
+  margin-top: 0;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.statValue {
+  font-size: 32px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.statLabel {
+  background-color: #ddd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.statItem p {
+  margin-left: auto;
+  font-size: 16px;
+  color: #555;
+}
+
+/* Country List Table */
+.countryList {
+  overflow-y: auto; /* Enable vertical scrolling when content overflows */
+  margin-top: 10px;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.countryList table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.countryList th,
+.countryList td {
+  text-align: left;
+  padding: 8px;
+}
+
+.countryList tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.countryList th {
+  background-color: #e0e0e0;
+  top: 0;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .detailsAndStats {
+    display: block; /* Revert to block layout on small screens */
+  }
+
+  .leftContent,
+  .mapStats {
+    display: block;
+    width: 100%;
+  }
+
+  .mapStats {
+    margin-top: 20px;
+  }
+}

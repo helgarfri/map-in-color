@@ -1,0 +1,115 @@
+.deleteContainer {
+  max-width: 600px;
+  margin: 80px auto;
+  padding: 30px;
+  font-family: Arial, sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.heading {
+  margin-bottom: 10px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+.brokenHeart {
+  margin-left: 8px;
+}
+
+.subheading {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.reasonList {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reasonItem {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.reasonItem input {
+  margin-right: 8px;
+}
+
+/* FEEDBACK SECTION */
+.feedbackContainer {
+  margin-bottom: 20px;
+}
+
+.feedbackLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #333;
+}
+
+.feedbackTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  resize: vertical; /* Let user resize vertically if they want */
+}
+
+.warningText {
+  color: #c0392b;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.checkboxContainer {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.buttonsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.deleteForeverButton {
+  background-color: #c0392b;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.deleteForeverButton:hover {
+  background-color: #a93226;
+}
+
+.keepDataButton {
+  background-color: #7f8c8d;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.keepDataButton:hover {
+  background-color: #6d7577;
+}
