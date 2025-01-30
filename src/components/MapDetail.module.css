@@ -521,6 +521,27 @@
   margin-top: 15px;
 }
 
+   .replyCancelButton {
+     margin-left: 8px;
+     margin-top: 8px;
+     background: none;
+     border: none;
+     color: #888; 
+     cursor: pointer;
+
+   }
+   .replyCancelButton:hover {
+     text-decoration: underline;
+   }
+   .replyActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Align to the right */
+    gap: 10px;
+    margin-top: 5px;
+  }
+  
+
 /* Toggle Replies Button */
 .toggleRepliesButton {
   background: none;

@@ -2,27 +2,31 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import { signUp } from '../api';
+import countries from '../data/countries'; // <-- Import countries array
 
 export default function Signup() {
   // States for all form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+
+  // We will combine these three into dateOfBirth before sending
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
+
   const [gender, setGender] = useState('');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState(''); // Will use a select for countries
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // This object will hold error messages for specific fields
+  // Object to hold error messages (field-specific or general)
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
 
-  // Helper arrays for the selects
+  // Helper arrays for date
   const days = Array.from({ length: 31 }, (_, i) => i + 1); // 1 to 31
   const years = Array.from({ length: 100 }, (_, i) => 2025 - i); // e.g., 2025 down to 1926
   const months = [
@@ -59,34 +63,38 @@ export default function Signup() {
       newErrors.confirmPassword = 'Passwords do not match.';
     }
 
-    // (You can add more client-side checks for email format, etc. if desired)
+    // More checks as needed (e.g., email format, etc.)
 
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear existing errors
     setErrors({});
 
     // 1) Run client-side checks
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
-      return; // Stop if we have local validation errors
+      return;
+    }
+
+    // 2) Create a single dateOfBirth field (YYYY-MM-DD)
+    let dateOfBirth = '';
+    if (year && month && day) {
+      const mm = month.toString().padStart(2, '0'); // zero-pad month
+      const dd = day.toString().padStart(2, '0');   // zero-pad day
+      dateOfBirth = `${year}-${mm}-${dd}`;
     }
 
     try {
-      // 2) Attempt to sign up via your API
+      // Prepare data exactly how your server expects (matching ProfileSettings)
       const res = await signUp({
         firstName,
         lastName,
-        day,
-        month,
-        year,
+        dateOfBirth, // single string
         gender,
-        location,
+        location,    // selected country
         email,
         username,
         password,
@@ -101,7 +109,6 @@ export default function Signup() {
         const msg = err.response.data.msg.toLowerCase();
         const newErrors = {};
 
-        // Example checks:
         if (msg.includes('username')) {
           newErrors.username = 'Username is already taken.';
         }
@@ -126,7 +133,7 @@ export default function Signup() {
 
   return (
     <div className={styles.splitContainer}>
-      {/* Left side: Logo + "Map in Color" text */}
+      {/* Left side */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
           <img
@@ -143,13 +150,13 @@ export default function Signup() {
         <div className={styles.signupBox}>
           <h2 className={styles.signupTitle}>Sign Up</h2>
 
-          {/* If there is a general error, display it up top */}
+          {/* Top-level error */}
           {errors.general && (
             <div className={styles.errorMessage}>{errors.general}</div>
           )}
 
           <form onSubmit={handleSubmit} className={styles.signupForm}>
-            {/* First & Last Name in same row */}
+            {/* First & Last Name */}
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label htmlFor="firstName">First Name</label>
@@ -226,22 +233,28 @@ export default function Signup() {
                 required
               >
                 <option value="">Select your gender</option>
-                <option value="female">Female</option>
                 <option value="male">Male</option>
+                <option value="female">Female</option>
                 <option value="preferNotSay">Prefer not to say</option>
               </select>
             </div>
 
-            {/* Location */}
+            {/* Location (Select Country) */}
             <div className={styles.formGroup}>
               <label htmlFor="location">Location</label>
-              <input
-                type="text"
+              <select
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select a country</option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Email */}

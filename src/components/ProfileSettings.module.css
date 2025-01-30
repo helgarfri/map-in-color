@@ -140,9 +140,17 @@
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
-  padding: 10px;
+  padding: 5px;
   border-radius: 4px;
   margin-top: 20px;
+  text-align: center;
+  width: fit-content;
+  font-size: 14px;
+  border-radius: 10px;
+  margin: 20px auto;
+
+
+ 
 }
 
 /* Buttons */

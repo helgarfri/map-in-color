@@ -29,8 +29,9 @@
     padding: 8px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     margin-left: 15px;
+    transition: 0.3s ease;
   }
   
   .createMapButton .plusIcon {
@@ -38,7 +39,7 @@
   }
   
   .createMapButton:hover {
-    background-color: #6999b1;
+    background-color: #bebebe;
   }
   
   .notificationWrapper {

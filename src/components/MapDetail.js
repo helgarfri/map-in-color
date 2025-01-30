@@ -217,6 +217,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     }
   };
 
+  // Like a comment or reply
   const handleLike = async (commentId) => {
     if (!isUserLoggedIn) {
       navigate('/login');
@@ -224,25 +225,14 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     }
     try {
       const res = await likeComment(commentId);
-      setComments((prevComments) =>
-        prevComments.map((comment) => {
-          if (comment.id === commentId) {
-            return { ...comment, ...res.data };
-          }
-          if (comment.Replies && comment.Replies.length > 0) {
-            const updatedReplies = comment.Replies.map((reply) =>
-              reply.id === commentId ? { ...reply, ...res.data } : reply
-            );
-            return { ...comment, Replies: updatedReplies };
-          }
-          return comment;
-        })
-      );
+      // Merge the updated reaction data into that comment or reply
+      setComments((prev) => updateCommentReaction(prev, commentId, res.data));
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Dislike a comment or reply
   const handleDislike = async (commentId) => {
     if (!isUserLoggedIn) {
       navigate('/login');
@@ -250,30 +240,42 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     }
     try {
       const res = await dislikeComment(commentId);
-      setComments((prevComments) =>
-        prevComments.map((comment) => {
-          if (comment.id === commentId) {
-            return { ...comment, ...res.data };
-          }
-          if (comment.Replies && comment.Replies.length > 0) {
-            const updatedReplies = comment.Replies.map((reply) =>
-              reply.id === commentId ? { ...reply, ...res.data } : reply
-            );
-            return { ...comment, Replies: updatedReplies };
-          }
-          return comment;
-        })
-      );
+      // Merge the updated reaction data
+      setComments((prev) => updateCommentReaction(prev, commentId, res.data));
     } catch (err) {
       console.error(err);
     }
   };
+
+
+    // Helper to update a comment or reply in state with new reaction data
+    function updateCommentReaction(prevComments, commentId, newData) {
+      return prevComments.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, ...newData };
+        }
+        // Also check if the comment has replies
+        if (comment.Replies && comment.Replies.length > 0) {
+          const updatedReplies = comment.Replies.map((reply) =>
+            reply.id === commentId ? { ...reply, ...newData } : reply
+          );
+          return { ...comment, Replies: updatedReplies };
+        }
+        return comment;
+      });
+    }
+
 
   const toggleReplies = (commentId) => {
     setExpandedReplies((prevState) => ({
       ...prevState,
       [commentId]: !prevState[commentId],
     }));
+  };
+
+    // CANCEL REPLY => setReplyingTo(null)
+  const handleReplyCancel = () => {
+    setReplyingTo(null);
   };
 
   const handleDeleteCommentWithConfirm = (commentId) => {
@@ -832,12 +834,12 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               )}
 
             </div>
-            {/* Comments Section */}
-            <div className={styles.discussionSection} ref={discussionRef}>
+               {/* ---- Discussion Section ---- */}
+          {/* Discussion / Comments */}
+          <div className={styles.discussionSection} ref={discussionRef}>
               <h2>Discussion</h2>
               {isPublic ? (
                 <>
-                  {/* Comment Form */}
                   <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
                     <textarea
                       value={newComment}
@@ -845,23 +847,24 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                       placeholder="Add a comment..."
                       required
                       className={styles.commentTextarea}
-                    ></textarea>
+                    />
                     <button type="submit" className={styles.commentButton}>
                       Post Comment
                     </button>
                   </form>
+
                   {comments.length > 0 ? (
                     <ul className={styles.commentsList}>
-                      {comments.map((comment, index) => {
-                        const areRepliesExpanded = expandedReplies[comment.id];
+                      {comments.map((comment) => {
+                        const areRepliesExpanded = expandedReplies[comment.id] || false;
                         const repliesArray = comment.Replies || [];
                         const totalReplies = repliesArray.length;
                         const repliesToShow = areRepliesExpanded
-                          ? repliesArray.slice(0, 10)
+                          ? repliesArray
                           : repliesArray.slice(0, 3);
 
                         return (
-                          <li key={index} className={styles.commentItem}>
+                          <li key={comment.id} className={styles.commentItem}>
                             <div className={styles.commentHeader}>
                               {comment.User && comment.User.profilePicture ? (
                                 <Link to={`/profile/${comment.User.username}`}>
@@ -881,7 +884,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                     className={styles.commentAuthorLink}
                                   >
                                     <span className={styles.commentAuthor}>
-                                      {comment.User ? comment.User.username : 'Anonymous'}
+                                      {comment.User.username}
                                     </span>
                                   </Link>
                                   <span className={styles.commentTime}>
@@ -892,41 +895,51 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                 </div>
                                 <p className={styles.commentContent}>{comment.content}</p>
                                 <div className={styles.commentActions}>
+                                  {/* Like button with original SVG icon */}
                                   <button
                                     className={`${styles.reactionButton} ${
                                       comment.userReaction === 'like' ? styles.active : ''
                                     }`}
                                     onClick={() => handleLike(comment.id)}
                                   >
-                                    <svg className={styles.icon} viewBox="0 0 24 24">
+                                    <svg
+                                      className={styles.icon}
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                    >
                                       <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
                                     </svg>
                                     <span>{comment.likeCount}</span>
                                   </button>
+
+                                  {/* Dislike button with original SVG icon */}
                                   <button
                                     className={`${styles.reactionButton} ${
                                       comment.userReaction === 'dislike' ? styles.active : ''
                                     }`}
                                     onClick={() => handleDislike(comment.id)}
                                   >
-                                    <svg className={styles.icon} viewBox="0 0 24 24">
-                                      <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06L9.83 22l6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                                    <svg
+                                      className={styles.icon}
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
                                     </svg>
                                     <span>{comment.dislikeCount}</span>
                                   </button>
+
                                   <button
                                     className={styles.replyButton}
                                     onClick={() =>
-                                      setReplyingTo({
-                                        commentId: comment.id,
-                                        content: '',
-                                      })
+                                      setReplyingTo({ commentId: comment.id, content: '' })
                                     }
                                   >
                                     Reply
                                   </button>
-
-                                  {(isOwner || (comment.User && comment.User.username === profile?.username)) && (
+                                  {(isOwner ||
+                                    (comment.User &&
+                                      comment.User.username === profile?.username)) && (
                                     <button
                                       className={styles.deleteButton}
                                       onClick={() => handleDeleteCommentWithConfirm(comment.id)}
@@ -936,6 +949,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                   )}
                                 </div>
 
+                                {/* Reply form if this comment is being replied to */}
                                 {replyingTo && replyingTo.commentId === comment.id && (
                                   <form
                                     onSubmit={(e) => handleReplySubmit(e, comment.id)}
@@ -944,25 +958,33 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                     <textarea
                                       value={replyingTo.content}
                                       onChange={(e) =>
-                                        setReplyingTo({
-                                          ...replyingTo,
-                                          content: e.target.value,
-                                        })
+                                        setReplyingTo({ ...replyingTo, content: e.target.value })
                                       }
                                       placeholder="Write a reply..."
                                       required
                                       className={styles.replyTextarea}
-                                    ></textarea>
-                                    <button type="submit" className={styles.replyButtonSubmit}>
-                                      Post Reply
-                                    </button>
+                                    />
+                                    <div className={styles.replyActions}>
+                                      {/* Cancel left, Post right */}
+                                      <button
+                                        type="button"
+                                        className={styles.replyCancelButton}
+                                        onClick={handleReplyCancel}
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button type="submit" className={styles.replyButtonSubmit}>
+                                        Post Reply
+                                      </button>
+                                    </div>
                                   </form>
                                 )}
 
-                                {comment.Replies && comment.Replies.length > 0 && (
+                                {/* Replies */}
+                                {repliesArray.length > 0 && (
                                   <ul className={styles.repliesList}>
-                                    {repliesToShow.map((reply, idx) => (
-                                      <li key={idx} className={styles.replyItem}>
+                                    {repliesToShow.map((reply) => (
+                                      <li key={reply.id} className={styles.replyItem}>
                                         <div className={styles.commentHeader}>
                                           {reply.User && reply.User.profilePicture ? (
                                             <Link to={`/profile/${reply.User.username}`}>
@@ -982,7 +1004,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                                 className={styles.commentAuthorLink}
                                               >
                                                 <span className={styles.commentAuthor}>
-                                                  {reply.User ? reply.User.username : 'Anonymous'}
+                                                  {reply.User.username}
                                                 </span>
                                               </Link>
                                               <span className={styles.commentTime}>
@@ -999,27 +1021,40 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                                 }`}
                                                 onClick={() => handleLike(reply.id)}
                                               >
-                                                <svg className={styles.icon} viewBox="0 0 24 24">
+                                                <svg
+                                                  className={styles.icon}
+                                                  viewBox="0 0 24 24"
+                                                  fill="currentColor"
+                                                >
                                                   <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
                                                 </svg>
                                                 <span>{reply.likeCount}</span>
                                               </button>
                                               <button
                                                 className={`${styles.reactionButton} ${
-                                                  reply.userReaction === 'dislike' ? styles.active : ''
+                                                  reply.userReaction === 'dislike'
+                                                    ? styles.active
+                                                    : ''
                                                 }`}
                                                 onClick={() => handleDislike(reply.id)}
                                               >
-                                                <svg className={styles.icon} viewBox="0 0 24 24">
-                                                  <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06L9.83 22l6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                                                <svg
+                                                  className={styles.icon}
+                                                  viewBox="0 0 24 24"
+                                                  fill="currentColor"
+                                                >
+                                                  <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
                                                 </svg>
                                                 <span>{reply.dislikeCount}</span>
                                               </button>
-
-                                              {(isOwner || (reply.User && reply.User.username === profile?.username)) && (
+                                              {(isOwner ||
+                                                (reply.User &&
+                                                  reply.User.username === profile?.username)) && (
                                                 <button
                                                   className={styles.deleteButton}
-                                                  onClick={() => handleDeleteCommentWithConfirm(reply.id)}
+                                                  onClick={() =>
+                                                    handleDeleteCommentWithConfirm(reply.id)
+                                                  }
                                                 >
                                                   Delete
                                                 </button>
@@ -1029,7 +1064,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                                         </div>
                                       </li>
                                     ))}
-
+                                    {/* "View more replies" / "Show less replies" */}
                                     {totalReplies > 3 && (
                                       <button
                                         className={styles.toggleRepliesButton}
@@ -1053,12 +1088,10 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                   )}
                 </>
               ) : (
-                // If map is private, comments are not available
                 <p>Comments are not available for private maps.</p>
               )}
             </div>
           </div>
-
           {/* Right Side: Statistics */}
           <div className={styles.mapStats}>
             <div className={styles.statsSummary}>

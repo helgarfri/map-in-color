@@ -1,48 +1,75 @@
-# Map in Color
+# MIC MVP Release v2.0.0-beta
 
-## Description
+## Introduction
 
-"Map in Color" is a web application designed to create visually engaging, color-coded maps for data visualization. This application currently supports world map, map of the United States, and Europe, allowing users to group countries or states and assign them distinct colors. It's an excellent tool for educators, data analysts, or anyone interested in presenting geographical data in an easy-to-understand, visual format.
+This is a MVP release of a brand new version of **Map in Color (MIC) v2.0.0-beta**, a tool for creating **choropleth maps** to visualize data—whether for scientific purposes or simply to see the world from a new perspective through data.
 
-## Current Features
+With the new version, the application includes more complexity and a sharing platform where data can be shared between users. Instead of manually selecting and defining states from select inputs (as seen in v1), you prepare a CSV file locally with all the data for the map, ensuring simplicity.
 
-- **Create Color-Coded Maps**: Users can generate maps of the world, US states, and Europe.
-- **Custom Color Groups**: Ability to create groups with specific colors and assign different countries or states to these groups.
-- **Interactive Map Interface**: Users can interact with the map to select and color-code regions.
+This MVP release features:
 
-## Planned Features
+- A **set of three maps** (World Map, United States, and Europe) – with more to be added over time.
+- The ability to **instantly generate data ranges** with ease (either suggested or manually defined).
+- A **sharing platform** with tags for potential future data collection across diverse subjects, browsable via an _explore_ page.
+- **Public or private** map settings for each user’s preference.
+- User profiles that allow **personal info**, **stars**, and **comments** on maps.
 
-- **Expansion of Maps**: Adding maps for North and South America, Africa, Asia, and Oceania.
-- **Data Import Functionality**: Ability to import .xls files to automatically generate color-coded maps based on the data.
+## Quick Start (For Users)
 
-## Getting Started
+1. **Sign Up**  
+   Go to mapincolor.com (placeholder link) and fill out the sign-up form. After a successful registration, you will be taken to your **Dashboard**.
 
-### Prerequisites
+2. **Create Your First Map**
 
-- Node.js
+   - Use the sidebar or header to click **“Create New Map.”**
+   - Select which map template you want (World, USA, or Europe) in the pop-up.
+   - Click **“Create”**. You will be taken to the **Data Integration** page.
 
-### Installation
+3. **Data Integration**
 
-1. Clone the repository: \
-   `git clone https://github.com/helgidavidsson/map-in-color`
-2. Navigate to the project directory: \
-   `cd map-in-color`
-3. Install dependencies: \
-   `npm install`
+   - Prepare your CSV file (see details below) and upload it.
+   - Define data ranges (either by manual input or by generating suggested ranges).
+   - Adjust colors and theme settings (ocean color, unassigned states, etc.).
+   - Fill out **map details** (title, description, tags, references).
 
-### Running the Application
+4. **Save & Share**
+   - Choose **public** or **private** for your map.
+   - Click **“Save Map”**.
+   - You can now view or edit your map from your collection, explore other maps, star, and comment.
 
-Run the application locally using the following command: \
- `npm start`
+## How to Create and Edit Maps
 
-## Contributing
+When you navigate to the **Data Integration** page, have your CSV file ready. It must contain **exactly two columns**:
 
-We welcome contributions! If you have ideas for new features or improvements, feel free to fork the repository and submit pull requests.
+1. **Country/State Name**
+2. **Value**
 
-## License
+> **No values can be empty.**
 
-This project is currently unlicensed. More details about the license will be added in the future.
+**Example**:
 
-## Contact
+State1,Value1 State2,Value2 ...
 
-- Helgi Freyr Davíðsson - [helgifreyr02@gmail.com](helgifreyr02@gmail.com)
+### Error Handling
+
+- If a state name isn’t recognized or the file is invalid, you’ll see an **error log** showing the line number and the issue.
+- Fix any errors and re-upload until you receive a success message.
+
+### Defining Ranges
+
+1. **Suggested vs. Manual**
+
+   - **Manual**: Type in your lower and upper bounds for each range.
+   - **Auto-Generate**: Specify how many ranges you want and click **“Suggest range.”**
+
+2. **Naming & Coloring**
+
+   - Name each range (e.g., “Low,” “Medium,” “High,” etc.).
+   - Choose individual colors or use a provided **color palette**.
+   - Click **“Generate Groups”** to see your map update with the new ranges.
+
+3. **Theme & Final Settings**
+   - Customize map details: **ocean color**, **unassigned color**, etc.
+   - Fill out **title**, **description**, **tags**, **references**.
+   - Decide if the map is **private** or **public**.
+   - Press **“Save Map”**. Your map is now added to your collection. You can edit it anytime.
