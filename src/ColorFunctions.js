@@ -9,11 +9,6 @@ import './components/Navigator'
 
 function ColorFunctions() {
     
-
-     
-        
-    
-    
     for (var i = 0; i < countries.length; i++) {
         
       var countries = document.getElementsByClassName('country')
@@ -33,21 +28,12 @@ function ColorFunctions() {
              }
            
             }
-          
-
-  
 
         } if (countries[i].checked == false) {
                 uncheckedValue =countries[i].value
                 document.getElementById(uncheckedValue).style.fill = '#c0c0c0'
         }
 
-        
      }
-
-
-    
-   
-
 
 export default ColorFunctions

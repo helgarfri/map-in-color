@@ -1,0 +1,226 @@
+/* src/components/Sidebar.module.css */
+
+/* Sidebar Container */
+.sidebar {
+  width: 250px;
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  position: fixed;
+  text-align: left;
+  transition: width 0.3s ease;
+
+  /* Flexbox properties */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Content Wrapper */
+.contentWrapper {
+  flex-grow: 1;
+}
+
+.logo {
+  height: 40px;
+  margin: 10px 0px 10px 0px;
+}
+
+.logoSection{
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.appName {
+  font-size: 22px;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+/* Profile Section */
+.profileSection {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  cursor: pointer;
+  text-decoration: none;
+  color: #fff;
+}
+
+
+.profileSection:hover {
+  background-color: #444;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  transition: opacity 0.3s ease;
+}
+
+
+.username {
+  margin-left: 15px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.nav {
+  width: 100%;
+
+}
+
+.nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.nav li {
+  margin-bottom: 25px;
+}
+
+.navLink {
+  all: unset;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  transition: padding 0.3s ease; /* Add transition */
+  cursor: pointer;
+}
+
+.navLink:hover {
+  color: #1abc9c;
+}
+
+.navLink.active {
+  color: #1abc9c;
+  font-weight: bold;
+}
+
+.icon {
+  margin-right: 15px;
+  font-size: 1.2rem;
+
+}
+
+.navLink span {
+  flex-grow: 1;
+  transition: opacity 0.3s ease; /* Add transition */
+}
+
+/* Hover Effects */
+.navLink:hover .icon {
+  color: #1abc9c;
+}
+
+/* Collapsed Sidebar */
+.collapsed {
+  width: 70px;
+}
+/* Collapsed Sidebar Adjustments */
+.collapsed .username {
+  display: none;
+}
+
+.collapsed .avatar {
+  margin: 0 auto;
+}
+
+
+/* Toggle Button */
+.toggleButton {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 20px;
+  position: absolute;
+  top: 80px;
+  right: -20px;
+  background-color: #333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.toggleButton:hover {
+  background-color: #444;
+}
+
+.collapsed .toggleButton {
+  right: -20px;
+}
+
+.collapsed .username,
+.collapsed .navLink span {
+  display: none;
+}
+
+.collapsed .appName {
+  display: none;
+}
+
+.collapsed .icon {
+  margin-right: 0;
+}
+
+
+.collapsed .navLink span {
+  opacity: 0;
+  visibility: hidden;
+}
+
+
+.navLink span {
+  transition: opacity 0.3s ease; /* Add transition */
+}
+
+.docsSentence {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.docsLink {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.docsLink:hover {
+  color: #1abc9c;
+  text-decoration: underline;
+}
+
+.copyright {
+  font-size: 9px;
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px;
+    padding: 10px;
+  }
+
+  .username {
+    display: none;
+  }
+
+  .navLink span {
+    display: none;
+  }
+
+  .icon {
+    margin-right: 0;
+  }
+}

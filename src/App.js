@@ -1,276 +1,179 @@
+// src/components/App.js
 import './components/App.css';
-import Header from './components/Header';
-import { useState, useEffect } from 'react';
-
-import Europe from './components/maps/europe/Europe';
-import UnitedStates from './components/maps/us-states/UnitedStates';
-import WorldMap from './components/maps/world-map/WorldMap';
-
 
 import Footer from './components/Footer';
 import Home from './components/Home';
-import { Helmet } from 'react-helmet';
+import Dashboard from './components/Dashboard';
 
+import Login from './components/Login';
+import Signup from './components/Signup';
+import EditMap from './components/EditMap';
+import MyMaps from './components/MyMaps';
+
+import PrivateRoute from './components/PrivateRoute';
+
+import { useState } from 'react';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import DataIntegration from './components/DataIntergration';
+import ProfileSettings from './components/ProfileSettings';
+import MapDetail from './components/MapDetail';
+import ProfilePage from './components/ProfilePage'
+import StarredMaps from './components/StarredMaps';
+import NotificationList from './components/NotificationList';
+import DeleteAccount from './components/DeleteAccount';
+import Docs from './components/Docs';
+
+import { UserProvider } from './context/UserContext';
+
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
+import Explore from './components/Explore';
+import HomeDocs from './components/HomeDocs';
+
+library.add(fas);
 
 function App() {
-
-
-    const [mapTitleValue, setMapTitleValue] = useState('')
-
-    const [group1TitleValue, setGroup1TitleValue] = useState('')
-    const [group2TitleValue, setGroup2TitleValue] =useState('')
-    const [group3TitleValue, setGroup3TitleValue] =useState('')
-    const [group4TitleValue, setGroup4TitleValue] =useState('')
-    const [group5TitleValue, setGroup5TitleValue] =useState('')
-    const [group6TitleValue, setGroup6TitleValue] =useState('')
-    const [group7TitleValue, setGroup7TitleValue] =useState('')
-    const [group8TitleValue, setGroup8TitleValue] =useState('')
-  
-  
-  
-  
-  
-    const [group1ColorValue, setGroup1ColorValue] = useState('#000000')
-    const [group2ColorValue, setGroup2ColorValue] = useState('#000000')
-    const [group3ColorValue, setGroup3ColorValue] = useState('#000000')
-    const [group4ColorValue, setGroup4ColorValue] = useState('#000000')
-    const [group5ColorValue, setGroup5ColorValue] = useState('#000000')
-    const [group6ColorValue, setGroup6ColorValue] = useState('#000000')
-    const [group7ColorValue, setGroup7ColorValue] = useState('#000000')
-    const [group8ColorValue, setGroup8ColorValue] = useState('#000000')
-  
-  
-  
-
-  
-    const [selectedRes, setSelectedRes] = useState('13.33');
-  
-    const [ numItems, setNumItems ] = useState(1)
-  
-  
-    
-    const handleMapTitleValueChange = (value) => {
-      setMapTitleValue(value)
-    }
-  
-  
-    const handleTitle1ValueChange = (newValue) => {
-      setGroup1TitleValue(newValue)
-    }
-  
-    const handleTitle2ValueChange = (newValue) => {
-      setGroup2TitleValue(newValue)
-    }
-  
-    const handleTitle3ValueChange = (newValue) => {
-      setGroup3TitleValue(newValue)
-    }
-  
-    const handleTitle4ValueChange = (newValue) => {
-      setGroup4TitleValue(newValue)
-    }
-  
-    const handleTitle5ValueChange = (newValue) => {
-      setGroup5TitleValue(newValue)
-    }
-  
-    const handleTitle6ValueChange = (newValue) => {
-      setGroup6TitleValue(newValue)
-    }
-  
-    const handleTitle7ValueChange = (newValue) => {
-      setGroup7TitleValue(newValue)
-    }
-  
-    const handleTitle8ValueChange = (newValue) => {
-      setGroup8TitleValue(newValue)
-    }
-
-    let headTitle = 'Map in Color'
-    useEffect(() => {
-      document.title = headTitle;
-    }, [headTitle]);
-
-  let component
-  switch (window.location.pathname) {
-    default:
-    case '/':
-      component =
-      <Home/>
-      headTitle = 'Home'
-      break;
-    case '/world-map':
-      component = 
-      <WorldMap
-          group1TitleValue={group1TitleValue}
-          group2TitleValue={group2TitleValue}
-          group3TitleValue={group3TitleValue}
-          group4TitleValue={group4TitleValue}
-          group5TitleValue={group5TitleValue}
-          group6TitleValue={group6TitleValue}
-          group7TitleValue={group7TitleValue}
-          group8TitleValue={group8TitleValue}
-
-          handleTitle1ValueChange={handleTitle1ValueChange}
-          handleTitle2ValueChange={handleTitle2ValueChange}
-          handleTitle3ValueChange={handleTitle3ValueChange}
-          handleTitle4ValueChange={handleTitle4ValueChange}
-          handleTitle5ValueChange={handleTitle5ValueChange}
-          handleTitle6ValueChange={handleTitle6ValueChange}
-          handleTitle7ValueChange={handleTitle7ValueChange}
-          handleTitle8ValueChange={handleTitle8ValueChange}
-
-          group1ColorValue={group1ColorValue}
-          group2ColorValue={group2ColorValue}
-          group3ColorValue={group3ColorValue}
-          group4ColorValue={group4ColorValue}
-          group5ColorValue={group5ColorValue}
-          group6ColorValue={group6ColorValue}
-          group7ColorValue={group7ColorValue}
-          group8ColorValue={group8ColorValue}
-
-          setGroup1ColorValue={setGroup1ColorValue}
-          setGroup2ColorValue={setGroup2ColorValue}
-          setGroup3ColorValue={setGroup3ColorValue}
-          setGroup4ColorValue={setGroup4ColorValue}
-          setGroup5ColorValue={setGroup5ColorValue}
-          setGroup6ColorValue={setGroup6ColorValue}
-          setGroup7ColorValue={setGroup7ColorValue}
-          setGroup8ColorValue={setGroup8ColorValue}
-
-          mapTitleValue={mapTitleValue}
-          handleMapTitleValueChange={handleMapTitleValueChange}
-
-          selectedRes={selectedRes}
-          setSelectedRes={setSelectedRes}
-
-          numItems={numItems}
-          setNumItems={setNumItems}
-      />
-      headTitle = 'World Map'
-    
-      break;
-    
-    case '/us-states':
-      component = <UnitedStates
-          group1TitleValue={group1TitleValue}
-          group2TitleValue={group2TitleValue}
-          group3TitleValue={group3TitleValue}
-          group4TitleValue={group4TitleValue}
-          group5TitleValue={group5TitleValue}
-          group6TitleValue={group6TitleValue}
-          group7TitleValue={group7TitleValue}
-          group8TitleValue={group8TitleValue}
-
-          handleTitle1ValueChange={handleTitle1ValueChange}
-          handleTitle2ValueChange={handleTitle2ValueChange}
-          handleTitle3ValueChange={handleTitle3ValueChange}
-          handleTitle4ValueChange={handleTitle4ValueChange}
-          handleTitle5ValueChange={handleTitle5ValueChange}
-          handleTitle6ValueChange={handleTitle6ValueChange}
-          handleTitle7ValueChange={handleTitle7ValueChange}
-          handleTitle8ValueChange={handleTitle8ValueChange}
-
-          group1ColorValue={group1ColorValue}
-          group2ColorValue={group2ColorValue}
-          group3ColorValue={group3ColorValue}
-          group4ColorValue={group4ColorValue}
-          group5ColorValue={group5ColorValue}
-          group6ColorValue={group6ColorValue}
-          group7ColorValue={group7ColorValue}
-          group8ColorValue={group8ColorValue}
-
-          setGroup1ColorValue={setGroup1ColorValue}
-          setGroup2ColorValue={setGroup2ColorValue}
-          setGroup3ColorValue={setGroup3ColorValue}
-          setGroup4ColorValue={setGroup4ColorValue}
-          setGroup5ColorValue={setGroup5ColorValue}
-          setGroup6ColorValue={setGroup6ColorValue}
-          setGroup7ColorValue={setGroup7ColorValue}
-          setGroup8ColorValue={setGroup8ColorValue}
-
-          mapTitleValue={mapTitleValue}
-          handleMapTitleValueChange={handleMapTitleValueChange}
-
-          selectedRes={selectedRes}
-          setSelectedRes={setSelectedRes}
-
-          numItems={numItems}
-          setNumItems={setNumItems}
-      />
-
-      headTitle = 'United States'
-
-      break;
-
-    case '/europe':
-      component = <Europe
-      group1TitleValue={group1TitleValue}
-          group2TitleValue={group2TitleValue}
-          group3TitleValue={group3TitleValue}
-          group4TitleValue={group4TitleValue}
-          group5TitleValue={group5TitleValue}
-          group6TitleValue={group6TitleValue}
-          group7TitleValue={group7TitleValue}
-          group8TitleValue={group8TitleValue}
-
-          handleTitle1ValueChange={handleTitle1ValueChange}
-          handleTitle2ValueChange={handleTitle2ValueChange}
-          handleTitle3ValueChange={handleTitle3ValueChange}
-          handleTitle4ValueChange={handleTitle4ValueChange}
-          handleTitle5ValueChange={handleTitle5ValueChange}
-          handleTitle6ValueChange={handleTitle6ValueChange}
-          handleTitle7ValueChange={handleTitle7ValueChange}
-          handleTitle8ValueChange={handleTitle8ValueChange}
-
-          group1ColorValue={group1ColorValue}
-          group2ColorValue={group2ColorValue}
-          group3ColorValue={group3ColorValue}
-          group4ColorValue={group4ColorValue}
-          group5ColorValue={group5ColorValue}
-          group6ColorValue={group6ColorValue}
-          group7ColorValue={group7ColorValue}
-          group8ColorValue={group8ColorValue}
-
-          setGroup1ColorValue={setGroup1ColorValue}
-          setGroup2ColorValue={setGroup2ColorValue}
-          setGroup3ColorValue={setGroup3ColorValue}
-          setGroup4ColorValue={setGroup4ColorValue}
-          setGroup5ColorValue={setGroup5ColorValue}
-          setGroup6ColorValue={setGroup6ColorValue}
-          setGroup7ColorValue={setGroup7ColorValue}
-          setGroup8ColorValue={setGroup8ColorValue}
-
-          mapTitleValue={mapTitleValue}
-          handleMapTitleValueChange={handleMapTitleValueChange}
-
-          selectedRes={selectedRes}
-          setSelectedRes={setSelectedRes}
-
-          numItems={numItems}
-          setNumItems={setNumItems}
-      />
-
-      headTitle = 'Europe'
-
-      break;
-      
-  }
-
-
-
-
+  const [isCollapsed, setIsCollapsed] = useState(true);
   return (
-    <div className="App">
-      <Helmet>
-        <link rel="icon" type="image/png" href="/public/assets/map-in-color-logo.png" sizes="16x16" />
-      </Helmet>
-      <Header/>
-      
-      {component}
+    <UserProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
 
-      <Footer/>
-      </div>
+        <Route path="/docs" element={<HomeDocs />} />
+
+
+        <Route 
+            path="/docs" 
+            element={<Docs />} 
+          />
+
+        <Route
+          path="/create"
+          element={
+            <DataIntegration
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />
+          }
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute >
+              <Dashboard
+                
+                
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
+              />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/map/:id"
+          element={
+            <MapDetail
+              
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />
+          }
+        />
+
+        <Route 
+          path="/explore" 
+          element={<Explore
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />} />
+
+        <Route
+          path="/my-maps"
+          element={
+            <PrivateRoute >
+              <MyMaps
+                
+                
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
+              />
+            </PrivateRoute>
+          }
+        />
+
+        <Route 
+          path="/starred-maps" 
+          element={<StarredMaps
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />} />
+
+        <Route
+          path="/login"
+          element={<Login  />}
+        />
+
+        <Route
+          path="/signup"
+          element={<Signup  />}
+        />
+
+        <Route
+          path="/edit/:mapId"
+          element={
+            <EditMap
+              
+              
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />
+          }
+        />
+
+          <Route
+            path="/profile/:username"
+            element={
+              <ProfilePage
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
+              />
+            }
+          />
+
+        <Route
+          path="/settings"
+          element={
+            <ProfileSettings
+              
+              
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />
+          }
+        />
+
+<Route path="/delete-account" element={<DeleteAccount />} />
+
+
+          <Route
+            path="/notifications"
+            element={
+              <PrivateRoute>
+                <NotificationList
+                  isCollapsed={isCollapsed}
+                  setIsCollapsed={setIsCollapsed}
+                />
+              </PrivateRoute>
+            }
+          />
+      </Routes>
+
+    </Router>
+    </UserProvider>
   );
 }
 

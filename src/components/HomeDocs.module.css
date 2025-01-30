@@ -1,0 +1,34 @@
+.documentationContainer {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #ffffff; /* White background */
+    font-family: Arial, sans-serif;
+  }
+  
+  .docsMain {
+    flex: 1;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto; /* Center the content */
+  }
+  
+  .docsMain h1 {
+    color: #55957b; /* Green heading */
+    margin-bottom: 1rem;
+  }
+  
+  .docsMain p {
+    color: #000; /* or #6d3261 for purple if you prefer */
+    line-height: 1.4;
+  }
+  
+  .docsMain a {
+    color: #c4564d; /* Red/Orange link color */
+    text-decoration: none;
+  }
+  
+  .docsMain a:hover {
+    text-decoration: underline;
+  }
+  

@@ -157,10 +157,10 @@ function handleDownloadClickPNG() {
 			title: group7TitleValue
 		},
 
-		  {
-			  color: group8ColorValue,
-			  title: group8TitleValue
-			}
+		{
+			color: group8ColorValue,
+			title: group8TitleValue
+		}
 	  ];
 	  
 	  const groups = [];
