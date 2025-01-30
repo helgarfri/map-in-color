@@ -9,26 +9,23 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centers vertically */
-  align-items: center;     /* centers horizontally */
+  justify-content: center; 
+  align-items: center;
   background: linear-gradient(to bottom right, #79c99e, #48b17d);
 }
 
-/* Container to hold the logo and brand text side by side */
 .brandContainer {
   display: flex;
-  flex-direction: row; /* stack them vertically or change to 'row' if you prefer side by side */
+  flex-direction: row; 
   align-items: center;
   gap: 20px;
 }
 
-/* Adjust the logo size */
 .logo {
   width: 130px;
   height: auto;
 }
 
-/* Make the brand text smaller */
 .brandText {
   color: #fff;
   font-size: 4rem; 
@@ -40,19 +37,18 @@
 .rightSide {
   flex: 1;
   display: flex;
-  justify-content: center; 
-  align-items: center;     
+  justify-content: center;
+  align-items: center;
   background-color: #f5f5f5;
 }
 
 /* Container for the signup heading and form */
 .signupBox {
-  max-width: 350px; 
+  max-width: 350px;
   width: 90%;
   text-align: center;
 }
 
-/* Signup title smaller */
 .signupTitle {
   margin-bottom: 20px;
   font-size: 1.5rem;
@@ -84,7 +80,6 @@
   color: #333;
 }
 
-/* Inputs/Selects smaller padding and font-size */
 .formGroup input,
 .formGroup select {
   width: 100%;
@@ -95,13 +90,11 @@
   font-size: 14px;
 }
 
-/* Container for day, month, year selects (DOB) */
 .dobContainer {
   display: flex;
   gap: 10px;
 }
 
-/* Button styling (green theme) */
 .signupButton {
   padding: 10px;
   background-color: #55957b;
@@ -138,4 +131,41 @@
 
 .signupBox a:hover {
   text-decoration: underline;
+}
+
+/* ----------- MEDIA QUERY for screens <= 1200px ----------- */
+@media (max-width: 1200px) {
+  .splitContainer {
+    flex-direction: column; /* stack left side above right side */
+  }
+
+  .leftSide{
+    flex: 0;
+  }
+
+  .leftSide, 
+  .rightSide {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* If you want the brand container to be vertical when stacked */
+  .brandContainer {
+    flex-direction: row;
+    gap: 10px;
+    margin: 20px;
+  }
+
+  .brandText {
+    text-align: center;
+    margin: 0px;
+    font-size: 38px;
+  }
+
+  .logo {
+    width: 80px;
+  }
 }

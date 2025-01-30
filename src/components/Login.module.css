@@ -21,16 +21,14 @@
   gap: 20px; /* space between logo and text */
 }
 
-/* Adjust the logo size to make it wider or bigger */
 .logo {
-  width: 130px; /* or a larger width if desired */
+  width: 130px;
   height: auto;
 }
 
-/* Make the brand text large and bold */
 .brandText {
   color: #fff;
-  font-size: 4rem; /* bigger than before */
+  font-size: 4rem;
   font-weight: bold;
 }
 
@@ -38,16 +36,15 @@
 .rightSide {
   flex: 1;
   display: flex;
-  justify-content: center; /* center horizontally */
-  align-items: center;     /* center vertically */
+  justify-content: center;
+  align-items: center;
   background-color: #f5f5f5;
 }
 
-/* Container for the login heading and form
-   Removed the box background, border, and shadow to blend with background */
+/* Container for the login heading and form */
 .loginBox {
   max-width: 400px;
-  width: 80%; /* Wider form area */
+  width: 80%;
   text-align: center;
 }
 
@@ -66,7 +63,7 @@
 /* Individual form groups (label + input) */
 .formGroup {
   margin-bottom: 20px;
-  text-align: left; /* keep label aligned to left for clarity */
+  text-align: left;
 }
 
 .formGroup label {
@@ -78,11 +75,11 @@
 
 .formGroup input {
   width: 100%;
-  padding: 14px; /* increased padding for a bigger input feel */
+  padding: 14px;
   box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 16px; /* a bit larger font for readability */
+  font-size: 16px;
 }
 
 /* Button styling */
@@ -115,4 +112,41 @@
 
 .loginBox a:hover {
   text-decoration: underline;
+}
+
+/* ----------- MEDIA QUERY for screens <= 1200px ----------- */
+@media (max-width: 1200px) {
+  .splitContainer {
+    flex-direction: column; /* stack leftSide above rightSide */
+  }
+
+  .leftSide{
+    flex: 0;
+  }
+
+  .leftSide,
+  .rightSide {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+  }
+  
+  /* In case you want the branding to appear as a column when stacked */
+  .brandContainer {
+    flex-direction: row;
+    gap: 10px;
+    margin: 20px;
+  }
+  
+  .brandText {
+    text-align: center;
+    margin: 0px;
+    font-size: 38px;
+  }
+
+  .logo {
+    width: 80px;
+  }
 }

@@ -55,4 +55,23 @@
   .loginButton:hover {
     background-color: #a8463e;
   }
+
+  @media (max-width: 1200px) {
+    .header {
+      padding: 10px;
+    }
+  
+    .nav {
+      gap: 10px;
+    }
+  
+    .loginButton {
+      padding: 8px 12px;
+    }
+
+    .navLink {
+        font-size: 0.9rem;
+    }
+    
+  }
   
