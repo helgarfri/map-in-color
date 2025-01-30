@@ -48,7 +48,12 @@ When you navigate to the **Data Integration** page, have your CSV file ready. It
 
 **Example**:
 
-State1,Value1 State2,Value2 ...
+```
+Country/State Name,Value
+State1,Value1
+State2,Value2
+...
+```
 
 ### Error Handling
 

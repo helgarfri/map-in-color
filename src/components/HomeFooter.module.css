@@ -1,0 +1,32 @@
+.footer {
+    background-color: #80a0b0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 10px;
+  }
+  
+  .footerLinks {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .footerLinks a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: opacity 0.2s ease;
+  }
+  
+  .footerLinks a:hover {
+    opacity: 0.8;
+  }
+  
+  footer p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin-top: 5px;
+  }
+  

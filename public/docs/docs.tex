@@ -7,21 +7,21 @@
 \usepackage{listings}       % Fyrir kóðalista
 \usepackage{xcolor}         % Fyrir sérsniðna liti
 \usepackage{minted}         % Fyrir syntax highlighting
+\usepackage{hyperref}       % Fyrir krækjur
 
 % Skilgreina sérsniðna liti fyrir syntax highlighting
 \definecolor{keywordcolor}{rgb}{0,0,0.8}
 \definecolor{commentcolor}{rgb}{0,0.5,0}
 \definecolor{stringcolor}{rgb}{0.58,0,0.82}
 
-% Breyta myndamerki yfir á íslensku
+% Breyta myndamerki yfir á íslensku (ef óskað)
 \renewcommand{\figurename}{Mynd}
 
-% --- Removed custom date logic and replaced with empty date ---
 \title{MIC Documentation}
 \author{Helgi Freyr Davíðsson}
 \date{} % No date
 
-% Kóðalista stillingar
+% Kóðalista stillingar (Listings)
 \lstset{
     language=[x86masm]Assembler, 
     basicstyle=\footnotesize\ttfamily, 
@@ -44,24 +44,171 @@
     framerule=0.5pt,
     framesep=2mm,
     escapeinside={\%*}{*)},
-    morekeywords={MOV, ADD, SUB, MUL, DIV, PUSH, POP, CALL, RET, JMP, JE, JNE, JG, JL, JGE, JLE},
+    morekeywords={MOV,ADD,SUB,MUL,DIV,PUSH,POP,CALL,RET,JMP,JE,JNE,JG,JL,JGE,JLE},
 }
 
 \begin{document}
 
 \maketitle
 
-\section{Introduction}
+\section{MIC MVP Release v2.0.0-beta}
 
-This document is a collection of all the documentation for the MIC (Map in Color) project. The project is a web application that allows users to create and share custom maps displaying chloropleth data from a CSV file. Technologies used in the project include React for the front end, Node.js for the back end, and Postgres for the database.
+\subsection{Introduction}
+This is a MVP release of a brand new version of \textbf{Map in Color (MIC) v2.0.0-beta},
+a tool for creating \textbf{choropleth maps} to visualize data---whether for scientific 
+purposes or simply to see the world from a new perspective through data.
 
-\section{Creating a Map}
-To create a map in MIC, the user must navigate to the data integration page. They can select “create a new map” from the header or the sidebar menu. The user will get a pop-up selection where they can select which type of map they would like to use (e.g. World Map, US Map, Europe Map, etc.). Then the user will be taken to the data integration page where they can upload a CSV file with the data to be displayed on the map. 
+With the new version, the application includes more complexity and a sharing platform 
+where data can be shared between users. Instead of manually selecting and defining 
+states from select inputs (as seen in v1), you prepare a CSV file locally with all 
+the data for the map, ensuring simplicity.
 
-They have the option of downloading a template with all the countries or regions their selected map contains. The CSV file must contain a column with the name of the country or region and a column with the data to be displayed. If the CSV file is not correctly formatted (e.g. missing columns, wrong region names, or incorrect data types), the user will receive an error log with the line number and details of the issues. 
+This MVP release features:
+\begin{itemize}
+  \item A \textbf{set of three maps} (World Map, United States, and Europe) -- with 
+        more to be added over time.
+  \item The ability to \textbf{instantly generate data ranges} with ease (either 
+        suggested or manually defined).
+  \item A \textbf{sharing platform} with tags for potential future data collection 
+        across diverse subjects, browsable via an \emph{explore} page.
+  \item \textbf{Public or private} map settings for each user’s preference.
+  \item User profiles that allow \textbf{personal info}, \textbf{stars}, 
+        and \textbf{comments} on maps.
+\end{itemize}
 
-If all the data is valid, the user can proceed to define custom ranges for the data. The user also has an option to generate suggested ranges with the desired number of ranges. They can name each range and select a color scheme. Once all ranges are valid (no overlapping ranges), the user can generate groups that will appear in the map preview below. The user can also customize the map theme (either by selecting from a preset of themes or by choosing custom font color, ocean color, and unassigned countries color). 
+\section{Quick Start (For Users)}
 
-After that, the user will get a map settings pop-up where the title of the map is defined (with an option to hide the title), a map description, map tags, and visibility options (public or private). Once the map is created, the user can navigate to the map view page to see all the information about the map and share it with others.
+\begin{enumerate}
+  \item \textbf{Sign Up}
+
+  Go to mapincolor.com and fill out the sign-up form. After a successful 
+  registration, you will be taken to your \textbf{Dashboard}.
+
+  \item \textbf{Create Your First Map}
+  \begin{itemize}
+    \item Use the sidebar or header to click \textbf{"Create New Map."}
+    \item Select which map template you want (World, USA, or Europe) in the pop-up.
+    \item Click \textbf{"Create"}. You will be taken to the 
+          \textbf{Data Integration} page.
+  \end{itemize}
+
+  \item \textbf{Data Integration}
+  \begin{itemize}
+    \item Prepare your CSV file (see details below) and upload it.
+    \item Define data ranges (either by manual input or by generating suggested ranges).
+    \item Adjust colors and theme settings (ocean color, unassigned states, etc.).
+    \item Fill out \textbf{map details} (title, description, tags, references).
+  \end{itemize}
+
+  \item \textbf{Save \& Share}
+  \begin{itemize}
+    \item Choose \textbf{public} or \textbf{private} for your map.
+    \item Click \textbf{"Save Map"}.
+    \item You can now view or edit your map from your collection, explore other 
+          maps, star, and comment.
+  \end{itemize}
+\end{enumerate}
+
+\section{How to Create and Edit Maps}
+
+When you navigate to the \textbf{Data Integration} page, have your CSV file ready. 
+It must contain \textbf{exactly two columns}:
+
+\begin{enumerate}
+  \item Country/State Name
+  \item Value
+\end{enumerate}
+
+\noindent
+\textbf{No values can be empty.}
+
+\subsubsection*{Example CSV}
+
+\begin{minted}{text}
+Country/State Name,Value
+State1,Value1
+State2,Value2
+...
+\end{minted}
+
+If your CSV is successfully uploaded, you may see summary statistics about the file.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{stats.png}
+  \caption{Statistics Example}
+\end{figure}
+
+\subsection{Error Handling}
+
+If a state name isn’t recognized or the file is invalid, you’ll see an 
+\textbf{error log} showing the line number and the issue:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{error.png}
+  \caption{Error Log Example}
+\end{figure}
+
+Fix any errors and re-upload until you see a success message:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{valid.png}
+  \caption{Valid CSV Example}
+\end{figure}
+
+
+\section{Defining Ranges}
+
+\subsection{Suggested vs. Manual}
+
+\begin{itemize}
+  \item \textbf{Manual}: Type in your lower and upper bounds for each range.
+  \item \textbf{Auto-Generate}: Specify how many ranges you want and click
+        \textbf{"Suggest range"}.
+\end{itemize}
+
+\noindent
+For example, you can press certain buttons to define or suggest ranges:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{range_buttons.png}
+  \caption{Range Buttons Example}
+\end{figure}
+
+\subsection{Name \& Coloring}
+
+Name each range (e.g., “Low,” “Medium,” “High,” etc.). Choose individual colors or 
+use a provided \textbf{color palette}. Then click \textbf{"Generate Groups"} to 
+update the map with the new ranges.
+
+\section{Theme \& Final Settings}
+
+You can adjust map details: \textbf{ocean color}, \textbf{unassigned color}, etc. 
+For example:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{map_theme.png}
+  \caption{Theme Settings Example}
+\end{figure}
+
+Then fill out \textbf{title}, \textbf{description}, \textbf{tags}, 
+\textbf{references}, and decide if the map is private or public:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{map_details.png}
+  \caption{Map Details Example}
+\end{figure}
+
+Finally, press \textbf{"Save Map"}. The map is now in your collection, and you can 
+edit it anytime.
+
+Once saved, you can \textbf{star} or \textbf{comment} on maps, explore other 
+users’ public maps, and further customize your own.
+
 
 \end{document}
