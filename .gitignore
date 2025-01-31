@@ -22,7 +22,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-
+#from app-backend
 node_modules/
 .env
 profile_pictures/
