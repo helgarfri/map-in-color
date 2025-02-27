@@ -7,6 +7,7 @@ import {
   deleteMap,
   fetchNotifications,
   markNotificationAsRead,
+  fetchUserActivity
 } from '../api';
 import { differenceInDays, formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
@@ -51,11 +52,11 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
   // ----------------------
   const totalMapsCreated = maps.length;
   const totalStarsReceived = maps.reduce(
-    (sum, map) => sum + (map.saveCount || 0),
+    (sum, map) => sum + (map.save_count || 0),
     0
   );
-  const profileAgeDays = profile?.createdAt
-    ? differenceInDays(new Date(), new Date(profile.createdAt))
+  const profileAgeDays = profile?.created_at
+    ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
 
   // ----------------------
@@ -71,15 +72,15 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           fetchNotifications(),
         ]);
 
-        // Sort maps by updatedAt desc
+        // Sort maps by updated_at desc
         const sortedMaps = mapsRes.data.sort(
-          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+          (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
         setMaps(sortedMaps);
 
-        // Sort notifications by createdAt desc, limit to 6
+        // Sort notifications by created_at desc, limit to 6
         const sortedNotifications = notificationsRes.data
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 6);
 
         setNotifications(sortedNotifications);
@@ -141,11 +142,11 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
     try {
       await markNotificationAsRead(notif.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
 
-      if (notif.MapId) {
-        navigate(`/map/${notif.MapId}`);
+      if (notif.map_id) {
+        navigate(`/map/${notif.map_id}`);
       }
     } catch (err) {
       console.error('Error marking notification as read:', err);
@@ -158,8 +159,8 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
 
   // Handler for entire "Activity Item" click → go to map
   const handleActivityItemClick = (notif) => {
-    if (notif.MapId) {
-      navigate(`/map/${notif.MapId}`);
+    if (notif.map_id) {
+      navigate(`/map/${notif.map_id}`);
     }
   };
 
@@ -180,55 +181,55 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
       Map: relatedMap,
       Sender: user,
       Comment: commentObj,
-      createdAt,
+      created_at,
     } = notif || {};
 
-    const senderName = user?.firstName || user?.username || 'Someone';
+    const senderName = user?.first_name || user?.username || 'Someone';
     const mapTitle = relatedMap?.title || 'Untitled Map';
 
     // Build user avatar + handle click
-    const userAvatarUrl = user?.profilePicture
-      ? `http://localhost:5000${user.profilePicture}`
+    const userAvatarUrl = user?.profile_picture
+      ? `http://localhost:5000${user.profile_picture}`
       : '/default-profile-pic.jpg';
 
     // Create a map thumbnail
     let mapThumbnail = <div className={styles.defaultThumbnail}>Map</div>;
-    if (relatedMap?.selectedMap === 'world') {
+    if (relatedMap?.selected_map === 'world') {
       mapThumbnail = (
         <WorldMapSVG
           groups={relatedMap.groups || []}
           mapTitleValue={mapTitle}
-          oceanColor={relatedMap.oceanColor}
-          unassignedColor={relatedMap.unassignedColor}
+          ocean_color={relatedMap.ocean_color}
+          unassigned_color={relatedMap.unassigned_color}
           data={relatedMap.data}
-          fontColor={relatedMap.fontColor}
-          isTitleHidden={relatedMap.isTitleHidden}
+          font_color={relatedMap.font_color}
+          is_title_hidden={relatedMap.is_title_hidden}
           isThumbnail
         />
       );
-    } else if (relatedMap?.selectedMap === 'usa') {
+    } else if (relatedMap?.selected_map === 'usa') {
       mapThumbnail = (
         <UsSVG
           groups={relatedMap.groups || []}
           mapTitleValue={mapTitle}
-          oceanColor={relatedMap.oceanColor}
-          unassignedColor={relatedMap.unassignedColor}
+          ocean_color={relatedMap.ocean_color}
+          unassigned_color={relatedMap.unassigned_color}
           data={relatedMap.data}
-          fontColor={relatedMap.fontColor}
-          isTitleHidden={relatedMap.isTitleHidden}
+          font_color={relatedMap.font_color}
+          is_title_hidden={relatedMap.is_title_hidden}
           isThumbnail
         />
       );
-    } else if (relatedMap?.selectedMap === 'europe') {
+    } else if (relatedMap?.selected_map === 'europe') {
       mapThumbnail = (
         <EuropeSVG
           groups={relatedMap.groups || []}
           mapTitleValue={mapTitle}
-          oceanColor={relatedMap.oceanColor}
-          unassignedColor={relatedMap.unassignedColor}
+          ocean_color={relatedMap.ocean_color}
+          unassigned_color={relatedMap.unassigned_color}
           data={relatedMap.data}
-          fontColor={relatedMap.fontColor}
-          isTitleHidden={relatedMap.isTitleHidden}
+          font_color={relatedMap.font_color}
+          is_title_hidden={relatedMap.is_title_hidden}
           isThumbnail
         />
       );
@@ -240,7 +241,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
     // Removed "like" from the feed, so no (type === 'like') case
     if (type === 'star') {
       // use star icon
-      const totalStars = relatedMap?.saveCount || 0;
+      const totalStars = relatedMap?.save_count || 0;
       mainText = (
         <>
           <strong
@@ -314,8 +315,12 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           </div>
         </div>
       );
-    } else {
-      // fallback
+    } else if (type === 'like') {
+      // "X liked your comment"
+      // commentObj is the comment that was liked, 
+      // (and might have commentObj.ParentComment if it was a reply, etc.)
+      const likedCommentText = commentObj?.content || "No comment text.";
+    
       mainText = (
         <>
           <strong
@@ -324,11 +329,23 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           >
             {senderName}
           </strong>{' '}
-          did something with your map "<em>{mapTitle}</em>"
+          liked your comment on "<em>{mapTitle}</em>"
         </>
       );
+      
+      body = (
+        <div className={styles.commentBox}>
+          <img
+            className={styles.userAvatar}
+            src={userAvatarUrl}
+            alt="User"
+            onClick={(e) => handleUserClick(e, user?.username)}
+          />
+          <div className={styles.commentText}>{likedCommentText}</div>
+        </div>
+      );
     }
-
+    
     return (
       <div
         className={styles.activityItem}
@@ -340,7 +357,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           <p>{mainText}</p>
           {body}
           <span className={styles.timestamp}>
-            {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+            {formatDistanceToNow(new Date(created_at), { addSuffix: true })}
           </span>
         </div>
       </div>
@@ -361,7 +378,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={() => {}}
-          profilePicture={profile?.profilePicture}
+          profile_picture={profile?.profile_picture}
         />
 
         {isLoading ? (
@@ -428,8 +445,8 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
                           {map.title || 'Untitled Map'}
                         </span>
                         <div className={styles.mapModifiedDate}>
-                          {map.updatedAt
-                            ? formatDistanceToNow(new Date(map.updatedAt), {
+                          {map.updated_at
+                            ? formatDistanceToNow(new Date(map.updated_at), {
                                 addSuffix: true,
                               })
                             : 'Unknown'}

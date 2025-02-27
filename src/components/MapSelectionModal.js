@@ -5,11 +5,11 @@ import styles from './MapSelectionModal.module.css';
 
 function MapSelectionModal({ show, onClose, onCreateMap }) {
   
-  const [selectedMap, setSelectedMap] = useState(null);
+  const [selected_map, setSelectedMap] = useState(null);
 
   const handleCreateMap = () => {
-    if (selectedMap) {
-      onCreateMap(selectedMap);
+    if (selected_map) {
+      onCreateMap(selected_map);
     } else {
       alert('Please select a map type.');
     }
@@ -25,19 +25,19 @@ function MapSelectionModal({ show, onClose, onCreateMap }) {
         <h2>Select a Map</h2>
         <div className={styles.mapOptions}>
           <div
-            className={`${styles.mapOption} ${selectedMap === 'world' ? styles.selected : ''}`}
+            className={`${styles.mapOption} ${selected_map === 'world' ? styles.selected : ''}`}
             onClick={() => setSelectedMap('world')}
           >
             World Map
           </div>
           <div
-            className={`${styles.mapOption} ${selectedMap === 'usa' ? styles.selected : ''}`}
+            className={`${styles.mapOption} ${selected_map === 'usa' ? styles.selected : ''}`}
             onClick={() => setSelectedMap('usa')}
           >
             USA Map
           </div>
           <div
-            className={`${styles.mapOption} ${selectedMap === 'europe' ? styles.selected : ''}`}
+            className={`${styles.mapOption} ${selected_map === 'europe' ? styles.selected : ''}`}
             onClick={() => setSelectedMap('europe')}
           >
             Europe Map

@@ -17,7 +17,7 @@ This MVP release features:
 ## Quick Start (For Users)
 
 1. **Sign Up**  
-   Go to mapincolor.com and fill out the [sign-up form](mapincolor.com/sign-up). After a successful registration, you will be taken to your **Dashboard**.
+   Go to mapincolor.com and fill out the [sign-up form](https://mapincolor.com/signup). After a successful registration, you will be taken to your **Dashboard**.
 
 2. **Create Your First Map**
 

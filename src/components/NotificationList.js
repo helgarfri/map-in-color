@@ -15,7 +15,7 @@ import Header from './Header';
 import { UserContext } from '../context/UserContext';
 import LoadingSpinner from './LoadingSpinner';
 
-// Import icons
+// Icons
 import { FaStar, FaComment, FaReply, FaThumbsUp, FaCheck, FaTrash } from 'react-icons/fa';
 
 export default function NotificationList({ isCollapsed, setIsCollapsed }) {
@@ -27,6 +27,7 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
   useEffect(() => {
     const getNotifications = async () => {
       try {
+        // Make the API call to your backend to get notifications
         const res = await fetchNotifications();
         setNotifications(res.data);
       } catch (err) {
@@ -39,31 +40,36 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
     getNotifications();
   }, []);
 
+  // Clicking anywhere on the notification → mark as read + navigate to map
   const handleNotificationClick = async (notification) => {
-    // Mark as read and navigate to the map
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      navigate(`/map/${notification.MapId}`);
+      // If the notification references a map, navigate to it
+      if (notification.map_id) {
+        navigate(`/map/${notification.map_id}`);
+      }
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
   };
 
+  // Mark a notification as read, but don’t navigate
   const handleMarkAsRead = async (e, notification) => {
-    e.stopPropagation();
+    e.stopPropagation(); // avoid triggering the parent click
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
   };
 
+  // Delete notification
   const handleDeleteNotification = async (e, notification) => {
     e.stopPropagation();
     try {
@@ -74,46 +80,52 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
     }
   };
 
-  // Helper function to get the appropriate icon based on notification type
+  // Determine the best icon based on notification.type
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'star':
         return <FaStar className={styles.typeIcon} />;
       case 'comment':
         return <FaComment className={styles.typeIcon} />;
-      case 'like':
-        return <FaThumbsUp className={styles.typeIcon} />;
       case 'reply':
         return <FaReply className={styles.typeIcon} />;
+      case 'like':
+        return <FaThumbsUp className={styles.typeIcon} />;
       default:
         return <FaComment className={styles.typeIcon} />;
     }
   };
 
-  // Helper function to generate notification message
+  // Generate the main text of the notification
+  // (You can customize this further if needed)
   const getNotificationMessage = (notification) => {
-    const senderName = notification.Sender.firstName || notification.Sender.username;
-    const mapTitle = notification.Map.title || 'Untitled Map';
+    // Safely read out the fields with optional chaining
+    const senderName =
+      notification.Sender?.first_name ||
+      notification.Sender?.username ||
+      'Unknown';
+
+    const mapTitle = notification.Map?.title || 'Untitled Map';
 
     switch (notification.type) {
       case 'star':
-        return `starred your map "${mapTitle}".`;
+        return `${senderName} starred your map "${mapTitle}".`;
       case 'comment':
-        return `commented on your map "${mapTitle}".`;
-      case 'like':
-        return `liked your comment on "${mapTitle}".`;
+        return `${senderName} commented on your map "${mapTitle}".`;
       case 'reply':
-        return `replied to your comment on "${mapTitle}".`;
+        return `${senderName} replied to your comment on "${mapTitle}".`;
+      case 'like':
+        return `${senderName} liked your comment on "${mapTitle}".`;
       default:
-        return `performed an action on your map "${mapTitle}".`;
+        return `${senderName} performed an action on "${mapTitle}".`;
     }
   };
 
-  // Handle marking all notifications as read
+  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
@@ -124,13 +136,13 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
       {/* Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      {/* Main Content */}
+      {/* Main content area */}
       <div
         className={`${styles.mainContent} ${
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-        {/* Header */}
+        {/* Header with "mark all as read" */}
         <Header
           title="Notifications"
           notifications={notifications.slice(0, 6)}
@@ -138,7 +150,7 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
           onMarkAllAsRead={handleMarkAllAsRead}
         />
 
-        {/* Notification List */}
+        {/* If loading, show spinner; otherwise show notifications list */}
         {isLoading ? (
           <LoadingSpinner />
         ) : notifications.length > 0 ? (
@@ -147,65 +159,67 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
               <li
                 key={notification.id}
                 className={`${styles.notificationItem} ${
-                  notification.isRead ? styles.read : styles.unread
+                  notification.is_read ? styles.read : styles.unread
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                {/* Left Actions */}
+                {/* Left quick actions (Mark as read, Delete) */}
                 <div className={styles.leftActions}>
                   <button
                     className={styles.actionButton}
                     onClick={(e) => handleMarkAsRead(e, notification)}
-                    title="Mark as Read"
+                    title="Mark as read"
                   >
                     <FaCheck />
                   </button>
                   <button
                     className={styles.actionButton}
                     onClick={(e) => handleDeleteNotification(e, notification)}
-                    title="Remove Notification"
+                    title="Remove notification"
                   >
                     <FaTrash />
                   </button>
                 </div>
 
-                {/* Notification Content */}
+                {/* Main notification content */}
                 <div className={styles.notificationContentWrapper}>
-                  {/* Notification Type Icon */}
                   <div className={styles.typeIconWrapper}>
                     {getNotificationIcon(notification.type)}
                   </div>
 
-                  {/* Profile Picture */}
+                  {/* Sender's profile picture (if any) */}
                   <img
                     src={
-                      notification.Sender.profilePicture
-                        ? `http://localhost:5000${notification.Sender.profilePicture}`
+                      notification.Sender?.profile_picture
+                        ? `http://localhost:5000${notification.Sender.profile_picture}`
                         : '/default-profile-pic.jpg'
                     }
                     alt={`${
-                      notification.Sender.firstName || notification.Sender.username
+                      notification.Sender?.first_name ||
+                      notification.Sender?.username ||
+                      'Unknown'
                     }'s profile`}
-                    className={styles.profilePicture}
+                    className={styles.profile_picture}
                   />
 
-                  {/* Notification Text */}
                   <div className={styles.notificationText}>
                     <p className={styles.notificationContent}>
+                      {/* Link to the sender’s profile (if they exist) */}
                       <Link
-                        to={`/profile/${notification.Sender.username}`}
-                        className={styles.senderName}
-                        onClick={(e) => e.stopPropagation()}
+                        to={`/profile/${notification.Sender?.username || 'unknown'}`}
+                        onClick={(e) => e.stopPropagation()} // so we don't click open the map
                       >
-                        {notification.Sender.firstName || notification.Sender.username}
+                        {notification.Sender?.first_name ||
+                          notification.Sender?.username ||
+                          'Unknown'}
                       </Link>{' '}
                       {getNotificationMessage(notification)}
                     </p>
                   </div>
 
-                  {/* Notification Time */}
+                  {/* Time ago */}
                   <div className={styles.notificationTime}>
-                    {formatDistanceToNow(new Date(notification.createdAt), {
+                    {formatDistanceToNow(new Date(notification.created_at), {
                       addSuffix: true,
                     })}
                   </div>

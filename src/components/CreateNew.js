@@ -8,7 +8,7 @@ export default function CreateNew({
 
 }) {
   const [step, setStep] = useState(1);
-  const [selectedMap, setSelectedMap] = useState(null);
+  const [selected_map, setSelectedMap] = useState(null);
   const [csvData, setCsvData] = useState(null);
 
   const goToNextStep = () => {
@@ -23,14 +23,14 @@ export default function CreateNew({
     <div>
       {step === 1 && (
         <SelectMap
-          selectedMap={selectedMap}
+          selected_map={selected_map}
           setSelectedMap={setSelectedMap}
           continueToNextStep={goToNextStep}
         />
       )}
       {step === 2 && (
         <DataIntegration
-          selectedMap={selectedMap}
+          selected_map={selected_map}
           csvData={csvData}
           setCsvData={setCsvData}
           goToNextStep={goToNextStep}
@@ -40,7 +40,7 @@ export default function CreateNew({
       )}
       {step === 3 && (
         <FinalizeMap
-          selectedMap={selectedMap}
+          selected_map={selected_map}
           csvData={csvData}
           goBack={goBack}
           goToNextStep={goToNextStep}

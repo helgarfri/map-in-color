@@ -315,13 +315,13 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                     ) : (
                       mapsToShow.map((map) => {
                         const mapTitle = map.title || 'Untitled Map';
-                        const firstName = map.User?.firstName || '';
-                        const lastName = map.User?.lastName || '';
+                        const first_name = map.User?.first_name || '';
+                        const last_name = map.User?.last_name || '';
                         const userNameFallback = map.User?.username || 'Unknown';
-                        const displayName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : userNameFallback;
+                        const displayName = (first_name || last_name) ? `${first_name} ${last_name}`.trim() : userNameFallback;
                        
-                        const creatorImg = map.User?.profilePicture
-                          ? `http://localhost:5000${map.User.profilePicture}`
+                        const creatorImg = map.User?.profile_picture
+                          ? `http://localhost:5000${map.User.profile_picture}`
                           : '/default-profile-pic.jpg';
                         
                         return (
@@ -331,62 +331,62 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                             onClick={() => navigate(`/map/${map.id}`)}
                           >
                             <div className={styles.thumbnail}>
-                              {map.selectedMap === 'world' && (
+                              {map.selected_map === 'world' && (
                                 <WorldMapSVG
                                   groups={map.groups}
                                   mapTitleValue={mapTitle}
-                                  oceanColor={map.oceanColor}
-                                  unassignedColor={map.unassignedColor}
-                                  showTopHighValues={false}
-                                  showTopLowValues={false}
+                                  ocean_color={map.ocean_color}
+                                  unassigned_color={map.unassigned_color}
+                                  show_top_high_values={false}
+                                  show_top_low_values={false}
                                   data={map.data}
-                                  selectedMap={map.selectedMap}
-                                  fontColor={map.fontColor}
-                                  topHighValues={[]}
-                                  topLowValues={[]}
+                                  selected_map={map.selected_map}
+                                  font_color={map.font_color}
+                                  show_top_high_values={[]}
+                                  top_low_values={[]}
                                   isThumbnail={true}
-                                  isTitleHidden={map.isTitleHidden}
+                                  is_title_hidden={map.is_title_hidden}
                                 />
                               )}
-                              {map.selectedMap === 'usa' && (
+                              {map.selected_map === 'usa' && (
                                 <UsSVG
                                   groups={map.groups}
                                   mapTitleValue={mapTitle}
-                                  oceanColor={map.oceanColor}
-                                  unassignedColor={map.unassignedColor}
-                                  showTopHighValues={false}
-                                  showTopLowValues={false}
+                                  ocean_color={map.ocean_color}
+                                  unassigned_color={map.unassigned_color}
+                                  show_top_high_values={false}
+                                  show_top_low_values={false}
                                   data={map.data}
-                                  selectedMap={map.selectedMap}
-                                  fontColor={map.fontColor}
-                                  topHighValues={[]}
-                                  topLowValues={[]}
+                                  selected_map={map.selected_map}
+                                  font_color={map.font_color}
+                                  show_top_high_values={[]}
+                                  top_low_values={[]}
                                   isThumbnail={true}
-                                  isTitleHidden={map.isTitleHidden}
+                                  is_title_hidden={map.is_title_hidden}
                                 />
                               )}
-                              {map.selectedMap === 'europe' && (
+                              {map.selected_map === 'europe' && (
                                 <EuropeSVG
                                   groups={map.groups}
                                   mapTitleValue={mapTitle}
-                                  oceanColor={map.oceanColor}
-                                  unassignedColor={map.unassignedColor}
-                                  showTopHighValues={false}
-                                  showTopLowValues={false}
+                                  ocean_color={map.ocean_color}
+                                  unassigned_color={map.unassigned_color}
+                                  show_top_high_values={false}
+                                  show_top_low_values={false}
                                   data={map.data}
-                                  selectedMap={map.selectedMap}
-                                  fontColor={map.fontColor}
-                                  topHighValues={[]}
-                                  topLowValues={[]}
+                                  selected_map={map.selected_map}
+                                  font_color={map.font_color}
+                                  show_top_high_values={[]}
+                                  top_low_values={[]}
                                   isThumbnail={true}
-                                  isTitleHidden={map.isTitleHidden}
+                                  is_title_hidden={map.is_title_hidden}
                                 /> 
                               )}
                             </div>
                             <h3 className={styles.mapTitle}>{mapTitle}</h3>
                             <div className={styles.mapInfoRow}>
                               <span>{displayName}</span>
-                              <span><FaStar /> {map.saveCount || 0}</span>
+                              <span><FaStar /> {map.save_count || 0}</span>
                               {/* If commentCount is implemented, you can display it as:
                                   <span><FaComment /> {map.commentCount || 0}</span>
                               */}

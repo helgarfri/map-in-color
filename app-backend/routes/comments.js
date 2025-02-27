@@ -1,430 +1,392 @@
-// routes/comments.js
-
 const express = require('express');
 const router = express.Router();
+const { supabaseAdmin } = require('../config/supabase');
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
-const {
-  Comment,
-  User,
-  Map,
-  Activity,
-  CommentReaction,
-  Notification,
-} = require('../models');
 
-// GET /maps/:mapId/comments
-// -------------------------
-// routes/comments.js
-
+/* -----------------------------------------------
+   GET /maps/:mapId/comments (Fetch comments + replies)
+   ----------------------------------------------- */
 router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
   try {
-    const mapId = req.params.mapId;
+    const mapId = parseInt(req.params.mapId, 10);
+    const user_id = req.user?.id || null;
 
-    // 1) Fetch top-level comments only (ParentCommentId = null)
-    //    We do NOT specify any "order" here, because we will sort by Wilson in memory.
-    const comments = await Comment.findAll({
-      where: { MapId: mapId, ParentCommentId: null },
-      include: [
-        {
-          model: User,
-          attributes: ['username', 'profilePicture'],
-        },
-        {
-          // If the user is logged in, we find that user’s reaction. Otherwise skip.
-          model: CommentReaction,
-          required: false,
-          where: req.user ? { UserId: req.user.id } : undefined,
-          attributes: ['reaction'],
-        },
-        {
-          // Fetch replies
-          model: Comment,
-          as: 'Replies',
-          // No "order" or "DESC" here. We’ll sort in memory if needed.
-          include: [
-            {
-              model: User,
-              attributes: ['username', 'profilePicture'],
-            },
-            {
-              model: CommentReaction,
-              required: false,
-              where: req.user ? { UserId: req.user.id } : undefined,
-              attributes: ['reaction'],
-            },
-          ],
-        },
-      ],
-    });
+    
 
-    // 2) Convert everything to plain objects, attach userReaction
-    const plainComments = comments.map((comment) => {
-      const topC = comment.toJSON();
+    // 1) Fetch top-level comments
+    const { data: topComments, error: topErr } = await supabaseAdmin
+      .from('comments')
+      .select(`
+        *,
+        user:users!comments_user_id_fkey (
+          id,
+          username,
+          first_name,
+          last_name,
+          profile_picture
+        )
+      `)
+      .eq('map_id', mapId)
+      .is('parent_comment_id', null);
 
-      // userReaction for top-level
-      topC.userReaction =
-        topC.CommentReactions && topC.CommentReactions.length > 0
-          ? topC.CommentReactions[0].reaction
-          : null;
-      delete topC.CommentReactions;
-
-      // For each reply in topC.Replies
-      if (topC.Replies && topC.Replies.length > 0) {
-        topC.Replies = topC.Replies.map((reply) => {
-          const r = reply.CommentReactions || [];
-          reply.userReaction = r.length > 0 ? r[0].reaction : null;
-          delete reply.CommentReactions;
-          return reply;
-        });
-      }
-
-      return topC;
-    });
-
-    // 3) Compute a Wilson score for each top-level comment (and optionally for replies).
-    plainComments.forEach((c) => {
-      c.wilsonScore = computeWilsonScore(c.likeCount, c.dislikeCount);
-
-      if (c.Replies && c.Replies.length > 0) {
-        // If you want replies also sorted by Wilson:
-        c.Replies.forEach((rep) => {
-          rep.wilsonScore = computeWilsonScore(rep.likeCount, rep.dislikeCount);
-        });
-        // Sort replies in descending Wilson:
-        c.Replies.sort((a, b) => b.wilsonScore - a.wilsonScore);
-      }
-    });
-
-    // 4) Sort the top-level array by Wilson descending
-    plainComments.sort((a, b) => b.wilsonScore - a.wilsonScore);
-
-    // 5) Return them
-    res.json(plainComments);
-  } catch (err) {
-    console.error('Error fetching comments with Wilson sorting:', err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-
-// POST /maps/:mapId/comments
-// --------------------------
-router.post('/maps/:mapId/comments', auth, async (req, res) => {
-  try {
-    const mapId = req.params.mapId;
-    const { content, ParentCommentId } = req.body;
-
-    const map = await Map.findByPk(mapId);
-    if (!map) {
-      return res.status(404).json({ msg: 'Map not found' });
+    if (topErr) {
+      console.error('Error fetching top-level comments:', topErr);
+      return res.status(500).json({ msg: 'Server error' });
     }
 
-    let parentComment = null;
-    if (ParentCommentId) {
-      parentComment = await Comment.findByPk(ParentCommentId);
-      if (!parentComment || parentComment.MapId !== map.id) {
-        return res.status(400).json({ msg: 'Invalid parent comment' });
+    // 2) If user is logged in, fetch their comment_reactions
+    let userReactions = {};
+    if (user_id) {
+      const { data: myReactions, error: myReactionsErr } = await supabaseAdmin
+        .from('comment_reactions')
+        .select('comment_id, reaction')
+        .eq('user_id', user_id);
+
+      if (myReactionsErr) {
+        console.error('Error fetching user reactions:', myReactionsErr);
       }
-    }
-
-    // Create the comment
-    const comment = await Comment.create({
-      content,
-      UserId: req.user.id,
-      MapId: map.id,
-      ParentCommentId: ParentCommentId || null,
-    });
-
-    // Re-fetch with the user included
-    const createdComment = await Comment.findByPk(comment.id, {
-      include: [
-        { model: User, attributes: ['username', 'profilePicture'] },
-        {
-          model: CommentReaction,
-          required: false,
-          where: { UserId: req.user.id },
-          attributes: ['reaction'],
-        },
-      ],
-    });
-
-    // Attach userReaction
-    const c = createdComment.toJSON();
-    c.userReaction =
-      c.CommentReactions && c.CommentReactions.length > 0
-        ? c.CommentReactions[0].reaction
-        : null;
-    delete c.CommentReactions;
-
-    // Only create notifications if the user is acting on *someone else's* map/comment
-    if (ParentCommentId) {
-      // It's a reply
-      if (parentComment.UserId !== req.user.id) {
-        await Notification.create({
-          type: 'reply',
-          UserId: parentComment.UserId, // parent comment owner
-          SenderId: req.user.id,
-          MapId: map.id,
-          CommentId: comment.id,
-        });
-      }
-    } else {
-      // It's a top-level comment => notify map owner if different user
-      if (map.UserId !== req.user.id) {
-        await Notification.create({
-          type: 'comment',
-          UserId: map.UserId,
-          SenderId: req.user.id,
-          MapId: map.id,
-          CommentId: comment.id,
+      if (myReactions) {
+        // Build a dictionary: userReactions[comment_id] = 'like' or 'dislike'
+        myReactions.forEach((r) => {
+          userReactions[r.comment_id] = r.reaction;
         });
       }
     }
 
-    // Optionally record an Activity
-    // If you don't want self-activities for user’s own map, add a check:
-    if (map.UserId !== req.user.id) {
-      await Activity.create({
-        type: 'commented',
-        UserId: req.user.id,
-        mapTitle: map.title,
-        createdAt: new Date(),
+    // 3) Fetch all replies for these top-level comments
+    const topIds = topComments.map((c) => c.id);
+    let allReplies = [];
+    if (topIds.length > 0) {
+      const { data: replies, error: repErr } = await supabaseAdmin
+        .from('comments')
+        .select(`
+          *,
+          user:users!comments_user_id_fkey (
+            id,
+            username,
+            first_name,
+            last_name,
+            profile_picture
+          )
+        `)
+        .in('parent_comment_id', topIds);
+
+      if (repErr) {
+        console.error('Error fetching replies:', repErr);
+        return res.status(500).json({ msg: 'Server error' });
+      }
+      allReplies = replies || [];
+    }
+
+    // 4) Attach userReaction to each comment/reply
+    //    Then you can optionally sort by “Wilson score” or any ranking you want
+    const topLevel = topComments.map((comment) => {
+      const c = { ...comment };
+      c.userReaction = user_id ? userReactions[c.id] || null : null;
+
+      // gather replies
+      const childReplies = allReplies.filter((r) => r.parent_comment_id === c.id);
+      childReplies.forEach((r) => {
+        r.userReaction = user_id ? userReactions[r.id] || null : null;
       });
-    }
 
-    res.json(c);
+      // attach replies
+      c.Replies = childReplies;
+      return c;
+    });
+
+    // Return them unsorted or sorted as you like
+    return res.json(topLevel);
   } catch (err) {
-    console.error('Error posting comment:', err);
-    res.status(500).json({ msg: 'Server error' });
+    console.error('Error in GET /maps/:mapId/comments:', err);
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// POST /comments/:commentId/like
-// ------------------------------
-router.post('/comments/:commentId/like', auth, async (req, res) => {
+/* -----------------------------------------------
+   POST /maps/:mapId/comments (Create a new comment)
+   ----------------------------------------------- */
+   router.post('/maps/:mapId/comments', auth, async (req, res) => {
+    try {
+      const mapId = parseInt(req.params.mapId, 10);
+      const { content, parent_comment_id } = req.body;
+      const user_id = req.user.id;
+  
+      // 1) Check if the map exists
+      const { data: mapRow, error: mapErr } = await supabaseAdmin
+        .from('maps')
+        .select('id, title, user_id')
+        .eq('id', mapId)
+        .maybeSingle();
+  
+      if (mapErr) {
+        console.error('Error fetching map:', mapErr);
+        return res.status(500).json({ msg: 'Error fetching map' });
+      }
+      if (!mapRow) {
+        return res.status(404).json({ msg: 'Map not found' });
+      }
+  
+      // 2) Check if parent_comment_id is valid (if present)
+      let parentCommentUserId = null;  // <-- added for replies
+      if (parent_comment_id) {
+        const { data: parentComment, error: parentErr } = await supabaseAdmin
+          .from('comments')
+          .select('id, user_id, map_id')   // note we also fetch user_id now
+          .eq('id', parent_comment_id)
+          .maybeSingle();
+  
+        if (parentErr) {
+          console.error('Error checking parent comment:', parentErr);
+          return res.status(500).json({ msg: 'Server error' });
+        }
+        if (!parentComment || parentComment.map_id !== mapId) {
+          return res.status(400).json({ msg: 'Invalid parent comment' });
+        }
+  
+        parentCommentUserId = parentComment.user_id;  // <-- store for notification
+      }
+  
+      // 3) Insert new comment
+      const { data: inserted, error: insertErr } = await supabaseAdmin
+        .from('comments')
+        .insert({
+          content,
+          user_id,
+          map_id: mapRow.id,
+          parent_comment_id: parent_comment_id || null,
+          like_count: 0,
+          dislike_count: 0,
+        })
+        .select('*')
+        .single();
+  
+      if (insertErr) {
+        console.error('Error inserting comment:', insertErr);
+        return res.status(500).json({ msg: 'Error inserting comment' });
+      }
+  
+      // 4) Fetch the newly inserted comment with user data
+      const { data: fullComment, error: fullErr } = await supabaseAdmin
+        .from('comments')
+        .select(
+          `*,
+           user:users!comments_user_id_fkey (
+             id,
+             username,
+             first_name,
+             last_name,
+             profile_picture
+           )`
+        )
+        .eq('id', inserted.id)
+        .maybeSingle();
+  
+      if (fullErr) {
+        console.error('Error fetching full comment:', fullErr);
+        return res.json(inserted);
+      }
+  
+      // 5) If it’s a top-level comment, notify the map owner (if different user)
+      if (!parent_comment_id) {
+        if (mapRow.user_id !== user_id) {
+          await supabaseAdmin
+            .from('notifications')
+            .insert([{
+              type: 'comment',
+              user_id: mapRow.user_id,  // the map owner
+              sender_id: user_id,       // the commenter
+              map_id: mapRow.id,
+              comment_id: inserted.id,  // optional: store comment ID
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }]);
+        }
+      } else {
+        // 6) If it’s a reply, notify the parent comment’s author if different
+        if (parentCommentUserId && parentCommentUserId !== user_id) {
+          await supabaseAdmin
+            .from('notifications')
+            .insert([{
+              type: 'reply',                 // e.g. "reply"
+              user_id: parentCommentUserId,  // the parent comment's author
+              sender_id: user_id,           // the replier
+              map_id: mapRow.id,
+              comment_id: inserted.id,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }]);
+        }
+      }
+  
+      return res.json(fullComment);
+    } catch (err) {
+      console.error('Error posting comment:', err);
+      return res.status(500).json({ msg: 'Server error' });
+    }
+  });
+  
+
+/* -----------------------------------------------
+   POST /comments/:comment_id/reaction
+   Toggles or sets a single user’s reaction
+----------------------------------------------- */
+router.post('/comments/:comment_id/reaction', auth, async (req, res) => {
   try {
-    const commentId = req.params.commentId;
+    const comment_id = parseInt(req.params.comment_id, 10);
     const userId = req.user.id;
+    let newReaction = req.body.reaction; // 'like' | 'dislike' | null
 
-    const comment = await Comment.findByPk(commentId);
-    if (!comment) return res.status(404).json({ msg: 'Comment not found' });
+    console.log(
+      `[DEBUG] Reaction => userId=${userId}, comment_id=${comment_id}, newReaction=${newReaction}`
+    );
 
-    // Fetch the map so we can see if the user is the same as the map owner
-    const map = await Map.findByPk(comment.MapId);
-
-    let existingReaction = await CommentReaction.findOne({
-      where: { CommentId: commentId, UserId: userId },
-    });
-
-    // If user already liked it, remove the like
-    if (existingReaction && existingReaction.reaction === 'like') {
-      await existingReaction.destroy();
-      comment.likeCount -= 1;
-      await comment.save();
-      return res.json({
-        userReaction: null,
-        likeCount: comment.likeCount,
-        dislikeCount: comment.dislikeCount,
-      });
+    // 1) Fetch the comment row
+    const { data: comment, error: cErr } = await supabaseAdmin
+      .from('comments')
+      .select('id, user_id, map_id, like_count, dislike_count, parent_comment_id')
+      .eq('id', comment_id)
+      .maybeSingle();
+    if (cErr) {
+      console.error('Error fetching comment:', cErr);
+      return res.status(500).json({ msg: 'Error fetching comment' });
     }
-
-    // If user had disliked, switch to like
-    if (existingReaction && existingReaction.reaction === 'dislike') {
-      existingReaction.reaction = 'like';
-      await existingReaction.save();
-      comment.likeCount += 1;
-      comment.dislikeCount -= 1;
-      await comment.save();
-      return res.json({
-        userReaction: 'like',
-        likeCount: comment.likeCount,
-        dislikeCount: comment.dislikeCount,
-      });
-    }
-
-    // No existing reaction => create a new "like"
-    await CommentReaction.create({
-      reaction: 'like',
-      UserId: userId,
-      CommentId: commentId,
-    });
-    comment.likeCount += 1;
-    await comment.save();
-
-    // Only create a "like" notification if the comment owner isn't the same user
-    if (comment.UserId !== userId) {
-      await Notification.create({
-        type: 'like',
-        UserId: comment.UserId,
-        SenderId: userId,
-        MapId: comment.MapId,
-        CommentId: comment.id,
-      });
-    }
-
-    // Optionally skip Activity if user is liking their *own* map or comment
-    if (map && map.UserId !== userId && comment.UserId !== userId) {
-      await Activity.create({
-        type: 'likeComment',
-        UserId: userId,
-        mapTitle: map.title,
-        createdAt: new Date(),
-      });
-    }
-
-    res.json({
-      userReaction: 'like',
-      likeCount: comment.likeCount,
-      dislikeCount: comment.dislikeCount,
-    });
-  } catch (err) {
-    console.error('Error liking comment:', err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-// POST /comments/:commentId/dislike
-// ---------------------------------
-router.post('/comments/:commentId/dislike', auth, async (req, res) => {
-  try {
-    const commentId = req.params.commentId;
-    const userId = req.user.id;
-
-    const comment = await Comment.findByPk(commentId);
-    if (!comment) return res.status(404).json({ msg: 'Comment not found' });
-
-    // Also fetch map to see if user = map owner
-    const map = await Map.findByPk(comment.MapId);
-
-    let existingReaction = await CommentReaction.findOne({
-      where: { CommentId: commentId, UserId: userId },
-    });
-
-    // If user already disliked it, remove the dislike
-    if (existingReaction && existingReaction.reaction === 'dislike') {
-      await existingReaction.destroy();
-      comment.dislikeCount -= 1;
-      await comment.save();
-      return res.json({
-        userReaction: null,
-        likeCount: comment.likeCount,
-        dislikeCount: comment.dislikeCount,
-      });
-    }
-
-    // If user had liked, switch to dislike
-    if (existingReaction && existingReaction.reaction === 'like') {
-      existingReaction.reaction = 'dislike';
-      await existingReaction.save();
-      comment.likeCount -= 1;
-      comment.dislikeCount += 1;
-      await comment.save();
-      return res.json({
-        userReaction: 'dislike',
-        likeCount: comment.likeCount,
-        dislikeCount: comment.dislikeCount,
-      });
-    }
-
-    // No existing reaction => create a new "dislike"
-    await CommentReaction.create({
-      reaction: 'dislike',
-      UserId: userId,
-      CommentId: commentId,
-    });
-    comment.dislikeCount += 1;
-    await comment.save();
-
-    // Only notify if the comment belongs to a different user
-    if (comment.UserId !== userId) {
-      await Notification.create({
-        type: 'dislike',
-        UserId: comment.UserId,
-        SenderId: userId,
-        MapId: comment.MapId,
-        CommentId: comment.id,
-      });
-    }
-
-    // Optionally skip Activity if user is disliking their own map or comment
-    if (map && map.UserId !== userId && comment.UserId !== userId) {
-      await Activity.create({
-        type: 'dislikeComment',
-        UserId: userId,
-        mapTitle: map.title,
-        createdAt: new Date(),
-      });
-    }
-
-    res.json({
-      userReaction: 'dislike',
-      likeCount: comment.likeCount,
-      dislikeCount: comment.dislikeCount,
-    });
-  } catch (err) {
-    console.error('Error disliking comment:', err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-// DELETE /comments/:commentId
-// ---------------------------
-router.delete('/comments/:commentId', auth, async (req, res) => {
-  try {
-    const commentId = req.params.commentId;
-
-    const comment = await Comment.findByPk(commentId, {
-      include: [Map],
-    });
     if (!comment) {
       return res.status(404).json({ msg: 'Comment not found' });
     }
 
-    const isCommentOwner = comment.UserId === req.user.id;
-    const isMapOwner = comment.Map && comment.Map.UserId === req.user.id;
+    const { user_id: commentOwnerId, map_id, parent_comment_id } = comment;
+    let { like_count, dislike_count } = comment;
 
-    if (!isCommentOwner && !isMapOwner) {
-      return res.status(403).json({ msg: 'Not authorized to delete this comment' });
+    // 2) fetch existing reaction, if any
+    const { data: existing, error: eErr } = await supabaseAdmin
+      .from('comment_reactions')
+      .select('*')
+      .eq('comment_id', comment_id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (eErr) {
+      console.error('Error fetching user reaction:', eErr);
+      return res.status(500).json({ msg: 'Server error (fetch reaction)' });
     }
 
-    await comment.destroy();
-    res.json({ msg: 'Comment deleted successfully.' });
+    // 3) If the user is repeating the same reaction => remove it
+    if (existing && existing.reaction === newReaction) {
+      // e.g. user already had 'like', clicked 'like' again => remove
+      newReaction = null;
+    }
+
+    // 4) Toggling logic
+    if (!newReaction) {
+      // user wants no reaction
+      if (existing?.reaction === 'like') {
+        like_count = Math.max(0, like_count - 1);
+      } else if (existing?.reaction === 'dislike') {
+        dislike_count = Math.max(0, dislike_count - 1);
+      }
+
+      // remove row from comment_reactions
+      if (existing) {
+        await supabaseAdmin
+          .from('comment_reactions')
+          .delete()
+          .eq('id', existing.id);
+      }
+    } else if (newReaction === 'like') {
+      // user wants 'like'
+      if (existing?.reaction === 'dislike') {
+        // remove old dislike
+        dislike_count = Math.max(0, dislike_count - 1);
+        // update the old row
+        await supabaseAdmin
+          .from('comment_reactions')
+          .update({ reaction: 'like' })
+          .eq('id', existing.id);
+      } else if (!existing) {
+        // insert new reaction row
+        await supabaseAdmin
+          .from('comment_reactions')
+          .insert([
+            {
+              user_id: userId,
+              comment_id,
+              reaction: 'like',
+            },
+          ]);
+      }
+      like_count += 1;
+
+      // *** CREATE NOTIFICATION if liking someone else’s comment ***
+      // (only if not the comment's author)
+      if (commentOwnerId !== userId) {
+        await supabaseAdmin.from('notifications').insert([
+          {
+            type: 'like',
+            user_id: commentOwnerId, // the comment owner gets the notification
+            sender_id: userId,       // the user who liked
+            map_id: map_id,          // optional, so we can show "on map X"
+            comment_id: comment_id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ]);
+      }
+    } else if (newReaction === 'dislike') {
+      // user wants 'dislike'
+      if (existing?.reaction === 'like') {
+        like_count = Math.max(0, like_count - 1);
+        await supabaseAdmin
+          .from('comment_reactions')
+          .update({ reaction: 'dislike' })
+          .eq('id', existing.id);
+      } else if (!existing) {
+        // insert new
+        await supabaseAdmin
+          .from('comment_reactions')
+          .insert([
+            {
+              user_id: userId,
+              comment_id,
+              reaction: 'dislike',
+            },
+          ]);
+      }
+      dislike_count += 1;
+
+      // Optional: you could also do "someone disliked your comment" 
+      // but many sites don't notify for "dislikes" since it can be negative.
+      // If you do want that, do similarly:
+      // if (commentOwnerId !== userId) { ... insert type: 'dislike' ... }
+    }
+
+    // 5) update the comment counters
+    const { data: updatedRows, error: updErr } = await supabaseAdmin
+      .from('comments')
+      .update({
+        like_count,
+        dislike_count,
+      })
+      .eq('id', comment_id)
+      .select()
+      .maybeSingle();
+
+    if (updErr) {
+      console.error('Error updating like_count/dislike_count:', updErr);
+      return res.status(500).json({ msg: 'Error updating comment counters' });
+    }
+
+    // Return the updated row + the final userReaction
+    return res.json({
+      ...updatedRows,
+      userReaction: newReaction, // 'like', 'dislike', or null
+    });
   } catch (err) {
-    console.error('Error deleting comment:', err);
-    res.status(500).json({ msg: 'Server error' });
+    console.error('Error in reaction route:', err);
+    return res.status(500).json({ msg: 'Server error (reaction)' });
   }
 });
 
 
-
 module.exports = router;
-
-// helper function to compute Wilson score
-
-// For a 95% confidence Wilson Score:
-const Z = 1.96;
-
-function computeWilsonScore(likeCount, dislikeCount) {
-  const up = likeCount || 0;
-  const down = dislikeCount || 0;
-  const n = up + down;
-  if (n === 0) {
-    return 0; // no votes => score = 0
-  }
-  const pHat = up / n;
-  const z2 = Z * Z;
-
-  // Wilson lower bound formula:
-  // score = ( pHat + z^2/(2n) - z * sqrt( (pHat*(1-pHat) + z^2/(4n))/n ) )
-  //         / (1 + z^2/n)
-  const denominator = 1 + (z2 / n);
-  const numerator =
-    pHat +
-    z2 / (2 * n) -
-    Z *
-      Math.sqrt(
-        (pHat * (1 - pHat) + z2 / (4 * n)) / n
-      );
-  return numerator / denominator;
-}

@@ -7,10 +7,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 export default function Signup() {
   // States for all form fields
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [first_name, setFirstName] = useState('');
+  const [last_name, setLastName] = useState('');
 
-  // We will combine these three into dateOfBirth before sending
+  // We will combine these three into date_of_birth before sending
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
@@ -80,20 +80,20 @@ export default function Signup() {
       return;
     }
 
-    // 2) Create a single dateOfBirth field (YYYY-MM-DD)
-    let dateOfBirth = '';
+    // 2) Create a single date_of_birth field (YYYY-MM-DD)
+    let date_of_birth = '';
     if (year && month && day) {
       const mm = month.toString().padStart(2, '0'); // zero-pad month
       const dd = day.toString().padStart(2, '0');   // zero-pad day
-      dateOfBirth = `${year}-${mm}-${dd}`;
+      date_of_birth = `${year}-${mm}-${dd}`;
     }
 
     try {
       // Prepare data exactly how your server expects (matching ProfileSettings)
       const res = await signUp({
-        firstName,
-        lastName,
-        dateOfBirth, // single string
+        first_name,
+        last_name,
+        date_of_birth, // single string
         gender,
         location,    // selected country
         email,
@@ -166,21 +166,21 @@ export default function Signup() {
             {/* First & Last Name */}
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label htmlFor="firstName">First Name</label>
+                <label htmlFor="first_name">First Name</label>
                 <input
                   type="text"
-                  id="firstName"
-                  value={firstName}
+                  id="first_name"
+                  value={first_name}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
               </div>
               <div className={styles.formGroup}>
-                <label htmlFor="lastName">Last Name</label>
+                <label htmlFor="last_name">Last Name</label>
                 <input
                   type="text"
-                  id="lastName"
-                  value={lastName}
+                  id="last_name"
+                  value={last_name}
                   onChange={(e) => setLastName(e.target.value)}
                   required
                 />

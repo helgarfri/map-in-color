@@ -14,12 +14,12 @@ module.exports = {
       type: Sequelize.JSON,
       allowNull: true,
     });
-    await queryInterface.addColumn('Maps', 'isPublic', {
+    await queryInterface.addColumn('Maps', 'is_public', {
       type: Sequelize.BOOLEAN,
       defaultValue: false,
       allowNull: false,
     });
-    await queryInterface.addColumn('Maps', 'saveCount', {
+    await queryInterface.addColumn('Maps', 'save_count', {
       type: Sequelize.INTEGER,
       defaultValue: 0,
       allowNull: false,
@@ -31,8 +31,8 @@ module.exports = {
     await queryInterface.removeColumn('Maps', 'description');
     await queryInterface.removeColumn('Maps', 'tags');
     await queryInterface.removeColumn('Maps', 'sources');
-    await queryInterface.removeColumn('Maps', 'isPublic');
-    await queryInterface.removeColumn('Maps', 'saveCount');
+    await queryInterface.removeColumn('Maps', 'is_public');
+    await queryInterface.removeColumn('Maps', 'save_count');
     // Remove other columns if added above
   },
 };

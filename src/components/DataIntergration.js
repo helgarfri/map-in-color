@@ -64,84 +64,84 @@ const themes = [
 ];
 
 /** Map Themes **/
-const mapThemes = [
+const map_themes = [
   {
     name: 'Default',
-    oceanColor: '#ffffff',
-    fontColor: 'black',
-    unassignedColor: '#c0c0c0',
+    ocean_color: '#ffffff',
+    font_color: 'black',
+    unassigned_color: '#c0c0c0',
   },
   {
     name: 'Muted Twilight',
-    oceanColor: '#3D3846',
-    fontColor: 'white',
-    unassignedColor: '#5E5C64',
+    ocean_color: '#3D3846',
+    font_color: 'white',
+    unassigned_color: '#5E5C64',
   },
   {
     name: 'Oceanic',
-    oceanColor: '#006994',
-    fontColor: 'white',
-    unassignedColor: '#004c70',
+    ocean_color: '#006994',
+    font_color: 'white',
+    unassigned_color: '#004c70',
   },
   {
     name: 'Polar Ice',
-    oceanColor: '#E0F7FA',
-    fontColor: 'black',
-    unassignedColor: '#ffffff',
+    ocean_color: '#E0F7FA',
+    font_color: 'black',
+    unassigned_color: '#ffffff',
   },
   {
     name: 'Vintage Sepia',
-    oceanColor: '#704214',
-    fontColor: 'white',
-    unassignedColor: '#D2B48C',
+    ocean_color: '#704214',
+    font_color: 'white',
+    unassigned_color: '#D2B48C',
   },
   {
     name: 'Midnight Blue',
-    oceanColor: '#191970',
-    fontColor: 'white',
-    unassignedColor: '#2F4F4F',
+    ocean_color: '#191970',
+    font_color: 'white',
+    unassigned_color: '#2F4F4F',
   },
   {
     name: 'Emerald Isles',
-    oceanColor: '#50C878',
-    fontColor: 'black',
-    unassignedColor: '#98FB98',
+    ocean_color: '#50C878',
+    font_color: 'black',
+    unassigned_color: '#98FB98',
   },
   {
     name: 'Desert Sand',
-    oceanColor: '#EDC9AF',
-    fontColor: 'black',
-    unassignedColor: '#C2B280',
+    ocean_color: '#EDC9AF',
+    font_color: 'black',
+    unassigned_color: '#C2B280',
   },
   {
     name: 'Fire and Ice',
-    oceanColor: '#1E90FF',
-    fontColor: 'white',
-    unassignedColor: '#FF4500',
+    ocean_color: '#1E90FF',
+    font_color: 'white',
+    unassigned_color: '#FF4500',
   },
   {
     name: 'Deep Space',
-    oceanColor: '#000000',
-    fontColor: 'white',
-    unassignedColor: '#2E2E2E',
+    ocean_color: '#000000',
+    font_color: 'white',
+    unassigned_color: '#2E2E2E',
   },
   {
     name: 'Pastel Dreams',
-    oceanColor: '#FFB6C1',
-    fontColor: 'black',
-    unassignedColor: '#FFDAB9',
+    ocean_color: '#FFB6C1',
+    font_color: 'black',
+    unassigned_color: '#FFDAB9',
   },
   {
     name: 'Sunset Glow',
-    oceanColor: '#FFA07A',
-    fontColor: 'black',
-    unassignedColor: '#FF6347',
+    ocean_color: '#FFA07A',
+    font_color: 'black',
+    unassigned_color: '#FF6347',
   },
   {
     name: 'Forest Green',
-    oceanColor: '#228B22',
-    fontColor: 'white',
-    unassignedColor: '#6B8E23',
+    ocean_color: '#228B22',
+    font_color: 'white',
+    unassigned_color: '#6B8E23',
   },
 ];
 
@@ -155,17 +155,17 @@ export default function DataIntegration({
   const navigate = useNavigate();
 
   // --- State variables ---
-  const [selectedMap, setSelectedMap] = useState(
-    existingMapData ? existingMapData.selectedMap : location.state?.selectedMap || 'world'
+  const [selected_map, setSelectedMap] = useState(
+    existingMapData ? existingMapData.selected_map : location.state?.selected_map || 'world'
   );
-  const [fileName, setFileName] = useState('');
+  const [file_name, setFileName] = useState('');
   const [fileIsValid, setFileIsValid] = useState(null);
   const [dataSource, setDataSource] = useState([]);
   const [validData, setValidData] = useState([]);
   const [missingCountries, setMissingCountries] = useState([]);
   const [errors, setErrors] = useState([]);
   const [data, setData] = useState([]);
-  const [fileStats, setFileStats] = useState({
+  const [file_stats, setFileStats] = useState({
     lowestValue: null,
     lowestCountry: '',
     highestValue: null,
@@ -177,7 +177,7 @@ export default function DataIntegration({
     totalCountries: 0,
   });
 
-  const [customRanges, setCustomRanges] = useState([
+  const [custom_ranges, setCustomRanges] = useState([
     {
       id: Date.now(),
       color: '#c0c0c0',
@@ -191,18 +191,18 @@ export default function DataIntegration({
   const [groups, setGroups] = useState([]);
 
   // Map display
-  const [showTopHighValues, setShowTopHighValues] = useState(false);
-  const [showTopLowValues, setShowTopLowValues] = useState(false);
+  const [show_top_high_values, setShowTopHighValues] = useState(false);
+  const [show_top_low_values, setShowTopLowValues] = useState(false);
   const [topHighValues, setTopHighValues] = useState([]);
-  const [topLowValues, setTopLowValues] = useState([]);
-  const [isTitleHidden, setIsTitleHidden] = useState(false);
+  const [top_low_values, setTopLowValues] = useState([]);
+  const [is_title_hidden, setIsTitleHidden] = useState(false);
 
   // Colors & theme
-  const [oceanColor, setOceanColor] = useState('#ffffff');
-  const [unassignedColor, setUnassignedColor] = useState('#c0c0c0');
-  const [fontColor, setFontColor] = useState('black');
-  const [selectedPalette, setSelectedPalette] = useState('None');
-  const [selectedMapTheme, setSelectedMapTheme] = useState('Default');
+  const [ocean_color, setOceanColor] = useState('#ffffff');
+  const [unassigned_color, setUnassignedColor] = useState('#c0c0c0');
+  const [font_color, setFontColor] = useState('black');
+  const [selected_palette, setSelectedPalette] = useState('None');
+  const [selected_map_theme, setSelectedMapTheme] = useState('Default');
 
   // Other
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -210,7 +210,7 @@ export default function DataIntegration({
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
+  const [is_public, setIsPublic] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Map title
@@ -232,26 +232,26 @@ export default function DataIntegration({
   // If existingMapData is provided (editing)
   useEffect(() => {
     if (existingMapData) {
-      setFileName(existingMapData.fileName);
-      setFileStats(existingMapData.fileStats);
+      setFileName(existingMapData.file_name);
+      setFileStats(existingMapData.file_stats);
       setMapTitle(existingMapData.title);
       setData(existingMapData.data);
-      setCustomRanges(existingMapData.customRanges);
+      setCustomRanges(existingMapData.custom_ranges);
       setGroups(existingMapData.groups);
-      setSelectedMap(existingMapData.selectedMap);
-      setOceanColor(existingMapData.oceanColor);
-      setUnassignedColor(existingMapData.unassignedColor);
-      setFontColor(existingMapData.fontColor);
-      setShowTopHighValues(existingMapData.showTopHighValues);
-      setShowTopLowValues(existingMapData.showTopLowValues);
-      setTopHighValues(existingMapData.topHighValues);
-      setTopLowValues(existingMapData.topLowValues);
-      setSelectedPalette(existingMapData.selectedPalette);
-      setSelectedMapTheme(existingMapData.selectedMapTheme);
+      setSelectedMap(existingMapData.selected_map);
+      setOceanColor(existingMapData.ocean_color);
+      setUnassignedColor(existingMapData.unassigned_color);
+      setFontColor(existingMapData.font_color);
+      setShowTopHighValues(existingMapData.show_top_high_values);
+      setShowTopLowValues(existingMapData.show_top_low_values);
+      setTopHighValues(existingMapData.show_top_high_values);
+      setTopLowValues(existingMapData.top_low_values);
+      setSelectedPalette(existingMapData.selected_palette);
+      setSelectedMapTheme(existingMapData.selected_map_theme);
       setDescription(existingMapData.description || '');
       setTags(existingMapData.tags || []);
-      setIsPublic(existingMapData.isPublic || false);
-      setIsTitleHidden(existingMapData.isTitleHidden || false);
+      setIsPublic(existingMapData.is_public || false);
+      setIsTitleHidden(existingMapData.is_title_hidden || false);
     }
     // eslint-disable-next-line
   }, [existingMapData]);
@@ -266,8 +266,8 @@ export default function DataIntegration({
 
   // Data completeness
   const dataCompleteness =
-    fileStats.totalCountries > 0
-      ? ((fileStats.numberOfValues / fileStats.totalCountries) * 100).toFixed(2)
+    file_stats.totalCountries > 0
+      ? ((file_stats.numberOfValues / file_stats.totalCountries) * 100).toFixed(2)
       : 'N/A';
 
   // Track missing countries
@@ -312,8 +312,8 @@ export default function DataIntegration({
 
     // Decide dataSource
     let dataSourceLocal;
-    if (selectedMap === 'usa') dataSourceLocal = usStatesCodes;
-    else if (selectedMap === 'europe') dataSourceLocal = euCodes;
+    if (selected_map === 'usa') dataSourceLocal = usStatesCodes;
+    else if (selected_map === 'europe') dataSourceLocal = euCodes;
     else dataSourceLocal = countryCodes;
 
     const parsedData = [];
@@ -453,9 +453,9 @@ export default function DataIntegration({
   const downloadTemplate = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     let dataSourceLocal;
-    if (selectedMap === "europe") {
+    if (selected_map === "europe") {
       dataSourceLocal = euCodes;
-    } else if (selectedMap === "usa") {
+    } else if (selected_map === "usa") {
       dataSourceLocal = usStatesCodes;
     } else {
       dataSourceLocal = countryCodes;
@@ -469,9 +469,9 @@ export default function DataIntegration({
     link.setAttribute('href', encodedUri);
     link.setAttribute(
       'download',
-      selectedMap === "europe"
+      selected_map === "europe"
         ? 'european_countries_template.csv'
-        : selectedMap === "usa"
+        : selected_map === "usa"
         ? 'us_states_template.csv'
         : 'countries_template.csv'
     );
@@ -548,7 +548,7 @@ const handlePaletteChange = (e) => {
       setGroups(newGroups);
     }
 
-    // Return updatedRanges as the new customRanges
+    // Return updatedRanges as the new custom_ranges
     return updatedRanges;
   });
 };
@@ -585,24 +585,24 @@ function applyPalette(oldRanges, paletteColors) {
   const handleThemeChange = (e) => {
     const themeName = e.target.value;
     setSelectedMapTheme(themeName);
-    const mapTheme = mapThemes.find((t) => t.name === themeName);
-    if (mapTheme) {
-      setOceanColor(mapTheme.oceanColor);
-      setFontColor(mapTheme.fontColor);
-      setUnassignedColor(mapTheme.unassignedColor);
+    const map_theme = map_themes.find((t) => t.name === themeName);
+    if (map_theme) {
+      setOceanColor(map_theme.ocean_color);
+      setFontColor(map_theme.font_color);
+      setUnassignedColor(map_theme.unassigned_color);
     }
   };
 
   // Ranges
   const handleRangeChange = (id, field, value) => {
     setCustomRanges(
-      customRanges.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+      custom_ranges.map((r) => (r.id === id ? { ...r, [field]: value } : r))
     );
   };
 
   const addRange = () => {
     const newRanges = [
-      ...customRanges,
+      ...custom_ranges,
       {
         id: Date.now(),
         lowerBound: '',
@@ -611,7 +611,7 @@ function applyPalette(oldRanges, paletteColors) {
         name: '',
       },
     ];
-    const paletteColors = themes.find((t) => t.name === selectedPalette)?.colors;
+    const paletteColors = themes.find((t) => t.name === selected_palette)?.colors;
     if (paletteColors) {
       applyPaletteToRanges(newRanges, paletteColors);
     } else {
@@ -620,9 +620,9 @@ function applyPalette(oldRanges, paletteColors) {
   };
 
   const removeRange = (id) => {
-    if (customRanges.length > 1) {
-      const newRanges = customRanges.filter((r) => r.id !== id);
-      const paletteColors = themes.find((t) => t.name === selectedPalette)?.colors;
+    if (custom_ranges.length > 1) {
+      const newRanges = custom_ranges.filter((r) => r.id !== id);
+      const paletteColors = themes.find((t) => t.name === selected_palette)?.colors;
       if (paletteColors) {
         applyPaletteToRanges(newRanges, paletteColors);
       } else {
@@ -635,10 +635,10 @@ function applyPalette(oldRanges, paletteColors) {
 
   // Validate ranges
   const getRangesValidationResult = () => {
-    if (customRanges.length === 0) {
+    if (custom_ranges.length === 0) {
       return { isValid: false, errorMessage: 'Please define at least one range.' };
     }
-    for (let r of customRanges) {
+    for (let r of custom_ranges) {
       if (
         isNaN(r.lowerBound) ||
         isNaN(r.upperBound) ||
@@ -650,7 +650,7 @@ function applyPalette(oldRanges, paletteColors) {
         };
       }
     }
-    const sorted = [...customRanges].sort((a, b) => a.lowerBound - b.lowerBound);
+    const sorted = [...custom_ranges].sort((a, b) => a.lowerBound - b.lowerBound);
     for (let i = 0; i < sorted.length - 1; i++) {
       if (sorted[i].upperBound > sorted[i + 1].lowerBound) {
         return {
@@ -669,7 +669,7 @@ function applyPalette(oldRanges, paletteColors) {
       alert("Please upload a CSV file first.");
       return;
     }
-    const validRanges = customRanges.filter(
+    const validRanges = custom_ranges.filter(
       (r) => !isNaN(r.lowerBound) && !isNaN(r.upperBound) && r.lowerBound <= r.upperBound
     );
     const sortedRanges = [...validRanges].sort((a, b) => {
@@ -727,7 +727,7 @@ function applyPalette(oldRanges, paletteColors) {
         });
       }
     }
-    const paletteColors = themes.find((t) => t.name === selectedPalette)?.colors;
+    const paletteColors = themes.find((t) => t.name === selected_palette)?.colors;
     if (paletteColors) {
       applyPaletteToRanges(suggestedRanges, paletteColors);
     } else {
@@ -881,23 +881,23 @@ function applyPalette(oldRanges, paletteColors) {
       title: mapTitle || '',
       description,
       tags,
-      isPublic,
+      is_public,
       data,
-      customRanges,
+      custom_ranges,
       groups,
-      selectedMap,
-      oceanColor,
-      unassignedColor,
-      fontColor,
-      showTopHighValues,
-      showTopLowValues,
-      topHighValues,
-      topLowValues,
-      selectedPalette,
-      selectedMapTheme,
-      fileName,
-      fileStats,
-      isTitleHidden,
+      selected_map,
+      ocean_color,
+      unassigned_color,
+      font_color,
+      show_top_high_values,
+      show_top_low_values,
+      show_top_high_values,
+      top_low_values,
+      selected_palette,
+      selected_map_theme,
+      file_name,
+      file_stats,
+      is_title_hidden,
       sources: references,
     };
     try {
@@ -933,9 +933,9 @@ function applyPalette(oldRanges, paletteColors) {
               <p style={{ textAlign: 'center' }}>
                 Selected Map:{' '}
                 <strong>
-                  {selectedMap === 'world'
+                  {selected_map === 'world'
                     ? 'World'
-                    : selectedMap === 'europe'
+                    : selected_map === 'europe'
                     ? 'Europe'
                     : 'USA'}
                 </strong>
@@ -987,19 +987,19 @@ function applyPalette(oldRanges, paletteColors) {
               />
 
               <div className={styles.uploadStatus}>
-                {fileName ? (
-                  <p className={styles.fileNameLabel}>{fileName}</p>
+                {file_name ? (
+                  <p className={styles.file_nameLabel}>{file_name}</p>
                 ) : (
                   <p className={styles.noFileSelected}>No file selected</p>
                 )}
 
-                {fileName && fileIsValid === true && (
+                {file_name && fileIsValid === true && (
                   <p className={styles.validMessage}>File is valid</p>
                 )}
-                {fileName && fileIsValid === false && (
+                {file_name && fileIsValid === false && (
                   <p className={styles.invalidMessage}>File is not valid</p>
                 )}
-                {!fileName && (
+                {!file_name && (
                   <p className={styles.noFileMessage}>No file selected.</p>
                 )}
               </div>
@@ -1034,63 +1034,63 @@ function applyPalette(oldRanges, paletteColors) {
                   <tbody>
                     <tr>
                       <th>File Name</th>
-                      <td>{fileName || 'N/A'}</td>
+                      <td>{file_name || 'N/A'}</td>
                     </tr>
                     <tr>
                       <th>Lowest Value</th>
                       <td>
-                        {fileStats.lowestValue !== null
-                          ? fileStats.lowestValue
+                        {file_stats.lowestValue !== null
+                          ? file_stats.lowestValue
                           : 'N/A'}
                       </td>
                     </tr>
                     <tr>
                       <th>State (Lowest)</th>
-                      <td>{fileStats.lowestCountry || 'N/A'}</td>
+                      <td>{file_stats.lowestCountry || 'N/A'}</td>
                     </tr>
                     <tr>
                       <th>Highest Value</th>
                       <td>
-                        {fileStats.highestValue !== null
-                          ? fileStats.highestValue
+                        {file_stats.highestValue !== null
+                          ? file_stats.highestValue
                           : 'N/A'}
                       </td>
                     </tr>
                     <tr>
                       <th>State (Highest)</th>
-                      <td>{fileStats.highestCountry || 'N/A'}</td>
+                      <td>{file_stats.highestCountry || 'N/A'}</td>
                     </tr>
                     <tr>
                       <th>Average Value</th>
                       <td>
-                        {fileStats.averageValue !== null
-                          ? fileStats.averageValue
+                        {file_stats.averageValue !== null
+                          ? file_stats.averageValue
                           : 'N/A'}
                       </td>
                     </tr>
                     <tr>
                       <th>Median Value</th>
                       <td>
-                        {fileStats.medianValue !== null
-                          ? fileStats.medianValue
+                        {file_stats.medianValue !== null
+                          ? file_stats.medianValue
                           : 'N/A'}
                       </td>
                     </tr>
                     <tr>
                       <th>Standard Deviation</th>
                       <td>
-                        {fileStats.standardDeviation !== null
-                          ? fileStats.standardDeviation
+                        {file_stats.standardDeviation !== null
+                          ? file_stats.standardDeviation
                           : 'N/A'}
                       </td>
                     </tr>
                     <tr>
                       <th>Values Count</th>
-                      <td>{fileStats.numberOfValues}</td>
+                      <td>{file_stats.numberOfValues}</td>
                     </tr>
                     <tr>
                       <th>Total Countries</th>
-                      <td>{fileStats.totalCountries}</td>
+                      <td>{file_stats.totalCountries}</td>
                     </tr>
                     <tr>
                       <th>Data Completeness (%)</th>
@@ -1116,7 +1116,7 @@ function applyPalette(oldRanges, paletteColors) {
                 </tr>
               </thead>
               <tbody>
-                {customRanges.map((range) => (
+                {custom_ranges.map((range) => (
                   <tr key={range.id}>
                     <td>
                       <input
@@ -1162,7 +1162,7 @@ function applyPalette(oldRanges, paletteColors) {
                       />
                     </td>
                     <td>
-                      {customRanges.length > 1 ? (
+                      {custom_ranges.length > 1 ? (
                         <button
                           className={styles.removeButton}
                           onClick={() => removeRange(range.id)}
@@ -1251,55 +1251,55 @@ function applyPalette(oldRanges, paletteColors) {
             <div className={styles.mapPreviewSection}>
               <div className={styles.mapPreviewContainer}>
                 <div className={styles.mapPreviewWrapper}>
-                  {selectedMap === 'world' && (
+                  {selected_map === 'world' && (
                     <WorldMapSVG
                       groups={groups}
                       mapTitleValue={mapTitle}
-                      oceanColor={oceanColor}
-                      unassignedColor={unassignedColor}
-                      showTopHighValues={showTopHighValues}
-                      showTopLowValues={showTopLowValues}
+                      ocean_color={ocean_color}
+                      unassigned_color={unassigned_color}
+                      show_top_high_values={show_top_high_values}
+                      show_top_low_values={show_top_low_values}
                       data={data}
-                      selectedMap={selectedMap}
-                      fontColor={fontColor}
+                      selected_map={selected_map}
+                      font_color={font_color}
                       topHighValues={topHighValues}
-                      topLowValues={topLowValues}
+                      top_low_values={top_low_values}
                       isLargeMap={false}
-                      isTitleHidden={isTitleHidden}
+                      is_title_hidden={is_title_hidden}
                     />
                   )}
-                  {selectedMap === 'usa' && (
+                  {selected_map === 'usa' && (
                     <UsSVG
                       groups={groups}
                       mapTitleValue={mapTitle}
-                      oceanColor={oceanColor}
-                      unassignedColor={unassignedColor}
-                      showTopHighValues={showTopHighValues}
-                      showTopLowValues={showTopLowValues}
+                      ocean_color={ocean_color}
+                      unassigned_color={unassigned_color}
+                      show_top_high_values={show_top_high_values}
+                      show_top_low_values={show_top_low_values}
                       data={data}
-                      selectedMap={selectedMap}
-                      fontColor={fontColor}
+                      selected_map={selected_map}
+                      font_color={font_color}
                       topHighValues={topHighValues}
-                      topLowValues={topLowValues}
+                      top_low_values={top_low_values}
                       isLargeMap={false}
-                      isTitleHidden={isTitleHidden}
+                      is_title_hidden={is_title_hidden}
                     />
                   )}
-                  {selectedMap === 'europe' && (
+                  {selected_map === 'europe' && (
                     <EuropeSVG
                       groups={groups}
                       mapTitleValue={mapTitle}
-                      oceanColor={oceanColor}
-                      unassignedColor={unassignedColor}
-                      showTopHighValues={showTopHighValues}
-                      showTopLowValues={showTopLowValues}
+                      ocean_color={ocean_color}
+                      unassigned_color={unassigned_color}
+                      show_top_high_values={show_top_high_values}
+                      show_top_low_values={show_top_low_values}
                       data={data}
-                      selectedMap={selectedMap}
-                      fontColor={fontColor}
-                      topHighValues={topHighValues}
-                      topLowValues={topLowValues}
+                      selected_map={selected_map}
+                      font_color={font_color}
+                      topHighValues={show_top_high_values}
+                      top_low_values={top_low_values}
                       isLargeMap={false}
-                      isTitleHidden={isTitleHidden}
+                      is_title_hidden={is_title_hidden}
                     />
                   )}
                 </div>
@@ -1321,7 +1321,7 @@ function applyPalette(oldRanges, paletteColors) {
                     <select
                       id="paletteSelector"
                       className={styles.inputBox}
-                      value={selectedPalette}
+                      value={selected_palette}
                       onChange={handlePaletteChange}
                     >
                       {themes.map((theme) => (
@@ -1332,7 +1332,7 @@ function applyPalette(oldRanges, paletteColors) {
                     </select>
                     <div className={styles.themePreview}>
                       {themes
-                        .find((t) => t.name === selectedPalette)
+                        .find((t) => t.name === selected_palette)
                         ?.colors.map((color, idx) => (
                           <div
                             key={idx}
@@ -1347,12 +1347,12 @@ function applyPalette(oldRanges, paletteColors) {
                   <div className={styles.themeField}>
                     <label>Map Theme:</label>
                     <select
-                      id="mapThemeSelector"
-                      className={`${styles.inputBox} ${styles.mapThemeSelector}`}
-                      value={selectedMapTheme}
+                      id="map_themeSelector"
+                      className={`${styles.inputBox} ${styles.map_themeSelector}`}
+                      value={selected_map_theme}
                       onChange={handleThemeChange}
                     >
-                      {mapThemes.map((theme) => (
+                      {map_themes.map((theme) => (
                         <option key={theme.name} value={theme.name}>
                           {theme.name}
                         </option>
@@ -1368,7 +1368,7 @@ function applyPalette(oldRanges, paletteColors) {
                         <input
                           type="radio"
                           value="black"
-                          checked={fontColor === 'black'}
+                          checked={font_color === 'black'}
                           onChange={(e) => setFontColor(e.target.value)}
                         />
                         Black
@@ -1377,7 +1377,7 @@ function applyPalette(oldRanges, paletteColors) {
                         <input
                           type="radio"
                           value="white"
-                          checked={fontColor === 'white'}
+                          checked={font_color === 'white'}
                           onChange={(e) => setFontColor(e.target.value)}
                         />
                         White
@@ -1387,24 +1387,24 @@ function applyPalette(oldRanges, paletteColors) {
 
                   {/* Ocean Color */}
                   <div className={styles.themeField}>
-                    <label htmlFor="oceanColor">Ocean Color:</label>
+                    <label htmlFor="ocean_color">Ocean Color:</label>
                     <input
-                      id="oceanColor"
+                      id="ocean_color"
                       type="color"
                       className={styles.colorInputBox}
-                      value={oceanColor}
+                      value={ocean_color}
                       onChange={(e) => setOceanColor(e.target.value)}
                     />
                   </div>
 
                   {/* Unassigned Color */}
                   <div className={styles.themeField}>
-                    <label htmlFor="unassignedColor">Unassigned Color:</label>
+                    <label htmlFor="unassigned_color">Unassigned Color:</label>
                     <input
-                      id="unassignedColor"
+                      id="unassigned_color"
                       type="color"
                       className={styles.colorInputBox}
-                      value={unassignedColor}
+                      value={unassigned_color}
                       onChange={(e) => setUnassignedColor(e.target.value)}
                     />
                   </div>
@@ -1431,7 +1431,7 @@ function applyPalette(oldRanges, paletteColors) {
                   <label className={styles.hideTitleLabel}>
                     <input
                       type="checkbox"
-                      checked={isTitleHidden}
+                      checked={is_title_hidden}
                       onChange={(e) => setIsTitleHidden(e.target.checked)}
                     />
                     Hide
@@ -1519,10 +1519,10 @@ function applyPalette(oldRanges, paletteColors) {
                     onClick={() => setShowVisibilityOptions(!showVisibilityOptions)}
                   >
                     <FontAwesomeIcon
-                      icon={isPublic ? faGlobe : faLock}
+                      icon={is_public ? faGlobe : faLock}
                       className={styles.visibilityIcon}
                     />
-                    {isPublic ? 'Public' : 'Private'}
+                    {is_public ? 'Public' : 'Private'}
                     <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
                     {showVisibilityOptions && (
                       <div className={styles.selectOptions}>

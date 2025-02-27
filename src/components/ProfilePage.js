@@ -6,8 +6,8 @@ import styles from './ProfilePage.module.css';
 import ProfileActivityFeed from './ProfileActivityFeed';
 import {
   fetchUserProfileByUsername,
-  fetchMapsByUserId,
-  fetchStarredMapsByUserId,
+  fetchMapsByuser_id,
+  fetchStarredMapsByuser_id,
   fetchUserActivity,
   fetchUserMapStats
 } from '../api';
@@ -40,7 +40,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
   //   Local State
   // -----------------------------
   const [profile, setProfile] = useState(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState('');
+  const [profile_pictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [totalMaps, setTotalMaps] = useState(0);
@@ -79,8 +79,8 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
 
         // If user has a custom profile picture, build the URL;
         // otherwise, use a default image
-        if (res.data.profilePicture) {
-          setProfilePictureUrl(`http://localhost:5000${res.data.profilePicture}`);
+        if (res.data.profile_picture) {
+          setProfilePictureUrl(`http://localhost:5000${res.data.profile_picture}`);
         } else {
           setProfilePictureUrl('/images/default-profile-picture.png');
         }
@@ -105,9 +105,9 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
     fetchActivity();
   }, [profile]);
 
-  async function loadUserStats(userId) {
+  async function loadUserStats(user_id) {
     try {
-      const res = await fetchUserMapStats(userId);
+      const res = await fetchUserMapStats(user_id);
       setTotalMaps(res.data.totalMaps);
       setTotalStars(res.data.totalStars);
     } catch (err) {
@@ -118,7 +118,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
   async function fetchMaps() {
     try {
       setLoadingMaps(true);
-      const res = await fetchMapsByUserId(profile.id, 0, 100);
+      const res = await fetchMapsByuser_id(profile.id, 0, 100);
       setUserMaps(res.data);
     } catch (err) {
       console.error('Error fetching user maps:', err);
@@ -130,7 +130,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
   async function fetchStarred() {
     try {
       setLoadingStarred(true);
-      const res = await fetchStarredMapsByUserId(profile.id, 0, 100);
+      const res = await fetchStarredMapsByuser_id(profile.id, 0, 100);
       setStarredMaps(res.data);
     } catch (err) {
       console.error('Error fetching starred maps:', err);
@@ -190,11 +190,11 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
   function sortMaps(mapsArray, sortBy) {
     const copy = [...mapsArray];
     if (sortBy === 'newest') {
-      copy.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      copy.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (sortBy === 'oldest') {
-      copy.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      copy.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     } else if (sortBy === 'mostStarred') {
-      copy.sort((a, b) => (b.saveCount || 0) - (a.saveCount || 0));
+      copy.sort((a, b) => (b.save_count || 0) - (a.save_count || 0));
     }
     return copy;
   }
@@ -207,7 +207,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
     const opts = { day: 'numeric', month: 'long', year: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', opts);
   }
-  const dobFormatted = formatDate(profile?.dateOfBirth);
+  const dobFormatted = formatDate(profile?.date_of_birth);
 
   function formatTimeAgo(dateString) {
     if (!dateString) return '';
@@ -219,19 +219,19 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
     const sharedProps = {
       groups: map.groups,
       mapTitleValue: map.title,
-      oceanColor: map.oceanColor,
-      unassignedColor: map.unassignedColor,
+      ocean_color: map.ocean_color,
+      unassigned_color: map.unassigned_color,
       data: map.data,
-      selectedMap: map.selectedMap,
-      fontColor: map.fontColor,
-      isTitleHidden: map.isTitleHidden,
-      showTopHighValues: false,
-      showTopLowValues: false,
+      selected_map: map.selected_map,
+      font_color: map.font_color,
+      is_title_hidden: map.is_title_hidden,
+      show_top_high_values: false,
+      show_top_low_values: false,
     };
 
-    if (map.selectedMap === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selectedMap === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selectedMap === 'europe') return <EuropeSVG {...sharedProps} />;
+    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
+    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
+    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
     return null;
   }
 
@@ -296,16 +296,16 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
           {/* LEFT COLUMN */}
           <div className={styles.leftColumn}>
             <div className={styles.profileInfoBox}>
-              <div className={styles.profilePictureWrapper}>
+              <div className={styles.profile_pictureWrapper}>
                 <img
-                  src={profilePictureUrl}
+                  src={profile_pictureUrl}
                   alt="Profile"
-                  className={styles.profilePicture}
+                  className={styles.profile_picture}
                 />
               </div>
               <h2 className={styles.username}>@{profile.username}</h2>
               <h1 className={styles.fullName}>
-                {profile.firstName} {profile.lastName}
+                {profile.first_name} {profile.last_name}
               </h1>
               <div className={styles.infoRow}>
                 {profile.location && (
@@ -423,9 +423,9 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
                             <h3 className={styles.mapTitle}>{map.title || 'Untitled Map'}</h3>
                             <div className={styles.mapStats}>
                               <FaStar className={styles.starIcon} />
-                              <span>{map.saveCount || 0}</span>
+                              <span>{map.save_count || 0}</span>
                             </div>
-                            <p className={styles.mapTime}>{formatTimeAgo(map.createdAt)}</p>
+                            <p className={styles.mapTime}>{formatTimeAgo(map.created_at)}</p>
                           </div>
                         </div>
                       ))}
@@ -475,9 +475,9 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
                             )}
                             <div className={styles.mapStats}>
                               <FaStar className={styles.starIcon} />
-                              <span>{map.saveCount || 0}</span>
+                              <span>{map.save_count || 0}</span>
                             </div>
-                            <p className={styles.mapTime}>{formatTimeAgo(map.createdAt)}</p>
+                            <p className={styles.mapTime}>{formatTimeAgo(map.created_at)}</p>
                           </div>
                         </div>
                       ))}
@@ -492,7 +492,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
               <h2>Activity</h2>
               <ProfileActivityFeed 
                 username={profile.username}
-                profilePictureUrl={profilePictureUrl} 
+                profile_pictureUrl={profile_pictureUrl} 
 
                 />
             </div>

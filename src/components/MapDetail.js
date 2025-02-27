@@ -17,8 +17,7 @@ import {
   unsaveMap,
   fetchComments,
   postComment,
-  likeComment,
-  dislikeComment,
+  setCommentReaction,
   fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
@@ -37,11 +36,11 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
   const [mapData, setMapData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [saveCount, setSaveCount] = useState(0);
+  const [save_count, setSaveCount] = useState(0);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isOwner, setIsOwner] = useState(false);
-  const [isPublic, setIsPublic] = useState(true);
+  const [is_public, setIsPublic] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -49,7 +48,10 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
-  const [downloadCount, setDownloadCount] = useState(0);
+  const [download_count, setDownloadCount] = useState(0);
+
+  const [isPostingComment, setIsPostingComment] = useState(false);
+
 
   const { authToken, profile } = useContext(UserContext);
 
@@ -78,9 +80,9 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
   useEffect(() => {
     if (!mapData) return;
-    if (mapData.selectedMap === 'usa') {
+    if (mapData.selected_map === 'usa') {
       setViewBox('-90 -10 1238 610');   // after editing the raw US SVG
-    } else if (mapData.selectedMap === 'europe') {
+    } else if (mapData.selected_map === 'europe') {
       setViewBox('-80 0 760 510');    // after editing the raw Europe SVG
     } else {
       setViewBox('0 0 2754 1398');  // world
@@ -88,16 +90,31 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   }, [mapData]);
 
   
+  useEffect(() => {
+    const getComments = async () => {
+      try {
+        console.log('Fetching comments for map ID:', id);
+        const res = await fetchComments(id);
+        console.log('Comments response from server:', res.data);
+        console.log("Fetched comments:", res.data);
+
+        setComments(res.data);
+      } catch (err) {
+        console.error('Failed to fetch comments:', err);
+      }
+    };
+    getComments();
+  }, [id]);
   
   useEffect(() => {
     const getMapData = async () => {
       try {
         const res = await fetchMapById(id);
         setMapData(res.data);
-        setSaveCount(res.data.saveCount || 0);
+        setSaveCount(res.data.save_count || 0);
         setIsSaved(res.data.isSavedByCurrentUser || false);
         setIsOwner(res.data.isOwner || false);
-        setIsPublic(res.data.isPublic);
+        setIsPublic(res.data.is_public);
       } catch (err) {
         console.error(err);
       } finally {
@@ -108,9 +125,9 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   }, [id]);
 
   useEffect(() => {
-    // Once mapData is loaded, set the local state for downloadCount
+    // Once mapData is loaded, set the local state for download_count
     if (mapData) {
-      setDownloadCount(mapData.downloadCount || 0);
+      setDownloadCount(mapData.download_count || 0);
     }
   }, [mapData]);
 
@@ -136,25 +153,26 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   }, []);
 
   const handleSave = async () => {
-    if (!isPublic) {
-      return;
-    } else if (!isUserLoggedIn) {
+    if (!is_public) return;
+    if (!isUserLoggedIn) {
       navigate('/login');
       return;
     }
-
+  
     try {
+      let response;
       if (isSaved) {
-        await unsaveMap(id);
-        setIsSaved(false);
-        setSaveCount(saveCount - 1);
+        response = await unsaveMap(id);
       } else {
-        await saveMap(id);
-        setIsSaved(true);
-        setSaveCount(saveCount + 1);
+        response = await saveMap(id);
       }
+      
+      // Update state only after successful API call
+      setIsSaved(!isSaved);
+      setSaveCount(prev => isSaved ? prev - 1 : prev + 1);
     } catch (err) {
-      console.error(err);
+      console.error('Save/Unsave failed:', err);
+      // Optionally show error message to user
     }
   };
 
@@ -170,36 +188,52 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-
+  
     if (!isUserLoggedIn) {
       navigate('/login');
       return;
     }
-
+  
+    // 1) Turn on the loading state
+    setIsPostingComment(true);
+  
     try {
       const res = await postComment(id, { content: newComment });
+      console.log('DEBUG postComment response:', res);
+  
       setComments([res.data, ...comments]);
       setNewComment('');
     } catch (err) {
       console.error(err);
+    } finally {
+      // 2) Always turn off the loading state when done
+      setIsPostingComment(false);
     }
   };
+  
+  
 
-  const handleReplySubmit = async (e, ParentCommentId) => {
+  const handleReplySubmit = async (e, parent_comment_id) => {
     e.preventDefault();
     const replyContent = replyingTo.content;
     if (!replyContent.trim()) return;
-
+  
     if (!isUserLoggedIn) {
       navigate('/login');
       return;
     }
-
+  
     try {
-      const res = await postComment(id, { content: replyContent, ParentCommentId });
+      // 1) Make the POST call
+      const res = await postComment(id, { content: replyContent, parent_comment_id });
+      
+      // 2) Log the response to see exactly what the server returned
+      console.log('Reply post response:', res.data);
+  
+      // 3) Update local comments state
       setComments((prevComments) =>
         prevComments.map((comment) => {
-          if (comment.id === ParentCommentId) {
+          if (comment.id === parent_comment_id) {
             return {
               ...comment,
               Replies: [...(comment.Replies || []), res.data],
@@ -208,65 +242,104 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
           return comment;
         })
       );
+  
       setReplyingTo(null);
     } catch (err) {
       console.error(err);
     }
   };
+  
 
-  // Like a comment or reply
-  const handleLike = async (commentId) => {
-    if (!isUserLoggedIn) {
-      navigate('/login');
-      return;
+// Update handleLike and handleDislike functions
+
+function handleLike(comment_id, currentReaction) {
+  if (!isUserLoggedIn) {
+    navigate('/login');
+    return;
+  }
+
+  // If user currently has 'like', next click => remove reaction (null)
+  const desiredReaction = currentReaction === 'like' ? null : 'like';
+  
+  setCommentReaction(comment_id, desiredReaction)
+    .then((res) => {
+      // res.data => { like_count, dislike_count, userReaction }
+      if (res.data) {
+        setComments((prevComments) =>
+          updateCommentReaction(prevComments, comment_id, {
+            like_count: res.data.like_count,
+            dislike_count: res.data.dislike_count,
+            userReaction: res.data.userReaction,
+          })
+        );
+      }
+    })
+    .catch((err) => console.error('handleLike error:', err));
+}
+
+function handleDislike(comment_id, currentReaction) {
+  if (!isUserLoggedIn) {
+    navigate('/login');
+    return;
+  }
+
+  // If user currently 'dislike', clicking "Dislike" => remove reaction
+  const desiredReaction = currentReaction === 'dislike' ? null : 'dislike';
+
+  setCommentReaction(comment_id, desiredReaction)
+    .then((res) => {
+      if (res.data) {
+        setComments((prevComments) =>
+          updateCommentReaction(prevComments, comment_id, {
+            like_count: res.data.like_count,
+            dislike_count: res.data.dislike_count,
+            userReaction: res.data.userReaction,
+          })
+        );
+      }
+    })
+    .catch((err) => console.error('handleDislike error:', err));
+}
+
+
+
+// Update the helper function
+function updateCommentReaction(prevComments, comment_id, updatedData) {
+  return prevComments.map((comment) => {
+    // Check top-level comment
+    if (comment.id === comment_id) {
+      return {
+        ...comment,
+        like_count: updatedData.like_count,
+        dislike_count: updatedData.dislike_count,
+        userReaction: updatedData.userReaction
+      };
     }
-    try {
-      const res = await likeComment(commentId);
-      // Merge the updated reaction data into that comment or reply
-      setComments((prev) => updateCommentReaction(prev, commentId, res.data));
-    } catch (err) {
-      console.error(err);
+    
+    // Check replies
+    if (comment.Replies?.length) {
+      return {
+        ...comment,
+        Replies: comment.Replies.map(reply => 
+          reply.id === comment_id ? {
+            ...reply,
+            like_count: updatedData.like_count,
+            dislike_count: updatedData.dislike_count,
+            userReaction: updatedData.userReaction
+          } : reply
+        )
+      };
     }
-  };
-
-  // Dislike a comment or reply
-  const handleDislike = async (commentId) => {
-    if (!isUserLoggedIn) {
-      navigate('/login');
-      return;
-    }
-    try {
-      const res = await dislikeComment(commentId);
-      // Merge the updated reaction data
-      setComments((prev) => updateCommentReaction(prev, commentId, res.data));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    
+    return comment;
+  });
+}
 
 
-    // Helper to update a comment or reply in state with new reaction data
-    function updateCommentReaction(prevComments, commentId, newData) {
-      return prevComments.map((comment) => {
-        if (comment.id === commentId) {
-          return { ...comment, ...newData };
-        }
-        // Also check if the comment has replies
-        if (comment.Replies && comment.Replies.length > 0) {
-          const updatedReplies = comment.Replies.map((reply) =>
-            reply.id === commentId ? { ...reply, ...newData } : reply
-          );
-          return { ...comment, Replies: updatedReplies };
-        }
-        return comment;
-      });
-    }
-
-
-  const toggleReplies = (commentId) => {
+  const toggleReplies = (comment_id) => {
     setExpandedReplies((prevState) => ({
       ...prevState,
-      [commentId]: !prevState[commentId],
+      [comment_id]: !prevState[comment_id],
     }));
   };
 
@@ -275,35 +348,35 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     setReplyingTo(null);
   };
 
-  const handleDeleteCommentWithConfirm = (commentId) => {
+  const handleDeleteCommentWithConfirm = (comment_id) => {
     // Show a confirmation dialog
     if (window.confirm("Are you sure you want to delete this comment?")) {
-      handleDeleteComment(commentId);
+      handleDeleteComment(comment_id);
     }
   };
   
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (comment_id) => {
     try {
-      await deleteComment(commentId);    // call the API
+      await deleteComment(comment_id);    // call the API
       // Now remove the comment or reply in local state
-      setComments((prevComments) => removeCommentOrReply(prevComments, commentId));
+      setComments((prevComments) => removeCommentOrReply(prevComments, comment_id));
     } catch (err) {
       console.error('Error deleting comment:', err);
     }
   };
   
-  function removeCommentOrReply(comments, commentIdToRemove) {
+  function removeCommentOrReply(comments, comment_idToRemove) {
     // This function returns a new array of comments 
     // with the specified comment/reply removed.
     return comments
-      .filter((comment) => comment.id !== commentIdToRemove) // remove top-level if matches
+      .filter((comment) => comment.id !== comment_idToRemove) // remove top-level if matches
       .map((comment) => {
         // also remove from any replies
         if (comment.Replies && comment.Replies.length > 0) {
           return {
             ...comment,
-            Replies: comment.Replies.filter((r) => r.id !== commentIdToRemove),
+            Replies: comment.Replies.filter((r) => r.id !== comment_idToRemove),
           };
         }
         return comment;
@@ -359,9 +432,9 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      navigate(`/map/${notification.MapId}`);
+      navigate(`/map/${notification.map_id}`);
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
@@ -370,7 +443,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
@@ -390,7 +463,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
             notifications={notifications.slice(0, 6)}
             onNotificationClick={handleNotificationClick}
             onMarkAllAsRead={handleMarkAllAsRead}
-            profilePicture={profile?.profilePicture}
+            profile_picture={profile?.profile_picture}
           />
           <LoadingSpinner />
         </div>
@@ -420,7 +493,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
     return num.toFixed(2);
   }
 
-  const timeAgo = formatDistanceToNow(new Date(mapData.createdAt), { addSuffix: true });
+  const timeAgo = formatDistanceToNow(new Date(mapData.created_at), { addSuffix: true });
 
   const countryCodeToName = countries.reduce((acc, country) => {
     acc[country.code] = country.name;
@@ -465,9 +538,9 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
       const svgClone = originalSvg.cloneNode(true);
 
       // (Optional) Override viewBox if you want a custom bounding box
-      if (mapData?.selectedMap === 'europe') {
+      if (mapData?.selected_map === 'europe') {
         svgClone.setAttribute('viewBox', '-100 -6 780 530');
-      } else if (mapData?.selectedMap === 'usa') {
+      } else if (mapData?.selected_map === 'usa') {
         svgClone.setAttribute('viewBox', '-90 -10 1238 667');
       } else {
         svgClone.setAttribute('viewBox', '0 0 2754 1398');
@@ -529,9 +602,9 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
         URL.revokeObjectURL(url);
 
         // Prepare watermark text
-        const firstName = mapData?.User?.firstName || '';
-        const lastName = mapData?.User?.lastName || '';
-        const creatorText = `Created by ${firstName} ${lastName} using mapincolor.com`;
+        const first_name = mapData?.user?.first_name || '';
+        const last_name = mapData?.user?.last_name || '';
+        const creatorText = `Created by ${first_name} ${last_name} using mapincolor.com`;
 
         // Add a semi-transparent logo
         const logoImg = new Image();
@@ -573,11 +646,11 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
           // Convert canvas to Blob and trigger download
           canvas.toBlob(async (blob) => {
-            // Immediately increment server-side downloadCount
+            // Immediately increment server-side download_count
             try {
               const res = await incrementMapDownloadCount(mapData.id);
-              if (res.data.downloadCount != null) {
-                setDownloadCount(res.data.downloadCount);
+              if (res.data.download_count != null) {
+                setDownloadCount(res.data.download_count);
               }
             } catch (err) {
               console.error('Error incrementing download:', err);
@@ -599,8 +672,8 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
           // Still increment downloads on server
           try {
             const res = await incrementMapDownloadCount(mapData.id);
-            if (res.data.downloadCount != null) {
-              setDownloadCount(res.data.downloadCount);
+            if (res.data.download_count != null) {
+              setDownloadCount(res.data.download_count);
             }
           } catch (err) {
             console.error('Error incrementing download:', err);
@@ -661,12 +734,14 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 
       <div className={`${styles.mapDetailContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header
-          title={`${mapData.User.username}'s map`}
+          title={`${mapData?.user?.username}'s map`}
           notifications={notifications.slice(0, 6)}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={handleMarkAllAsRead}
-          profilePicture={profile?.profilePicture}
+          profile_picture={profile?.profile_picture}
         />
+
+
 
         <div
           className={styles.mapDisplay}
@@ -676,13 +751,13 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
           onMouseLeave={handleMouseLeave}
           style={{ cursor: 'grab', position: 'relative' }}
         >
-          {mapData.selectedMap === 'world' && (
+          {mapData.selected_map === 'world' && (
             <WorldMapSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
           )}
-          {mapData.selectedMap === 'usa' && (
+          {mapData.selected_map === 'usa' && (
             <UsSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
           )}
-          {mapData.selectedMap === 'europe' && (
+          {mapData.selected_map === 'europe' && (
             <EuropeSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
           )}
 
@@ -726,7 +801,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   
     {isOwner && (
       <span className={styles.visibilityTag}>
-        {isPublic ? 'Public' : 'Private'}
+        {is_public ? 'Public' : 'Private'}
       </span>
     )}
  
@@ -738,18 +813,18 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
         </button>
       )}
 
-  {isPublic && (
+  {is_public && (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
      
 
       {/* Star (save) Button */}
       <button className={styles.saveButton} onClick={handleSave}>
-        {isSaved ? '★' : '☆'} {saveCount}
+        {isSaved ? '★' : '☆'} {save_count}
       </button>
 
       {/* Download Button */}
       <button className={styles.saveButton} onClick={handleDownload}>
-        <BiDownload /> {downloadCount}
+        <BiDownload /> {download_count}
       </button>
 
     
@@ -757,28 +832,28 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   )}
 </div>
 
-              <p className={styles.createdAt}>
+              <p className={styles.created_at}>
                 Created {timeAgo} by{' '}
-                <Link to={`/profile/${mapData.User.username}`}>
-                  {mapData.User ? mapData.User.username : 'Unknown'}
+                <Link to={`/profile/${mapData?.user?.username || 'unknown'}`}>
+                  {mapData.user ? mapData.user.username : 'Unknown'}
                 </Link>
               </p>
               <div className={styles.creatorInfo}>
                 <Link
-                  to={`/profile/${mapData.User.username}`}
+                  to={`/profile/${mapData?.user?.username || 'unknown'}`}
                   className={styles.creatorProfileLink}
                 >
                   <img
                     src={
-                      mapData.User && mapData.User.profilePicture
-                        ? `http://localhost:5000${mapData.User.profilePicture}`
+                      mapData.user && mapData.user.profile_picture
+                        ? `http://localhost:5000${mapData.user.profile_picture}`
                         : '/default-profile-pic.jpg'
                     }
-                    alt={`${mapData.User.firstName || mapData.User.username}'s profile`}
+                    alt={`${mapData.user.first_name || mapData?.user?.username} || 'unknown's profile`}
                     className={styles.creatorProfilePicture}
                   />
                   <span className={styles.creatorName}>
-                    {mapData.User.firstName || ''} {mapData.User.lastName || ''}
+                    {mapData.user.first_name || ''} {mapData.user.last_name || ''}
                   </span>
                 </Link>
               </div>
@@ -834,21 +909,29 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
 {/* ---- Discussion Section ---- */}
 <div className={styles.discussionSection} ref={discussionRef}>
   <h2>Discussion</h2>
-  {isPublic ? (
+  {is_public ? (
     <>
       {/* Post a new top-level comment */}
       <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment..."
-          required
-          className={styles.commentTextarea}
-        />
-        <button type="submit" className={styles.commentButton}>
-          Post Comment
-        </button>
-      </form>
+  <textarea
+    value={newComment}
+    onChange={(e) => setNewComment(e.target.value)}
+    placeholder="Add a comment..."
+    required
+    className={styles.commentTextarea}
+  />
+
+  <button
+    type="submit"
+    className={styles.commentButton}
+    disabled={isPostingComment}  // <-- The magic
+  >
+    Post Comment
+  </button>
+</form>
+
+
+
 
       {/* Render the server-sorted comments array in the order it’s given */}
       {comments.length > 0 ? (
@@ -866,11 +949,11 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
               <li key={comment.id} className={styles.commentItem}>
                 <div className={styles.commentHeader}>
                   {/* Profile picture */}
-                  {comment.User && comment.User.profilePicture ? (
-                    <Link to={`/profile/${comment.User.username}`}>
+                  {comment.user && comment.user.profile_picture ? (
+                    <Link to={`/profile/${comment?.user?.username || 'unknown'}`}>
                       <img
-                        src={`http://localhost:5000${comment.User.profilePicture}`}
-                        alt={`${comment.User.username}'s profile`}
+                        src={`http://localhost:5000${comment.user.profile_picture}`}
+                        alt={`${comment?.user?.username}'s profile` || 'unknown'}
                         className={styles.commentProfilePicture}
                       />
                     </Link>
@@ -882,15 +965,15 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                     {/* Author + Timestamp */}
                     <div className={styles.commentInfo}>
                       <Link
-                        to={`/profile/${comment.User.username}`}
+                        to={`/profile/${comment?.user?.username || 'unknown'}`}
                         className={styles.commentAuthorLink}
                       >
                         <span className={styles.commentAuthor}>
-                          {comment.User.username}
+                          {comment.user.username || 'Unknown'} 
                         </span>
                       </Link>
                       <span className={styles.commentTime}>
-                        {formatDistanceToNow(new Date(comment.createdAt), {
+                        {formatDistanceToNow(new Date(comment.created_at), {
                           addSuffix: true,
                         })}
                       </span>
@@ -905,7 +988,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                         className={`${styles.reactionButton} ${
                           comment.userReaction === 'like' ? styles.active : ''
                         }`}
-                        onClick={() => handleLike(comment.id)}
+                        onClick={() => handleLike(comment.id, comment.userReaction)}
                       >
                         {/* Like icon */}
                         <svg
@@ -915,14 +998,14 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                         >
                           <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
                         </svg>
-                        <span>{comment.likeCount}</span>
+                        <span>{comment.like_count}</span>
                       </button>
 
                       <button
                         className={`${styles.reactionButton} ${
                           comment.userReaction === 'dislike' ? styles.active : ''
                         }`}
-                        onClick={() => handleDislike(comment.id)}
+                        onClick={() => handleDislike(comment.id, comment.userReaction)}
                       >
                         {/* Dislike icon */}
                         <svg
@@ -932,21 +1015,21 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                         >
                           <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
                         </svg>
-                        <span>{comment.dislikeCount}</span>
+                        <span>{comment.dislike_count}</span>
                       </button>
 
                       {/* Reply / Delete Buttons */}
                       <button
                         className={styles.replyButton}
                         onClick={() =>
-                          setReplyingTo({ commentId: comment.id, content: '' })
+                          setReplyingTo({ comment_id: comment.id, content: '' })
                         }
                       >
                         Reply
                       </button>
                       {(isOwner ||
-                        (comment.User &&
-                          comment.User.username === profile?.username)) && (
+                        (comment.user &&
+                          comment.user.username === profile?.username)) && (
                         <button
                           className={styles.deleteButton}
                           onClick={() => handleDeleteCommentWithConfirm(comment.id)}
@@ -957,7 +1040,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                     </div>
 
                     {/* If replying... */}
-                    {replyingTo && replyingTo.commentId === comment.id && (
+                    {replyingTo && replyingTo.comment_id === comment.id && (
                       <form
                         onSubmit={(e) => handleReplySubmit(e, comment.id)}
                         className={styles.replyForm}
@@ -995,12 +1078,88 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
                     {/* Replies */}
                     {repliesArray.length > 0 && (
                       <ul className={styles.repliesList}>
-                        {repliesToShow.map((reply) => (
-                          <li key={reply.id} className={styles.replyItem}>
-                            {/* ...similar logic, no re-sort needed */}
-                          </li>
-                        ))}
+                      {repliesToShow.map((reply) => (
+  <li key={reply.id} className={styles.replyItem}>
+    <div className={styles.commentHeader}>
+      {/* Profile picture */}
+      {reply.user?.profile_picture ? (
+        <Link to={`/profile/${reply.user.username}`}>
+          <img
+            src={`http://localhost:5000${reply.user.profile_picture}`}
+            alt={`${reply.user.username}'s profile`}
+            className={styles.commentProfilePicture}
+          />
+        </Link>
+      ) : (
+        <div className={styles.commentPlaceholder}></div>
+      )}
 
+      <div className={styles.commentContentWrapper}>
+        {/* Author + Timestamp */}
+        <div className={styles.commentInfo}>
+          <Link
+            to={`/profile/${reply.user?.username || 'unknown'}`}
+            className={styles.commentAuthorLink}
+          >
+            <span className={styles.commentAuthor}>
+              {reply.user?.username || 'Unknown'}
+            </span>
+          </Link>
+          <span className={styles.commentTime}>
+            {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+          </span>
+        </div>
+
+        {/* Reply content */}
+        <p className={styles.commentContent}>{reply.content}</p>
+
+        {/* Like/Dislike actions */}
+        <div className={styles.commentActions}>
+          <button
+            className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
+              reply.userReaction === 'like' ? styles.active : ''
+            }`}
+            onClick={() => handleLike(reply.id)}
+          >
+            <svg
+              className={styles.iconSmall}
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+            </svg>
+            <span>{reply.like_count}</span>
+          </button>
+
+          <button
+            className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
+              reply.userReaction === 'dislike' ? styles.active : ''
+            }`}
+            onClick={() => handleDislike(reply.id)}
+          >
+            <svg
+              className={styles.iconSmall}
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+            </svg>
+            <span>{reply.dislike_count}</span>
+          </button>
+
+          {(profile?.username === reply.user?.username) && (
+            <button
+              className={`${styles.deleteButton} ${styles.deleteButtonSmall}`}
+              onClick={() => handleDeleteCommentWithConfirm(reply.id)}
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  </li>
+))}
                         {/* “View more replies” / “Show less replies” */}
                         {totalReplies > 3 && (
                           <button
@@ -1082,16 +1241,16 @@ function mapDataProps() {
   return {
     groups: mapData.groups,
     mapTitleValue: mapData.title,
-    oceanColor: mapData.oceanColor,
-    unassignedColor: mapData.unassignedColor,
-    showTopHighValues: mapData.showTopHighValues,
-    showTopLowValues: mapData.showTopLowValues,
+    ocean_color: mapData.ocean_color,
+    unassigned_color: mapData.unassigned_color,
+    show_top_high_values: mapData.show_top_high_values,
+    show_top_low_values: mapData.show_top_low_values,
     data: mapData.data,
-    selectedMap: mapData.selectedMap,
-    fontColor: mapData.fontColor,
-    topHighValues: mapData.topHighValues,
-    topLowValues: mapData.topLowValues,
-    isTitleHidden: mapData.isTitleHidden
+    selected_map: mapData.selected_map,
+    font_color: mapData.font_color,
+    show_top_high_values: mapData.show_top_high_values,
+    top_low_values: mapData.top_low_values,
+    is_title_hidden: mapData.is_title_hidden
   };
 }
 }

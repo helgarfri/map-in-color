@@ -33,10 +33,10 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
     setShowMapModal(true);
   };
 
-  const handleMapSelection = (selectedMap) => {
-    if (selectedMap) {
+  const handleMapSelection = (selected_map) => {
+    if (selected_map) {
       setShowMapModal(false);
-      navigate('/create', { state: { selectedMap } });
+      navigate('/create', { state: { selected_map } });
     } else {
       alert('Please select a map type.');
     }

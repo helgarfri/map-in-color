@@ -18,16 +18,16 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     location: '',
     description: '',
     gender: '',
-    dateOfBirth: '',
+    date_of_birth: '',
   });
 
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [profile_picture, setProfilePicture] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -38,10 +38,10 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   const [showCropModal, setShowCropModal] = useState(false);
 
   const [editFields, setEditFields] = useState({
-    firstName: false,
-    lastName: false,
+    first_name: false,
+    last_name: false,
     description: false,
-    dateOfBirth: false,
+    date_of_birth: false,
   });
 
   const navigate = useNavigate();
@@ -55,16 +55,16 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
         setFormData({
           username: profileData.username,
           email: profileData.email,
-          firstName: profileData.firstName || '',
-          lastName: profileData.lastName || '',
+          first_name: profileData.first_name || '',
+          last_name: profileData.last_name || '',
           location: profileData.location || '',
           description: profileData.description || '',
           gender: profileData.gender || '',
-          dateOfBirth: profileData.dateOfBirth || '',
+          date_of_birth: profileData.date_of_birth || '',
         });
         // Show existing or default pic
-        const pictureUrl = profileData.profilePicture
-          ? `http://localhost:5000${profileData.profilePicture}`
+        const pictureUrl = profileData.profile_picture
+          ? `http://localhost:5000${profileData.profile_picture}`
           : '/default-profile-pic.jpg';
         setLocalProfilePictureUrl(pictureUrl);
       } catch (error) {
@@ -176,9 +176,9 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   const handleCropCancel = () => {
     setProfilePicture(null);
     // revert to existing DB pic if available, else default
-    if (profile && profile.profilePicture) {
-      const existingUrl = profile.profilePicture.startsWith('/uploads')
-        ? `http://localhost:5000${profile.profilePicture}`
+    if (profile && profile.profile_picture) {
+      const existingUrl = profile.profile_picture.startsWith('/uploads')
+        ? `http://localhost:5000${profile.profile_picture}`
         : '/default-profile-pic.jpg';
       setLocalProfilePictureUrl(existingUrl);
     } else {
@@ -202,18 +202,18 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('firstName', formData.firstName);
-      formDataToSend.append('lastName', formData.lastName);
+      formDataToSend.append('first_name', formData.first_name);
+      formDataToSend.append('last_name', formData.last_name);
       formDataToSend.append('location', formData.location);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('gender', formData.gender);
 
-      if (!profile.dateOfBirth && formData.dateOfBirth) {
-        formDataToSend.append('dateOfBirth', formData.dateOfBirth);
+      if (!profile.date_of_birth && formData.date_of_birth) {
+        formDataToSend.append('date_of_birth', formData.date_of_birth);
       }
       // If we have a new cropped profile picture, append it
-      if (profilePicture) {
-        formDataToSend.append('profilePicture', profilePicture);
+      if (profile_picture) {
+        formDataToSend.append('profile_picture', profile_picture);
       }
 
       const res = await updateUserProfile(formDataToSend);
@@ -224,27 +224,27 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
       setFormData({
         username: updatedProfile.username,
         email: updatedProfile.email,
-        firstName: updatedProfile.firstName || '',
-        lastName: updatedProfile.lastName || '',
+        first_name: updatedProfile.first_name || '',
+        last_name: updatedProfile.last_name || '',
         location: updatedProfile.location || '',
         description: updatedProfile.description || '',
         gender: updatedProfile.gender || '',
-        dateOfBirth: updatedProfile.dateOfBirth || '',
+        date_of_birth: updatedProfile.date_of_birth || '',
       });
 
       // Update displayed picture
-      const pictureUrl = updatedProfile.profilePicture
-        ? `http://localhost:5000${updatedProfile.profilePicture}`
+      const pictureUrl = updatedProfile.profile_picture
+        ? `http://localhost:5000${updatedProfile.profile_picture}`
         : '/default-profile-pic.jpg';
       setLocalProfilePictureUrl(pictureUrl);
 
       setSuccess('Profile updated successfully!');
       // Reset edit flags
       setEditFields({
-        firstName: false,
-        lastName: false,
+        first_name: false,
+        last_name: false,
         description: false,
-        dateOfBirth: false,
+        date_of_birth: false,
       });
     } catch (err) {
       console.error(err);
@@ -276,8 +276,8 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   }
 
   // Format date of birth to dd/mm/yyyy
-  const formattedDOB = formData.dateOfBirth
-    ? format(new Date(formData.dateOfBirth), 'dd/MM/yyyy')
+  const formattedDOB = formData.date_of_birth
+    ? format(new Date(formData.date_of_birth), 'dd/MM/yyyy')
     : 'Not specified';
 
   return (
@@ -388,16 +388,16 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
                 <div className={styles.formRow}>
                   <label className={styles.formLabel}>Date of Birth:</label>
                   <div className={styles.formField}>
-                    {profile.dateOfBirth ? (
+                    {profile.date_of_birth ? (
                       <div className={styles.editableValue}>
                         <span className={styles.staticValue}>{formattedDOB}</span>
                         <div className={styles.emptyIconSpace}></div>
                       </div>
-                    ) : editFields.dateOfBirth ? (
+                    ) : editFields.date_of_birth ? (
                       <input
                         type="date"
-                        name="dateOfBirth"
-                        value={formData.dateOfBirth}
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
                         onChange={handleChange}
                       />
                     ) : (
@@ -405,7 +405,7 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
                         <span>{formattedDOB}</span>
                         <FaPencilAlt
                           className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, dateOfBirth: true })}
+                          onClick={() => setEditFields({ ...editFields, date_of_birth: true })}
                         />
                       </div>
                     )}
@@ -448,19 +448,19 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
                 <div className={styles.formRow}>
                   <label className={styles.formLabel}>First Name:</label>
                   <div className={styles.formField}>
-                    {editFields.firstName ? (
+                    {editFields.first_name ? (
                       <input
                         type="text"
-                        name="firstName"
-                        value={formData.firstName}
+                        name="first_name"
+                        value={formData.first_name}
                         onChange={handleChange}
                       />
                     ) : (
                       <div className={styles.editableValue}>
-                        <span>{formData.firstName || 'Not specified'}</span>
+                        <span>{formData.first_name || 'Not specified'}</span>
                         <FaPencilAlt
                           className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, firstName: true })}
+                          onClick={() => setEditFields({ ...editFields, first_name: true })}
                         />
                       </div>
                     )}
@@ -470,19 +470,19 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
                 <div className={styles.formRow}>
                   <label className={styles.formLabel}>Last Name:</label>
                   <div className={styles.formField}>
-                    {editFields.lastName ? (
+                    {editFields.last_name ? (
                       <input
                         type="text"
-                        name="lastName"
-                        value={formData.lastName}
+                        name="last_name"
+                        value={formData.last_name}
                         onChange={handleChange}
                       />
                     ) : (
                       <div className={styles.editableValue}>
-                        <span>{formData.lastName || 'Not specified'}</span>
+                        <span>{formData.last_name || 'Not specified'}</span>
                         <FaPencilAlt
                           className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, lastName: true })}
+                          onClick={() => setEditFields({ ...editFields, last_name: true })}
                         />
                       </div>
                     )}
@@ -492,24 +492,24 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
                 <div className={styles.formRow}>
                   <label className={styles.formLabel}>Profile Picture:</label>
                   <div className={styles.formField}>
-                    <div className={styles.profilePictureContainer}>
+                    <div className={styles.profile_pictureContainer}>
                       {localProfilePictureUrl && (
                         <img
                           src={localProfilePictureUrl}
                           alt="Profile"
-                          className={styles.profilePicturePreview}
+                          className={styles.profile_picturePreview}
                         />
                       )}
-                      <label htmlFor="profilePictureInput" className={styles.profilePictureEditIcon}>
+                      <label htmlFor="profile_pictureInput" className={styles.profile_pictureEditIcon}>
                         <FaPencilAlt />
                       </label>
                       <input
                         type="file"
-                        id="profilePictureInput"
-                        name="profilePicture"
+                        id="profile_pictureInput"
+                        name="profile_picture"
                         accept="image/*"
                         onChange={handleProfilePictureChange}
-                        className={styles.profilePictureInput}
+                        className={styles.profile_pictureInput}
                       />
                     </div>
                   </div>

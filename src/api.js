@@ -65,13 +65,13 @@ export const fetchUserProfileByUsername = (username) => API.get(`/profile/${user
 
 
 // Fetch maps by user ID with pagination
-export const fetchMapsByUserId = (userId, offset = 0, limit = 10) =>
-  API.get(`/maps/user/${userId}?offset=${offset}&limit=${limit}`);
+export const fetchMapsByuser_id = (user_id, offset = 0, limit = 10) =>
+  API.get(`/maps/user/${user_id}?offset=${offset}&limit=${limit}`);
 
 
 // **Add this function** to fetch starred maps by user ID
-export const fetchStarredMapsByUserId = (userId, offset = 0, limit = 10) =>
-  API.get(`/maps/user/${userId}/starred?offset=${offset}&limit=${limit}`);
+export const fetchStarredMapsByuser_id = (user_id, offset = 0, limit = 10) =>
+  API.get(`/maps/user/${user_id}/starred?offset=${offset}&limit=${limit}`);
 
 // Fetch saved maps for the authenticated user
 export const fetchSavedMaps = () => API.get('/maps/saved');
@@ -85,14 +85,12 @@ export const markNotificationAsRead = (id) => API.put(`/notifications/${id}/read
 // Mark all notifications as read
 export const markAllNotificationsAsRead = () => API.put('/notifications/read-all');
 
-// Like a comment
-export const likeComment = (commentId) => API.post(`/comments/${commentId}/like`);
-
-// Dislike a comment
-export const dislikeComment = (commentId) => API.post(`/comments/${commentId}/dislike`);
-
+export const setCommentReaction = (comment_id, reaction) => {
+  // reaction is "like", "dislike", or null
+  return API.post(`/comments/${comment_id}/reaction`, { reaction });
+};
 // Delete a comment
-export const deleteComment = (commentId) => API.delete(`/comments/${commentId}`);
+export const deleteComment = (comment_id) => API.delete(`/comments/${comment_id}`);
 
 // Delete a notification
 export const deleteNotification = (id) => API.delete(`/notifications/${id}`);
@@ -103,12 +101,12 @@ export const fetchUserActivity = (username, offset = 0, limit = 10) =>
 
 
 // Fetch user map stats (total maps and total stars)
-export const fetchUserMapStats = (userId) =>
-  API.get(`/maps/user/${userId}/stats`);
+export const fetchUserMapStats = (user_id) =>
+  API.get(`/maps/user/${user_id}/stats`);
 
 // Fetch the most starred map by user ID
-export const fetchMostStarredMapByUserId = (userId) =>
-  API.get(`/maps/user/${userId}/most-starred`);
+export const fetchMostStarredMapByuser_id = (user_id) =>
+  API.get(`/maps/user/${user_id}/most-starred`);
 
 export const incrementMapDownloadCount = (mapId) => API.post(`/maps/${mapId}/download`);
 

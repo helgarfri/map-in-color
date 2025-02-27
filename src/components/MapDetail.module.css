@@ -134,7 +134,7 @@
   gap: 3px;
 }
 
-.createdAt {
+.created_at {
   margin-top: 5px;
   margin-bottom: 10px;
 }
@@ -199,6 +199,30 @@
 .commentHeader {
   align-items: flex-start;
 }
+
+.commentButton {
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  background-color: #55957b; /* or your "blue" color */
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 40px;
+  align-self: center;
+}
+
+.commentButton:hover {
+  background-color: #6999b1; /* hover color */
+}
+
+.commentButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none; /* Or remove if you want filter effects */
+}
+
 
 /* Visibility Tag */
 .visibilityTag {
@@ -388,6 +412,23 @@
   color: #fff;
 }
 
+/* Smaller reaction buttons */
+.reactionButtonSmall {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.iconSmall {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+/* Smaller delete button */
+.deleteButtonSmall {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
 .icon {
   width: 16px;
   height: 16px;

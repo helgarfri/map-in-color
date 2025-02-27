@@ -32,7 +32,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
       try {
         const res = await fetchSavedMaps(); // Fetch starred maps
         const sortedMaps = res.data.sort(
-          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+          (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
         setMaps(sortedMaps);
       } catch (err) {
@@ -62,9 +62,9 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      navigate(`/map/${notification.MapId}`);
+      navigate(`/map/${notification.map_id}`);
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
@@ -74,7 +74,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
@@ -128,69 +128,69 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
                     <td className={styles.thumbnailCell}>
                       <div className={styles.thumbnail}>
                         {/* Render SVG component based on map type */}
-                        {map.selectedMap === 'world' && (
+                        {map.selected_map === 'world' && (
                           <WorldMapSVG
                             groups={map.groups}
                             mapTitleValue={mapTitle}
-                            oceanColor={map.oceanColor}
-                            unassignedColor={map.unassignedColor}
-                            showTopHighValues={false}
-                            showTopLowValues={false}
+                            ocean_color={map.ocean_color}
+                            unassigned_color={map.unassigned_color}
+                            show_top_high_values={false}
+                            show_top_low_values={false}
                             data={map.data}
-                            selectedMap={map.selectedMap}
-                            fontColor={map.fontColor}
+                            selected_map={map.selected_map}
+                            font_color={map.font_color}
                             topHighValues={[]}
-                            topLowValues={[]}
+                            top_low_values={[]}
                             isThumbnail={true}
-                            isTitleHidden={map.isTitleHidden}
+                            is_title_hidden={map.is_title_hidden}
                           />
                         )}
-                        {map.selectedMap === 'usa' && (
+                        {map.selected_map === 'usa' && (
                           <UsSVG
                             groups={map.groups}
                             mapTitleValue={mapTitle}
-                            oceanColor={map.oceanColor}
-                            unassignedColor={map.unassignedColor}
-                            showTopHighValues={false}
-                            showTopLowValues={false}
+                            ocean_color={map.ocean_color}
+                            unassigned_color={map.unassigned_color}
+                            show_top_high_values={false}
+                            show_top_low_values={false}
                             data={map.data}
-                            selectedMap={map.selectedMap}
-                            fontColor={map.fontColor}
+                            selected_map={map.selected_map}
+                            font_color={map.font_color}
                             topHighValues={[]}
-                            topLowValues={[]}
+                            top_low_values={[]}
                             isThumbnail={true}
-                            isTitleHidden={map.isTitleHidden}
+                            is_title_hidden={map.is_title_hidden}
                           />
                         )}
-                        {map.selectedMap === 'europe' && (
+                        {map.selected_map === 'europe' && (
                           <EuropeSVG
                             groups={map.groups}
                             mapTitleValue={mapTitle}
-                            oceanColor={map.oceanColor}
-                            unassignedColor={map.unassignedColor}
-                            showTopHighValues={false}
-                            showTopLowValues={false}
+                            ocean_color={map.ocean_color}
+                            unassigned_color={map.unassigned_color}
+                            show_top_high_values={false}
+                            show_top_low_values={false}
                             data={map.data}
-                            selectedMap={map.selectedMap}
-                            fontColor={map.fontColor}
+                            selected_map={map.selected_map}
+                            font_color={map.font_color}
                             topHighValues={[]}
-                            topLowValues={[]}
+                            top_low_values={[]}
                             isThumbnail={true}
-                            isTitleHidden={map.isTitleHidden}
+                            is_title_hidden={map.is_title_hidden}
                           />
                         )}
                       </div>
                     </td>
                     <td className={styles.titleCell}>{mapTitle}</td>
                     <td className={styles.modifiedCell}>
-                      {formatDistanceToNow(new Date(map.updatedAt), {
+                      {formatDistanceToNow(new Date(map.updated_at), {
                         addSuffix: true,
                       })}
                     </td>
                     <td className={styles.starsCell}>
                       <div className={styles.starCount}>
                         <FaStar className={styles.starIcon} />
-                        {map.saveCount || 0}
+                        {map.save_count || 0}
                       </div>
                     </td>
                     <td className={styles.createdByCell}>{creatorUsername}</td>

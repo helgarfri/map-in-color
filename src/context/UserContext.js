@@ -7,7 +7,7 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(localStorage.getItem('token') || null);
   const [profile, setProfile] = useState(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState('');
+  const [profile_pictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [errorProfile, setErrorProfile] = useState('');
 
@@ -46,7 +46,7 @@ useEffect(() => {
         setAuthToken,
         profile,
         setProfile,
-        profilePictureUrl,
+        profile_pictureUrl,
         setProfilePictureUrl,
         loadingProfile,
         errorProfile,

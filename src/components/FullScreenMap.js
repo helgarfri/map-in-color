@@ -13,9 +13,9 @@ export default function FullScreenMap({ mapData, toggleFullScreen }) {
   useEffect(() => {
     // Set the default viewBox based on the selected map once we have mapData
     if (mapData) {
-      if (mapData.selectedMap === 'usa') {
+      if (mapData.selected_map === 'usa') {
         setViewBox('-90 -10 1238 667'); // Default for US map
-      } else if (mapData.selectedMap === 'europe') {
+      } else if (mapData.selected_map === 'europe') {
         setViewBox('-215 0 1020 556')
       } else {
         // Default remains the world map viewBox
@@ -111,58 +111,58 @@ export default function FullScreenMap({ mapData, toggleFullScreen }) {
       </button>
 
       <div className={styles.mapContainer}>
-        {mapData.selectedMap === 'world' && (
+        {mapData.selected_map === 'world' && (
           <WorldMapSVG
             groups={mapData.groups}
             mapTitleValue={mapData.title}
-            oceanColor={mapData.oceanColor}
-            unassignedColor={mapData.unassignedColor}
-            showTopHighValues={mapData.showTopHighValues}
-            showTopLowValues={mapData.showTopLowValues}
+            ocean_color={mapData.ocean_color}
+            unassigned_color={mapData.unassigned_color}
+            show_top_high_values={mapData.show_top_high_values}
+            show_top_low_values={mapData.show_top_low_values}
             data={mapData.data}
-            selectedMap={mapData.selectedMap}
-            fontColor={mapData.fontColor}
-            topHighValues={mapData.topHighValues}
-            topLowValues={mapData.topLowValues}
+            selected_map={mapData.selected_map}
+            font_color={mapData.font_color}
+            show_top_high_values={mapData.show_top_high_values}
+            top_low_values={mapData.top_low_values}
             isLargeMap={true}
             viewBox={viewBox}
-            isTitleHidden={mapData.isTitleHidden}
+            is_title_hidden={mapData.is_title_hidden}
           />
         )}
-        {mapData.selectedMap === 'usa' && (
+        {mapData.selected_map === 'usa' && (
           <UsSVG
             groups={mapData.groups}
             mapTitleValue={mapData.title}
-            oceanColor={mapData.oceanColor}
-            unassignedColor={mapData.unassignedColor}
-            showTopHighValues={mapData.showTopHighValues}
-            showTopLowValues={mapData.showTopLowValues}
+            ocean_color={mapData.ocean_color}
+            unassigned_color={mapData.unassigned_color}
+            show_top_high_values={mapData.show_top_high_values}
+            show_top_low_values={mapData.show_top_low_values}
             data={mapData.data}
-            selectedMap={mapData.selectedMap}
-            fontColor={mapData.fontColor}
-            topHighValues={mapData.topHighValues}
-            topLowValues={mapData.topLowValues}
+            selected_map={mapData.selected_map}
+            font_color={mapData.font_color}
+            show_top_high_values={mapData.show_top_high_values}
+            top_low_values={mapData.top_low_values}
             isLargeMap={true}
             viewBox={viewBox}
-            isTitleHidden={mapData.isTitleHidden}
+            is_title_hidden={mapData.is_title_hidden}
           />
         )}
-        {mapData.selectedMap === 'europe' && (
+        {mapData.selected_map === 'europe' && (
           <EuropeSVG
             groups={mapData.groups}
             mapTitleValue={mapData.title}
-            oceanColor={mapData.oceanColor}
-            unassignedColor={mapData.unassignedColor}
-            showTopHighValues={mapData.showTopHighValues}
-            showTopLowValues={mapData.showTopLowValues}
+            ocean_color={mapData.ocean_color}
+            unassigned_color={mapData.unassigned_color}
+            show_top_high_values={mapData.show_top_high_values}
+            show_top_low_values={mapData.show_top_low_values}
             data={mapData.data}
-            selectedMap={mapData.selectedMap}
-            fontColor={mapData.fontColor}
-            topHighValues={mapData.topHighValues}
-            topLowValues={mapData.topLowValues}
+            selected_map={mapData.selected_map}
+            font_color={mapData.font_color}
+            show_top_high_values={mapData.show_top_high_values}
+            top_low_values={mapData.top_low_values}
             isLargeMap={true}
             viewBox={viewBox}
-            isTitleHidden={mapData.isTitleHidden}
+            is_title_hidden={mapData.is_title_hidden}
           />
         )}
       </div>

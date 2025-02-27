@@ -15,21 +15,20 @@ import { UserContext } from '../context/UserContext';
 
 export default function Header({ title, userName }) {
   const [showNotifications, setShowNotifications] = useState(false);
-  const notificationRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
-  const navigate = useNavigate();
+  const notificationRef = useRef(null);
 
-  // State for Map Creation Modal
+  // For creating a new map
   const [showMapModal, setShowMapModal] = useState(false);
 
-  // State for Profile Menu
+  // For profile menu
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
 
-  // Get user profile and logout function
+  const navigate = useNavigate();
   const { profile, setAuthToken } = useContext(UserContext);
 
-  // Fetch notifications
+  // Fetch notifications on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,30 +41,33 @@ export default function Header({ title, userName }) {
     fetchData();
   }, []);
 
-  // Handle notification click
+  // Mark single notification as read + navigate
   const handleNotificationClick = async (notification) => {
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      navigate(`/map/${notification.MapId}`);
+      // Safely navigate if there's a map_id
+      if (notification.map_id) {
+        navigate(`/map/${notification.map_id}`);
+      }
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
   };
 
-  // Handle marking all notifications as read
+  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
   };
 
-  // Close notifications and profile menu when clicking outside
+  // For toggling "Notifications" + "Profile Menu" and closing them on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -83,46 +85,42 @@ export default function Header({ title, userName }) {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Calculate unread notifications count
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  // Count unread notifications
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Handle Create Map button click
+  // Create map button
   const handleCreateMap = () => {
     setShowMapModal(true);
   };
 
-  // Handle Map Selection from Modal
-  const handleMapSelection = (selectedMap) => {
-    if (selectedMap) {
+  // If user selects a map in the modal
+  const handleMapSelection = (selected_map) => {
+    if (selected_map) {
       setShowMapModal(false);
-      navigate('/create', { state: { selectedMap } });
+      navigate('/create', { state: { selected_map } });
     } else {
       alert('Please select a map type.');
     }
   };
 
-  // Handle Logout
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem('token');
-    if (setAuthToken) {
-      setAuthToken(null); // Clear authToken in UserContext
-    }
-    navigate('/login'); // Redirect to login page
+    if (setAuthToken) setAuthToken(null);
+    navigate('/login');
   };
 
-  // Construct profile picture URL
-  const profilePictureUrl = profile && profile.profilePicture
-    ? `http://localhost:5000${profile.profilePicture}`
+  // Build profile pic URL if user is logged in
+  const profile_pictureUrl = profile?.profile_picture
+    ? `http://localhost:5000${profile.profile_picture}`
     : '/default-profile-pic.jpg';
 
   return (
     <header className={styles.header}>
-      {/* Left side: Title */}
+      {/* LEFT: Title */}
       <div className={styles.headerLeft}>
         <h1 className={styles.title}>
           {title}
@@ -130,14 +128,14 @@ export default function Header({ title, userName }) {
         </h1>
       </div>
 
-      {/* Right side: Create Map Button, Notification Bell, Profile Picture */}
+      {/* RIGHT: Create Map, Notifications, Profile */}
       <div className={styles.headerRight}>
         {/* Create New Map Button */}
         <button className={styles.createMapButton} onClick={handleCreateMap}>
           <FaPlus className={styles.plusIcon} /> Create New Map
         </button>
 
-        {/* Notification Bell */}
+        {/* Notification Bell + Popout */}
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button
             className={styles.notificationBell}
@@ -162,44 +160,52 @@ export default function Header({ title, userName }) {
                   </button>
                 )}
               </div>
+
               <ul className={styles.notificationList}>
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
                     <li
                       key={notification.id}
                       className={`${styles.notificationItem} ${
-                        notification.isRead ? styles.read : styles.unread
+                        notification.is_read ? styles.read : styles.unread
                       }`}
                       onClick={() => handleNotificationClick(notification)}
                     >
                       <div className={styles.notificationContentWrapper}>
+                        {/* Sender’s profile picture (use optional chaining) */}
                         <img
                           src={
-                            notification.Sender.profilePicture
-                              ? `http://localhost:5000${notification.Sender.profilePicture}`
+                            notification.Sender?.profile_picture
+                              ? `http://localhost:5000${notification.Sender.profile_picture}`
                               : '/default-profile-pic.jpg'
                           }
                           alt={`${
-                            notification.Sender.firstName ||
-                            notification.Sender.username
+                            notification.Sender?.first_name ||
+                            notification.Sender?.username ||
+                            'Unknown'
                           }'s profile`}
-                          className={styles.profilePicture}
+                          className={styles.profile_picture}
                         />
+
                         <div className={styles.notificationText}>
                           <p className={styles.notificationContent}>
+                            {/* Link to Sender’s profile (if available) */}
                             <Link
-                              to={`/profile/${notification.Sender.username}`}
+                              to={`/profile/${
+                                notification.Sender?.username || 'unknown'
+                              }`}
                               className={styles.senderName}
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {notification.Sender.firstName ||
-                                notification.Sender.username}
+                              {notification.Sender?.first_name ||
+                                notification.Sender?.username ||
+                                'Unknown'}
                             </Link>{' '}
                             {getNotificationMessage(notification)}
                           </p>
                           <p className={styles.notificationMeta}>
                             {formatDistanceToNow(
-                              new Date(notification.createdAt),
+                              new Date(notification.created_at),
                               {
                                 addSuffix: true,
                               }
@@ -227,10 +233,10 @@ export default function Header({ title, userName }) {
           )}
         </div>
 
-        {/* Profile Picture and Dropdown Menu */}
+        {/* Profile Picture + Dropdown */}
         <div className={styles.profileWrapper} ref={profileMenuRef}>
           <img
-            src={profilePictureUrl}
+            src={profile_pictureUrl}
             alt="User Avatar"
             className={styles.headerProfilePicture}
             onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -240,17 +246,14 @@ export default function Header({ title, userName }) {
               <ul>
                 <li>
                   <Link
-                    to={`/profile/${profile.username}`}
+                    to={`/profile/${profile?.username || 'unknown'}`}
                     onClick={() => setShowProfileMenu(false)}
                   >
                     View Profile
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    to="/settings"
-                    onClick={() => setShowProfileMenu(false)}
-                  >
+                  <Link to="/settings" onClick={() => setShowProfileMenu(false)}>
                     Settings
                   </Link>
                 </li>
@@ -268,7 +271,7 @@ export default function Header({ title, userName }) {
         </div>
       </div>
 
-      {/* Map Selection Modal */}
+      {/* Show modal for map creation */}
       {showMapModal && (
         <MapSelectionModal
           show={showMapModal}
@@ -280,16 +283,25 @@ export default function Header({ title, userName }) {
   );
 }
 
+/**
+ * Returns a small JSX snippet describing the notification event
+ * We use optional chaining for safety in case notification.Map is missing
+ */
 function getNotificationMessage(notification) {
-  const mapTitle = notification.Map.title || 'Untitled Map';
-  const mapLink = (
+  const mapTitle = notification.Map?.title || 'Untitled Map';
+  const mapId = notification.Map?.id;
+
+  // If map is missing, just say "the map"
+  const mapLink = mapId ? (
     <Link
-      to={`/map/${notification.Map.id}`}
+      to={`/map/${mapId}`}
       className={styles.mapTitle}
       onClick={(e) => e.stopPropagation()}
     >
       {mapTitle}
     </Link>
+  ) : (
+    'the map'
   );
 
   switch (notification.type) {
@@ -298,10 +310,10 @@ function getNotificationMessage(notification) {
     case 'comment':
       return <>commented on your map {mapLink}.</>;
     case 'like':
-      return <>liked your comment on map {mapLink}.</>;
+      return <>liked your comment on {mapLink}.</>;
     case 'reply':
-      return <>replied to your comment on map {mapLink}.</>;
+      return <>replied to your comment on {mapLink}.</>;
     default:
-      return <>performed an action on your map {mapLink}.</>;
+      return <>performed an action on {mapLink}.</>;
   }
 }

@@ -15,7 +15,7 @@ import EuropeSVG from './EuropeSVG';
 
 import styles from './Dashboard.module.css';  // Reusing styling from Dashboard (or create a separate .css)
 
-export default function ProfileActivityFeed({ username, profilePictureUrl }) {
+export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
 
   const [activities, setActivities] = useState([]);
@@ -44,17 +44,17 @@ export default function ProfileActivityFeed({ username, profilePictureUrl }) {
     const sharedProps = {
       groups: map.groups || [],
       mapTitleValue: mapTitle,
-      oceanColor: map.oceanColor,
-      unassignedColor: map.unassignedColor,
+      ocean_color: map.ocean_color,
+      unassigned_color: map.unassigned_color,
       data: map.data,
-      fontColor: map.fontColor,
-      isTitleHidden: map.isTitleHidden,
+      font_color: map.font_color,
+      is_title_hidden: map.is_title_hidden,
       isThumbnail: true
     };
 
-    if (map.selectedMap === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selectedMap === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selectedMap === 'europe') return <EuropeSVG {...sharedProps} />;
+    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
+    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
+    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
     return <div className={styles.defaultThumbnail}>Map</div>;
   }
 
@@ -71,14 +71,14 @@ export default function ProfileActivityFeed({ username, profilePictureUrl }) {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   }
 
-  // Here is the main difference: we always use the "profilePictureUrl" 
+  // Here is the main difference: we always use the "profile_pictureUrl" 
   // from the profile page for "commented" or "reply" items.
   function renderActivityItem(activity, index) {
     const {
       type,
       map,
       commentContent,
-      createdAt,
+      created_at,
       user,       // the actor
       commentObj, // e.g., if type=reply, includes ParentComment data
     } = activity;
@@ -104,11 +104,11 @@ export default function ProfileActivityFeed({ username, profilePictureUrl }) {
       body = (
         <p className={styles.starCount}>
           <FaStar style={{ marginRight: 4, color: 'black' }} />
-          {map?.saveCount || 0}
+          {map?.save_count || 0}
         </p>
       );
     } else if (type === 'commented') {
-      // Instead of user?.profilePicture, we use "profilePictureUrl" from the parent
+      // Instead of user?.profile_picture, we use "profile_pictureUrl" from the parent
       const text = commentContent || '(No comment text)';
       mainText = (
         <>
@@ -119,7 +119,7 @@ export default function ProfileActivityFeed({ username, profilePictureUrl }) {
         <div className={styles.commentBox}>
           <img
             className={styles.userAvatar}
-            src={profilePictureUrl || '/default-profile-picture.png'}
+            src={profile_pictureUrl || '/default-profile-picture.png'}
             alt="Profile Owner Avatar"
           />
           <div className={styles.commentText}>{text}</div>
@@ -140,7 +140,7 @@ export default function ProfileActivityFeed({ username, profilePictureUrl }) {
         <div className={styles.commentReplyBox}>
           <img
             className={styles.userAvatar}
-            src={profilePictureUrl || '/default-profile-picture.png'}
+            src={profile_pictureUrl || '/default-profile-picture.png'}
             alt="Profile Owner Avatar"
           />
           <div className={styles.commentText}>{replyText}</div>
@@ -164,7 +164,7 @@ export default function ProfileActivityFeed({ username, profilePictureUrl }) {
         <div className={styles.activityDetails}>
           <p>{mainText}</p>
           {body}
-          <span className={styles.timestamp}>{timeAgo(createdAt)}</span>
+          <span className={styles.timestamp}>{timeAgo(created_at)}</span>
         </div>
       </div>
     );

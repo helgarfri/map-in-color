@@ -37,12 +37,12 @@
 }
 
 /* Profile Picture Larger */
-.profilePictureWrapper {
+.profile_pictureWrapper {
   display: flex;
   justify-content: center;
   margin-bottom: 15px;
 }
-.profilePicture {
+.profile_picture {
   width: 150px;
   height: 150px;
   border-radius: 50%;
@@ -257,7 +257,7 @@
   transition: box-shadow 0.2s ease;
 }
 .feedItem:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* Top line of the feed item (icon, user, action) */

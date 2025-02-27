@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styles from './Create.module.css';
 
-export default function SelectMap({ continueToNextStep, selectedMap, setSelectedMap }) {
+export default function SelectMap({ continueToNextStep, selected_map, setSelectedMap }) {
 
     const handleMapSelect = (mapName) => {
         setSelectedMap(mapName);
@@ -24,14 +24,14 @@ export default function SelectMap({ continueToNextStep, selectedMap, setSelected
                         <img
                             src={map.src}
                             alt={map.alt}
-                            className={`${styles.img} ${selectedMap === map.name ? styles.selectedImg : ''}`}
+                            className={`${styles.img} ${selected_map === map.name ? styles.selectedImg : ''}`}
                         />
                         <p>{map.alt}</p>
                     </div>
                 ))}
             </div>
 
-            {selectedMap && (
+            {selected_map && (
                 <div>
                     <button onClick={continueToNextStep}>Continue</button>
                 </div>

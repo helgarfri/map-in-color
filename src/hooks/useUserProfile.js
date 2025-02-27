@@ -4,7 +4,7 @@ import { fetchUserProfile } from '../api';
 
 export function useUserProfile() {
   const [profile, setProfile] = useState(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState('');
+  const [profile_pictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState('');
 
@@ -19,8 +19,8 @@ export function useUserProfile() {
           description: res.data.description || '',
           gender: res.data.gender || '',
         });
-        if (res.data.profilePicture) {
-          setProfilePictureUrl(`http://localhost:5000${res.data.profilePicture}`);
+        if (res.data.profile_picture) {
+          setProfilePictureUrl(`http://localhost:5000${res.data.profile_picture}`);
         } else {
           setProfilePictureUrl('/images/default-profile-picture.png');
         }
@@ -36,5 +36,5 @@ export function useUserProfile() {
 
   
 
-  return { profile, profilePictureUrl, loadingProfile, errorProfile };
+  return { profile, profile_pictureUrl, loadingProfile, errorProfile };
 }

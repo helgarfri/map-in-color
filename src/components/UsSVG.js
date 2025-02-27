@@ -6,12 +6,12 @@ export default function UsSVG({
   groups,
   isLargeMap = false,
   isThumbnail = false,
-  oceanColor = '#AADAFF',
-  unassignedColor = '#D3D3D3',
-  fontColor = '#000000',
+  ocean_color = '#AADAFF',
+  unassigned_color = '#D3D3D3',
+  font_color = '#000000',
   viewBox="-90 -10 1238 610", 
   data = [],
-  isTitleHidden
+  is_title_hidden
 
 
 
@@ -105,13 +105,13 @@ export default function UsSVG({
       // Set the ocean color
       const oceanElement = svgRef.current.getElementById("ocean");
       if (oceanElement) {
-        oceanElement.style.fill = oceanColor;
+        oceanElement.style.fill = ocean_color;
       }
 
       // Set the default color for unassigned states
       const statePaths = svgRef.current.querySelectorAll("path[id]");
       statePaths.forEach((state) => {
-        state.style.fill = unassignedColor;
+        state.style.fill = unassigned_color;
       });
 
       // Apply colors to states based on groups
@@ -125,7 +125,7 @@ export default function UsSVG({
         });
       });
     }
-  }, [groups, oceanColor, unassignedColor, fontColor, mapTitleValue]);
+  }, [groups, ocean_color, unassigned_color, font_color, mapTitleValue]);
 
   // Functions to calculate font sizes for the title and legend
   const calculateFontSize = (title) => {
@@ -208,7 +208,7 @@ export default function UsSVG({
   width="100%"
   
   style={{
-    backgroundColor: oceanColor,
+    backgroundColor: ocean_color,
   }}
   
   >
@@ -488,13 +488,13 @@ export default function UsSVG({
 
 
 
-{!isTitleHidden && (
+{!is_title_hidden && (
   <>
     {/* Map title */}
     <text
       x="850"
       y={titleY}
-      style={{ fill: fontColor, fontSize: `${fontSizeTitle}px` }}
+      style={{ fill: font_color, fontSize: `${fontSizeTitle}px` }}
     >
       {mapTitleValue}
     </text>
@@ -521,7 +521,7 @@ export default function UsSVG({
                 circleRadius / 2 +
                 2.5, // Adjust for text alignment
               fontSize: `${fontSizeLegend}px`,
-              fill: fontColor,
+              fill: font_color,
             };
             const rangeLabel =
               group.name || `${group.lowerBound} - ${group.upperBound}`;
