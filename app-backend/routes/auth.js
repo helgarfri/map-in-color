@@ -8,7 +8,8 @@ const { check, validationResult } = require('express-validator');
 const { supabaseAdmin } = require('../config/supabase'); // Single admin client
 
 const saltRounds = 10;
-const DEFAULT_PROFILE_PIC = '/uploads/profile_pictures/default-pic.jpg';
+// Full public URL from Supabase
+const DEFAULT_PROFILE_PIC = 'https://cuijtjpwlzmamegajljz.supabase.co/storage/v1/object/public/profile-pictures/default-pic.jpg';
 
 // SIGNUP
 router.post(
