@@ -26,10 +26,11 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://mapincolor.com/'], 
+    origin: ['http://localhost:3000', 'https://mapincolor.com', 'https://www.mapincolor.com'],
     credentials: true,
   })
 );
+
 
 // Configure Helmet to allow cross-origin resources
 app.use(
