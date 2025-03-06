@@ -174,9 +174,9 @@ export default function Header({ title, userName }) {
                       <div className={styles.notificationContentWrapper}>
                         {/* Sender’s profile picture (use optional chaining) */}
                         <img
-                          src={
+                           src={
                             notification.Sender?.profile_picture
-                              ? `https://map-in-color.onrender.com${notification.Sender.profile_picture}`
+                              ? notification.Sender.profile_picture
                               : '/default-profile-pic.jpg'
                           }
                           alt={`${
