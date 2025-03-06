@@ -63,10 +63,14 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
           date_of_birth: profileData.date_of_birth || '',
         });
         // Show existing or default pic
-        const pictureUrl = profileData.profile_picture
-          ? `https://map-in-color.onrender.com${profileData.profile_picture}`
-          : '/default-profile-pic.jpg';
-        setLocalProfilePictureUrl(pictureUrl);
+          // If profileData.profile_picture is already a full Supabase URL, just use it.
+      // Otherwise fallback.
+      const pictureUrl = profileData.profile_picture
+      ? profileData.profile_picture
+      : '/default-profile-pic.jpg';
+
+      setLocalProfilePictureUrl(pictureUrl);
+
       } catch (error) {
         console.error('Failed to fetch profile:', error);
         setErrorProfile('Failed to load profile.');
@@ -171,23 +175,20 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
       setError('Failed to crop image. Please try again.');
     }
   };
+// Called if user cancels the crop
+const handleCropCancel = () => {
+  setProfilePicture(null);
 
-  // Called if user cancels the crop
-  const handleCropCancel = () => {
-    setProfilePicture(null);
-    // revert to existing DB pic if available, else default
-    if (profile?.profile_picture) {
-      // This is presumably already a full Supabase URL (e.g. "https://.../profile-pictures/...")
-      setLocalProfilePictureUrl(profile.profile_picture);
-    } else {
-      // Fallback to default local image
-      setLocalProfilePictureUrl('/default-profile-pic.jpg');
-    }
-    
-    
-    setShowCropModal(false);
-    setError('');
-  };
+  if (profile?.profile_picture) {
+    // already a full Supabase link
+    setLocalProfilePictureUrl(profile.profile_picture);
+  } else {
+    setLocalProfilePictureUrl('/default-profile-pic.jpg');
+  }
+
+  setShowCropModal(false);
+  setError('');
+};
 
   // For location (country) selection
   const handleSelectCountry = (country) => {
@@ -235,11 +236,14 @@ console.log('updatedProfile:', updatedProfile);
         date_of_birth: updatedProfile.date_of_birth || '',
       });
 
-      // Update displayed picture
-      const pictureUrl = updatedProfile.profile_picture
-        ? `https://map-in-color.onrender.com${updatedProfile.profile_picture}`
-        : '/default-profile-pic.jpg';
-      setLocalProfilePictureUrl(pictureUrl);
+        // If the user updated their pic, updatedProfile.profile_picture
+        // is already the Supabase URL.
+        const pictureUrl = updatedProfile.profile_picture
+          ? updatedProfile.profile_picture
+          : '/default-profile-pic.jpg';
+
+        setLocalProfilePictureUrl(pictureUrl);
+
 
       setSuccess('Profile updated successfully!');
       // Reset edit flags
