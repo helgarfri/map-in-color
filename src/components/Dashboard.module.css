@@ -366,3 +366,76 @@
     margin-top: 20px;
   }
 }
+
+.savedMapsSection {
+  margin-top: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.savedMapsSection h2 {
+  margin-top: 0;
+}
+
+.savedMapsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.savedMapCard {
+  width: 200px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  padding: 10px;
+}
+
+.savedMapCard:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.savedMapThumbnail {
+  width: 100%;
+  height: 100px;
+  background-color: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.savedMapTitle {
+  font-size: 1rem;
+  margin: 0 0 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedMapCreator {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+.viewAllSavedBtn {
+  margin-top: 20px;
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.viewAllSavedBtn:hover {
+  background-color: #bbb;
+}

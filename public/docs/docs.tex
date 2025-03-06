@@ -23,28 +23,28 @@
 
 % Kóðalista stillingar (Listings)
 \lstset{
-    language=[x86masm]Assembler, 
-    basicstyle=\footnotesize\ttfamily, 
-    numbers=left, 
-    numberstyle=\tiny, 
-    stepnumber=1, 
-    numbersep=5pt, 
-    backgroundcolor=\color{white}, 
-    showspaces=false, 
-    showstringspaces=false, 
-    showtabs=false, 
-    tabsize=2, 
-    captionpos=b, 
-    breaklines=true, 
-    breakatwhitespace=false, 
-    keywordstyle=\color{keywordcolor}\bfseries,
-    commentstyle=\color{commentcolor}\itshape, 
-    stringstyle=\color{stringcolor}, 
-    frame=single, 
-    framerule=0.5pt,
-    framesep=2mm,
-    escapeinside={\%*}{*)},
-    morekeywords={MOV,ADD,SUB,MUL,DIV,PUSH,POP,CALL,RET,JMP,JE,JNE,JG,JL,JGE,JLE},
+  language=[x86masm]Assembler, 
+  basicstyle=\footnotesize\ttfamily, 
+  numbers=left, 
+  numberstyle=\tiny, 
+  stepnumber=1, 
+  numbersep=5pt, 
+  backgroundcolor=\color{white}, 
+  showspaces=false, 
+  showstringspaces=false, 
+  showtabs=false, 
+  tabsize=2, 
+  captionpos=b, 
+  breaklines=true, 
+  breakatwhitespace=false, 
+  keywordstyle=\color{keywordcolor}\bfseries,
+  commentstyle=\color{commentcolor}\itshape, 
+  stringstyle=\color{stringcolor}, 
+  frame=single, 
+  framerule=0.5pt,
+  framesep=2mm,
+  escapeinside={\%*}{*)},
+  morekeywords={MOV,ADD,SUB,MUL,DIV,PUSH,POP,CALL,RET,JMP,JE,JNE,JG,JL,JGE,JLE},
 }
 
 \begin{document}
@@ -54,8 +54,8 @@
 \section{MIC MVP Release v2.0.0-beta}
 
 \subsection{Introduction}
-This is a MVP release of a brand new version of \textbf{Map in Color (MIC) v2.0.0-beta},
-a tool for creating \textbf{choropleth maps} to visualize data---whether for scientific 
+This is a MVP release of a brand new version of Map in Color (MIC) v2.0.0-beta,
+a tool for creating choropleth maps to visualize data---whether for scientific 
 purposes or simply to see the world from a new perspective through data.
 
 With the new version, the application includes more complexity and a sharing platform 
@@ -65,54 +65,54 @@ the data for the map, ensuring simplicity.
 
 This MVP release features:
 \begin{itemize}
-  \item A \textbf{set of three maps} (World Map, United States, and Europe) -- with 
-        more to be added over time.
-  \item The ability to \textbf{instantly generate data ranges} with ease (either 
-        suggested or manually defined).
-  \item A \textbf{sharing platform} with tags for potential future data collection 
-        across diverse subjects, browsable via an \emph{explore} page.
-  \item \textbf{Public or private} map settings for each user’s preference.
-  \item User profiles that allow \textbf{personal info}, \textbf{stars}, 
-        and \textbf{comments} on maps.
+  \item A set of three maps (World Map, United States, and Europe) -- with 
+    more to be added over time.
+  \item The ability to instantly generate data ranges with ease (either 
+    suggested or manually defined).
+  \item A sharing platform with tags for potential future data collection 
+    across diverse subjects, browsable via an \emph{explore} page.
+  \item Public or private map settings for each user’s preference.
+  \item User profiles that allow personal info, stars, 
+    and comments on maps.
 \end{itemize}
 
 \section{Quick Start (For Users)}
 
 \begin{enumerate}
-  \item \textbf{Sign Up}
+  \item Sign Up
 
   Go to mapincolor.com and fill out the sign-up form. After a successful 
-  registration, you will be taken to your \textbf{Dashboard}.
+  registration, you will be taken to your Dashboard.
 
-  \item \textbf{Create Your First Map}
+  \item Create Your First Map
   \begin{itemize}
-    \item Use the sidebar or header to click \textbf{"Create New Map."}
-    \item Select which map template you want (World, USA, or Europe) in the pop-up.
-    \item Click \textbf{"Create"}. You will be taken to the 
-          \textbf{Data Integration} page.
+  \item Use the sidebar or header to click "Create New Map."
+  \item Select which map template you want (World, USA, or Europe) in the pop-up.
+  \item Click "Create". You will be taken to the 
+      Data Integration page.
   \end{itemize}
 
-  \item \textbf{Data Integration}
+  \item Data Integration
   \begin{itemize}
-    \item Prepare your CSV file (see details below) and upload it.
-    \item Define data ranges (either by manual input or by generating suggested ranges).
-    \item Adjust colors and theme settings (ocean color, unassigned states, etc.).
-    \item Fill out \textbf{map details} (title, description, tags, references).
+  \item Prepare your CSV file (see details below) and upload it.
+  \item Define data ranges (either by manual input or by generating suggested ranges).
+  \item Adjust colors and theme settings (ocean color, unassigned states, etc.).
+  \item Fill out map details (title, description, tags, references).
   \end{itemize}
 
-  \item \textbf{Save \& Share}
+  \item Save \& Share
   \begin{itemize}
-    \item Choose \textbf{public} or \textbf{private} for your map.
-    \item Click \textbf{"Save Map"}.
-    \item You can now view or edit your map from your collection, explore other 
-          maps, star, and comment.
+  \item Choose public or private for your map.
+  \item Click "Save Map".
+  \item You can now view or edit your map from your collection, explore other 
+      maps, star, and comment.
   \end{itemize}
 \end{enumerate}
 
 \section{How to Create and Edit Maps}
 
-When you navigate to the \textbf{Data Integration} page, have your CSV file ready. 
-It must contain \textbf{exactly two columns}:
+When you navigate to the Data Integration page, have your CSV file ready. 
+It must contain exactly two columns:
 
 \begin{enumerate}
   \item Country/State Name
@@ -120,7 +120,7 @@ It must contain \textbf{exactly two columns}:
 \end{enumerate}
 
 \noindent
-\textbf{No values can be empty.}
+No values can be empty.
 
 \subsubsection*{Example CSV}
 
@@ -142,7 +142,7 @@ If your CSV is successfully uploaded, you may see summary statistics about the f
 \subsection{Error Handling}
 
 If a state name isn’t recognized or the file is invalid, you’ll see an 
-\textbf{error log} showing the line number and the issue:
+error log showing the line number and the issue:
 
 \begin{figure}[h!]
   \centering
@@ -164,9 +164,9 @@ Fix any errors and re-upload until you see a success message:
 \subsection{Suggested vs. Manual}
 
 \begin{itemize}
-  \item \textbf{Manual}: Type in your lower and upper bounds for each range.
-  \item \textbf{Auto-Generate}: Specify how many ranges you want and click
-        \textbf{"Suggest range"}.
+  \item Manual: Type in your lower and upper bounds for each range.
+  \item Auto-Generate: Specify how many ranges you want and click
+    "Suggest range".
 \end{itemize}
 
 \noindent
@@ -181,12 +181,12 @@ For example, you can press certain buttons to define or suggest ranges:
 \subsection{Name \& Coloring}
 
 Name each range (e.g., “Low,” “Medium,” “High,” etc.). Choose individual colors or 
-use a provided \textbf{color palette}. Then click \textbf{"Generate Groups"} to 
+use a provided color palette. Then click "Generate Groups" to 
 update the map with the new ranges.
 
 \section{Theme \& Final Settings}
 
-You can adjust map details: \textbf{ocean color}, \textbf{unassigned color}, etc. 
+You can adjust map details: ocean color, unassigned color, etc. 
 For example:
 
 \begin{figure}[h!]
@@ -195,8 +195,8 @@ For example:
   \caption{Theme Settings Example}
 \end{figure}
 
-Then fill out \textbf{title}, \textbf{description}, \textbf{tags}, 
-\textbf{references}, and decide if the map is private or public:
+Then fill out title, description, tags, 
+references, and decide if the map is private or public:
 
 \begin{figure}[h!]
   \centering
@@ -204,11 +204,10 @@ Then fill out \textbf{title}, \textbf{description}, \textbf{tags},
   \caption{Map Details Example}
 \end{figure}
 
-Finally, press \textbf{"Save Map"}. The map is now in your collection, and you can 
+Finally, press "Save Map". The map is now in your collection, and you can 
 edit it anytime.
 
-Once saved, you can \textbf{star} or \textbf{comment} on maps, explore other 
+Once saved, you can star or comment on maps, explore other 
 users’ public maps, and further customize your own.
-
 
 \end{document}

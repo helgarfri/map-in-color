@@ -118,7 +118,7 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
             <tbody>
               {maps.map((map) => {
                 const mapTitle = map.title || 'Untitled Map';
-                const creatorUsername = map.User?.username || 'Unknown';
+                const creatorUsername = map.user?.username || 'Unknown';
                 return (
                   <tr
                     key={map.id}

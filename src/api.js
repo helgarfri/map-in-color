@@ -118,3 +118,5 @@ export const changeUserPassword = (payload) => {
 export const deleteUserAccount = ({ reason, feedback }) =>
   API.delete('/users/deleteAccount', { data: { reason, feedback } });
 
+export const subscribeEmail = (email) =>
+  API.post('/notify', { email });

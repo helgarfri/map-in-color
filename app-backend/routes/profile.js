@@ -463,6 +463,7 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
       .from('users')
       .update(updateData)
       .eq('id', req.user.id)
+      .select('*')   
       .single();
 
     if (updateErr) {

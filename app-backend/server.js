@@ -13,6 +13,7 @@ const commentsRoutes = require('./routes/comments');
 const notificationsRoutes = require('./routes/notifications');
 const usersRoutes = require('./routes/users');
 const exploreRoutes = require('./routes/explore');
+const notifyRoutes = require('./routes/notify'); // NEW
 
 // If you want to test a Supabase connection at startup, 
 // you can import the client (optional):
@@ -25,7 +26,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'http://localhost:3000', // or your actual frontend origin
+    origin: ['http://localhost:3000', 'https://mapincolor.com/'], 
     credentials: true,
   })
 );
@@ -55,6 +56,7 @@ app.use('/api/', commentsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/explore', exploreRoutes);
+app.use('/api/notify', notifyRoutes); // NEW
 
 // Handle undefined routes
 app.use((req, res) => {

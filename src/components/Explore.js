@@ -315,13 +315,13 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                     ) : (
                       mapsToShow.map((map) => {
                         const mapTitle = map.title || 'Untitled Map';
-                        const first_name = map.User?.first_name || '';
-                        const last_name = map.User?.last_name || '';
-                        const userNameFallback = map.User?.username || 'Unknown';
+                        const first_name = map.user?.first_name || '';
+                        const last_name = map.user?.last_name || '';
+                        const userNameFallback = map.user?.username || 'Unknown';
                         const displayName = (first_name || last_name) ? `${first_name} ${last_name}`.trim() : userNameFallback;
                        
-                        const creatorImg = map.User?.profile_picture
-                          ? `http://localhost:5000${map.User.profile_picture}`
+                        const creatorImg = map.user?.profile_picture
+                          ? `http://localhost:5000${map.user.profile_picture}`
                           : '/default-profile-pic.jpg';
                         
                         return (
@@ -342,7 +342,6 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                                   data={map.data}
                                   selected_map={map.selected_map}
                                   font_color={map.font_color}
-                                  show_top_high_values={[]}
                                   top_low_values={[]}
                                   isThumbnail={true}
                                   is_title_hidden={map.is_title_hidden}
@@ -359,7 +358,6 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                                   data={map.data}
                                   selected_map={map.selected_map}
                                   font_color={map.font_color}
-                                  show_top_high_values={[]}
                                   top_low_values={[]}
                                   isThumbnail={true}
                                   is_title_hidden={map.is_title_hidden}
@@ -376,7 +374,6 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                                   data={map.data}
                                   selected_map={map.selected_map}
                                   font_color={map.font_color}
-                                  show_top_high_values={[]}
                                   top_low_values={[]}
                                   isThumbnail={true}
                                   is_title_hidden={map.is_title_hidden}

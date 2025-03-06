@@ -1,0 +1,195 @@
+/* Main documentation container */
+.documentationContainer {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #ffffff; /* White background */
+    font-family: Arial, sans-serif;
+}
+
+/* New wrapper to layout sidebar and content */
+.docsWrapper {
+    display: flex;
+  }
+  
+  /* Sidebar styling for the TOC */
+  .docsSidebar {
+    width: 250px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    padding: 2rem;
+    border-right: 1px solid #ddd;
+    
+  }
+  
+  /* TOC container styles */
+  .tocContainer {
+    position: relative;
+  }
+  
+  .tocList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .tocItem {
+    margin-bottom: 0.5rem;
+  }
+  
+  .tocItem button {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 0.5rem;
+    width: 100%;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  /* Active TOC item: adds a blue left border using the themed blue color */
+  .tocItem.active button {
+    border-left: 3px solid #336699;
+    padding-left: 0.5rem;
+    font-weight: bold;
+  }
+/* Main content styling */
+.docsMain {
+    flex: 1;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto; /* Center the content */
+}
+
+/* Headings */
+.docsMain h1 {
+    color: #55957b; /* Green heading */
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.docsMain h2 {
+    color: #336699; /* Blue heading */
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #336699;
+    padding-bottom: 0.5rem;
+}
+
+.docsMain h3 {
+    color: #444; /* Dark gray heading */
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Paragraphs */
+.docsMain p {
+    color: #000; /* Black text */
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Links */
+.docsMain a {
+    color: #c4564d; /* Red/Orange link color */
+    text-decoration: none;
+}
+
+.docsMain a:hover {
+    text-decoration: underline;
+}
+
+/* Code block styling */
+.codeBlock {
+    background: #f0f0f0;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border-radius: 5px;
+}
+
+/* Images in documentation */
+.docImage {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+}
+
+/* Styled ordered list */
+.docsMain ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.docsMain ol li {
+    line-height: 1.6;
+    font-size: 1rem;
+    padding-left: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Styled unordered list */
+.docsMain ul {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.docsMain ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    line-height: 1.6;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.docsMain ul li::before {
+    content: "-";
+    position: absolute;
+    left: 0;
+    color: #55957b; /* Green dash */
+    font-weight: bold;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .docsMain {
+        padding: 1rem;
+    }
+    .docsMain h1 {
+        font-size: 1.5rem;
+    }
+    .docsMain h2 {
+        font-size: 1.3rem;
+    }
+    .docsMain h3 {
+        font-size: 1.1rem;
+    }
+    .docsMain p {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .docsMain {
+        padding: 1.5rem;
+    }
+    .docsMain h1 {
+        font-size: 1.7rem;
+    }
+    .docsMain h2 {
+        font-size: 1.4rem;
+    }
+    .docsMain h3 {
+        font-size: 1.15rem;
+    }
+    .docsMain p {
+        font-size: 0.98rem;
+    }
+}

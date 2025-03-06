@@ -470,8 +470,8 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
                           </div>
                           <div className={styles.mapInfo}>
                             <h3 className={styles.mapTitle}>{map.title || 'Untitled Map'}</h3>
-                            {map.User && (
-                              <p className={styles.mapOwner}>By {map.User.username}</p>
+                            {map.user && (
+                              <p className={styles.mapOwner}>By {map.user.username}</p>
                             )}
                             <div className={styles.mapStats}>
                               <FaStar className={styles.starIcon} />

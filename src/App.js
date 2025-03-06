@@ -30,7 +30,6 @@ import { UserProvider } from './context/UserContext';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import Explore from './components/Explore';
-import HomeDocs from './components/HomeDocs';
 
 library.add(fas);
 
@@ -42,7 +41,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
 
-        <Route path="/docs" element={<HomeDocs />} />
+        <Route path="/docs" element={<Docs />} />
 
 
         <Route 

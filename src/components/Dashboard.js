@@ -7,7 +7,7 @@ import {
   deleteMap,
   fetchNotifications,
   markNotificationAsRead,
-  fetchUserActivity
+  fetchSavedMaps
 } from '../api';
 import { differenceInDays, formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
@@ -41,6 +41,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [maps, setMaps] = useState([]);
+  const [ savedMaps, setSavedMaps ] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
   // For deleting a map
@@ -67,9 +68,11 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
 
     const getData = async () => {
       try {
-        const [mapsRes, notificationsRes] = await Promise.all([
+        const [mapsRes, notificationsRes, savedMapsRes] = await Promise.all([
           fetchMaps(),
           fetchNotifications(),
+          fetchSavedMaps(),      
+
         ]);
 
         // Sort maps by updated_at desc
@@ -82,8 +85,11 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
         const sortedNotifications = notificationsRes.data
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 6);
+          setNotifications(sortedNotifications);
 
-        setNotifications(sortedNotifications);
+        // Save maps the user has starred
+        const userSavedMaps = savedMapsRes.data; // Should be an array of map objects
+        setSavedMaps(userSavedMaps);
       } catch (err) {
         console.error('Error fetching data:', err);
       } finally {
@@ -95,7 +101,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
   }, [profile]);
 
   // Recently modified maps (up to 10)
-  const recentMaps = maps.slice(0, 10);
+  const recentMaps = maps.slice(0, 3);
 
   // ----------------------
   // Map Deletion Handlers
@@ -363,11 +369,10 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
       </div>
     );
   };
-
   return (
     <div className={styles.dashboardContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
+  
       <div
         className={`${styles.dashboardContent} ${
           isCollapsed ? styles.contentCollapsed : ''
@@ -380,16 +385,13 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
           onMarkAllAsRead={() => {}}
           profile_picture={profile?.profile_picture}
         />
-
+  
         {isLoading ? (
           <LoadingSpinner />
         ) : (
           <>
             <div className={styles.mainWrapper}>
-              {/* LEFT: Recently Modified Maps */}
-              
-
-              {/* CENTER: Stats + Activity Feed */}
+              {/* CENTER COLUMN: Stats + Activity Feed */}
               <div className={styles.centerColumn}>
                 <div className={styles.statsContainer}>
                   <div className={styles.statItem}>
@@ -408,7 +410,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
                     <span className={styles.statValue}>{profileAgeDays} days</span>
                   </div>
                 </div>
-
+  
                 <section className={styles.activityFeedSection}>
                   <h2>Activity Feed</h2>
                   {notifications.length === 0 ? (
@@ -420,9 +422,10 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
                   )}
                 </section>
               </div>
-
-                  {/* Right side */}
-                  <div className={styles.leftMapsSidebar}>
+  
+              {/* RIGHT SIDE (sticky sidebar): Recently Modified + Saved Maps */}
+              <div className={styles.leftMapsSidebar}>
+                {/* Recently Modified Maps */}
                 <h2>Recently Modified Maps</h2>
                 {recentMaps.length === 0 ? (
                   <p>No maps found.</p>
@@ -455,12 +458,105 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
                     ))}
                   </ul>
                 )}
+  
+                {/* Saved Maps Section (max 3) */}
+                <div className={styles.savedMapsSection}>
+                  <h2>Starred Maps</h2>
+                  {savedMaps.length === 0 ? (
+                    <p>You haven't saved any maps yet.</p>
+                  ) : (
+                    <div className={styles.savedMapsGrid}>
+                      {savedMaps.slice(0, 2).map((map) => {
+                        // Creator display name
+                        const firstName = map.users?.first_name || '';
+                        const lastName = map.users?.last_name || '';
+                        const creatorUsername = map.users?.username || 'Unknown';
+                        
+                        const displayName =
+                          firstName || lastName
+                            ? `${firstName} ${lastName}`.trim()
+                            : creatorUsername;
+  
+                        const mapTitle = map.title || 'Untitled Map';
+  
+                        // Determine thumbnail
+                        let Thumbnail = (
+                          <div className={styles.defaultThumbnail}>No preview</div>
+                        );
+                        if (map.selected_map === 'world') {
+                          Thumbnail = (
+                            <WorldMapSVG
+                              groups={map.groups}
+                              mapTitleValue={mapTitle}
+                              ocean_color={map.ocean_color}
+                              unassigned_color={map.unassigned_color}
+                              data={map.data}
+                              font_color={map.font_color}
+                              is_title_hidden={map.is_title_hidden}
+                              isThumbnail
+                            />
+                          );
+                        } else if (map.selected_map === 'usa') {
+                          Thumbnail = (
+                            <UsSVG
+                              groups={map.groups}
+                              mapTitleValue={mapTitle}
+                              ocean_color={map.ocean_color}
+                              unassigned_color={map.unassigned_color}
+                              data={map.data}
+                              font_color={map.font_color}
+                              is_title_hidden={map.is_title_hidden}
+                              isThumbnail
+                            />
+                          );
+                        } else if (map.selected_map === 'europe') {
+                          Thumbnail = (
+                            <EuropeSVG
+                              groups={map.groups}
+                              mapTitleValue={mapTitle}
+                              ocean_color={map.ocean_color}
+                              unassigned_color={map.unassigned_color}
+                              data={map.data}
+                              font_color={map.font_color}
+                              is_title_hidden={map.is_title_hidden}
+                              isThumbnail
+                            />
+                          );
+                        }
+  
+                        return (
+                          <div
+                            key={map.id}
+                            className={styles.savedMapCard}
+                            onClick={() => navigate(`/map/${map.id}`)}
+                          >
+                            <div className={styles.savedMapThumbnail}>
+                              {Thumbnail}
+                            </div>
+                            <h3 className={styles.savedMapTitle}>{mapTitle}</h3>
+                            <p className={styles.savedMapCreator}>
+                              by {displayName}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+  
+                  {savedMaps.length > 3 && (
+                    <button
+                      className={styles.viewAllSavedBtn}
+                      onClick={() => navigate('/starred-maps')} 
+                    >
+                      View All Starred Maps
+                    </button>
+                  )}
+                </div>
               </div>
-
             </div>
           </>
         )}
-
+  
         {showDeleteModal && (
           <div className={styles.modalOverlay} onClick={cancelDelete}>
             <div
@@ -486,4 +582,4 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
       </div>
     </div>
   );
-}
+}  

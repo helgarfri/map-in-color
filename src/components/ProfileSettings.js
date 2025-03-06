@@ -217,7 +217,9 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
       }
 
       const res = await updateUserProfile(formDataToSend);
-      const updatedProfile = res.data;
+console.log('updateUserProfile response:', res);
+const updatedProfile = res.data;
+console.log('updatedProfile:', updatedProfile);
 
       // Update local states
       setProfile(updatedProfile);

@@ -15,7 +15,8 @@
   margin-left: 80px; /* collapsed sidebar width */
 }
 .contentInner {
-  padding: 0 50px;
+  padding: 0 50px 50px 50px;
+  
 }
 .section {
   margin-top: 20px;
@@ -643,6 +644,69 @@
   justify-content: center;
   margin-top: 20px;
 }
+
+/* A new container that wraps left & right columns */
+.mapLayoutContainer {
+  display: flex;
+  gap: 40px;
+  margin-top: 20px; 
+  /* You can also use margin-bottom if you want spacing from sections below */
+}
+
+/* Left column has 2 stacked boxes: Map Preview + Theme */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1.5 1;
+  gap: 20px; 
+}
+
+/* Right column is the "Map Info" box */
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Generic box style (Preview, Theme, Info) */
+.mapPreviewBox,
+.mapThemeBox,
+.mapInfoBox {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #f9f9f9;
+}
+
+.mapBoxHeader {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: left;
+}
+
+/* The SVG or preview area can keep same styling as before */
+.mapPreviewWrapper {
+  /* your existing styles, e.g. */
+  width: 100%;
+  height: auto;
+  /* etc. */
+}
+
+/* Make sure the rest of your themeFields, inputBox, etc. remain consistent. */
+
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  .mapLayoutContainer {
+    flex-direction: column;
+  }
+  .leftColumn,
+  .rightColumn {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+}
+
 
 /* (Popup / Modal styles can be removed if not used) */
 
