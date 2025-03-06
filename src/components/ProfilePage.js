@@ -76,12 +76,12 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
         setLoadingProfile(true);
         const res = await fetchUserProfileByUsername(username);
         setProfile(res.data);
-
-        // If user has a custom profile picture, build the URL;
-        // otherwise, use a default image
+  
         if (res.data.profile_picture) {
-          setProfilePictureUrl(`https://map-in-color.onrender.com${res.data.profile_picture}`);
+          // Use Supabase URL as is (already fully qualified).
+          setProfilePictureUrl(res.data.profile_picture);
         } else {
+          // Fallback to a local default
           setProfilePictureUrl('/images/default-profile-picture.png');
         }
       } catch (err) {
@@ -93,6 +93,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
     }
     loadUserProfile();
   }, [username, navigate]);
+  
 
   // ----------------------------------------------------------------
   // 2) Once we have the user profile, fetch stats + data for all tabs
