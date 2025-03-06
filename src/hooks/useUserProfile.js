@@ -20,7 +20,7 @@ export function useUserProfile() {
           gender: res.data.gender || '',
         });
         if (res.data.profile_picture) {
-          setProfilePictureUrl(`http://localhost:5000${res.data.profile_picture}`);
+          setProfilePictureUrl(`https://map-in-color.onrender.com${res.data.profile_picture}`);
         } else {
           setProfilePictureUrl('/images/default-profile-picture.png');
         }

@@ -195,7 +195,7 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
 
     // Build user avatar + handle click
     const userAvatarUrl = user?.profile_picture
-      ? `http://localhost:5000${user.profile_picture}`
+      ? `https://map-in-color.onrender.com${user.profile_picture}`
       : '/default-profile-pic.jpg';
 
     // Create a map thumbnail

@@ -74,7 +74,7 @@ function NotifyForm() {
     setError('');
     try {
       // Replace '/api/notify' with your actual endpoint for email subscriptions
-      await axios.post('http://localhost:5000/api/notify', { email });
+      await axios.post('https://map-in-color.onrender.com/api/notify', { email });
 
       setSubmitted(true);
       setEmail('');

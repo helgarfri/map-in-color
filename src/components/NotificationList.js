@@ -191,7 +191,7 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
                   <img
                     src={
                       notification.Sender?.profile_picture
-                        ? `http://localhost:5000${notification.Sender.profile_picture}`
+                        ? `https://map-in-color.onrender.com${notification.Sender.profile_picture}`
                         : '/default-profile-pic.jpg'
                     }
                     alt={`${

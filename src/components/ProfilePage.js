@@ -80,7 +80,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
         // If user has a custom profile picture, build the URL;
         // otherwise, use a default image
         if (res.data.profile_picture) {
-          setProfilePictureUrl(`http://localhost:5000${res.data.profile_picture}`);
+          setProfilePictureUrl(`https://map-in-color.onrender.com${res.data.profile_picture}`);
         } else {
           setProfilePictureUrl('/images/default-profile-picture.png');
         }

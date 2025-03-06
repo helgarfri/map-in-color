@@ -115,7 +115,7 @@ export default function Header({ title, userName }) {
 
   // Build profile pic URL if user is logged in
   const profile_pictureUrl = profile?.profile_picture
-    ? `http://localhost:5000${profile.profile_picture}`
+    ? `https://map-in-color.onrender.com${profile.profile_picture}`
     : '/default-profile-pic.jpg';
 
   return (
@@ -176,7 +176,7 @@ export default function Header({ title, userName }) {
                         <img
                           src={
                             notification.Sender?.profile_picture
-                              ? `http://localhost:5000${notification.Sender.profile_picture}`
+                              ? `https://map-in-color.onrender.com${notification.Sender.profile_picture}`
                               : '/default-profile-pic.jpg'
                           }
                           alt={`${

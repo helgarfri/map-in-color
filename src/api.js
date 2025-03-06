@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+const API = axios.create({ baseURL: 'https://map-in-color.onrender.com/api' });
 
 // Add token to headers
 API.interceptors.request.use((req) => {

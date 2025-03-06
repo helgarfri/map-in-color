@@ -64,7 +64,7 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
         });
         // Show existing or default pic
         const pictureUrl = profileData.profile_picture
-          ? `http://localhost:5000${profileData.profile_picture}`
+          ? `https://map-in-color.onrender.com${profileData.profile_picture}`
           : '/default-profile-pic.jpg';
         setLocalProfilePictureUrl(pictureUrl);
       } catch (error) {
@@ -178,7 +178,7 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     // revert to existing DB pic if available, else default
     if (profile && profile.profile_picture) {
       const existingUrl = profile.profile_picture.startsWith('/uploads')
-        ? `http://localhost:5000${profile.profile_picture}`
+        ? `https://map-in-color.onrender.com${profile.profile_picture}`
         : '/default-profile-pic.jpg';
       setLocalProfilePictureUrl(existingUrl);
     } else {
@@ -236,7 +236,7 @@ console.log('updatedProfile:', updatedProfile);
 
       // Update displayed picture
       const pictureUrl = updatedProfile.profile_picture
-        ? `http://localhost:5000${updatedProfile.profile_picture}`
+        ? `https://map-in-color.onrender.com${updatedProfile.profile_picture}`
         : '/default-profile-pic.jpg';
       setLocalProfilePictureUrl(pictureUrl);
 

@@ -32,7 +32,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
   useEffect(() => {
     const fetchAllMaps = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/explore');
+        const res = await axios.get('https://map-in-color.onrender.com/api/explore');
         setAllMapsForTags(res.data);
       } catch (err) {
         console.error('Error fetching all maps for tags:', err);
@@ -86,7 +86,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
       const tagsQuery = buildTagsQuery();
       if (tagsQuery) params.tags = tagsQuery;
 
-      const res = await axios.get('http://localhost:5000/api/explore', { params });
+      const res = await axios.get('https://map-in-color.onrender.com/api/explore', { params });
       setMaps(res.data);
       setPage(1); 
     } catch (err) {
@@ -321,7 +321,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                         const displayName = (first_name || last_name) ? `${first_name} ${last_name}`.trim() : userNameFallback;
                        
                         const creatorImg = map.user?.profile_picture
-                          ? `http://localhost:5000${map.user.profile_picture}`
+                          ? `https://map-in-color.onrender.com${map.user.profile_picture}`
                           : '/default-profile-pic.jpg';
                         
                         return (

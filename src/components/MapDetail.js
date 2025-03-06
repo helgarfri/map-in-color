@@ -846,7 +846,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                   <img
                     src={
                       mapData.user && mapData.user.profile_picture
-                        ? `http://localhost:5000${mapData.user.profile_picture}`
+                        ? `https://map-in-color.onrender.com${mapData.user.profile_picture}`
                         : '/default-profile-pic.jpg'
                     }
                     alt={`${mapData.user.first_name || mapData?.user?.username} || 'unknown's profile`}
@@ -952,7 +952,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                   {comment.user && comment.user.profile_picture ? (
                     <Link to={`/profile/${comment?.user?.username || 'unknown'}`}>
                       <img
-                        src={`http://localhost:5000${comment.user.profile_picture}`}
+                        src={`https://map-in-color.onrender.com${comment.user.profile_picture}`}
                         alt={`${comment?.user?.username}'s profile` || 'unknown'}
                         className={styles.commentProfilePicture}
                       />
@@ -1085,7 +1085,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       {reply.user?.profile_picture ? (
         <Link to={`/profile/${reply.user.username}`}>
           <img
-            src={`http://localhost:5000${reply.user.profile_picture}`}
+            src={`https://map-in-color.onrender.com${reply.user.profile_picture}`}
             alt={`${reply.user.username}'s profile`}
             className={styles.commentProfilePicture}
           />
