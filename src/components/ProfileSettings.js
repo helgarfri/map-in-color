@@ -176,14 +176,15 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   const handleCropCancel = () => {
     setProfilePicture(null);
     // revert to existing DB pic if available, else default
-    if (profile && profile.profile_picture) {
-      const existingUrl = profile.profile_picture.startsWith('/uploads')
-        ? `https://map-in-color.onrender.com${profile.profile_picture}`
-        : '/default-profile-pic.jpg';
-      setLocalProfilePictureUrl(existingUrl);
+    if (profile?.profile_picture) {
+      // This is presumably already a full Supabase URL (e.g. "https://.../profile-pictures/...")
+      setLocalProfilePictureUrl(profile.profile_picture);
     } else {
+      // Fallback to default local image
       setLocalProfilePictureUrl('/default-profile-pic.jpg');
     }
+    
+    
     setShowCropModal(false);
     setError('');
   };

@@ -193,10 +193,10 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
     const senderName = user?.first_name || user?.username || 'Someone';
     const mapTitle = relatedMap?.title || 'Untitled Map';
 
-    // Build user avatar + handle click
-    const userAvatarUrl = user?.profile_picture
-      ? `https://map-in-color.onrender.com${user.profile_picture}`
-      : '/default-profile-pic.jpg';
+// Construct user avatar URL directly from Supabase
+const userAvatarUrl = profile?.profile_picture
+  ? `https://cuijtjpwlzmamegajljz.supabase.co/storage/v1/object/public/profile-pictures/${profile.profile_picture}`
+  : '/default-profile-pic.jpg';
 
     // Create a map thumbnail
     let mapThumbnail = <div className={styles.defaultThumbnail}>Map</div>;
