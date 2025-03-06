@@ -843,15 +843,16 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                   to={`/profile/${mapData?.user?.username || 'unknown'}`}
                   className={styles.creatorProfileLink}
                 >
-                  <img
+                <img
                     src={
-                      mapData.user && mapData.user.profile_picture
-                        ? `https://map-in-color.onrender.com${mapData.user.profile_picture}`
+                      mapData.user?.profile_picture
+                        ? mapData.user.profile_picture
                         : '/default-profile-pic.jpg'
                     }
-                    alt={`${mapData.user.first_name || mapData?.user?.username} || 'unknown's profile`}
+                    alt={`${mapData.user?.first_name || mapData?.user?.username || 'unknown'}'s profile`}
                     className={styles.creatorProfilePicture}
                   />
+
                   <span className={styles.creatorName}>
                     {mapData.user.first_name || ''} {mapData.user.last_name || ''}
                   </span>
@@ -952,7 +953,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                   {comment.user && comment.user.profile_picture ? (
                     <Link to={`/profile/${comment?.user?.username || 'unknown'}`}>
                       <img
-                        src={`https://map-in-color.onrender.com${comment.user.profile_picture}`}
+                        src={comment.user?.profile_picture || '/default-profile-pic.jpg'}
+
                         alt={`${comment?.user?.username}'s profile` || 'unknown'}
                         className={styles.commentProfilePicture}
                       />
@@ -1085,7 +1087,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       {reply.user?.profile_picture ? (
         <Link to={`/profile/${reply.user.username}`}>
           <img
-            src={`https://map-in-color.onrender.com${reply.user.profile_picture}`}
+          src={reply.user?.profile_picture || '/default-profile-pic.jpg'}
+
             alt={`${reply.user.username}'s profile`}
             className={styles.commentProfilePicture}
           />
