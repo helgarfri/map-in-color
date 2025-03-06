@@ -4,7 +4,7 @@ import HomeHeader from './HomeHeader';
 import HomeFooter from './HomeFooter';
 import styles from './Home.module.css';
 
-const TARGET_DATE = new Date('2025-03-24T00:00:00');
+const TARGET_DATE = new Date('2025-03-24T14:02:00');
 
 function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState(getTimeRemaining());
