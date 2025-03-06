@@ -284,18 +284,10 @@ router.get('/:username/activity', async (req, res) => {
   }
 });
 
-/***********************************************
- *   MULTER STORAGE (PROFILE PICS)
- ***********************************************/
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/profile_pictures/'); // Ensure this directory exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${req.user.id}_${Date.now()}${path.extname(file.originalname)}`);
-  },
-});
-const upload = multer({ storage });
+// NEW: We'll store the file in memory, then upload to Supabase
+const memoryStorage = multer.memoryStorage();
+const upload = multer({ storage: memoryStorage });
+
 
 /***********************************************
  *   VALIDATION RULES FOR PROFILE UPDATES
@@ -322,6 +314,7 @@ const profileUpdateMiddleware = [
   upload.single('profile_picture'),
   ...profileValidationRules,
 ];
+
 
 /***********************************************
  *   GET CURRENT USER'S PROFILE (LOGGED-IN)
@@ -455,8 +448,32 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
 
     // 4) Handle profile picture if a file is uploaded
     if (req.file) {
-      updateData.profile_picture = `/uploads/profile_pictures/${req.file.filename}`;
+      // 1) Create a unique filename
+      const fileExt = path.extname(req.file.originalname);
+      const fileName = `${req.user.id}_${Date.now()}${fileExt}`;
+    
+      // 2) Upload file buffer to Supabase Storage bucket "profile-pictures"
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from('profile-pictures')
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: true,
+        });
+    
+      if (uploadError) {
+        console.error('Error uploading to Supabase Storage:', uploadError);
+        return res.status(500).json({ msg: 'Error uploading image.' });
+      }
+    
+      // 3) Retrieve the public URL from the uploaded file
+      const { data: publicUrlData } = supabaseAdmin.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+    
+      // 4) Save that public URL to the user’s "profile_picture" column
+      updateData.profile_picture = publicUrlData.publicUrl;
     }
+    
 
     // 5) update row
     const { data: updatedRows, error: updateErr } = await supabaseAdmin
