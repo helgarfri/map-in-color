@@ -1448,33 +1448,50 @@ function applyPalette(oldRanges, paletteColors) {
         />
       </div>
 
-      {/* Tags */}
-      <div className={styles.settingItem}>
-        <label htmlFor="tagsInput">Tags:</label>
-        <input
-          id="tagsInput"
-          type="text"
-          className={styles.inputBox}
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={handleTagInputKeyDown}
-          placeholder="Type a tag and press Enter"
-        />
-        <div className={styles.tagBox}>
-          {tags.map((tag, i) => (
-            <div key={i} className={styles.tagItem}>
-              {tag}
-              <button
-                className={styles.removeTagButton}
-                onClick={() => removeTag(i)}
-                aria-label={`Remove tag ${tag}`}
-              >
-                &times;
-              </button>
-            </div>
-          ))}
-        </div>
+{/* Tags */}
+<div className={styles.settingItem}>
+  <label htmlFor="tagsInput">Tags:</label>
+  <input
+    id="tagsInput"
+    type="text"
+    className={styles.inputBox}
+    value={tagInput}
+    onChange={(e) => {
+      // Remove spaces from the input value
+      const value = e.target.value.replace(/\s/g, '');
+      setTagInput(value);
+    }}
+    onKeyDown={(e) => {
+      // Prevent space key from being entered
+      if (e.key === ' ') {
+        e.preventDefault();
+      } else {
+        handleTagInputKeyDown(e);
+      }
+    }}
+    onPaste={(e) => {
+      // Prevent pasting spaces into the input
+      e.preventDefault();
+      const paste = e.clipboardData.getData('text').replace(/\s/g, '');
+      setTagInput(paste);
+    }}
+    placeholder="Type a tag and press Enter"
+  />
+  <div className={styles.tagBox}>
+    {tags.map((tag, i) => (
+      <div key={i} className={styles.tagItem}>
+        {tag}
+        <button
+          className={styles.removeTagButton}
+          onClick={() => removeTag(i)}
+          aria-label={`Remove tag ${tag}`}
+        >
+          &times;
+        </button>
       </div>
+    ))}
+  </div>
+</div>
 
       {/* References */}
       <div className={styles.settingItem}>
