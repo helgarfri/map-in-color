@@ -1,5 +1,5 @@
-// src/components/HomeFooter.js
 import React from 'react';
+import { FaGithub, FaInstagram, FaTwitter } from 'react-icons/fa';
 import styles from './HomeFooter.module.css';
 
 export default function HomeFooter() {
@@ -11,9 +11,22 @@ export default function HomeFooter() {
           target="_blank"
           rel="noreferrer"
         >
-          GitHub
+          <FaGithub size={24} />
         </a>
-        <a href="/docs">Documentation</a>
+        <a
+          href="https://instagram.com/mapincolor"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <FaInstagram size={24} />
+        </a>
+        <a
+          href="https://twitter.com/map_in_color"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <FaTwitter size={24} />
+        </a>
       </div>
       <p className={styles.copyright}>
         &copy; {new Date().getFullYear()} Map in Color

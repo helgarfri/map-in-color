@@ -3464,7 +3464,7 @@ const calculateFontSize = (title) => {
 	  stroke: borderColor,
 	  strokeWidth: borderWidth,
 	  cx: 200,
-	  cy: itemYPosition + 9,
+	  cy: itemYPosition,
 	  r: circleRadius,
 	};
   
