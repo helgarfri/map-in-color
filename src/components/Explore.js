@@ -12,37 +12,41 @@ import EuropeSVG from './EuropeSVG';
 import LoadingSpinner from './LoadingSpinner';
 
 function Explore({ isCollapsed, setIsCollapsed }) {
+  // The slice of data for the current page
   const [maps, setMaps] = useState([]);
+  // For the tag cloud in the sidebar (optional)
   const [allMapsForTags, setAllMapsForTags] = useState([]);
 
-  // --- Search states ---
+  // search states
   const [searchInput, setSearchInput] = useState('');
   const [searchApplied, setSearchApplied] = useState('');
 
-  // Sort & Tag
+  // sorting & filtering
   const [sort, setSort] = useState('newest');
   const [selectedTags, setSelectedTags] = useState([]);
 
-  // Loading spinner
-  const [loading, setLoading] = useState(false);
-
-  // Pagination
+  // pagination
   const [page, setPage] = useState(1);
+  const [totalMaps, setTotalMaps] = useState(0); // total # of matching maps (from server)
   const mapsPerPage = 24;
+
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ----------------------------------------------------------------------
-  // 1) FETCH ALL MAPS ONCE (OPTIONAL) FOR TAG COUNTS
+  // --------------------------------
+  // 1) GET TAGS FOR SIDEBAR
   useEffect(() => {
-    console.log('[useEffect] fetchAllMaps (for sidebar tags) - on mount');
     const fetchAllMaps = async () => {
       try {
-        console.log('  -> [fetchAllMaps] Starting axios request');
-        const res = await axios.get('https://map-in-color.onrender.com/api/explore');
-        console.log(`  -> [fetchAllMaps] Got response. allMapsForTags length: ${res.data.length}`);
-        setAllMapsForTags(res.data);
+        const res = await axios.get('https://map-in-color.onrender.com/api/explore', {
+          // For a small side query, just limit=50 or 100 is probably fine
+          params: { limit: 100 },
+        });
+        setAllMapsForTags(res.data.maps || res.data); 
+        // If your server returns {maps, total}, you want "res.data.maps"
+        // If your server returns an array directly, keep "res.data"
       } catch (error) {
         console.error('Error fetching all maps for tags:', error);
       }
@@ -50,52 +54,53 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     fetchAllMaps();
   }, []);
 
-  // ----------------------------------------------------------------------
-  // 2) PARSE ?tags=... FROM THE URL INTO selectedTags
+  // --------------------------------
+  // 2) PARSE ?tags=... & ?page=... FROM THE URL
   useEffect(() => {
-    console.log('[useEffect] parsing URL for ?tags', 'location.search=', location.search);
     const params = new URLSearchParams(location.search);
-    const urlTags = params.get('tags');
 
+    // Tags
+    const urlTags = params.get('tags');
     if (urlTags) {
-      const splitTags = urlTags
-        .split(',')
-        .map((t) => t.trim().toLowerCase())
-        .filter(Boolean);
-      console.log('  -> Setting selectedTags from URL:', splitTags);
+      const splitTags = urlTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
       setSelectedTags(splitTags);
     } else {
-      console.log('  -> No ?tags in URL. Setting selectedTags = []');
       setSelectedTags([]);
+    }
+
+    // Page
+    const urlPage = parseInt(params.get('page'), 10);
+    if (urlPage && urlPage > 0) {
+      setPage(urlPage);
+    } else {
+      setPage(1);
     }
   }, [location.search]);
 
-  // ----------------------------------------------------------------------
-  // 3) FETCH MAPS FUNCTION
-  const fetchMaps = async (currentSearchTerm) => {
-    console.log('[fetchMaps] called with:', {
-      sort,
-      selectedTags,
-      searchTerm: currentSearchTerm,
-    });
+  // --------------------------------
+  // 3) FETCH MAPS for current page
+  const fetchMaps = async () => {
     setLoading(true);
-
     try {
-      const params = { sort };
-      const trimmed = currentSearchTerm.trim();
-      if (trimmed) {
-        params.search = trimmed;
+      const params = {
+        sort,
+        page,
+        limit: mapsPerPage,
+      };
+
+      // apply search
+      if (searchApplied.trim()) {
+        params.search = searchApplied.trim();
       }
+      // apply tags
       if (selectedTags.length > 0) {
         params.tags = selectedTags.join(',');
       }
 
-      console.log('  -> [fetchMaps] axios.get params=', params);
       const res = await axios.get('https://map-in-color.onrender.com/api/explore', { params });
-      console.log(`  -> [fetchMaps] response length: ${res.data.length}`);
-
-      setMaps(res.data);
-      setPage(1); // reset to first page
+      // server returns { maps, total }
+      setMaps(res.data.maps);
+      setTotalMaps(res.data.total);
     } catch (err) {
       console.error('Error fetching maps:', err);
     } finally {
@@ -103,125 +108,143 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     }
   };
 
-  // ----------------------------------------------------------------------
-  // 4) UNIFIED EFFECT: whenever selectedTags, sort, or searchApplied changes
+  // --------------------------------
+  // 4) Trigger fetch when [selectedTags, sort, searchApplied, page] change
   useEffect(() => {
-    console.log(
-      '[useEffect] selectedTags/sort/searchApplied changed -> calling fetchMaps',
-      {
-        selectedTags,
-        sort,
-        searchApplied,
-      }
-    );
-    fetchMaps(searchApplied);
+    fetchMaps();
     // eslint-disable-next-line
-  }, [selectedTags, sort, searchApplied]);
+  }, [selectedTags, sort, searchApplied, page]);
 
-  // ----------------------------------------------------------------------
+  // --------------------------------
   // 5) HANDLERS
-
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    console.log('[handleSearchSubmit] user pressed Search. searchInput=', searchInput);
     setSearchApplied(searchInput);
+    // Reset to page 1
+    // We also want to reflect in the URL? Up to you:
+    const params = new URLSearchParams(location.search);
+    params.delete('page'); // back to 1
+    navigate(`?${params.toString()}`, { replace: true });
   };
 
   const handleTagChange = (tag) => {
-    console.log('[handleTagChange]', { tag, selectedTagsBefore: selectedTags });
-    const newSelected = selectedTags.includes(tag)
-      ? selectedTags.filter((t) => t !== tag)
-      : [...selectedTags, tag];
+    let newSelected = [];
+    if (selectedTags.includes(tag)) {
+      newSelected = selectedTags.filter(t => t !== tag);
+    } else {
+      newSelected = [...selectedTags, tag];
+    }
 
     const params = new URLSearchParams(location.search);
-    if (newSelected.length > 0) {
+    if (newSelected.length) {
       params.set('tags', newSelected.join(','));
     } else {
       params.delete('tags');
     }
-    console.log('[handleTagChange] Navigate to', `?${params.toString()}`);
+    // Also reset page to 1
+    params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   const handleSortChange = (newSort) => {
-    console.log('[handleSortChange]', { newSort });
     setSort(newSort);
+    // Reset page to 1
+    const params = new URLSearchParams(location.search);
+    params.delete('page');
+    navigate(`?${params.toString()}`, { replace: true });
   };
 
   const handleResetTags = () => {
-    console.log('[handleResetTags] removing all ?tags');
     const params = new URLSearchParams(location.search);
     params.delete('tags');
+    params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   const handleRemoveSelectedTag = (tagToRemove) => {
-    console.log('[handleRemoveSelectedTag]', { tagToRemove });
-    const newSelected = selectedTags.filter((t) => t !== tagToRemove);
+    const newSelected = selectedTags.filter(t => t !== tagToRemove);
     const params = new URLSearchParams(location.search);
-    if (newSelected.length > 0) {
+    if (newSelected.length) {
       params.set('tags', newSelected.join(','));
     } else {
       params.delete('tags');
     }
+    params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   // Pagination
-  const totalPages = Math.ceil(maps.length / mapsPerPage);
-  const startIndex = (page - 1) * mapsPerPage;
-  const endIndex = page * mapsPerPage;
-  const mapsToShow = maps.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalMaps / mapsPerPage);
 
   const handlePageChange = (newPage) => {
-    console.log('[handlePageChange]', { newPage });
-    setPage(newPage);
+    // If newPage is the same as current, do nothing
+    if (newPage === page) return;
+
+    const params = new URLSearchParams(location.search);
+    params.set('page', newPage.toString());
+    // preserve the other params (tags, search, sort in the URL)
+    navigate(`?${params.toString()}`, { replace: true });
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ----------------------------------------------------------------------
-  // BUILD A TAG CLOUD (IF DESIRED)
+  // --------------------------------
+  // TAG CLOUD
   const tagCounts = {};
   allMapsForTags.forEach((m) => {
     if (Array.isArray(m.tags)) {
       m.tags.forEach((tg) => {
+        tg = tg.toLowerCase();
         if (!tagCounts[tg]) tagCounts[tg] = 0;
         tagCounts[tg]++;
       });
     }
   });
-  const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+  const sortedTags = Object.keys(tagCounts).sort(
+    (a, b) => tagCounts[b] - tagCounts[a]
+  );
 
-  // ----------------------------------------------------------------------
+  // --------------------------------
   // RENDER
   return (
     <div className={styles.explorePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={`${styles.mainContentWrapper} ${isCollapsed ? styles.collapsed : ''}`}>
+      <div
+        className={`${styles.mainContentWrapper} ${
+          isCollapsed ? styles.collapsed : ''
+        }`}
+      >
         <Header title="Explore" />
         <div className={styles.exploreContent}>
-
           {/* Top Bar: Sort & Search */}
           <div className={styles.topBar}>
             <div className={styles.sortTabs}>
               <span className={styles.sortByLabel}>Sort by:</span>
               <button
-                className={`${styles.tabButton} ${sort === 'newest' ? styles.activeTab : ''}`}
+                className={`${styles.tabButton} ${
+                  sort === 'newest' ? styles.activeTab : ''
+                }`}
                 onClick={() => handleSortChange('newest')}
               >
                 Newest
               </button>
               <button
-                className={`${styles.tabButton} ${sort === 'starred' ? styles.activeTab : ''}`}
+                className={`${styles.tabButton} ${
+                  sort === 'starred' ? styles.activeTab : ''
+                }`}
                 onClick={() => handleSortChange('starred')}
               >
                 Most Starred
               </button>
               <button
-                className={`${styles.tabButton} ${sort === 'trending' ? styles.activeTab : ''}`}
+                className={`${styles.tabButton} ${
+                  sort === 'trending' ? styles.activeTab : ''
+                }`}
                 onClick={() => handleSortChange('trending')}
               >
                 Trending
@@ -279,10 +302,10 @@ function Explore({ isCollapsed, setIsCollapsed }) {
               ) : (
                 <>
                   <div className={styles.mapsGrid}>
-                    {mapsToShow.length === 0 ? (
+                    {maps.length === 0 ? (
                       <p>No maps found.</p>
                     ) : (
-                      mapsToShow.map((map) => {
+                      maps.map((map) => {
                         const mapTitle = map.title || 'Untitled Map';
                         const firstName = map.user?.first_name || '';
                         const lastName = map.user?.last_name || '';
@@ -311,7 +334,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                                   selected_map={map.selected_map}
                                   font_color={map.font_color}
                                   top_low_values={[]}
-                                  isThumbnail={true}
+                                  isThumbnail
                                   is_title_hidden={map.is_title_hidden}
                                 />
                               )}
@@ -327,7 +350,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                                   selected_map={map.selected_map}
                                   font_color={map.font_color}
                                   top_low_values={[]}
-                                  isThumbnail={true}
+                                  isThumbnail
                                   is_title_hidden={map.is_title_hidden}
                                 />
                               )}
@@ -343,7 +366,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                                   selected_map={map.selected_map}
                                   font_color={map.font_color}
                                   top_low_values={[]}
-                                  isThumbnail={true}
+                                  isThumbnail
                                   is_title_hidden={map.is_title_hidden}
                                 />
                               )}
@@ -370,11 +393,12 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                     )}
                   </div>
 
+                  {/* Pagination buttons */}
                   {totalPages > 1 && (
                     <div className={styles.pagination}>
                       <button
                         onClick={() => handlePageChange(page - 1)}
-                        disabled={page === 1}
+                        disabled={page <= 1}
                       >
                         ‹
                       </button>
@@ -389,7 +413,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                       ))}
                       <button
                         onClick={() => handlePageChange(page + 1)}
-                        disabled={page === totalPages}
+                        disabled={page >= totalPages}
                       >
                         ›
                       </button>
