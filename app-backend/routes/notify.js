@@ -43,11 +43,11 @@ router.post('/', async (req, res) => {
     await resend.emails.send({
       from: 'no-reply@mapincolor.com',
       to: email,
-      subject: 'Welcome to Map in Color!',
+      subject: '🎉 You\'re officially on the list!',
       html: `
         <p>Hey there!</p>
-        <p>Thanks for signing up to get notified about <strong>Map in Color v2</strong>!</p>
-        <p>We're launching on <strong>March 28th</strong>. We'll be sure to keep you in the loop.</p>
+        <p>Thanks for signing up to get notified about <strong>Map in Color v2</strong>—you're officially among the first to know what's coming!</p>
+        <p>We’re excited to release on <strong>March 28th</strong>, and we’ll be sure to keep you updated along the way.</p>
         <p>Cheers,<br/>Helgi from Map in Color</p>
       `,
     });
