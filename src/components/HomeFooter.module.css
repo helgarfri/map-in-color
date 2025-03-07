@@ -15,7 +15,6 @@
 .footerLinks a {
   color: #ffffff;
   text-decoration: none;
-  font-weight: bold;
   transition: opacity 0.2s ease;
 }
 
@@ -23,9 +22,28 @@
   opacity: 0.8;
 }
 
+.infoSection {
+  text-align: center;
+  color: #ffffff;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tagline {
+  margin: 0;
+  font-style: italic;
+}
+
+.contact {
+  margin: 5px 0 0 0;
+}
+
+.contact a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
 footer p {
   margin: 0;
-  font-size: 0.9rem;
   color: #ffffff;
-  margin-top: 5px;
 }

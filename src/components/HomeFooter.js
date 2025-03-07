@@ -14,19 +14,27 @@ export default function HomeFooter() {
           <FaGithub size={24} />
         </a>
         <a
-          href="https://instagram.com/mapincolor"
+          href="https://instagram.com/yourInstagramUsername"
           target="_blank"
           rel="noreferrer"
         >
           <FaInstagram size={24} />
         </a>
         <a
-          href="https://twitter.com/map_in_color"
+          href="https://twitter.com/yourTwitterUsername"
           target="_blank"
           rel="noreferrer"
         >
           <FaTwitter size={24} />
         </a>
+      </div>
+      <div className={styles.infoSection}>
+        <p className={styles.tagline}>
+          A platform to create, share, and explore data through maps — launching on March 28th
+        </p>
+        <p className={styles.contact}>
+          Contact: <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>
+        </p>
       </div>
       <p className={styles.copyright}>
         &copy; {new Date().getFullYear()} Map in Color
