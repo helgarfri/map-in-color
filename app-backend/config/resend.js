@@ -1,3 +1,7 @@
-import { Resend } from 'resend';
+// resend.js (CommonJS version)
+require('dotenv').config();
+const { Resend } = require('resend');
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+module.exports = { resend };

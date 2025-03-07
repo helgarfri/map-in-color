@@ -7,35 +7,39 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 router.post('/', async (req, res) => {
-  console.log('POST /api/notify hit!', req.body); // Debug
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required.' });
+  console.log('POST /api/notify hit!', req.body);
+
+  // Force email to lowercase and trim whitespace
+  const email = req.body.email?.toLowerCase().trim();
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
 
   try {
-    // (Optional) Check if email already exists to avoid duplicates
+    // Check if email already exists (case-insensitive)
     const { data: existing } = await supabaseAdmin
       .from('email_subscriptions')
       .select('email')
-      .eq('email', email)
+      .ilike('email', email)
       .single();
 
     if (existing) {
-      // Email already subscribed; just respond or show error
+      // Email already subscribed
       return res.status(200).json({ message: 'Already subscribed.' });
     }
 
-    // Insert new subscription
-    const { data, error } = await supabaseAdmin
+    // Insert new subscription (store email as lowercase)
+    const { error } = await supabaseAdmin
       .from('email_subscriptions')
-      .insert([{ email }])
-      .single();
+      .insert([{ email }]);
 
     if (error) {
       console.error('Error inserting email subscription:', error);
       return res.status(500).json({ error: 'Server error. Please try again.' });
     }
 
-    // Email sending logic for brand-new signups:
+    // Send welcome email to new subscribers
     await resend.emails.send({
       from: 'no-reply@mapincolor.com',
       to: email,
@@ -50,6 +54,7 @@ router.post('/', async (req, res) => {
 
     console.log('Inserted subscription and sent email to:', email);
     return res.json({ message: 'Successfully subscribed!' });
+
   } catch (err) {
     console.error('Unhandled error in /api/notify route:', err);
     return res.status(500).json({ error: 'Something went wrong.' });
@@ -57,3 +62,4 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
+
