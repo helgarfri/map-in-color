@@ -1,4 +1,4 @@
-// src/components/HomeDocs.js
+// src/components/Docs.js
 
 import React from 'react';
 import { useState, useEffect } from 'react';
@@ -120,9 +120,11 @@ const TableOfContents = () => {
 };
 
 export default function Docs() {
+
   return (
     <div className={styles.documentationContainer}>
       <HomeHeader />
+      
       <div className={styles.docsWrapper}>
       <aside className={styles.docsSidebar}>
           <h2>Documentation</h2>

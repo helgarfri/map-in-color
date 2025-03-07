@@ -1,3 +1,5 @@
+/* Docs.module.css */
+
 /* Main documentation container */
 .documentationContainer {
     display: flex;
@@ -10,35 +12,34 @@
 /* New wrapper to layout sidebar and content */
 .docsWrapper {
     display: flex;
-  }
+}
   
-  /* Sidebar styling for the TOC */
-  .docsSidebar {
+/* Sidebar styling for the TOC */
+.docsSidebar {
     width: 250px;
     position: sticky;
     top: 0;
     align-self: flex-start;
     padding: 2rem;
     border-right: 1px solid #ddd;
-    
-  }
+}
   
-  /* TOC container styles */
-  .tocContainer {
+/* TOC container styles */
+.tocContainer {
     position: relative;
-  }
+}
   
-  .tocList {
+.tocList {
     list-style: none;
     padding: 0;
     margin: 0;
-  }
+}
   
-  .tocItem {
+.tocItem {
     margin-bottom: 0.5rem;
-  }
+}
   
-  .tocItem button {
+.tocItem button {
     background: none;
     border: none;
     text-align: left;
@@ -46,14 +47,15 @@
     width: 100%;
     cursor: pointer;
     font-size: 1rem;
-  }
+}
   
-  /* Active TOC item: adds a blue left border using the themed blue color */
-  .tocItem.active button {
+/* Active TOC item: adds a blue left border using the themed blue color */
+.tocItem.active button {
     border-left: 3px solid #336699;
     padding-left: 0.5rem;
     font-weight: bold;
-  }
+}
+
 /* Main content styling */
 .docsMain {
     flex: 1;
@@ -157,8 +159,8 @@
     font-weight: bold;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 600px) {
+/* Responsive Adjustments for mobile devices */
+@media (max-width: 750px) {
     .docsMain {
         padding: 1rem;
     }
@@ -173,6 +175,16 @@
     }
     .docsMain p {
         font-size: 0.95rem;
+    }
+    
+    /* Hide the documentation sidebar (and TOC navigation) on mobile devices */
+    .docsSidebar {
+        display: none;
+    }
+    
+    /* Optional: switch docsWrapper to block layout when sidebar is hidden */
+    .docsWrapper {
+        display: block;
     }
 }
 
