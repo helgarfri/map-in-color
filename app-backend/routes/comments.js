@@ -386,7 +386,58 @@ router.post('/comments/:comment_id/reaction', auth, async (req, res) => {
     console.error('Error in reaction route:', err);
     return res.status(500).json({ msg: 'Server error (reaction)' });
   }
+
+  
 });
+
+/* -----------------------------------------------
+   DELETE /comments/:comment_id
+   Delete a comment (owner only or admin)
+----------------------------------------------- */
+router.delete('/comments/:comment_id', auth, async (req, res) => {
+  try {
+    const commentId = parseInt(req.params.comment_id, 10);
+    const user_id = req.user.id;
+
+    // 1) Fetch the comment
+    const { data: comment, error: cErr } = await supabaseAdmin
+      .from('comments')
+      .select('id, user_id')
+      .eq('id', commentId)
+      .maybeSingle();
+
+    if (cErr) {
+      console.error('Error fetching comment:', cErr);
+      return res.status(500).json({ msg: 'Server error (fetch comment)' });
+    }
+    if (!comment) {
+      return res.status(404).json({ msg: 'Comment not found' });
+    }
+
+    // 2) Check ownership (or admin privileges if you have an is_admin column)
+    if (comment.user_id !== user_id /* && !isAdmin */) {
+      return res.status(403).json({ msg: 'You do not have permission to delete this comment.' });
+    }
+
+    // 3) Delete the comment
+    const { error: delErr } = await supabaseAdmin
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (delErr) {
+      console.error('Error deleting comment:', delErr);
+      return res.status(500).json({ msg: 'Server error (delete comment)' });
+    }
+
+    return res.json({ msg: 'Comment deleted successfully' });
+  } catch (err) {
+    console.error('Error in DELETE /comments/:comment_id:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
 
 
 module.exports = router;
