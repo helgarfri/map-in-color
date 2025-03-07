@@ -1476,6 +1476,7 @@ function applyPalette(oldRanges, paletteColors) {
       setTagInput(paste);
     }}
     placeholder="Type a tag and press Enter"
+    maxLength="20"
   />
   <div className={styles.tagBox}>
     {tags.map((tag, i) => (
