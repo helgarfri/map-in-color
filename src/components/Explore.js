@@ -12,43 +12,36 @@ import EuropeSVG from './EuropeSVG';
 import LoadingSpinner from './LoadingSpinner';
 
 function Explore({ isCollapsed, setIsCollapsed }) {
-  // The slice of data for the current page
+  // Maps list & side tags
   const [maps, setMaps] = useState([]);
-  // For the tag cloud in the sidebar
   const [allMapsForTags, setAllMapsForTags] = useState([]);
+
   // Search (uncontrolled input)
   const [searchApplied, setSearchApplied] = useState('');
   const searchRef = useRef(null);
+
   // Sorting & filtering
   const [sort, setSort] = useState('newest');
   const [selectedTags, setSelectedTags] = useState([]);
+
   // Pagination
   const [page, setPage] = useState(1);
   const [totalMaps, setTotalMaps] = useState(0);
   const mapsPerPage = 24;
+
   // Loading spinner
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Refs for measuring heights
-  const mapsSectionRef = useRef(null);
-  const tagsSidebarRef = useRef(null);
-
-  // Update sidebar max-height based on maps section height
-  const updateSidebarHeight = () => {
-    if (mapsSectionRef.current && tagsSidebarRef.current) {
-      const mapsHeight = mapsSectionRef.current.clientHeight;
-      tagsSidebarRef.current.style.maxHeight = `${mapsHeight}px`;
-    }
-  };
-
-  // Fetch tags for the sidebar
+  // ---------------------------
+  // 1) Fetch tags (top 50)
   useEffect(() => {
     const fetchTags = async () => {
       try {
         const res = await axios.get('https://map-in-color.onrender.com/api/explore/tags');
+        // This will already be limited to top 50 on the server side
         setAllMapsForTags(res.data);
       } catch (error) {
         console.error('Error fetching distinct tags:', error);
@@ -57,19 +50,21 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     fetchTags();
   }, []);
 
-  // Parse URL parameters for tags and page
+  // ---------------------------
+  // 2) Parse ?tags & ?page from URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+
+    // Tags
     const urlTags = params.get('tags');
     if (urlTags) {
-      const splitTags = urlTags
-        .split(',')
-        .map((t) => t.trim().toLowerCase())
-        .filter(Boolean);
+      const splitTags = urlTags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
       setSelectedTags(splitTags);
     } else {
       setSelectedTags([]);
     }
+
+    // Page
     const urlPage = parseInt(params.get('page'), 10);
     if (urlPage && urlPage > 0) {
       setPage(urlPage);
@@ -78,18 +73,20 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     }
   }, [location.search]);
 
-  // Fetch maps for the current page
+  // ---------------------------
+  // 3) Fetch maps for current page
   const fetchMaps = async () => {
     setLoading(true);
     try {
       const params = { sort, page, limit: mapsPerPage };
+
       if (searchApplied.trim()) {
         params.search = searchApplied.trim();
       }
       if (selectedTags.length > 0) {
-        // We'll pass these tags to the server, which will use .contains(...) for AND logic
         params.tags = selectedTags.join(',');
       }
+
       const res = await axios.get('https://map-in-color.onrender.com/api/explore', { params });
       setMaps(res.data.maps);
       setTotalMaps(res.data.total);
@@ -100,45 +97,51 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     }
   };
 
-  // Trigger fetch when filters change
+  // ---------------------------
+  // 4) Trigger fetch whenever relevant filters change
   useEffect(() => {
     fetchMaps();
     // eslint-disable-next-line
   }, [selectedTags, sort, searchApplied, page]);
 
-  // Update sidebar height whenever maps or loading changes
-  useEffect(() => {
-    updateSidebarHeight();
-  }, [maps, loading]);
+  // ---------------------------
+  // 5) Handlers
 
-  // Update sidebar height on window resize
-  useEffect(() => {
-    window.addEventListener('resize', updateSidebarHeight);
-    return () => window.removeEventListener('resize', updateSidebarHeight);
-  }, []);
-
-  // Handlers for search, tag changes, sort changes, and pagination...
+  // A) Searching map titles
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const typedValue = searchRef.current.value;
     setSearchApplied(typedValue);
+
+    // Reset page
     const params = new URLSearchParams(location.search);
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // B) Toggling tags
   const handleTagChange = (tag) => {
     setLoading(true);
-    let newSelected = selectedTags.includes(tag)
-      ? selectedTags.filter((t) => t !== tag)
-      : [...selectedTags, tag];
+    let newSelected;
+    if (selectedTags.includes(tag)) {
+      newSelected = selectedTags.filter((t) => t !== tag);
+    } else {
+      newSelected = [...selectedTags, tag];
+    }
+
     const params = new URLSearchParams(location.search);
-    newSelected.length ? params.set('tags', newSelected.join(',')) : params.delete('tags');
+    if (newSelected.length) {
+      params.set('tags', newSelected.join(','));
+    } else {
+      params.delete('tags');
+    }
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // C) Changing sort
   const handleSortChange = (newSort) => {
     setSort(newSort);
     const params = new URLSearchParams(location.search);
@@ -146,6 +149,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // D) Reset all tags
   const handleResetTags = () => {
     const params = new URLSearchParams(location.search);
     params.delete('tags');
@@ -153,30 +157,43 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // E) Remove single tag
   const handleRemoveSelectedTag = (tagToRemove) => {
     const newSelected = selectedTags.filter((t) => t !== tagToRemove);
     const params = new URLSearchParams(location.search);
-    newSelected.length ? params.set('tags', newSelected.join(',')) : params.delete('tags');
+    if (newSelected.length) {
+      params.set('tags', newSelected.join(','));
+    } else {
+      params.delete('tags');
+    }
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // F) Pagination
   const totalPages = Math.ceil(totalMaps / mapsPerPage);
+
   const handlePageChange = (newPage) => {
     if (newPage === page) return;
     setLoading(true);
+
     const params = new URLSearchParams(location.search);
     params.set('page', newPage.toString());
     navigate(`?${params.toString()}`, { replace: true });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // ---------------------------
+  // RENDER
   return (
     <div className={styles.explorePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
       <div className={`${styles.mainContentWrapper} ${isCollapsed ? styles.collapsed : ''}`}>
         <Header title="Explore" />
         <div className={styles.exploreContent}>
+
           {/* Top Bar: Sort & Search */}
           <div className={styles.topBar}>
             <div className={styles.sortTabs}>
@@ -200,6 +217,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                 Trending
               </button>
             </div>
+
             <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
               <div className={styles.searchInputContainer}>
                 <input type="text" placeholder="Search by map title..." ref={searchRef} />
@@ -218,7 +236,10 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                 {selectedTags.map((t) => (
                   <div key={t} className={styles.selectedTagBox}>
                     <span className={styles.selectedTagText}>{t}</span>
-                    <button className={styles.removeTagButton} onClick={() => handleRemoveSelectedTag(t)}>
+                    <button
+                      className={styles.removeTagButton}
+                      onClick={() => handleRemoveSelectedTag(t)}
+                    >
                       x
                     </button>
                   </div>
@@ -233,7 +254,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
           {/* Main Content */}
           <div className={styles.mainContent}>
             {/* Maps Section */}
-            <div className={styles.mapsSection} ref={mapsSectionRef}>
+            <div className={styles.mapsSection}>
               {loading ? (
                 <LoadingSpinner />
               ) : (
@@ -248,7 +269,10 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                         const lastName = map.user?.last_name || '';
                         const usernameFallback = map.user?.username || 'Unknown';
                         const displayName =
-                          firstName || lastName ? `${firstName} ${lastName}`.trim() : usernameFallback;
+                          firstName || lastName
+                            ? `${firstName} ${lastName}`.trim()
+                            : usernameFallback;
+
                         return (
                           <div
                             key={map.id}
@@ -326,6 +350,8 @@ function Explore({ isCollapsed, setIsCollapsed }) {
                       })
                     )}
                   </div>
+
+                  {/* Pagination */}
                   {totalPages > 1 && (
                     <div className={styles.pagination}>
                       <button onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
@@ -350,7 +376,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
             </div>
 
             {/* Tag Sidebar */}
-            <div className={styles.tagsSidebar} ref={tagsSidebarRef}>
+            <div className={styles.tagsSidebar}>
               <h2>Filter by Tags</h2>
               <div className={styles.tagsList}>
                 {allMapsForTags.map((item) => (
