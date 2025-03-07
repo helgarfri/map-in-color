@@ -392,17 +392,17 @@ router.post('/comments/:comment_id/reaction', auth, async (req, res) => {
 
 /* -----------------------------------------------
    DELETE /comments/:comment_id
-   Delete a comment (owner only or admin)
+   Delete a comment (either author OR map owner)
 ----------------------------------------------- */
 router.delete('/comments/:comment_id', auth, async (req, res) => {
   try {
     const commentId = parseInt(req.params.comment_id, 10);
     const user_id = req.user.id;
 
-    // 1) Fetch the comment
+    // 1) Fetch the comment (including map_id)
     const { data: comment, error: cErr } = await supabaseAdmin
       .from('comments')
-      .select('id, user_id')
+      .select('id, user_id, map_id')
       .eq('id', commentId)
       .maybeSingle();
 
@@ -414,9 +414,23 @@ router.delete('/comments/:comment_id', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Comment not found' });
     }
 
-    // 2) Check ownership (or admin privileges if you have an is_admin column)
-    if (comment.user_id !== user_id /* && !isAdmin */) {
-      return res.status(403).json({ msg: 'You do not have permission to delete this comment.' });
+    // 2) Check if the user is EITHER the comment’s author OR the map owner
+    const { data: mapOwnerCheck, error: moErr } = await supabaseAdmin
+      .from('maps')
+      .select('user_id')
+      .eq('id', comment.map_id)
+      .maybeSingle();
+
+    if (moErr) {
+      console.error('Error checking map ownership:', moErr);
+      return res.status(500).json({ msg: 'Server error (map ownership)' });
+    }
+
+    // If neither the comment author nor the map owner
+    if (comment.user_id !== user_id && mapOwnerCheck?.user_id !== user_id) {
+      return res
+        .status(403)
+        .json({ msg: 'You do not have permission to delete this comment.' });
     }
 
     // 3) Delete the comment
