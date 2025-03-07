@@ -43,8 +43,9 @@ router.get('/', async (req, res) => {
 
     // Filtering by tags?
     if (tagsArray.length > 0) {
-      baseQuery = baseQuery.overlaps('tags', tagsArray);
+      baseQuery = baseQuery.contains('tags', tagsArray);
     }
+    
 
     // Sorting
     if (sort === 'newest') {

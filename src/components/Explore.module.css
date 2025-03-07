@@ -11,6 +11,7 @@
   transition: margin-left 0.3s ease;
   margin-left: 250px; /* expanded sidebar width */
   padding: 20px;
+  
 }
 
 .mainContentWrapper.collapsed {
@@ -261,9 +262,10 @@
      text-overflow: ellipsis;
   */
 }
-
-/* Tag sidebar - fixed width */
+/* Tag sidebar - fixed width but flexible height */
 .tagsSidebar {
+  display: flex;
+  flex-direction: column;
   background-color: #f7f7f7;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -273,22 +275,25 @@
   flex-direction: column;
   width: 250px; /* fixed width */
   min-width: 250px;
-  height: 100%; /* Make the sidebar height 100% */
+  
 }
 
+/* Sidebar header stays fixed (non-scrollable) */
 .tagsSidebar h2 {
-  margin-top: 0;
+  margin: 0 0 10px 0;
+  flex-shrink: 0;
   font-size: 1.2rem;
-  margin-bottom: 10px;
 }
 
+/* Tags list takes up the remaining space and scrolls if needed */
 .tagsList {
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
-  overflow-y: auto;
 }
+
 
 .tagCheckbox {
   display: flex;
