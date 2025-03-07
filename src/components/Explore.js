@@ -14,7 +14,9 @@ import LoadingSpinner from './LoadingSpinner';
 function Explore({ isCollapsed, setIsCollapsed }) {
   // The slice of data for the current page
   const [maps, setMaps] = useState([]);
-  // For the tag cloud in the sidebar (optional)
+
+  // For the tag cloud in the sidebar
+  // (fetched from /explore/tags, an array of all distinct tags)
   const [allMapsForTags, setAllMapsForTags] = useState([]);
 
   // search states
@@ -30,6 +32,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
   const [totalMaps, setTotalMaps] = useState(0); // total # of matching maps (from server)
   const mapsPerPage = 24;
 
+  // loading spinner
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -37,21 +40,19 @@ function Explore({ isCollapsed, setIsCollapsed }) {
 
   // --------------------------------
   // 1) GET TAGS FOR SIDEBAR
+  //    This endpoint returns all distinct tags from the DB.
   useEffect(() => {
-    const fetchAllMaps = async () => {
+    const fetchTags = async () => {
       try {
-        const res = await axios.get('https://map-in-color.onrender.com/api/explore', {
-          // For a small side query, just limit=50 or 100 is probably fine
-          params: { limit: 100 },
-        });
-        setAllMapsForTags(res.data.maps || res.data); 
-        // If your server returns {maps, total}, you want "res.data.maps"
-        // If your server returns an array directly, keep "res.data"
+        // new endpoint
+        const res = await axios.get('https://map-in-color.onrender.com/api/explore/tags');
+        // 'res.data' is an array of distinct tags
+        setAllMapsForTags(res.data);
       } catch (error) {
-        console.error('Error fetching all maps for tags:', error);
+        console.error('Error fetching distinct tags:', error);
       }
     };
-    fetchAllMaps();
+    fetchTags();
   }, []);
 
   // --------------------------------
@@ -82,6 +83,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
   const fetchMaps = async () => {
     setLoading(true);
     try {
+      // Build query params for the /explore route
       const params = {
         sort,
         page,
@@ -124,14 +126,15 @@ function Explore({ isCollapsed, setIsCollapsed }) {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSearchApplied(searchInput);
+
     // Reset to page 1
-    // We also want to reflect in the URL? Up to you:
     const params = new URLSearchParams(location.search);
     params.delete('page'); // back to 1
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   const handleTagChange = (tag) => {
+    // Toggle the tag in selectedTags
     let newSelected = [];
     if (selectedTags.includes(tag)) {
       newSelected = selectedTags.filter(t => t !== tag);
@@ -177,16 +180,19 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // --------------------------------
   // Pagination
   const totalPages = Math.ceil(totalMaps / mapsPerPage);
 
   const handlePageChange = (newPage) => {
-    // If newPage is the same as current, do nothing
     if (newPage === page) return;
 
+    // Show spinner immediately
+    setLoading(true);
+
+    // Update the page in the URL
     const params = new URLSearchParams(location.search);
     params.set('page', newPage.toString());
-    // preserve the other params (tags, search, sort in the URL)
     navigate(`?${params.toString()}`, { replace: true });
 
     // Scroll to top
@@ -195,16 +201,21 @@ function Explore({ isCollapsed, setIsCollapsed }) {
 
   // --------------------------------
   // TAG CLOUD
+  // allMapsForTags is an array of tags if the server returns distinct tags
+  // but if you want to show counts, you can do a quick pass here:
   const tagCounts = {};
-  allMapsForTags.forEach((m) => {
-    if (Array.isArray(m.tags)) {
-      m.tags.forEach((tg) => {
-        tg = tg.toLowerCase();
-        if (!tagCounts[tg]) tagCounts[tg] = 0;
-        tagCounts[tg]++;
-      });
+  // If "allMapsForTags" is an array of strings (the distinct tags themselves),
+  // you wouldn't need a forEach. But if you're storing them as objects or something,
+  // adapt as needed. Suppose we do just an array of raw strings:
+  allMapsForTags.forEach((t) => {
+    const lower = t.toLowerCase();
+    if (!tagCounts[lower]) {
+      tagCounts[lower] = 0;
     }
+    tagCounts[lower]++;
   });
+
+  // Sort them by descending count
   const sortedTags = Object.keys(tagCounts).sort(
     (a, b) => tagCounts[b] - tagCounts[a]
   );
@@ -427,6 +438,8 @@ function Explore({ isCollapsed, setIsCollapsed }) {
             <div className={styles.tagsSidebar}>
               <h2>Filter by Tags</h2>
               <div className={styles.tagsList}>
+                {/* If you want to show counts: sortedTags is an array of tags 
+                    we can do tagCounts[tag] as well */}
                 {sortedTags.map((tag) => (
                   <label key={tag} className={styles.tagCheckbox}>
                     <input
