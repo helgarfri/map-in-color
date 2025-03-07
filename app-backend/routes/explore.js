@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
 // NEW /explore/tags route (returns ALL distinct tags)
 router.get('/tags', async (req, res) => {
   try {
-    // Just select the 'tags' column from all public maps
+    // Select all tags from all public maps
     const { data, error } = await supabaseAdmin
       .from('maps')
       .select('tags')
@@ -95,24 +95,34 @@ router.get('/tags', async (req, res) => {
       return res.status(500).json({ message: 'Server error' });
     }
 
-    // data is an array of rows like [{ tags: [..., ...] }, { tags: [...], ...}, ...]
-    // Flatten them into a single array of distinct tags
-    const allTagsSet = new Set();
+    // We'll build an object: { tagName: count }
+    const tagCounts = {};
+
     data.forEach((row) => {
       if (Array.isArray(row.tags)) {
-        row.tags.forEach((t) => {
-          allTagsSet.add(t.toLowerCase());
+        row.tags.forEach((tag) => {
+          const lower = tag.toLowerCase();
+          if (!tagCounts[lower]) {
+            tagCounts[lower] = 0;
+          }
+          tagCounts[lower]++;
         });
       }
     });
 
-    // Convert Set -> Array
-    const distinctTags = Array.from(allTagsSet);
+    // Convert that object into an array of { tag, count }
+    const results = Object.entries(tagCounts).map(([tag, count]) => ({
+      tag,
+      count,
+    }));
 
-    res.json(distinctTags);
+    // Optionally, sort them descending by count here on the server
+    results.sort((a, b) => b.count - a.count);
+
+    return res.json(results);
   } catch (err) {
     console.error('Error in /explore/tags route:', err);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 

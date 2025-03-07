@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import styles from './Explore.module.css';
@@ -15,13 +15,13 @@ function Explore({ isCollapsed, setIsCollapsed }) {
   // The slice of data for the current page
   const [maps, setMaps] = useState([]);
 
-  // For the tag cloud in the sidebar
-  // (fetched from /explore/tags, an array of all distinct tags)
+  // For the tag cloud in the sidebar (fetched from /explore/tags)
+  // NOW it's an array of objects: [ { tag: "gdp", count: 12 }, { tag: "hdi", count: 5 }, ... ]
   const [allMapsForTags, setAllMapsForTags] = useState([]);
 
-  // search states
-  const [searchInput, setSearchInput] = useState('');
+  // We only store the final applied search (uncontrolled input)
   const [searchApplied, setSearchApplied] = useState('');
+  const searchRef = useRef(null); // for the <input>
 
   // sorting & filtering
   const [sort, setSort] = useState('newest');
@@ -39,14 +39,12 @@ function Explore({ isCollapsed, setIsCollapsed }) {
   const location = useLocation();
 
   // --------------------------------
-  // 1) GET TAGS FOR SIDEBAR
-  //    This endpoint returns all distinct tags from the DB.
+  // 1) GET TAGS FOR SIDEBAR (server now returns { tag, count } objects)
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        // new endpoint
         const res = await axios.get('https://map-in-color.onrender.com/api/explore/tags');
-        // 'res.data' is an array of distinct tags
+        // 'res.data' is an array of { tag, count }
         setAllMapsForTags(res.data);
       } catch (error) {
         console.error('Error fetching distinct tags:', error);
@@ -63,7 +61,10 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     // Tags
     const urlTags = params.get('tags');
     if (urlTags) {
-      const splitTags = urlTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+      const splitTags = urlTags
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
       setSelectedTags(splitTags);
     } else {
       setSelectedTags([]);
@@ -119,25 +120,27 @@ function Explore({ isCollapsed, setIsCollapsed }) {
 
   // --------------------------------
   // 5) HANDLERS
-  const handleSearchChange = (e) => {
-    setSearchInput(e.target.value);
-  };
 
+  // A) The user presses "Search" or hits Enter:
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSearchApplied(searchInput);
+
+    // Read from the ref (uncontrolled input)
+    const typedValue = searchRef.current.value;
+    setSearchApplied(typedValue);
 
     // Reset to page 1
     const params = new URLSearchParams(location.search);
-    params.delete('page'); // back to 1
+    params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // B) Toggling tags
   const handleTagChange = (tag) => {
     // Toggle the tag in selectedTags
     let newSelected = [];
     if (selectedTags.includes(tag)) {
-      newSelected = selectedTags.filter(t => t !== tag);
+      newSelected = selectedTags.filter((t) => t !== tag);
     } else {
       newSelected = [...selectedTags, tag];
     }
@@ -153,6 +156,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // C) Changing sort
   const handleSortChange = (newSort) => {
     setSort(newSort);
     // Reset page to 1
@@ -161,6 +165,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // D) Reset all tags
   const handleResetTags = () => {
     const params = new URLSearchParams(location.search);
     params.delete('tags');
@@ -168,8 +173,9 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
+  // E) Remove a single selected tag
   const handleRemoveSelectedTag = (tagToRemove) => {
-    const newSelected = selectedTags.filter(t => t !== tagToRemove);
+    const newSelected = selectedTags.filter((t) => t !== tagToRemove);
     const params = new URLSearchParams(location.search);
     if (newSelected.length) {
       params.set('tags', newSelected.join(','));
@@ -180,8 +186,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
-  // --------------------------------
-  // Pagination
+  // F) Pagination
   const totalPages = Math.ceil(totalMaps / mapsPerPage);
 
   const handlePageChange = (newPage) => {
@@ -190,7 +195,7 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     // Show spinner immediately
     setLoading(true);
 
-    // Update the page in the URL
+    // Update page in URL
     const params = new URLSearchParams(location.search);
     params.set('page', newPage.toString());
     navigate(`?${params.toString()}`, { replace: true });
@@ -198,27 +203,6 @@ function Explore({ isCollapsed, setIsCollapsed }) {
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // --------------------------------
-  // TAG CLOUD
-  // allMapsForTags is an array of tags if the server returns distinct tags
-  // but if you want to show counts, you can do a quick pass here:
-  const tagCounts = {};
-  // If "allMapsForTags" is an array of strings (the distinct tags themselves),
-  // you wouldn't need a forEach. But if you're storing them as objects or something,
-  // adapt as needed. Suppose we do just an array of raw strings:
-  allMapsForTags.forEach((t) => {
-    const lower = t.toLowerCase();
-    if (!tagCounts[lower]) {
-      tagCounts[lower] = 0;
-    }
-    tagCounts[lower]++;
-  });
-
-  // Sort them by descending count
-  const sortedTags = Object.keys(tagCounts).sort(
-    (a, b) => tagCounts[b] - tagCounts[a]
-  );
 
   // --------------------------------
   // RENDER
@@ -262,14 +246,13 @@ function Explore({ isCollapsed, setIsCollapsed }) {
               </button>
             </div>
 
-            {/* Search form */}
+            {/* Search form (UNCONTROLLED) */}
             <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
               <div className={styles.searchInputContainer}>
                 <input
                   type="text"
                   placeholder="Search by map title..."
-                  value={searchInput}
-                  onChange={handleSearchChange}
+                  ref={searchRef}
                 />
                 <button
                   type="submit"
@@ -438,19 +421,17 @@ function Explore({ isCollapsed, setIsCollapsed }) {
             <div className={styles.tagsSidebar}>
               <h2>Filter by Tags</h2>
               <div className={styles.tagsList}>
-                {/* If you want to show counts: sortedTags is an array of tags 
-                    we can do tagCounts[tag] as well */}
-                {sortedTags.map((tag) => (
-                  <label key={tag} className={styles.tagCheckbox}>
+                {allMapsForTags.map((item) => (
+                  <label key={item.tag} className={styles.tagCheckbox}>
                     <input
                       type="checkbox"
-                      checked={selectedTags.includes(tag)}
-                      onChange={() => handleTagChange(tag)}
+                      checked={selectedTags.includes(item.tag)}
+                      onChange={() => handleTagChange(item.tag)}
                     />
                     <span className={styles.checkboxTag}>
-                      {tag}{' '}
+                      {item.tag}{' '}
                       <span style={{ color: '#999', fontSize: '0.9em' }}>
-                        ({tagCounts[tag]})
+                        ({item.count})
                       </span>
                     </span>
                   </label>
