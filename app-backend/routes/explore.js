@@ -108,7 +108,7 @@ router.get('/tags', async (req, res) => {
     results.sort((a, b) => b.count - a.count);
 
     // Slice to top 50
-    results = results.slice(0, 50);
+    results = results.slice(0, 56);
 
     return res.json(results);
   } catch (err) {
