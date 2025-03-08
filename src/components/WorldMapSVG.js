@@ -3471,13 +3471,21 @@ const calculateFontSize = (title) => {
 	// Calculate font size for this label
 	const labelFontSize = calculateLegendFontSize(group.rangeLabel);
   
+	// Detect Chrome browser (adjust this regex if needed)
+	const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+	// Use a different offset for Chrome versus Firefox
+	const yOffset = isChrome 
+	  ? itemYPosition + labelFontSize / 3 -8 // remove the extra offset in Chrome
+	  : itemYPosition + labelFontSize / 3 + 2; // add 2 pixels for Firefox (or others)
+  
 	const textStyle = {
 	  x: "240",
-	  y: itemYPosition + labelFontSize / 3 + 2, // Adjust for alignment
+	  y: yOffset,
 	  fontSize: labelFontSize,
 	  fill: font_color,
 	  alignmentBaseline: "middle",
 	};
+  
 	return (
 	  <g key={group.id}>
 		<circle {...circleStyle}></circle>

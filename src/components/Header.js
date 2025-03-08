@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { FaBell, FaRegBell, FaPlus, FaBars } from 'react-icons/fa';
+import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   fetchNotifications,
@@ -115,13 +115,16 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
           </span>
         </button>
         <div className={styles.logoWrapper}>
-          <img
-            src="/assets/map-in-color-logo.png"
-            alt="App Logo"
-            className={styles.logo}
-          />
-          {title && <span className={styles.headerTitle}>{title}</span>}
-        </div>
+  <Link to="/dashboard" className={styles.logoLink}>
+    <img
+      src="/assets/map-in-color-logo.png"
+      alt="App Logo"
+      className={styles.logo}
+    />
+  </Link>
+  {title && <span className={styles.headerTitle}>{title}</span>}
+</div>
+
       </div>
 
       {/* RIGHT: Create map, notifications, profile */}
@@ -226,28 +229,58 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
           />
           {showProfileMenu && (
             <div className={styles.profileMenu}>
-              <ul>
+              {/* Mini Profile Header */}
+              <div className={styles.profileMenuHeader}>
+                <img
+                  src={profile_pictureUrl}
+                  alt="User Avatar"
+                  className={styles.profileMenuAvatar}
+                />
+                <div className={styles.profileMenuInfo}>
+                  <div className={styles.profileMenuName}>
+                    {profile?.first_name} {profile?.last_name}
+                  </div>
+                  <div className={styles.profileMenuUsername}>
+                    @{profile?.username}
+                  </div>
+                </div>
+              </div>
+              {/* Menu Items */}
+              <ul className={styles.profileMenuList}>
                 <li>
                   <Link
                     to={`/profile/${profile?.username || 'unknown'}`}
+                    className={styles.profileMenuItem}
                     onClick={() => setShowProfileMenu(false)}
                   >
-                    View Profile
+                    <FaUser className={styles.profileMenuIcon} />
+                    <span>View Profile</span>
                   </Link>
                 </li>
                 <li>
-                  <Link to="/settings" onClick={() => setShowProfileMenu(false)}>
-                    Settings
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    className={styles.logoutButton}
-                    onClick={handleLogout}
+                  <Link
+                    to="/settings"
+                    className={styles.profileMenuItem}
+                    onClick={() => setShowProfileMenu(false)}
                   >
-                    Logout
-                  </button>
+                    <FaCog className={styles.profileMenuIcon} />
+                    <span>Settings</span>
+                  </Link>
                 </li>
+                <li>
+            <Link
+              to="#"
+              className={styles.profileMenuItem}
+              onClick={(e) => {
+                e.preventDefault();
+                handleLogout();
+              }}
+            >
+              <FaSignOutAlt className={styles.profileMenuIcon} />
+              <span>Logout</span>
+            </Link>
+          </li>
+
               </ul>
             </div>
           )}

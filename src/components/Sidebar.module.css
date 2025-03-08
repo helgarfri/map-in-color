@@ -82,17 +82,24 @@ min-height: 100vh;  <-- remove this! */
 }
 
 .navLink:hover {
-  color: #1abc9c;
+  color: #55957b;
 }
 
+.navLink:hover .icon {
+  color: #55957b;
+}
+
+/* Active state: same as hover */
 .navLink.active {
-  color: #1abc9c;
+  color: #55957b;
   font-weight: bold;
 }
 
-.navlink.active .icon {
-  color: #1abc9c;
+.navLink.active .icon {
+  color: #55957b;
+  
 }
+
 
 .icon {
   margin-right: 15px;
@@ -107,7 +114,7 @@ min-height: 100vh;  <-- remove this! */
 
 /* Hover Effects */
 .navLink:hover .icon {
-  color: #1abc9c;
+  color: #55957b;
 }
 
 /* Collapsed Sidebar */
@@ -160,7 +167,7 @@ min-height: 100vh;  <-- remove this! */
 }
 
 .docsLink:hover {
-  color: #1abc9c;
+  color: #55957b;
   text-decoration: underline;
 }
 

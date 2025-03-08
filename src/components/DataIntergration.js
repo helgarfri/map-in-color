@@ -145,6 +145,12 @@ const map_themes = [
     font_color: 'white',
     unassigned_color: '#6B8E23',
   },
+  {
+    name: 'Map in Color theme',
+    ocean_color: '#80a0b0',
+    font_color: 'black',
+    unassigned_color: '#55957b',
+  }
 ];
 
 export default function DataIntegration({
@@ -229,7 +235,7 @@ export default function DataIntegration({
   const [tempYear, setTempYear] = useState('');
   const [tempUrl, setTempUrl] = useState('');
   const [tempNotes, setTempNotes] = useState('');
-
+  const [tempPublicator, setTempPublicator] = useState('');
 
   // If existingMapData is provided (editing)
   useEffect(() => {
@@ -799,6 +805,7 @@ function applyPalette(oldRanges, paletteColors) {
   function handleEditReference(ref) {
     setSelectedReference(ref);
     setTempSourceName(ref.sourceName);
+    setTempPublicator(ref.publicator || '');
     setTempYear(ref.publicationYear);
     setTempUrl(ref.url);
     setTempNotes(ref.notes || '');
@@ -808,6 +815,7 @@ function applyPalette(oldRanges, paletteColors) {
   function handleAddReference() {
     setSelectedReference(null);
     setTempSourceName('');
+    setTempPublicator('');
     setTempYear('');
     setTempUrl('');
     setTempNotes('');
@@ -828,6 +836,7 @@ function applyPalette(oldRanges, paletteColors) {
               ...r,
               sourceName: tempSourceName,
               publicationYear: tempYear,
+              publicator: tempPublicator,
               url: tempUrl,
               notes: tempNotes,
             }
@@ -839,6 +848,7 @@ function applyPalette(oldRanges, paletteColors) {
       const newRef = {
         id: Date.now(),  // or use a library like uuid
         sourceName: tempSourceName,
+        publicator: tempPublicator,
         publicationYear: tempYear,
         url: tempUrl,
         notes: tempNotes,
@@ -1614,6 +1624,16 @@ function applyPalette(oldRanges, paletteColors) {
           onChange={(e) => setTempYear(e.target.value)}
         />
       </div>
+
+      <div className={styles.modalFormRow}>
+           <label>Publisher:</label>
+           <input
+             type="text"
+             value={tempPublicator}
+             onChange={(e) => setTempPublicator(e.target.value)}
+           />
+        </div>
+
 
       <div className={styles.modalFormRow}>
         <label>URL or Link:</label>

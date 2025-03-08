@@ -1,7 +1,7 @@
-// src/components/MyMaps.js
+// src/components/YourMaps.js
 
 import React, { useState, useEffect, useContext } from 'react';
-import styles from './MyMaps.module.css';
+import styles from './YourMaps.module.css';
 import { useNavigate } from 'react-router-dom';
 import { fetchMaps, deleteMap, fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../api';
 import WorldMapSVG from './WorldMapSVG';
@@ -14,7 +14,7 @@ import { FaStar, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
 import LoadingSpinner from './LoadingSpinner';
 import { SidebarContext } from '../context/SidebarContext';
 
-export default function MyMaps() {
+export default function YourMaps() {
   const [isLoading, setIsLoading] = useState(true);
   const [maps, setMaps] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -150,7 +150,7 @@ export default function MyMaps() {
           onMarkAllAsRead={handleMarkAllAsRead}
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
-          title="My Maps"
+          title="Your Maps"
         />
 
         {/* Stats Bar */}

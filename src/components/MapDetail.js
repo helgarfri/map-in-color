@@ -527,51 +527,65 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 
   const isUserLoggedIn = !!authToken && !!profile;
   
-  
-  
   const handleDownload = async () => {
     try {
       const originalSvg = document.querySelector(`.${styles.mapDisplay} svg`);
       if (!originalSvg) return;
-
+  
       // Clone the SVG so we can manipulate it without affecting what's on screen
       const svgClone = originalSvg.cloneNode(true);
-
+  
       // (Optional) Override viewBox if you want a custom bounding box
       if (mapData?.selected_map === 'europe') {
         svgClone.setAttribute('viewBox', '-100 -6 780 530');
       } else if (mapData?.selected_map === 'usa') {
-        svgClone.setAttribute('viewBox', '-90 -10 1238 667');
+        svgClone.setAttribute('viewBox', '-90 -10 1238 610');
       } else {
         svgClone.setAttribute('viewBox', '0 0 2754 1398');
       }
-
-      // Remove certain elements from the cloned SVG (e.g., circles or overlays)
+  
+      // Remove certain elements from the cloned SVG
       const circles = svgClone.querySelectorAll('.circlexx, .subxx, .noxx, .unxx');
-      circles.forEach(el => el.remove());
-
+      circles.forEach((el) => el.remove());
+  
       // Inline all relevant styles
       const allElements = svgClone.querySelectorAll('*');
-      allElements.forEach(el => {
+      allElements.forEach((el) => {
         const computed = window.getComputedStyle(el);
-        if (['path','polygon','circle'].includes(el.tagName.toLowerCase())) {
+        if (['path', 'polygon', 'circle'].includes(el.tagName.toLowerCase())) {
           el.setAttribute('stroke', computed.stroke || '#4b4b4b');
           el.setAttribute('stroke-width', computed.strokeWidth || '0.5');
           if (computed.fill && computed.fill !== 'none') {
             el.setAttribute('fill', computed.fill);
           }
         }
-        // Make text bold inline
+        // For text elements, update the font family and font weight
         if (el.tagName.toLowerCase() === 'text') {
-          el.setAttribute('font-weight', 'bold');
+          el.setAttribute(
+            'font-family',
+            "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', " +
+              "'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif"
+          );
+          // If the text is inside a group with id "legend" (USA/Europe maps), set normal weight
+          if (el.closest('#legend')) {
+            el.setAttribute('font-weight', 'normal');
+          } else if (
+            el.parentElement &&
+            el.parentElement.querySelector('circle') &&
+            el.parentElement.querySelector('circle').getAttribute('cx') === '200'
+          ) {
+            el.setAttribute('font-weight', 'normal');
+          } else {
+            el.setAttribute('font-weight', 'bold');
+          }
         }
       });
-
+  
       // Convert cloned SVG to a data URL
       const svgData = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
-
+  
       // Create an <img> to draw onto a <canvas>
       const img = new Image();
       img.onload = async function () {
@@ -579,7 +593,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
         const forcedViewBox = svgClone.getAttribute('viewBox');
         const scaleFactor = 3;
         let width, height;
-
+  
         if (forcedViewBox) {
           const [vbX, vbY, vbWidth, vbHeight] = forcedViewBox.split(' ').map(parseFloat);
           width = vbWidth * scaleFactor;
@@ -590,60 +604,79 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           width = rect.width * scaleFactor;
           height = rect.height * scaleFactor;
         }
-
+  
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-
+  
+        // Draw the main map image
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         URL.revokeObjectURL(url);
+  
+        // We'll use the smaller side for consistent scaling (same approach as the logo)
+        const smallerSide = Math.min(width, height);
 
-        // Prepare watermark text
-        const first_name = mapData?.user?.first_name || '';
-        const last_name = mapData?.user?.last_name || '';
-        const creatorText = `Created by ${first_name} ${last_name} using mapincolor.com`;
-
-        // Add a semi-transparent logo
+        const padding = 20;
+  
+        // 1) Create the Image for the logo
         const logoImg = new Image();
-        logoImg.onload = function () {
-          const logoWidth = 300;
+        logoImg.onload = async function () {
+          // Draw the logo in bottom-left
+          const logoRatio = 0.1; // scale to 10% of smaller dimension
+          const logoWidth = smallerSide * logoRatio;
           const logoHeight = logoImg.height * (logoWidth / logoImg.width);
+  
           const padding = 20;
-
-          const logoX = padding;
-          const logoY = canvas.height - logoHeight - padding;
           ctx.save();
           ctx.globalAlpha = 0.5;
-          ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+          ctx.drawImage(
+            logoImg,
+            padding,
+            canvas.height - logoHeight - padding,
+            logoWidth,
+            logoHeight
+          );
           ctx.restore();
-
-          // Add text at bottom-right
-          ctx.font = `48px 'Arial', sans-serif`;
+  
+          // 2) Draw references in bottom-right
+          const textRatio = 0.025;
+          const fontSize = smallerSide * textRatio;
+          const lineHeight = fontSize * 1.3;
+  
+          ctx.fillStyle = mapData.font_color || '#333';
+          ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`;
           ctx.textAlign = 'right';
           ctx.textBaseline = 'bottom';
-
-          const metrics = ctx.measureText(creatorText);
-          const textWidth = metrics.width;
-          const textHeight = 48;
-          const backgroundPadding = 10;
-          const textX = canvas.width - padding;
-          const textY = canvas.height - padding;
-
-          // Dark background for better contrast
-          ctx.fillStyle = '#333';
-          ctx.fillRect(
-            textX - textWidth - backgroundPadding,
-            textY - textHeight - backgroundPadding,
-            textWidth + backgroundPadding * 2,
-            textHeight + backgroundPadding * 2
-          );
-
-          ctx.fillStyle = '#fff';
-          ctx.fillText(creatorText, textX, textY);
-
+  
+          const sources = mapData.sources || [];
+          if (sources.length > 0) {
+            // Build each reference line with the new format
+            const refStrings = sources.map((ref) => {
+              let line = ref.sourceName || 'Unknown';
+              if (ref.publicationYear) {
+                line += ` (${ref.publicationYear})`;
+              }
+              if (ref.publicator) {
+                line += `. ${ref.publicator}.`;
+              }
+             
+              return line;
+            });
+  
+            let textX = canvas.width - padding;
+            let textY = canvas.height - padding;
+  
+            // Draw from bottom to top
+            for (let i = refStrings.length - 1; i >= 0; i--) {
+              ctx.fillText(refStrings[i], textX, textY);
+              textY -= lineHeight;
+            }
+          }
+  
           // Convert canvas to Blob and trigger download
           canvas.toBlob(async (blob) => {
             // Immediately increment server-side download_count
@@ -655,7 +688,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             } catch (err) {
               console.error('Error incrementing download:', err);
             }
-
+  
             // Trigger browser download
             const link = document.createElement('a');
             link.download = `${mapData.title || 'map'}.png`;
@@ -665,10 +698,10 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             document.body.removeChild(link);
           }, 'image/png');
         };
-
+  
+        // If the logo fails to load
         logoImg.onerror = async function () {
-          console.error("Logo failed to load. Proceeding without logo.");
-
+          console.error('Logo failed to load. Proceeding without logo.');
           // Still increment downloads on server
           try {
             const res = await incrementMapDownloadCount(mapData.id);
@@ -678,30 +711,36 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           } catch (err) {
             console.error('Error incrementing download:', err);
           }
-
-          // If logo can’t load, just show text watermark
-          ctx.font = `36px 'Arial', sans-serif`;
+  
+          // Draw references anyway
+          const textRatio = 0.025;
+          const fontSize = smallerSide * textRatio;
+          const lineHeight = fontSize * 1.3;
+  
+          ctx.fillStyle = mapData.font_color || '#333';
+          ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`;
           ctx.textAlign = 'right';
           ctx.textBaseline = 'bottom';
-
-          const padding = 20;
-          const metrics = ctx.measureText(creatorText);
-          const textWidth = metrics.width;
-          const textHeight = 36;
-          const backgroundPadding = 10;
-          const textX = canvas.width - padding;
-          const textY = canvas.height - padding;
-
-          ctx.fillStyle = '#333';
-          ctx.fillRect(
-            textX - textWidth - backgroundPadding,
-            textY - textHeight - backgroundPadding,
-            textWidth + backgroundPadding * 2,
-            textHeight + backgroundPadding * 2
-          );
-          ctx.fillStyle = '#fff';
-          ctx.fillText(creatorText, textX, textY);
-
+  
+          const sources = mapData.sources || [];
+          if (sources.length > 0) {
+            const refStrings = sources.map((ref) => {
+              let line = ref.sourceName || 'Unknown';
+              if (ref.publicationYear) line += ` (${ref.publicationYear})`;
+              if (ref.publicator) line += `. ${ref.publicator}`;
+              if (ref.url) line += ` - ${ref.url}`;
+              return line;
+            });
+  
+            let textX = canvas.width - padding;
+            let textY = canvas.height - padding;
+            for (let i = refStrings.length - 1; i >= 0; i--) {
+              ctx.fillText(refStrings[i], textX, textY);
+              textY -= lineHeight;
+            }
+          }
+  
           // Trigger browser download
           canvas.toBlob((blob) => {
             const link = document.createElement('a');
@@ -712,13 +751,13 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             document.body.removeChild(link);
           }, 'image/png');
         };
-
+  
+        // Start loading the actual logo
         logoImg.src = '/assets/map-in-color-logo.png';
       };
       img.src = url;
-
     } catch (error) {
-      console.error("Error downloading image:", error);
+      console.error('Error downloading image:', error);
     }
   };
   
@@ -875,38 +914,40 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                 ))}
               </div>
               {mapData.sources && mapData.sources.length > 0 && (
-                <div className={styles.sources}>
-                  <h3>References</h3>
-                  <ol className={styles.referencesList}>
-                    {mapData.sources.map((ref, idx) => (
-                      <li key={idx} className={styles.referenceItem}>
-                        {/* Example: "United Nations (2023)" */}
-                        {ref.sourceName || 'Unknown'} 
-                        {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
+  <div className={styles.sources}>
+    <h3>References</h3>
+    <ol className={styles.referencesList}>
+      {mapData.sources.map((ref, idx) => (
+        <li key={idx} className={styles.referenceItem}>
+          {/* e.g. "United Nations (2023). WHO" */}
+          {ref.sourceName || 'Unknown'}
+          {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
+          {ref.publicator ? `. ${ref.publicator}` : ''}
 
-                        {/* If there's a URL, display it in brackets */}
-                        {ref.url && (
-                          <>
-                            {' '}
-                            - [
-                            <a href={ref.url} target="_blank" rel="noopener noreferrer">
-                              {ref.url}
-                            </a>
-                            ]
-                          </>
-                        )}
+          {/* If there's a URL, display it in brackets */}
+          {ref.url && (
+            <>
+              {' '}
+              - [
+              <a href={ref.url} target="_blank" rel="noopener noreferrer">
+                {ref.url}
+              </a>
+              ]
+            </>
+          )}
 
-                        {/* If there's notes, display them on a new line */}
-                        {ref.notes && (
-                          <div className={styles.referenceNotes}>
-                            Notes: {ref.notes}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
+          {/* If there's notes, display them on a new line */}
+          {ref.notes && (
+            <div className={styles.referenceNotes}>
+              Notes: {ref.notes}
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
+  </div>
+)}
+
 
             </div>
 {/* ---- Discussion Section ---- */}

@@ -49,7 +49,13 @@
 
 .logo {
   height: 40px;
+  transition: opacity 0.2s ease;
 }
+
+.logoLink:active .logo {
+  opacity: 0.6;
+}
+
 
 .headerRight {
   display: flex;
@@ -152,8 +158,12 @@
 .markAllAsRead {
   background: none;
   border: none;
-  color: #80a0b0;
+  color: #000;
   cursor: pointer;
+}
+
+.markAllAsRead:hover {
+  text-decoration: underline;
 }
 
 .notificationList {
@@ -207,7 +217,7 @@
 
 .senderName {
   font-weight: bold;
-  color: #55957b;
+  color: #333;
   text-decoration: none;
 }
 
@@ -217,7 +227,7 @@
 
 .mapTitle {
   font-weight: bold;
-  color: #55957b;
+  color: #333;
   text-decoration: none;
 }
 
@@ -231,7 +241,7 @@
 }
 
 .viewAllLink a {
-  color: #80a0b0;
+  color: #333;
   text-decoration: none;
 }
 
@@ -260,6 +270,11 @@
   object-fit: cover;
 }
 
+.headerProfilePicture:hover {
+  opacity: 0.8;
+  
+}
+
 .profileMenu {
   position: absolute;
   right: 0;
@@ -270,6 +285,8 @@
   min-width: 150px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+
+
 }
 
 .profileMenu ul {
@@ -308,3 +325,83 @@
   background-color: #f0f0f0;
 }
 
+/* New Profile Menu Styles */
+.profileMenu {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 300px; /* Wider than before */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 10px 0;
+}
+
+.profileMenuHeader {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.profileMenuAvatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.profileMenuInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileMenuName {
+  font-weight: bold;
+  color: #333;
+  font-size: 16px;
+}
+
+.profileMenuUsername {
+  color: #888;
+  font-size: 14px;
+}
+
+.profileMenuList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profileMenuItem {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.profileMenuItem:hover {
+  background-color: #f0f0f0;
+}
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Adjust the width/height to match the text line-height if needed */
+  width: 20px;
+  margin-right: 10px;
+}
+/* Adjust the icon so it aligns perfectly with the text */
+.profileMenuIcon {
+  font-size: 16px;
+  line-height: 1; /* ensures the icon isn’t offset */
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px; 
+}

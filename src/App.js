@@ -8,7 +8,7 @@ import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import EditMap from './components/EditMap';
-import MyMaps from './components/MyMaps';
+import YourMaps from './components/YourMaps';
 
 import PrivateRoute from './components/PrivateRoute';
 
@@ -95,10 +95,10 @@ function App() {
           />} />
 
         <Route
-          path="/my-maps"
+          path="/your-maps"
           element={
             <PrivateRoute >
-              <MyMaps
+              <YourMaps
                 
                 
                 isCollapsed={isCollapsed}

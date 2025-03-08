@@ -122,7 +122,6 @@ export default function FullScreenMap({ mapData, toggleFullScreen }) {
             data={mapData.data}
             selected_map={mapData.selected_map}
             font_color={mapData.font_color}
-            show_top_high_values={mapData.show_top_high_values}
             top_low_values={mapData.top_low_values}
             isLargeMap={true}
             viewBox={viewBox}
@@ -140,7 +139,6 @@ export default function FullScreenMap({ mapData, toggleFullScreen }) {
             data={mapData.data}
             selected_map={mapData.selected_map}
             font_color={mapData.font_color}
-            show_top_high_values={mapData.show_top_high_values}
             top_low_values={mapData.top_low_values}
             isLargeMap={true}
             viewBox={viewBox}
@@ -158,7 +156,6 @@ export default function FullScreenMap({ mapData, toggleFullScreen }) {
             data={mapData.data}
             selected_map={mapData.selected_map}
             font_color={mapData.font_color}
-            show_top_high_values={mapData.show_top_high_values}
             top_low_values={mapData.top_low_values}
             isLargeMap={true}
             viewBox={viewBox}

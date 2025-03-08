@@ -44,11 +44,8 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
-     
       {/* Main content area */}
       <div className={styles.contentWrapper}>
-    
-
         {/* Navigation Links */}
         <nav className={styles.nav}>
           <ul>
@@ -60,37 +57,79 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
             </li>
             <br />
             <li>
-              <NavLink to="/dashboard" className={styles.navLink}>
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.navLink} ${styles.active}`
+                    : styles.navLink
+                }
+              >
                 <FaHome className={styles.icon} />
                 <span>Dashboard</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/explore" className={styles.navLink}>
+              <NavLink
+                to="/explore"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.navLink} ${styles.active}`
+                    : styles.navLink
+                }
+              >
                 <FaSearch className={styles.icon} />
                 {!isCollapsed && <span>Explore</span>}
               </NavLink>
             </li>
             <li>
-              <NavLink to="/my-maps" className={styles.navLink}>
+              <NavLink
+                to="/your-maps"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.navLink} ${styles.active}`
+                    : styles.navLink
+                }
+              >
                 <FaMap className={styles.icon} />
-                <span>My Maps</span>
+                <span>Your Maps</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/starred-maps" className={styles.navLink}>
+              <NavLink
+                to="/starred-maps"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.navLink} ${styles.active}`
+                    : styles.navLink
+                }
+              >
                 <FaStar className={styles.icon} />
-                {!isCollapsed && 'Starred Maps'}
+                {!isCollapsed && <span>Starred Maps</span>}
               </NavLink>
             </li>
             <li>
-              <NavLink to="/notifications" className={styles.navLink}>
+              <NavLink
+                to="/notifications"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.navLink} ${styles.active}`
+                    : styles.navLink
+                }
+              >
                 <FaBell className={styles.icon} />
                 {!isCollapsed && <span>Notifications</span>}
               </NavLink>
             </li>
             <li>
-              <NavLink to="/settings" className={styles.navLink}>
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  isActive
+                    ? `${styles.navLink} ${styles.active}`
+                    : styles.navLink
+                }
+              >
                 <FaUserCog className={styles.icon} />
                 <span>Settings</span>
               </NavLink>
@@ -101,7 +140,6 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
 
       {/* Bottom section (Docs + Copyright) */}
       <div className={styles.bottomSection}>
-        
         {/* Docs Link */}
         <div className={styles.bottomDocsLink}>
           {!isCollapsed ? (
@@ -118,7 +156,6 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
             </NavLink>
           )}
         </div>
-
         {/* Copyright */}
         <div className={styles.bottomCopyright}>
           {!isCollapsed ? (
@@ -126,9 +163,7 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
               © 2025 Map in Color. All rights reserved.
             </span>
           ) : (
-            <span className={styles.copyright}>
-              © 2025
-            </span>
+            <span className={styles.copyright}>© 2025</span>
           )}
         </div>
       </div>

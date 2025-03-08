@@ -25,7 +25,7 @@
 .mapDisplay {
   position: relative;
   overflow: hidden;
-  border: 2px solid #ccc;
+
   background-color: #f7f7f7;
   width: 100%;
   margin: 0 auto;
