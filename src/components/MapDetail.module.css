@@ -3,6 +3,9 @@
 /* Map Detail Container */
 .mapDetailContainer {
   display: flex;
+  margin-top: 60px;
+  background-color: #f7f7f7;
+  min-height: 1000px;
 }
 
 /* Map Detail Content */
@@ -12,7 +15,6 @@
   margin-left: 250px; /* Adjust as needed */
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s ease;
 }
 
 .contentCollapsed {
@@ -24,7 +26,7 @@
   position: relative;
   overflow: hidden;
   border: 2px solid #ccc;
-  background-color: #333;
+  background-color: #f7f7f7;
   width: 100%;
   margin: 0 auto;
 }

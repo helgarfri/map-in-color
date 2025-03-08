@@ -44,25 +44,10 @@ function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
-      {/* Toggle Button */}
-      <button
-        className={styles.toggleButton}
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-      </button>
-
+     
       {/* Main content area */}
       <div className={styles.contentWrapper}>
-        {/* Logo Section */}
-        <div className={styles.logoSection}>
-          <img
-            alt="Map in Color Logo"
-            src="/assets/map-in-color-logo.png"
-            className={styles.logo}
-          />
-          <span className={styles.appName}>Map in Color</span>
-        </div>
+    
 
         {/* Navigation Links */}
         <nav className={styles.nav}>

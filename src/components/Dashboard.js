@@ -32,10 +32,12 @@ import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 
+import { SidebarContext } from '../context/SidebarContext';
+
 // CSS
 import styles from './Dashboard.module.css';
 
-export default function Dashboard({ isCollapsed, setIsCollapsed }) {
+export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useContext(UserContext);
 
@@ -47,6 +49,8 @@ export default function Dashboard({ isCollapsed, setIsCollapsed }) {
   // For deleting a map
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
   // ----------------------
   // Basic Stats
@@ -384,6 +388,8 @@ const userAvatarUrl = user?.profile_picture
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={() => {}}
           profile_picture={profile?.profile_picture}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
         />
   
         {isLoading ? (

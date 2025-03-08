@@ -1,6 +1,6 @@
 // src/components/ProfileSettings.js
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styles from './ProfileSettings.module.css';
 import { fetchUserProfile, updateUserProfile } from '../api';
 import { useNavigate } from 'react-router-dom';
@@ -11,12 +11,15 @@ import countries from '../data/countries';
 import { FaPencilAlt, FaLock, FaHeartBroken } from 'react-icons/fa';
 import { format } from 'date-fns';
 import Cropper from 'react-easy-crop';
+import { SidebarContext } from '../context/SidebarContext';
 
-export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
+export default function ProfileSettings() {
   const [activeTab, setActiveTab] = useState('account');
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState('');
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+
 
   const [formData, setFormData] = useState({
     username: '',
@@ -246,7 +249,11 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
       {/* Always render Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-        <Header title="Settings" />
+        <Header
+         isCollapsed={isCollapsed}
+         setIsCollapsed={setIsCollapsed}
+         title="Settings"
+        />
         {loadingProfile ? (
           <LoadingSpinner />
         ) : errorProfile ? (

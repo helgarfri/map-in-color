@@ -27,8 +27,9 @@ import EuropeSVG from './EuropeSVG';
 import { formatDistanceToNow } from 'date-fns';
 import LoadingSpinner from './LoadingSpinner';
 import styles from './ProfilePage.module.css';
+import { SidebarContext } from '../context/SidebarContext';
 
-export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
+export default function ProfilePage() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { profile: currentUserProfile } = useContext(UserContext);
@@ -52,7 +53,7 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
   // Sorting
   const [sortMapsBy, setSortMapsBy] = useState('newest');
   const [sortStarredBy, setSortStarredBy] = useState('newest');
-
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const isMyProfile =
     currentUserProfile && currentUserProfile.username === profile?.username;
 
@@ -221,7 +222,11 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-          <Header title=""/>
+          <Header
+          
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          />
           <div className={styles.loadingContainer}>
             <LoadingSpinner />
           </div>
@@ -235,7 +240,11 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-          <Header title="Profile" />
+          <Header
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title={profile.username}
+          />
           <div className={styles.error}>Profile not found.</div>
         </div>
       </div>
@@ -246,7 +255,11 @@ export default function ProfilePage({ isCollapsed, setIsCollapsed }) {
     <div className={styles.profilePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-        <Header title={profile.username} />
+        <Header
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        title={profile.username}
+        />
         <div className={styles.mainContainer}>
                 <div className={styles.leftColumn}>
                 <div className={styles.profileInfoBox}>

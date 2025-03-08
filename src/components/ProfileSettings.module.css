@@ -4,6 +4,9 @@
   display: flex;
   min-height: 100vh;
   color: black;
+  margin-top:60px;
+  background-color: #f7f7f7;
+
 }
 
 .profileContent {

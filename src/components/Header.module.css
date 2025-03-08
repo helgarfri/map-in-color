@@ -1,23 +1,60 @@
 /* src/components/Header.module.css */
 .header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  justify-content: space-between;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999; 
+ 
+
+  background: #fff;
+  height: 60px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
 
 .headerLeft {
-  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 30px;
 }
 
-.title {
-  margin: 0;
-  font-size: 28px;
+.headerTitle {
+  margin-left: 10px;
+  font-weight: bold;
+  font-size: 18px; /* Adjust size as needed */
+  color: #333;
+}
+
+
+.hamburgerButton {
+  display: flex;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 2px 0px 0px 20px;
+ 
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 40px;
 }
 
 .headerRight {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .createMapButton {
@@ -54,7 +91,27 @@
   cursor: pointer;
   position: relative;
   display: flex;
+  color: #333;
+  padding-right: 10px;
 }
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; /* Adjust as needed */
+  height: 32px; /* Adjust as needed */
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+/* Apply hover on the icon container only */
+.hamburgerButton:hover .iconWrapper,
+.notificationBell:hover .iconWrapper {
+  background-color: #d6d6d6;
+}
+
+
 
 .unreadBadge {
   position: absolute;
@@ -65,6 +122,8 @@
   border-radius: 50%;
   padding: 2px 6px;
   font-size: 12px;
+  margin-right: 8px;
+  
 }
 
 .notificationPopout {
@@ -189,7 +248,8 @@
 /* Profile Picture and Dropdown Menu Styles */
 .profileWrapper {
   position: relative;
-  margin-left: 15px;
+  padding: 0px 30px 0px 10px;
+
 }
 
 .headerProfilePicture {
@@ -247,3 +307,4 @@
 .logoutButton:hover {
   background-color: #f0f0f0;
 }
+

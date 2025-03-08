@@ -28,9 +28,9 @@ import countries from '../countries.json';
 import Header from './Header'; 
 import LoadingSpinner from './LoadingSpinner'; 
 import { FaDownload } from 'react-icons/fa'; // icon for download
+import { SidebarContext } from '../context/SidebarContext';
 
-
-export default function MapDetail({ isCollapsed, setIsCollapsed }) {
+export default function MapDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -51,6 +51,7 @@ export default function MapDetail({ isCollapsed, setIsCollapsed }) {
   const [download_count, setDownloadCount] = useState(0);
 
   const [isPostingComment, setIsPostingComment] = useState(false);
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
 
   const { authToken, profile } = useContext(UserContext);
@@ -459,7 +460,6 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           }`}
         >
           <Header
-            title=""
             notifications={notifications.slice(0, 6)}
             onNotificationClick={handleNotificationClick}
             onMarkAllAsRead={handleMarkAllAsRead}
@@ -734,11 +734,13 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 
       <div className={`${styles.mapDetailContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header
-          title={`${mapData?.user?.username}'s map`}
+          title={`${mapData?.user?.username} / ${mapData.title || 'Untitled Map'}`}
           notifications={notifications.slice(0, 6)}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={handleMarkAllAsRead}
           profile_picture={profile?.profile_picture}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
         />
 
 

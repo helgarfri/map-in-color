@@ -31,11 +31,14 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import Explore from './components/Explore';
 
+import { SidebarProvider } from './context/SidebarContext';
+
 library.add(fas);
 
 function App() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   return (
+    <SidebarProvider>
     <UserProvider>
     <Router>
       <Routes>
@@ -181,6 +184,7 @@ function App() {
 
     </Router>
     </UserProvider>
+    </SidebarProvider>
   );
 }
 

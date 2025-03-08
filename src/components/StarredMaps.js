@@ -17,14 +17,16 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import { UserContext } from '../context/UserContext';
 import LoadingSpinner from './LoadingSpinner';
+import { SidebarContext } from '../context/SidebarContext';
 
-export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
+export default function StarredMaps() {
   const [maps, setMaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
   const { profile } = useContext(UserContext);
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
   useEffect(() => {
     const getStarredMaps = async () => {
@@ -114,10 +116,12 @@ export default function StarredMaps({ isCollapsed, setIsCollapsed }) {
         }`}
       >
         <Header
-          title="Starred Maps"
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={handleMarkAllAsRead}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title="Starred Maps"
         />
 
         {loading ? (

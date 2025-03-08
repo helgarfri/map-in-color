@@ -14,15 +14,17 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import { UserContext } from '../context/UserContext';
 import LoadingSpinner from './LoadingSpinner';
+import { SidebarContext } from '../context/SidebarContext';
 
 // Icons
 import { FaStar, FaComment, FaReply, FaThumbsUp, FaCheck, FaTrash } from 'react-icons/fa';
 
-export default function NotificationList({ isCollapsed, setIsCollapsed }) {
+export default function NotificationList() {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { profile } = useContext(UserContext);
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
   useEffect(() => {
     const getNotifications = async () => {
@@ -144,10 +146,12 @@ export default function NotificationList({ isCollapsed, setIsCollapsed }) {
       >
         {/* Header with "mark all as read" */}
         <Header
-          title="Notifications"
           notifications={notifications.slice(0, 6)}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={handleMarkAllAsRead}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title="Notifications"
         />
 
         {/* If loading, show spinner; otherwise show notifications list */}

@@ -3,6 +3,11 @@
 /* Container */
 .profilePageContainer {
   display: flex;
+  margin-top: 60px;
+  background-color: #f7f7f7;
+  min-height: 1000px;
+
+  
 }
 
 /* Main content (unchanged width) */
@@ -10,7 +15,6 @@
   flex: 1;
   padding: 20px;
   margin-left: 250px;
-  transition: margin-left 0.3s ease;
 }
 
 .contentCollapsed {
@@ -22,7 +26,7 @@
   display: flex;
   gap: 20px;
   margin: 20px auto;
-  width: 80%;
+  width: 90%;
 
 }
 
@@ -32,7 +36,7 @@
 }
 
 .profileInfoBox {
-  background-color: #f8f8f8; /* Light background to stand out */
+  background-color: #fff; /* Light background to stand out */
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);

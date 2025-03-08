@@ -1,44 +1,30 @@
 /* src/components/Sidebar.module.css */
 
-/* Sidebar Container */
 .sidebar {
-  width: 250px;
-  background-color: #333;
-  color: #fff;
-  padding: 20px;
-  min-height: 100vh;
-  box-sizing: border-box;
   position: fixed;
-  text-align: left;
-  transition: width 0.3s ease;
-
-  /* Flexbox properties */
+  top: 60px;                  /* push below the fixed header */
+  left: 0;
+  width: 250px;
+  height: calc(100% - 60px);  /* fill remaining viewport height */
+  overflow-y: auto;           /* allow scroll if content is longer */
+  background-color: #fff;
+  color: #333;
+  padding: 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
+/* Remove or comment out min-height: 100vh because we now use calc(100% - 60px)
+min-height: 100vh;  <-- remove this! */
 
 /* Content Wrapper */
 .contentWrapper {
   flex-grow: 1;
 }
 
-.logo {
-  height: 40px;
-  margin: 10px 0px 10px 0px;
-}
 
-.logoSection{
-  display: flex;
-  align-items: center;
-  margin-bottom: 40px;
-}
-
-.appName {
-  font-size: 22px;
-  margin-left: 10px;
-  font-weight: 600;
-}
 
 /* Profile Section */
 .profileSection {
@@ -47,7 +33,7 @@
   padding: 10px 0;
   cursor: pointer;
   text-decoration: none;
-  color: #fff;
+  color: #333;
 }
 
 
@@ -86,7 +72,7 @@
 
 .navLink {
   all: unset;
-  color: #fff;
+  color: #333;
   text-decoration: none;
   font-size: 1rem;
   display: flex;
@@ -102,6 +88,10 @@
 .navLink.active {
   color: #1abc9c;
   font-weight: bold;
+}
+
+.navlink.active .icon {
+  color: #1abc9c;
 }
 
 .icon {
@@ -134,34 +124,6 @@
 }
 
 
-/* Toggle Button */
-.toggleButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.5rem;
-  cursor: pointer;
-  margin-bottom: 20px;
-  position: absolute;
-  top: 80px;
-  right: -20px;
-  background-color: #333;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-}
-
-.toggleButton:hover {
-  background-color: #444;
-}
-
-.collapsed .toggleButton {
-  right: -20px;
-}
 
 .collapsed .username,
 .collapsed .navLink span {
@@ -188,12 +150,12 @@
 }
 
 .docsSentence {
-  color: #fff;
+  color: #333;
   font-size: 0.9rem;
 }
 
 .docsLink {
-  color: #fff;
+  color: #333;
   text-decoration: underline;
 }
 

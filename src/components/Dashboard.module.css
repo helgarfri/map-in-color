@@ -5,13 +5,13 @@
   display: flex;
   min-height: 100vh;
   background-color: #f7f7f7;
+  margin-top:  60px;
 
 }
 
 /* The main content area (beside your global Sidebar component) */
 .dashboardContent {
   flex: 1;
-  transition: margin-left 0.3s ease;
   padding: 20px;
   margin-left: 250px; /* Adjust for your global sidebar’s expanded width */
 }

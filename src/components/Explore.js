@@ -1,6 +1,6 @@
 // src/components/Explore.js
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import styles from './Explore.module.css';
@@ -13,7 +13,9 @@ import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 import LoadingSpinner from './LoadingSpinner';
 
-function Explore({ isCollapsed, setIsCollapsed }) {
+import { SidebarContext } from '../context/SidebarContext';
+
+function Explore() {
   // Maps & tags
   const [maps, setMaps] = useState([]);
   const [allMapsForTags, setAllMapsForTags] = useState([]);
@@ -36,6 +38,8 @@ function Explore({ isCollapsed, setIsCollapsed }) {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
   //-------------------------------------------
   // 1) Fetch top 50 tags
@@ -218,7 +222,11 @@ function Explore({ isCollapsed, setIsCollapsed }) {
           isCollapsed ? styles.collapsed : ''
         }`}
       >
-        <Header title="Explore" />
+        <Header
+         isCollapsed={isCollapsed}
+         setIsCollapsed={setIsCollapsed}
+         title="Explore"
+        />
 
         <div className={styles.exploreContent}>
           {/* Top Bar: Sort & Search */}

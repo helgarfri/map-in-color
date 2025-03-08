@@ -1,6 +1,6 @@
 // src/components/MyMaps.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styles from './MyMaps.module.css';
 import { useNavigate } from 'react-router-dom';
 import { fetchMaps, deleteMap, fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../api';
@@ -12,13 +12,15 @@ import Sidebar from './Sidebar';
 import { formatDistanceToNow } from 'date-fns';
 import { FaStar, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
 import LoadingSpinner from './LoadingSpinner';
+import { SidebarContext } from '../context/SidebarContext';
 
-export default function MyMaps({ isCollapsed, setIsCollapsed }) {
+export default function MyMaps() {
   const [isLoading, setIsLoading] = useState(true);
   const [maps, setMaps] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState(null);
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,10 +145,12 @@ export default function MyMaps({ isCollapsed, setIsCollapsed }) {
 
       <div className={`${styles.myMapsContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header
-          title="My Maps"
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
           onMarkAllAsRead={handleMarkAllAsRead}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title="My Maps"
         />
 
         {/* Stats Bar */}

@@ -1,8 +1,5 @@
-// src/components/Header.js
-
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import styles from './Header.module.css';
-import { FaBell, FaPlus } from 'react-icons/fa';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { FaBell, FaRegBell, FaPlus, FaBars } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   fetchNotifications,
@@ -13,22 +10,20 @@ import { formatDistanceToNow } from 'date-fns';
 import MapSelectionModal from './MapSelectionModal';
 import { UserContext } from '../context/UserContext';
 
-export default function Header({ title, userName }) {
+import styles from './Header.module.css';
+
+export default function Header({ isCollapsed, setIsCollapsed, title }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
 
-  // For creating a new map
   const [showMapModal, setShowMapModal] = useState(false);
-
-  // For profile menu
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
 
   const navigate = useNavigate();
   const { profile, setAuthToken } = useContext(UserContext);
 
-  // Fetch notifications on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,14 +36,12 @@ export default function Header({ title, userName }) {
     fetchData();
   }, []);
 
-  // Mark single notification as read + navigate
   const handleNotificationClick = async (notification) => {
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      // Safely navigate if there's a map_id
       if (notification.map_id) {
         navigate(`/map/${notification.map_id}`);
       }
@@ -57,17 +50,15 @@ export default function Header({ title, userName }) {
     }
   };
 
-  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
-      console.error('Error marking all notifications as read:', err);
+      console.error('Error marking all as read:', err);
     }
   };
 
-  // For toggling "Notifications" + "Profile Menu" and closing them on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -88,65 +79,69 @@ export default function Header({ title, userName }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Count unread notifications
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Create map button
   const handleCreateMap = () => {
     setShowMapModal(true);
   };
 
-  // If user selects a map in the modal
   const handleMapSelection = (selected_map) => {
     if (selected_map) {
       setShowMapModal(false);
       navigate('/create', { state: { selected_map } });
-    } else {
-      alert('Please select a map type.');
     }
   };
 
-  // Logout
   const handleLogout = () => {
     localStorage.removeItem('token');
     if (setAuthToken) setAuthToken(null);
     navigate('/login');
   };
 
-  // Build profile pic URL if user is logged in
   const profile_pictureUrl = profile?.profile_picture
-  ? profile.profile_picture
-  : '/default-profile-pic.jpg';
+    ? profile.profile_picture
+    : '/default-profile-pic.jpg';
 
   return (
     <header className={styles.header}>
-      {/* LEFT: Title */}
+      {/* LEFT: Hamburger + Logo + Title */}
       <div className={styles.headerLeft}>
-        <h1 className={styles.title}>
-          {title}
-          {userName && `, ${userName}!`}
-        </h1>
+        <button
+          className={styles.hamburgerButton}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          <span className={styles.iconWrapper}>
+            <FaBars />
+          </span>
+        </button>
+        <div className={styles.logoWrapper}>
+          <img
+            src="/assets/map-in-color-logo.png"
+            alt="App Logo"
+            className={styles.logo}
+          />
+          {title && <span className={styles.headerTitle}>{title}</span>}
+        </div>
       </div>
 
-      {/* RIGHT: Create Map, Notifications, Profile */}
+      {/* RIGHT: Create map, notifications, profile */}
       <div className={styles.headerRight}>
-        {/* Create New Map Button */}
         <button className={styles.createMapButton} onClick={handleCreateMap}>
-          <FaPlus className={styles.plusIcon} /> Create New Map
+          <FaPlus className={styles.plusIcon} />
+          <span>Create New Map</span>
         </button>
-
-        {/* Notification Bell + Popout */}
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button
             className={styles.notificationBell}
             onClick={() => setShowNotifications(!showNotifications)}
           >
-            <FaBell />
+            <span className={styles.iconWrapper}>
+              {showNotifications ? <FaBell /> : <FaRegBell />}
+            </span>
             {unreadCount > 0 && (
               <span className={styles.unreadBadge}>{unreadCount}</span>
             )}
           </button>
-
           {showNotifications && (
             <div className={styles.notificationPopout}>
               <div className={styles.notificationHeader}>
@@ -160,7 +155,6 @@ export default function Header({ title, userName }) {
                   </button>
                 )}
               </div>
-
               <ul className={styles.notificationList}>
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
@@ -172,24 +166,17 @@ export default function Header({ title, userName }) {
                       onClick={() => handleNotificationClick(notification)}
                     >
                       <div className={styles.notificationContentWrapper}>
-                        {/* Sender’s profile picture (use optional chaining) */}
                         <img
-                           src={
+                          src={
                             notification.Sender?.profile_picture
                               ? notification.Sender.profile_picture
                               : '/default-profile-pic.jpg'
                           }
-                          alt={`${
-                            notification.Sender?.first_name ||
-                            notification.Sender?.username ||
-                            'Unknown'
-                          }'s profile`}
+                          alt="Sender"
                           className={styles.profile_picture}
                         />
-
                         <div className={styles.notificationText}>
                           <p className={styles.notificationContent}>
-                            {/* Link to Sender’s profile (if available) */}
                             <Link
                               to={`/profile/${
                                 notification.Sender?.username || 'unknown'
@@ -206,9 +193,7 @@ export default function Header({ title, userName }) {
                           <p className={styles.notificationMeta}>
                             {formatDistanceToNow(
                               new Date(notification.created_at),
-                              {
-                                addSuffix: true,
-                              }
+                              { addSuffix: true }
                             )}
                           </p>
                         </div>
@@ -232,8 +217,6 @@ export default function Header({ title, userName }) {
             </div>
           )}
         </div>
-
-        {/* Profile Picture + Dropdown */}
         <div className={styles.profileWrapper} ref={profileMenuRef}>
           <img
             src={profile_pictureUrl}
@@ -271,7 +254,6 @@ export default function Header({ title, userName }) {
         </div>
       </div>
 
-      {/* Show modal for map creation */}
       {showMapModal && (
         <MapSelectionModal
           show={showMapModal}
@@ -283,15 +265,10 @@ export default function Header({ title, userName }) {
   );
 }
 
-/**
- * Returns a small JSX snippet describing the notification event
- * We use optional chaining for safety in case notification.Map is missing
- */
 function getNotificationMessage(notification) {
   const mapTitle = notification.Map?.title || 'Untitled Map';
   const mapId = notification.Map?.id;
 
-  // If map is missing, just say "the map"
   const mapLink = mapId ? (
     <Link
       to={`/map/${mapId}`}

@@ -4,15 +4,18 @@
   display: flex;
   min-height: 100vh;
   color: black;
+  margin-top: 60px;
+  background-color: #f7f7f7;
+
 }
 
 .mainContentWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s ease;
   margin-left: 250px; /* expanded sidebar width */
-  padding: 20px;
+  padding: 20px; 
+
 }
 
 .mainContentWrapper.collapsed {
@@ -138,7 +141,8 @@
 .selectedTagBox {
   display: flex;
   align-items: center;
-  background-color: #dadada;
+  background-color: #fff;
+  border: 1px solid #ccc;
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 0.9rem;
@@ -280,7 +284,7 @@
 .tagsSidebar {
   display: flex;
   flex-direction: column;
-  background-color: #f7f7f7;
+  background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 10px;

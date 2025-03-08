@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styles from "./DataIntergration.module.css";
 import countryCodes from '../countries.json';
 import usStatesCodes from '../usStates.json';
@@ -14,6 +14,8 @@ import Sidebar from "./Sidebar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLock, faCaretDown, faFileCsv } from '@fortawesome/free-solid-svg-icons';
 import Header from "./Header";
+
+import { SidebarContext } from "../context/SidebarContext";
 
 /** Color Palettes **/
 const themes = [
@@ -148,8 +150,7 @@ const map_themes = [
 export default function DataIntegration({
   existingMapData = null,
   isEditing = false,
-  isCollapsed,
-  setIsCollapsed
+
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -165,6 +166,7 @@ export default function DataIntegration({
   const [missingCountries, setMissingCountries] = useState([]);
   const [errors, setErrors] = useState([]);
   const [data, setData] = useState([]);
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const [file_stats, setFileStats] = useState({
     lowestValue: null,
     lowestCountry: '',
@@ -921,7 +923,10 @@ function applyPalette(oldRanges, paletteColors) {
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-        <Header title="Data Integration" />
+        <Header 
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        />
 
         <div className={styles.contentInner}>
 
