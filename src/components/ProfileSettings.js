@@ -1,9 +1,12 @@
+// src/components/ProfileSettings.js
+
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './ProfileSettings.module.css';
 import { fetchUserProfile, updateUserProfile } from '../api';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import LoadingSpinner from './LoadingSpinner'; // import spinner component
 import countries from '../data/countries';
 import { FaPencilAlt, FaLock, FaHeartBroken } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -31,7 +34,7 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Modals for country, gender, delete, and crop
+  // Modal states
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -62,15 +65,10 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
           gender: profileData.gender || '',
           date_of_birth: profileData.date_of_birth || '',
         });
-        // Show existing or default pic
-          // If profileData.profile_picture is already a full Supabase URL, just use it.
-      // Otherwise fallback.
-      const pictureUrl = profileData.profile_picture
-      ? profileData.profile_picture
-      : '/default-profile-pic.jpg';
-
-      setLocalProfilePictureUrl(pictureUrl);
-
+        const pictureUrl = profileData.profile_picture
+          ? profileData.profile_picture
+          : '/default-profile-pic.jpg';
+        setLocalProfilePictureUrl(pictureUrl);
       } catch (error) {
         console.error('Failed to fetch profile:', error);
         setErrorProfile('Failed to load profile.');
@@ -81,7 +79,7 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     fetchProfileData();
   }, []);
 
-  // Cropping states
+  // Crop states and functions
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -90,18 +88,16 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     setCroppedAreaPixels(croppedPixels);
   }, []);
 
-  // Helper to create an HTMLImageElement from a URL
   function createImage(url) {
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.addEventListener('load', () => resolve(image));
       image.addEventListener('error', (error) => reject(error));
-      image.setAttribute('crossOrigin', 'anonymous'); 
+      image.setAttribute('crossOrigin', 'anonymous');
       image.src = url;
     });
   }
 
-  // Convert the cropped area to a Blob
   async function getCroppedImg(imageSrc, pixelCrop) {
     const image = await createImage(imageSrc);
     const canvas = document.createElement('canvas');
@@ -134,40 +130,30 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
     });
   }
 
-  // Handle text field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle profile picture selection
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // If file is above 1MB, show error and do NOTHING else
     if (file.size > 1024 * 1024) {
       setError('Please upload an image less than 1 MB.');
       return;
     }
-
-    // File is valid size -> proceed
-    setError(''); 
+    setError('');
     setProfilePicture(file);
-
-    // Show local preview and open Crop Modal
     const previewUrl = URL.createObjectURL(file);
     setLocalProfilePictureUrl(previewUrl);
     setShowCropModal(true);
   };
 
-  // Called when user saves the crop
   const handleCropSave = async () => {
     try {
       const croppedBlob = await getCroppedImg(localProfilePictureUrl, croppedAreaPixels);
-      setProfilePicture(croppedBlob); 
+      setProfilePicture(croppedBlob);
       setShowCropModal(false);
-      // Show cropped preview
       const newPreviewUrl = URL.createObjectURL(croppedBlob);
       setLocalProfilePictureUrl(newPreviewUrl);
     } catch (err) {
@@ -175,33 +161,27 @@ export default function ProfileSettings({ isCollapsed, setIsCollapsed }) {
       setError('Failed to crop image. Please try again.');
     }
   };
-// Called if user cancels the crop
-const handleCropCancel = () => {
-  setProfilePicture(null);
 
-  if (profile?.profile_picture) {
-    // already a full Supabase link
-    setLocalProfilePictureUrl(profile.profile_picture);
-  } else {
-    setLocalProfilePictureUrl('/default-profile-pic.jpg');
-  }
+  const handleCropCancel = () => {
+    setProfilePicture(null);
+    if (profile?.profile_picture) {
+      setLocalProfilePictureUrl(profile.profile_picture);
+    } else {
+      setLocalProfilePictureUrl('/default-profile-pic.jpg');
+    }
+    setShowCropModal(false);
+    setError('');
+  };
 
-  setShowCropModal(false);
-  setError('');
-};
-
-  // For location (country) selection
   const handleSelectCountry = (country) => {
     setFormData({ ...formData, location: country });
     setShowCountryModal(false);
   };
 
-  // Submit changes
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('first_name', formData.first_name);
@@ -209,21 +189,14 @@ const handleCropCancel = () => {
       formDataToSend.append('location', formData.location);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('gender', formData.gender);
-
       if (!profile.date_of_birth && formData.date_of_birth) {
         formDataToSend.append('date_of_birth', formData.date_of_birth);
       }
-      // If we have a new cropped profile picture, append it
       if (profile_picture) {
         formDataToSend.append('profile_picture', profile_picture);
       }
-
       const res = await updateUserProfile(formDataToSend);
-console.log('updateUserProfile response:', res);
-const updatedProfile = res.data;
-console.log('updatedProfile:', updatedProfile);
-
-      // Update local states
+      const updatedProfile = res.data;
       setProfile(updatedProfile);
       setFormData({
         username: updatedProfile.username,
@@ -235,18 +208,11 @@ console.log('updatedProfile:', updatedProfile);
         gender: updatedProfile.gender || '',
         date_of_birth: updatedProfile.date_of_birth || '',
       });
-
-        // If the user updated their pic, updatedProfile.profile_picture
-        // is already the Supabase URL.
-        const pictureUrl = updatedProfile.profile_picture
-          ? updatedProfile.profile_picture
-          : '/default-profile-pic.jpg';
-
-        setLocalProfilePictureUrl(pictureUrl);
-
-
+      const pictureUrl = updatedProfile.profile_picture
+        ? updatedProfile.profile_picture
+        : '/default-profile-pic.jpg';
+      setLocalProfilePictureUrl(pictureUrl);
       setSuccess('Profile updated successfully!');
-      // Reset edit flags
       setEditFields({
         first_name: false,
         last_name: false,
@@ -259,7 +225,6 @@ console.log('updatedProfile:', updatedProfile);
     }
   };
 
-  // Account deletion flow
   const handleDeleteAccount = () => {
     setShowDeleteModal(true);
   };
@@ -267,20 +232,9 @@ console.log('updatedProfile:', updatedProfile);
     setShowDeleteModal(false);
     navigate('/delete-account');
   };
-
   const handleChangePassword = () => {
     navigate('/change-password');
   };
-
-  if (loadingProfile) {
-    return <div className={styles.loader}>Loading profile...</div>;
-  }
-  if (errorProfile) {
-    return <div className={styles.error}>{errorProfile}</div>;
-  }
-  if (!profile) {
-    return <div className={styles.error}>Profile data is not available.</div>;
-  }
 
   // Format date of birth to dd/mm/yyyy
   const formattedDOB = formData.date_of_birth
@@ -289,280 +243,285 @@ console.log('updatedProfile:', updatedProfile);
 
   return (
     <div className={styles.profileContainer}>
+      {/* Always render Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header title="Settings" />
-
-        {/* Tab navigation */}
-        <div className={styles.navigationTabs}>
-          <button
-            className={`${styles.navTab} ${activeTab === 'account' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('account')}
-          >
-            Account
-          </button>
-          <button
-            className={`${styles.navTab} ${activeTab === 'profile' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            Profile
-          </button>
-          <button
-            className={`${styles.navTab} ${activeTab === 'notifications' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('notifications')}
-          >
-            Notifications
-          </button>
-          <button
-            className={`${styles.navTab} ${activeTab === 'privacy' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('privacy')}
-          >
-            Privacy
-          </button>
-        </div>
-
-        {/* Success / Error messages */}
-        {success && <div className={styles.successBox}>{success}</div>}
-        {error && <div className={styles.errorBox}>{error}</div>}
-
-        <div className={styles.mainContent}>
-          <form onSubmit={handleSubmit} className={styles.profileForm}>
-            {/* ACCOUNT TAB */}
-            {activeTab === 'account' && (
-              <>
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Email:</label>
-                  <div className={styles.formField}>
-                    <div className={styles.editableValue}>
-                      <span className={styles.staticValue}>{formData.email}</span>
-                      <div className={styles.emptyIconSpace}></div>
+        {loadingProfile ? (
+          <LoadingSpinner />
+        ) : errorProfile ? (
+          <div className={styles.error}>{errorProfile}</div>
+        ) : (
+          <>
+            {/* Navigation Tabs */}
+            <div className={styles.navigationTabs}>
+              <button
+                className={`${styles.navTab} ${activeTab === 'account' ? styles.activeTab : ''}`}
+                onClick={() => setActiveTab('account')}
+              >
+                Account
+              </button>
+              <button
+                className={`${styles.navTab} ${activeTab === 'profile' ? styles.activeTab : ''}`}
+                onClick={() => setActiveTab('profile')}
+              >
+                Profile
+              </button>
+              <button
+                className={`${styles.navTab} ${activeTab === 'notifications' ? styles.activeTab : ''}`}
+                onClick={() => setActiveTab('notifications')}
+              >
+                Notifications
+              </button>
+              <button
+                className={`${styles.navTab} ${activeTab === 'privacy' ? styles.activeTab : ''}`}
+                onClick={() => setActiveTab('privacy')}
+              >
+                Privacy
+              </button>
+            </div>
+            {success && <div className={styles.successBox}>{success}</div>}
+            {error && <div className={styles.errorBox}>{error}</div>}
+            <div className={styles.mainContent}>
+              <form onSubmit={handleSubmit} className={styles.profileForm}>
+                {activeTab === 'account' && (
+                  <>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Email:</label>
+                      <div className={styles.formField}>
+                        <div className={styles.editableValue}>
+                          <span className={styles.staticValue}>{formData.email}</span>
+                          <div className={styles.emptyIconSpace}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Username:</label>
-                  <div className={styles.formField}>
-                    <div className={styles.editableValue}>
-                      <span className={styles.staticValue}>{formData.username}</span>
-                      <div className={styles.emptyIconSpace}></div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Username:</label>
+                      <div className={styles.formField}>
+                        <div className={styles.editableValue}>
+                          <span className={styles.staticValue}>{formData.username}</span>
+                          <div className={styles.emptyIconSpace}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Gender:</label>
-                  <div className={styles.formField}>
-                    <div className={styles.editableValue}>
-                      <span>{formData.gender || 'Not specified'}</span>
-                      <FaPencilAlt
-                        className={styles.editIcon}
-                        onClick={() => setShowGenderModal(true)}
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Gender:</label>
+                      <div className={styles.formField}>
+                        <div className={styles.editableValue}>
+                          <span>{formData.gender || 'Not specified'}</span>
+                          <FaPencilAlt
+                            className={styles.editIcon}
+                            onClick={() => setShowGenderModal(true)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {showGenderModal && (
+                      <GenderPickerModal
+                        selectedGender={formData.gender}
+                        onSelectGender={(gender) => {
+                          setFormData({ ...formData, gender });
+                          setShowGenderModal(false);
+                        }}
+                        onClose={() => setShowGenderModal(false)}
                       />
+                    )}
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Location:</label>
+                      <div className={styles.formField}>
+                        <div className={styles.editableValue}>
+                          <span>{formData.location || 'Not specified'}</span>
+                          <FaPencilAlt
+                            className={styles.editIcon}
+                            onClick={() => setShowCountryModal(true)}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                {showGenderModal && (
-                  <GenderPickerModal
-                    selectedGender={formData.gender}
-                    onSelectGender={(gender) => {
-                      setFormData({ ...formData, gender });
-                      setShowGenderModal(false);
-                    }}
-                    onClose={() => setShowGenderModal(false)}
-                  />
+                    {showCountryModal && (
+                      <CountryPickerModal
+                        onSelectCountry={handleSelectCountry}
+                        onClose={() => setShowCountryModal(false)}
+                      />
+                    )}
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Date of Birth:</label>
+                      <div className={styles.formField}>
+                        {profile.date_of_birth ? (
+                          <div className={styles.editableValue}>
+                            <span className={styles.staticValue}>{formattedDOB}</span>
+                            <div className={styles.emptyIconSpace}></div>
+                          </div>
+                        ) : editFields.date_of_birth ? (
+                          <input
+                            type="date"
+                            name="date_of_birth"
+                            value={formData.date_of_birth}
+                            onChange={handleChange}
+                          />
+                        ) : (
+                          <div className={styles.editableValue}>
+                            <span>{formattedDOB}</span>
+                            <FaPencilAlt
+                              className={styles.editIcon}
+                              onClick={() =>
+                                setEditFields({ ...editFields, date_of_birth: true })
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Password:</label>
+                      <div className={styles.formField}>
+                        <button
+                          type="button"
+                          className={styles.changeButton}
+                          onClick={handleChangePassword}
+                        >
+                          <FaLock className={styles.buttonIcon} />
+                          Change Password
+                        </button>
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}></label>
+                      <div className={styles.formField}>
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          onClick={handleDeleteAccount}
+                        >
+                          <FaHeartBroken className={styles.buttonIcon} />
+                          Delete Account
+                        </button>
+                      </div>
+                    </div>
+                  </>
                 )}
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Location:</label>
-                  <div className={styles.formField}>
-                    <div className={styles.editableValue}>
-                      <span>{formData.location || 'Not specified'}</span>
-                      <FaPencilAlt
-                        className={styles.editIcon}
-                        onClick={() => setShowCountryModal(true)}
-                      />
+                {activeTab === 'profile' && (
+                  <>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>First Name:</label>
+                      <div className={styles.formField}>
+                        {editFields.first_name ? (
+                          <input
+                            type="text"
+                            name="first_name"
+                            value={formData.first_name}
+                            onChange={handleChange}
+                          />
+                        ) : (
+                          <div className={styles.editableValue}>
+                            <span>{formData.first_name || 'Not specified'}</span>
+                            <FaPencilAlt
+                              className={styles.editIcon}
+                              onClick={() =>
+                                setEditFields({ ...editFields, first_name: true })
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-                {showCountryModal && (
-                  <CountryPickerModal
-                    onSelectCountry={handleSelectCountry}
-                    onClose={() => setShowCountryModal(false)}
-                  />
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Last Name:</label>
+                      <div className={styles.formField}>
+                        {editFields.last_name ? (
+                          <input
+                            type="text"
+                            name="last_name"
+                            value={formData.last_name}
+                            onChange={handleChange}
+                          />
+                        ) : (
+                          <div className={styles.editableValue}>
+                            <span>{formData.last_name || 'Not specified'}</span>
+                            <FaPencilAlt
+                              className={styles.editIcon}
+                              onClick={() =>
+                                setEditFields({ ...editFields, last_name: true })
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Profile Picture:</label>
+                      <div className={styles.formField}>
+                        <div className={styles.profile_pictureContainer}>
+                          {localProfilePictureUrl && (
+                            <img
+                              src={localProfilePictureUrl}
+                              alt="Profile"
+                              className={styles.profile_picturePreview}
+                            />
+                          )}
+                          <label
+                            htmlFor="profile_pictureInput"
+                            className={styles.profile_pictureEditIcon}
+                          >
+                            <FaPencilAlt />
+                          </label>
+                          <input
+                            type="file"
+                            id="profile_pictureInput"
+                            name="profile_picture"
+                            accept="image/*"
+                            onChange={handleProfilePictureChange}
+                            className={styles.profile_pictureInput}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel}>Description:</label>
+                      <div className={styles.formField}>
+                        {editFields.description ? (
+                          <textarea
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                          />
+                        ) : (
+                          <div className={styles.editableValue}>
+                            <span>{formData.description || 'Not specified'}</span>
+                            <FaPencilAlt
+                              className={styles.editIcon}
+                              onClick={() =>
+                                setEditFields({ ...editFields, description: true })
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Date of Birth:</label>
-                  <div className={styles.formField}>
-                    {profile.date_of_birth ? (
-                      <div className={styles.editableValue}>
-                        <span className={styles.staticValue}>{formattedDOB}</span>
-                        <div className={styles.emptyIconSpace}></div>
-                      </div>
-                    ) : editFields.date_of_birth ? (
-                      <input
-                        type="date"
-                        name="date_of_birth"
-                        value={formData.date_of_birth}
-                        onChange={handleChange}
-                      />
-                    ) : (
-                      <div className={styles.editableValue}>
-                        <span>{formattedDOB}</span>
-                        <FaPencilAlt
-                          className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, date_of_birth: true })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Password:</label>
-                  <div className={styles.formField}>
-                    <button
-                      type="button"
-                      className={styles.changeButton}
-                      onClick={handleChangePassword}
-                    >
-                      <FaLock className={styles.buttonIcon} />
-                      Change Password
-                    </button>
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}></label>
-                  <div className={styles.formField}>
-                    <button
-                      type="button"
-                      className={styles.deleteButton}
-                      onClick={handleDeleteAccount}
-                    >
-                      <FaHeartBroken className={styles.buttonIcon} />
-                      Delete Account
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* PROFILE TAB */}
-            {activeTab === 'profile' && (
-              <>
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>First Name:</label>
-                  <div className={styles.formField}>
-                    {editFields.first_name ? (
-                      <input
-                        type="text"
-                        name="first_name"
-                        value={formData.first_name}
-                        onChange={handleChange}
-                      />
-                    ) : (
-                      <div className={styles.editableValue}>
-                        <span>{formData.first_name || 'Not specified'}</span>
-                        <FaPencilAlt
-                          className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, first_name: true })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Last Name:</label>
-                  <div className={styles.formField}>
-                    {editFields.last_name ? (
-                      <input
-                        type="text"
-                        name="last_name"
-                        value={formData.last_name}
-                        onChange={handleChange}
-                      />
-                    ) : (
-                      <div className={styles.editableValue}>
-                        <span>{formData.last_name || 'Not specified'}</span>
-                        <FaPencilAlt
-                          className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, last_name: true })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Profile Picture:</label>
-                  <div className={styles.formField}>
-                    <div className={styles.profile_pictureContainer}>
-                      {localProfilePictureUrl && (
-                        <img
-                          src={localProfilePictureUrl}
-                          alt="Profile"
-                          className={styles.profile_picturePreview}
-                        />
-                      )}
-                      <label htmlFor="profile_pictureInput" className={styles.profile_pictureEditIcon}>
-                        <FaPencilAlt />
-                      </label>
-                      <input
-                        type="file"
-                        id="profile_pictureInput"
-                        name="profile_picture"
-                        accept="image/*"
-                        onChange={handleProfilePictureChange}
-                        className={styles.profile_pictureInput}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <label className={styles.formLabel}>Description:</label>
-                  <div className={styles.formField}>
-                    {editFields.description ? (
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                      />
-                    ) : (
-                      <div className={styles.editableValue}>
-                        <span>{formData.description || 'Not specified'}</span>
-                        <FaPencilAlt
-                          className={styles.editIcon}
-                          onClick={() => setEditFields({ ...editFields, description: true })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {activeTab === 'notifications' && (
-              <p>Notification settings are not implemented yet.</p>
-            )}
-            {activeTab === 'privacy' && <p>Privacy settings are not implemented yet.</p>}
-
-            <button type="submit" className={styles.saveButton}>
-              Save Changes
-            </button>
-          </form>
-        </div>
+                {activeTab === 'notifications' && (
+                  <p>Notification settings are not implemented yet.</p>
+                )}
+                {activeTab === 'privacy' && (
+                  <p>Privacy settings are not implemented yet.</p>
+                )}
+                <button type="submit" className={styles.saveButton}>
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <DeleteConfirmationModal onClose={() => setShowDeleteModal(false)} onConfirm={confirmDelete} />
+        <DeleteConfirmationModal
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={confirmDelete}
+        />
       )}
 
-      {/* Crop Modal */}
       {showCropModal && (
         <CropModal
           imageSrc={localProfilePictureUrl}
@@ -584,7 +543,6 @@ console.log('updatedProfile:', updatedProfile);
 ------------------------------ */
 function CountryPickerModal({ onSelectCountry, onClose }) {
   const [searchTerm, setSearchTerm] = useState('');
-
   const filteredCountries = countries.filter((country) =>
     country.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -633,7 +591,9 @@ function GenderPickerModal({ selectedGender, onSelectGender, onClose }) {
           {genders.map((g) => (
             <div
               key={g}
-              className={`${styles.genderItem} ${g === selectedGender ? styles.selectedItem : ''}`}
+              className={`${styles.genderItem} ${
+                g === selectedGender ? styles.selectedItem : ''
+              }`}
               onClick={() => onSelectGender(g)}
             >
               {g}
@@ -673,16 +633,7 @@ function DeleteConfirmationModal({ onClose, onConfirm }) {
 /* ------------------------------
    Crop Modal
 ------------------------------ */
-function CropModal({
-  imageSrc,
-  crop,
-  setCrop,
-  zoom,
-  setZoom,
-  onCropComplete,
-  onSave,
-  onCancel,
-}) {
+function CropModal({ imageSrc, crop, setCrop, zoom, setZoom, onCropComplete, onSave, onCancel }) {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>

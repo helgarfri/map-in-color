@@ -14,14 +14,14 @@ export default function HomeFooter() {
           <FaGithub size={24} />
         </a>
         <a
-          href="https://instagram.com/yourInstagramUsername"
+          href="https://instagram.com/mapincolor"
           target="_blank"
           rel="noreferrer"
         >
           <FaInstagram size={24} />
         </a>
         <a
-          href="https://twitter.com/yourTwitterUsername"
+          href="https://twitter.com/map_in_color"
           target="_blank"
           rel="noreferrer"
         >
