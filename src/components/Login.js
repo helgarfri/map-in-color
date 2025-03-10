@@ -5,14 +5,17 @@ import { logIn } from '../api';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
+
 export default function Login() {
   const { setAuthToken, authToken, loadingProfile } = useContext(UserContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoggingIn(true); // show the modal when login is pressed
     try {
       const res = await logIn({ email, password });
       const token = res.data.token;
@@ -27,6 +30,7 @@ export default function Login() {
       } else {
         alert('An unexpected error occurred. Please try again.');
       }
+      setIsLoggingIn(false); // hide the modal if there's an error
     }
   };
 
@@ -38,6 +42,14 @@ export default function Login() {
 
   return (
     <div className={styles.splitContainer}>
+      {isLoggingIn && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.spinner}></div>
+            <p>Logging you in...</p>
+          </div>
+        </div>
+      )}
 
       {/* --- Go Back Button (Top-Left Corner) --- */}
       <button onClick={() => navigate("/")} className={styles.goBackButton}>

@@ -105,31 +105,63 @@ export default function Signup() {
       localStorage.setItem('token', res.data.token);
       navigate('/dashboard');
     } catch (err) {
-      // 3) Handle server-side errors
-      if (err.response && err.response.data && err.response.data.msg) {
+      // 1) Check if we have `err.response.data.errors` from express-validator
+      if (err.response && err.response.data && err.response.data.errors) {
+        const validationErrors = err.response.data.errors; // This is the array
+        const newErrors = {};
+    
+        // Each error might look like:
+        // { msg: "Password must contain at least one uppercase letter.", param: "password", ...}
+        validationErrors.forEach((errorObj) => {
+          // If it's about the "password" field:
+          if (errorObj.param === 'password') {
+            // Append multiple messages if needed
+            if (newErrors.password) {
+              newErrors.password += ' ' + errorObj.msg;
+            } else {
+              newErrors.password = errorObj.msg;
+            }
+          }
+          // If it's about "email":
+          if (errorObj.param === 'email') {
+            newErrors.email = errorObj.msg;
+          }
+          // similarly for any other field checks you might add
+        });
+    
+        setErrors(newErrors);
+      }
+    
+      // 2) Otherwise, fall back to checking for `err.response.data.msg`
+      else if (err.response && err.response.data && err.response.data.msg) {
         const msg = err.response.data.msg.toLowerCase();
         const newErrors = {};
-
+    
         if (msg.includes('username')) {
           newErrors.username = 'Username is already taken.';
         }
         if (msg.includes('email')) {
           newErrors.email = 'An account already exists with this email.';
         }
-
-        // If the error message didn't match either 'username' or 'email',
-        // store it in a general error key:
+    
         if (Object.keys(newErrors).length === 0) {
           newErrors.general = err.response.data.msg;
         }
-
+    
         setErrors(newErrors);
-      } else if (err.request) {
+      }
+    
+      // 3) If there's no `err.response`, then it might be a network error:
+      else if (err.request) {
         setErrors({ general: 'No response from server. Please try again.' });
-      } else {
+      }
+    
+      // 4) Some other unexpected error:
+      else {
         setErrors({ general: 'An unexpected error occurred. Please try again.' });
       }
     }
+    
   };
 
   return (
