@@ -139,60 +139,73 @@ router.post(
 );
 
 // LOGIN
-router.post(
-  '/login',
-  [check('email').isEmail(), check('password').exists()],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+router.post('/login', [check('password').exists()], async (req, res) => {
+  // We'll read "identifier" from the body, not "email"
+  const { identifier, password } = req.body;
 
-    const { email, password } = req.body;
+  if (!identifier) {
+    return res.status(400).json({ msg: 'Identifier (email or username) is required.' });
+  }
 
-    try {
-      // 1) Find user by email, selecting snake_case columns
-      const { data: foundUser, error: findErr } = await supabaseAdmin
+  try {
+    let foundUser;
+    // Decide if identifier is an email or a username:
+    if (identifier.includes('@')) {
+      // Possibly an email
+      const { data, error } = await supabaseAdmin
         .from('users')
         .select('id, email, username, password, first_name, last_name')
-        .eq('email', email)
+        .eq('email', identifier)
         .maybeSingle();
-
-      if (findErr) {
-        console.error(findErr);
-        return res.status(500).json({ msg: 'Error fetching user' });
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ msg: 'Error fetching user by email' });
       }
-      if (!foundUser) {
-        return res.status(400).json({ msg: 'Invalid credentials (no user)' });
+      foundUser = data;
+    } else {
+      // Probably a username
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('id, email, username, password, first_name, last_name')
+        .eq('username', identifier)
+        .maybeSingle();
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ msg: 'Error fetching user by username' });
       }
-
-      // 2) Compare password
-      const isMatch = await bcrypt.compare(password, foundUser.password);
-      if (!isMatch) {
-        return res.status(400).json({ msg: 'Invalid credentials (bad password)' });
-      }
-
-      // 3) Sign token
-      const token = jwt.sign({ id: foundUser.id }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      });
-
-      // 4) Return token + user fields (snake_case)
-      return res.json({
-        token,
-        user: {
-          id: foundUser.id,
-          email: foundUser.email,
-          username: foundUser.username,
-          first_name: foundUser.first_name,
-          last_name: foundUser.last_name,
-        },
-      });
-    } catch (err) {
-      console.error('Error during login:', err);
-      return res.status(500).json({ msg: 'Server error' });
+      foundUser = data;
     }
+
+    if (!foundUser) {
+      return res.status(400).json({ msg: 'Invalid credentials (no user)' });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, foundUser.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Invalid credentials (bad password)' });
+    }
+
+    // Make JWT
+    const token = jwt.sign({ id: foundUser.id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    return res.json({
+      token,
+      user: {
+        id: foundUser.id,
+        email: foundUser.email,
+        username: foundUser.username,
+        first_name: foundUser.first_name,
+        last_name: foundUser.last_name,
+      },
+    });
+  } catch (err) {
+    console.error('Error during login:', err);
+    return res.status(500).json({ msg: 'Server error' });
   }
-);
+});
+
 
 module.exports = router;

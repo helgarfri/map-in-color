@@ -8,29 +8,41 @@ import { faHome } from '@fortawesome/free-solid-svg-icons';
 
 export default function Login() {
   const { setAuthToken, authToken, loadingProfile } = useContext(UserContext);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // was "email"
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoggingIn(true); // show the modal when login is pressed
+    setIsLoggingIn(true);
+
+    // 10-second timeout
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 10000)
+    );
+
     try {
-      const res = await logIn({ email, password });
+      // We now call logIn with { identifier, password } instead of { email, password }
+      const res = await Promise.race([logIn({ identifier, password }), timeout]);
       const token = res.data.token;
       localStorage.setItem('token', token);
       setAuthToken(token);
     } catch (err) {
       console.error('Login Error:', err);
-      if (err.response) {
-        alert(err.response.data.msg);
+      if (err.message === 'timeout') {
+        alert(
+          'Sorry, the server is not responding (timeout after 10 seconds). Please check your network or try again later.'
+        );
+      } else if (err.response) {
+        alert(`Server Error: ${err.response.data.msg || 'Unknown error from server.'}`);
       } else if (err.request) {
-        alert('No response from server. Please try again.');
+        alert('No response from server. It might be down or experiencing issues.');
       } else {
-        alert('An unexpected error occurred. Please try again.');
+        alert(`An unexpected error occurred: ${err.message}`);
       }
-      setIsLoggingIn(false); // hide the modal if there's an error
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -51,12 +63,11 @@ export default function Login() {
         </div>
       )}
 
-      {/* --- Go Back Button (Top-Left Corner) --- */}
       <button onClick={() => navigate("/")} className={styles.goBackButton}>
         <FontAwesomeIcon icon={faHome} />
       </button>
 
-      {/* Left side: Logo + "Map in Color" text */}
+      {/* Left side */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
           <img
@@ -74,15 +85,16 @@ export default function Login() {
           <h2 className={styles.loginTitle}>Login</h2>
           <form onSubmit={handleSubmit} className={styles.loginForm}>
             <div className={styles.formGroup}>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="identifier">Email or Username</label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                id="identifier"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
             </div>
+
             <div className={styles.formGroup}>
               <label htmlFor="password">Password</label>
               <input
@@ -93,7 +105,10 @@ export default function Login() {
                 required
               />
             </div>
-            <button type="submit" className={styles.loginButton}>Login</button>
+
+            <button type="submit" className={styles.loginButton}>
+              Login
+            </button>
           </form>
           <p>
             Don&rsquo;t have an account? <Link to="/signup">Sign up here</Link>.

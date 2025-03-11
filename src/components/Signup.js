@@ -2,34 +2,46 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Signup.module.css';
 import { signUp } from '../api';
-import countries from '../data/countries'; // <-- Import countries array
+import countries from '../data/countries';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+
+const PasswordRequirement = ({ text, isValid }) => {
+  return (
+    <div className={styles.passwordRequirementItem}>
+      <div
+        className={`${styles.requirementIcon} ${
+          isValid ? styles.valid : styles.invalid
+        }`}
+      ></div>
+      <span>{text}</span>
+    </div>
+  );
+};
+
 export default function Signup() {
-  // States for all form fields
+  // States for form fields
   const [first_name, setFirstName] = useState('');
   const [last_name, setLastName] = useState('');
-
-  // We will combine these three into date_of_birth before sending
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
-
   const [gender, setGender] = useState('');
-  const [location, setLocation] = useState(''); // Will use a select for countries
+  const [location, setLocation] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
-  // Object to hold error messages (field-specific or general)
   const [errors, setErrors] = useState({});
+
+  // State for modal visibility and success state
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   const navigate = useNavigate();
 
-  // Helper arrays for date
-  const days = Array.from({ length: 31 }, (_, i) => i + 1); // 1 to 31
-  const years = Array.from({ length: 100 }, (_, i) => 2025 - i); // e.g., 2025 down to 1926
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
   const months = [
     { value: '1', label: 'January' },
     { value: '2', label: 'February' },
@@ -45,26 +57,69 @@ export default function Signup() {
     { value: '12', label: 'December' },
   ];
 
-  // Basic client-side validation
+  // Live password checks
+  const isLongEnough = password.length >= 6;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[!?.#]/.test(password);
+  const passwordsMatch = password === confirmPassword && password !== '';
+  const isPasswordValid =
+    isLongEnough && hasUpperCase && hasNumber && hasSpecial && passwordsMatch;
+
+  // Helper: Validate form before submit
   const validateForm = () => {
     const newErrors = {};
 
-    // Check password requirements
-    if (!/[A-Z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter.';
-    }
-    if (!/[!?.#]/.test(password)) {
-      newErrors.password = newErrors.password
-        ? `${newErrors.password} Also needs at least one special character (!?.#).`
-        : 'Password must contain at least one special character (!?.#).';
+    if (!first_name.trim()) {
+      newErrors.first_name = 'First name is required.';
     }
 
-    // Check password match
-    if (password !== confirmPassword) {
+    if (!last_name.trim()) {
+      newErrors.last_name = 'Last name is required.';
+    }
+
+    if (!year || !month || !day) {
+      newErrors.date_of_birth = 'Date of birth is required.';
+    } else {
+      const dob = new Date(`${year}-${month}-${day}`);
+      const now = new Date();
+      if (dob > now) {
+        newErrors.date_of_birth = 'Date of birth cannot be in the future.';
+      }
+    }
+
+    if (!gender) {
+      newErrors.gender = 'Gender is required.';
+    }
+
+    if (!location) {
+      newErrors.location = 'Location is required.';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = 'Email is required.';
+    } else {
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(email)) {
+        newErrors.email = 'Invalid email format.';
+      }
+    }
+
+    if (!username.trim()) {
+      newErrors.username = 'Username is required.';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    } else if (!isLongEnough || !hasUpperCase || !hasNumber || !hasSpecial) {
+      newErrors.password = 'Password does not meet the requirements.';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password.';
+    } else if (!passwordsMatch) {
       newErrors.confirmPassword = 'Passwords do not match.';
     }
-
-    // More checks as needed (e.g., email format, etc.)
 
     return newErrors;
   };
@@ -73,103 +128,75 @@ export default function Signup() {
     e.preventDefault();
     setErrors({});
 
-    // 1) Run client-side checks
+    // Run validations
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
 
-    // 2) Create a single date_of_birth field (YYYY-MM-DD)
+    // Construct date_of_birth string
     let date_of_birth = '';
     if (year && month && day) {
-      const mm = month.toString().padStart(2, '0'); // zero-pad month
-      const dd = day.toString().padStart(2, '0');   // zero-pad day
+      const mm = month.toString().padStart(2, '0');
+      const dd = day.toString().padStart(2, '0');
       date_of_birth = `${year}-${mm}-${dd}`;
     }
 
+    // Show modal (loading state)
+    setIsSigningUp(true);
     try {
-      // Prepare data exactly how your server expects (matching ProfileSettings)
       const res = await signUp({
         first_name,
         last_name,
-        date_of_birth, // single string
+        date_of_birth,
         gender,
-        location,    // selected country
+        location,
         email,
         username,
         password,
       });
-
-      // If successful, store token and redirect
       localStorage.setItem('token', res.data.token);
-      navigate('/dashboard');
+      
+      // Instead of navigating immediately, display success modal
+      setSignupSuccess(true);
+      // After 3 seconds, navigate to dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
     } catch (err) {
-      // 1) Check if we have `err.response.data.errors` from express-validator
-      if (err.response && err.response.data && err.response.data.errors) {
-        const validationErrors = err.response.data.errors; // This is the array
-        const newErrors = {};
-    
-        // Each error might look like:
-        // { msg: "Password must contain at least one uppercase letter.", param: "password", ...}
-        validationErrors.forEach((errorObj) => {
-          // If it's about the "password" field:
-          if (errorObj.param === 'password') {
-            // Append multiple messages if needed
-            if (newErrors.password) {
-              newErrors.password += ' ' + errorObj.msg;
-            } else {
-              newErrors.password = errorObj.msg;
-            }
-          }
-          // If it's about "email":
-          if (errorObj.param === 'email') {
-            newErrors.email = errorObj.msg;
-          }
-          // similarly for any other field checks you might add
-        });
-    
-        setErrors(newErrors);
+      if (err.response && err.response.data) {
+        setErrors({ general: err.response.data.msg || 'Sign up error' });
+      } else {
+        setErrors({ general: 'Server error. Please try again.' });
       }
-    
-      // 2) Otherwise, fall back to checking for `err.response.data.msg`
-      else if (err.response && err.response.data && err.response.data.msg) {
-        const msg = err.response.data.msg.toLowerCase();
-        const newErrors = {};
-    
-        if (msg.includes('username')) {
-          newErrors.username = 'Username is already taken.';
-        }
-        if (msg.includes('email')) {
-          newErrors.email = 'An account already exists with this email.';
-        }
-    
-        if (Object.keys(newErrors).length === 0) {
-          newErrors.general = err.response.data.msg;
-        }
-    
-        setErrors(newErrors);
-      }
-    
-      // 3) If there's no `err.response`, then it might be a network error:
-      else if (err.request) {
-        setErrors({ general: 'No response from server. Please try again.' });
-      }
-    
-      // 4) Some other unexpected error:
-      else {
-        setErrors({ general: 'An unexpected error occurred. Please try again.' });
-      }
+      setIsSigningUp(false);
     }
-    
   };
 
   return (
     <div className={styles.splitContainer}>
+      {isSigningUp && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            {signupSuccess ? (
+              <>
+                <FontAwesomeIcon icon={faCheckCircle} className={styles.successIcon} />
+                <p>Account successfully created!</p>
+              </>
+            ) : (
+              <>
+                <div className={styles.spinner}></div>
+                <p>Creating your profile...</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
-          {/* --- Go Back Button (Top-Left Corner) --- */}
-          <button onClick={() => navigate('/')} className={styles.goBackButton}>
-            <FontAwesomeIcon icon={faHome} />
+      {/* --- Go Back Button (Top-Left Corner) --- */}
+      <button onClick={() => navigate('/')} className={styles.goBackButton}>
+        <FontAwesomeIcon icon={faHome} />
       </button>
 
       {/* Left side */}
@@ -188,12 +215,9 @@ export default function Signup() {
       <div className={styles.rightSide}>
         <div className={styles.signupBox}>
           <h2 className={styles.signupTitle}>Sign Up</h2>
-
-          {/* Top-level error */}
           {errors.general && (
             <div className={styles.errorMessage}>{errors.general}</div>
           )}
-
           <form onSubmit={handleSubmit} className={styles.signupForm}>
             {/* First & Last Name */}
             <div className={styles.formRow}>
@@ -204,8 +228,10 @@ export default function Signup() {
                   id="first_name"
                   value={first_name}
                   onChange={(e) => setFirstName(e.target.value)}
-                  required
                 />
+                {errors.first_name && (
+                  <div className={styles.errorMessage}>{errors.first_name}</div>
+                )}
               </div>
               <div className={styles.formGroup}>
                 <label htmlFor="last_name">Last Name</label>
@@ -214,8 +240,10 @@ export default function Signup() {
                   id="last_name"
                   value={last_name}
                   onChange={(e) => setLastName(e.target.value)}
-                  required
                 />
+                {errors.last_name && (
+                  <div className={styles.errorMessage}>{errors.last_name}</div>
+                )}
               </div>
             </div>
 
@@ -223,11 +251,7 @@ export default function Signup() {
             <div className={styles.formGroup}>
               <label>Date of Birth</label>
               <div className={styles.dobContainer}>
-                <select
-                  value={day}
-                  onChange={(e) => setDay(e.target.value)}
-                  required
-                >
+                <select value={day} onChange={(e) => setDay(e.target.value)}>
                   <option value="">Day</option>
                   {days.map((d) => (
                     <option key={d} value={d}>
@@ -235,11 +259,7 @@ export default function Signup() {
                     </option>
                   ))}
                 </select>
-                <select
-                  value={month}
-                  onChange={(e) => setMonth(e.target.value)}
-                  required
-                >
+                <select value={month} onChange={(e) => setMonth(e.target.value)}>
                   <option value="">Month</option>
                   {months.map((m) => (
                     <option key={m.value} value={m.value}>
@@ -247,11 +267,7 @@ export default function Signup() {
                     </option>
                   ))}
                 </select>
-                <select
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  required
-                >
+                <select value={year} onChange={(e) => setYear(e.target.value)}>
                   <option value="">Year</option>
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -260,6 +276,11 @@ export default function Signup() {
                   ))}
                 </select>
               </div>
+              {errors.date_of_birth && (
+                <div className={styles.errorMessage}>
+                  {errors.date_of_birth}
+                </div>
+              )}
             </div>
 
             {/* Gender */}
@@ -269,13 +290,15 @@ export default function Signup() {
                 id="gender"
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                required
               >
                 <option value="">Select your gender</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
                 <option value="preferNotSay">Prefer not to say</option>
               </select>
+              {errors.gender && (
+                <div className={styles.errorMessage}>{errors.gender}</div>
+              )}
             </div>
 
             {/* Location (Select Country) */}
@@ -285,7 +308,6 @@ export default function Signup() {
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                required
               >
                 <option value="">Select a country</option>
                 {countries.map((country) => (
@@ -294,6 +316,9 @@ export default function Signup() {
                   </option>
                 ))}
               </select>
+              {errors.location && (
+                <div className={styles.errorMessage}>{errors.location}</div>
+              )}
             </div>
 
             {/* Email */}
@@ -304,7 +329,6 @@ export default function Signup() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
               {errors.email && (
                 <div className={styles.errorMessage}>{errors.email}</div>
@@ -318,15 +342,17 @@ export default function Signup() {
                 type="text"
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
+                onChange={(e) =>
+                  setUsername(e.target.value.replace(/\s/g, '').toLowerCase())
+                }
+                autoComplete='off'
               />
               {errors.username && (
                 <div className={styles.errorMessage}>{errors.username}</div>
               )}
             </div>
 
-            {/* Password */}
+            {/* Password Field */}
             <div className={styles.formGroup}>
               <label htmlFor="password">Password</label>
               <input
@@ -334,14 +360,33 @@ export default function Signup() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
               />
               {errors.password && (
                 <div className={styles.errorMessage}>{errors.password}</div>
               )}
             </div>
 
-            {/* Confirm Password */}
+            {/* Password Requirements (2x2 grid) */}
+            <div className={styles.passwordRequirementsGrid}>
+              <PasswordRequirement
+                text="At least 6 characters"
+                isValid={isLongEnough}
+              />
+              <PasswordRequirement
+                text="At least one uppercase letter"
+                isValid={hasUpperCase}
+              />
+              <PasswordRequirement
+                text="At least one number (0-9)"
+                isValid={hasNumber}
+              />
+              <PasswordRequirement
+                text="At least one special character (!?.#)"
+                isValid={hasSpecial}
+              />
+            </div>
+
+            {/* Confirm Password Field */}
             <div className={styles.formGroup}>
               <label htmlFor="confirmPassword">Confirm Password</label>
               <input
@@ -349,7 +394,6 @@ export default function Signup() {
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
               />
               {errors.confirmPassword && (
                 <div className={styles.errorMessage}>
@@ -358,7 +402,16 @@ export default function Signup() {
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Password Match Indicator */}
+            <div className={styles.passwordMatch}>
+              <div
+                className={`${styles.requirementIcon} ${
+                  passwordsMatch ? styles.valid : styles.invalid
+                }`}
+              ></div>
+              <span>Passwords match</span>
+            </div>
+
             <button type="submit" className={styles.signupButton}>
               Sign Up
             </button>

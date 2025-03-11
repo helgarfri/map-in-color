@@ -58,9 +58,10 @@
 
 /* Container for the signup heading and form */
 .signupBox {
-  max-width: 350px;
+  max-width: 450px;
   width: 90%;
   text-align: center;
+
 }
 
 .signupTitle {
@@ -117,7 +118,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  margin-top: 5px;
+  margin-top: 15px;
 }
 
 .signupButton:hover {
@@ -146,6 +147,94 @@
 .signupBox a:hover {
   text-decoration: underline;
 }
+
+/* Grid container for password requirements */
+.passwordRequirementsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+/* Individual requirement item */
+.passwordRequirementItem {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* The round icon for each requirement */
+.requirementIcon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: gray;
+  margin-right: 5px;
+}
+
+/* When a requirement is met, turn the icon green */
+.valid {
+  background-color: #48b17d;
+}
+
+/* Otherwise, keep it gray */
+.invalid {
+  background-color: gray;
+}
+
+/* Password match indicator styling */
+.passwordMatch {
+  display: flex;
+  align-items: center; 
+  font-size: 0.8rem;
+  margin-top: 0px;
+  color: #666;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Dark background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it appears above everything else */
+}
+
+.modalContent {
+  background-color: #fff;
+  padding: 20px 40px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #48b17d; /* Green spinner */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px; /* Centers the spinner */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.successIcon {
+  font-size: 50px;
+  color: #48b17d;
+  margin-bottom: 15px;
+}
+
+
 
 /* ----------- MEDIA QUERY for screens <= 1200px ----------- */
 @media (max-width: 1200px) {
