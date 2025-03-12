@@ -73,11 +73,9 @@ export default function Signup() {
     if (!first_name.trim()) {
       newErrors.first_name = 'First name is required.';
     }
-
     if (!last_name.trim()) {
       newErrors.last_name = 'Last name is required.';
     }
-
     if (!year || !month || !day) {
       newErrors.date_of_birth = 'Date of birth is required.';
     } else {
@@ -87,15 +85,12 @@ export default function Signup() {
         newErrors.date_of_birth = 'Date of birth cannot be in the future.';
       }
     }
-
     if (!gender) {
       newErrors.gender = 'Gender is required.';
     }
-
     if (!location) {
       newErrors.location = 'Location is required.';
     }
-
     if (!email.trim()) {
       newErrors.email = 'Email is required.';
     } else {
@@ -104,17 +99,14 @@ export default function Signup() {
         newErrors.email = 'Invalid email format.';
       }
     }
-
     if (!username.trim()) {
       newErrors.username = 'Username is required.';
     }
-
     if (!password) {
       newErrors.password = 'Password is required.';
     } else if (!isLongEnough || !hasUpperCase || !hasNumber || !hasSpecial) {
       newErrors.password = 'Password does not meet the requirements.';
     }
-
     if (!confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password.';
     } else if (!passwordsMatch) {
@@ -157,10 +149,9 @@ export default function Signup() {
         password,
       });
       localStorage.setItem('token', res.data.token);
-      
-      // Instead of navigating immediately, display success modal
+
+      // Display success modal
       setSignupSuccess(true);
-      // After 3 seconds, navigate to dashboard
       setTimeout(() => {
         navigate('/dashboard');
       }, 3000);
@@ -199,7 +190,7 @@ export default function Signup() {
         <FontAwesomeIcon icon={faHome} />
       </button>
 
-      {/* Left side */}
+      {/* Left side: Branding */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
           <img
@@ -219,199 +210,207 @@ export default function Signup() {
             <div className={styles.errorMessage}>{errors.general}</div>
           )}
           <form onSubmit={handleSubmit} className={styles.signupForm}>
-            {/* First & Last Name */}
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label htmlFor="first_name">First Name</label>
-                <input
-                  type="text"
-                  id="first_name"
-                  value={first_name}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-                {errors.first_name && (
-                  <div className={styles.errorMessage}>{errors.first_name}</div>
-                )}
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="last_name">Last Name</label>
-                <input
-                  type="text"
-                  id="last_name"
-                  value={last_name}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
-                {errors.last_name && (
-                  <div className={styles.errorMessage}>{errors.last_name}</div>
-                )}
-              </div>
-            </div>
+            {/* Two-column layout */}
+            <div className={styles.formColumns}>
+             {/* Left Column: Personal Details */}
+<div className={styles.leftColumn}>
+  {/* First & Last Name */}
+  <div className={styles.formRow}>
+    <div className={styles.formGroup}>
+      <label htmlFor="first_name">First Name</label>
+      <input
+        type="text"
+        id="first_name"
+        value={first_name}
+        onChange={(e) => setFirstName(e.target.value)}
+      />
+      {errors.first_name && (
+        <div className={styles.errorMessage}>{errors.first_name}</div>
+      )}
+    </div>
+    <div className={styles.formGroup}>
+      <label htmlFor="last_name">Last Name</label>
+      <input
+        type="text"
+        id="last_name"
+        value={last_name}
+        onChange={(e) => setLastName(e.target.value)}
+      />
+      {errors.last_name && (
+        <div className={styles.errorMessage}>{errors.last_name}</div>
+      )}
+    </div>
+  </div>
 
-            {/* Date of Birth */}
-            <div className={styles.formGroup}>
-              <label>Date of Birth</label>
-              <div className={styles.dobContainer}>
-                <select value={day} onChange={(e) => setDay(e.target.value)}>
-                  <option value="">Day</option>
-                  {days.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-                <select value={month} onChange={(e) => setMonth(e.target.value)}>
-                  <option value="">Month</option>
-                  {months.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-                <select value={year} onChange={(e) => setYear(e.target.value)}>
-                  <option value="">Year</option>
-                  {years.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {errors.date_of_birth && (
-                <div className={styles.errorMessage}>
-                  {errors.date_of_birth}
-                </div>
-              )}
-            </div>
+  {/* Email (Moved from rightColumn to here) */}
+  <div className={styles.formGroup}>
+    <label htmlFor="email">Email</label>
+    <input
+      type="email"
+      id="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+    />
+    {errors.email && (
+      <div className={styles.errorMessage}>{errors.email}</div>
+    )}
+  </div>
 
-            {/* Gender */}
-            <div className={styles.formGroup}>
-              <label htmlFor="gender">Gender</label>
-              <select
-                id="gender"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-              >
-                <option value="">Select your gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="preferNotSay">Prefer not to say</option>
-              </select>
-              {errors.gender && (
-                <div className={styles.errorMessage}>{errors.gender}</div>
-              )}
-            </div>
+  {/* Date of Birth */}
+  <div className={styles.formGroup}>
+    <label>Date of Birth</label>
+    <div className={styles.dobContainer}>
+      <select value={day} onChange={(e) => setDay(e.target.value)}>
+        <option value="">Day</option>
+        {days.map((d) => (
+          <option key={d} value={d}>
+            {d}
+          </option>
+        ))}
+      </select>
+      <select value={month} onChange={(e) => setMonth(e.target.value)}>
+        <option value="">Month</option>
+        {months.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </select>
+      <select value={year} onChange={(e) => setYear(e.target.value)}>
+        <option value="">Year</option>
+        {years.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </div>
+    {errors.date_of_birth && (
+      <div className={styles.errorMessage}>{errors.date_of_birth}</div>
+    )}
+  </div>
 
-            {/* Location (Select Country) */}
-            <div className={styles.formGroup}>
-              <label htmlFor="location">Location</label>
-              <select
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              >
-                <option value="">Select a country</option>
-                {countries.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-              {errors.location && (
-                <div className={styles.errorMessage}>{errors.location}</div>
-              )}
-            </div>
+  {/* Gender */}
+  <div className={styles.formGroup}>
+    <label htmlFor="gender">Gender</label>
+    <select
+      id="gender"
+      value={gender}
+      onChange={(e) => setGender(e.target.value)}
+    >
+      <option value="">Select your gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="preferNotSay">Prefer not to say</option>
+    </select>
+    {errors.gender && (
+      <div className={styles.errorMessage}>{errors.gender}</div>
+    )}
+  </div>
 
-            {/* Email */}
-            <div className={styles.formGroup}>
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              {errors.email && (
-                <div className={styles.errorMessage}>{errors.email}</div>
-              )}
-            </div>
+  {/* Location */}
+  <div className={styles.formGroup}>
+    <label htmlFor="location">Location</label>
+    <select
+      id="location"
+      value={location}
+      onChange={(e) => setLocation(e.target.value)}
+    >
+      <option value="">Select a country</option>
+      {countries.map((country) => (
+        <option key={country} value={country}>
+          {country}
+        </option>
+      ))}
+    </select>
+    {errors.location && (
+      <div className={styles.errorMessage}>{errors.location}</div>
+    )}
+  </div>
+</div>
 
-            {/* Username */}
-            <div className={styles.formGroup}>
-              <label htmlFor="username">Username</label>
-              <input
-                type="text"
-                id="username"
-                value={username}
-                onChange={(e) =>
-                  setUsername(e.target.value.replace(/\s/g, '').toLowerCase())
-                }
-                autoComplete='off'
-              />
-              {errors.username && (
-                <div className={styles.errorMessage}>{errors.username}</div>
-              )}
-            </div>
+{/* Right Column: Account Details */}
+<div className={styles.rightColumn}>
+  {/* Username */}
+  <div className={styles.formGroup}>
+    <label htmlFor="username">Username</label>
+    <input
+      type="text"
+      id="username"
+      value={username}
+      onChange={(e) =>
+        setUsername(e.target.value.replace(/\s/g, '').toLowerCase())
+      }
+      autoComplete="off"
+    />
+    {errors.username && (
+      <div className={styles.errorMessage}>{errors.username}</div>
+    )}
+  </div>
 
-            {/* Password Field */}
-            <div className={styles.formGroup}>
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              {errors.password && (
-                <div className={styles.errorMessage}>{errors.password}</div>
-              )}
-            </div>
+  {/* Password */}
+  <div className={styles.formGroup}>
+    <label htmlFor="password">Password</label>
+    <input
+      type="password"
+      id="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+    />
+    {errors.password && (
+      <div className={styles.errorMessage}>{errors.password}</div>
+    )}
+  </div>
 
-            {/* Password Requirements (2x2 grid) */}
-            <div className={styles.passwordRequirementsGrid}>
-              <PasswordRequirement
-                text="At least 6 characters"
-                isValid={isLongEnough}
-              />
-              <PasswordRequirement
-                text="At least one uppercase letter"
-                isValid={hasUpperCase}
-              />
-              <PasswordRequirement
-                text="At least one number (0-9)"
-                isValid={hasNumber}
-              />
-              <PasswordRequirement
-                text="At least one special character (!?.#)"
-                isValid={hasSpecial}
-              />
-            </div>
+  {/* Password Requirements */}
+  <div className={styles.passwordRequirementsGrid}>
+    <PasswordRequirement
+      text="At least 6 characters"
+      isValid={isLongEnough}
+    />
+    <PasswordRequirement
+      text="At least one uppercase letter"
+      isValid={hasUpperCase}
+    />
+    <PasswordRequirement
+      text="At least one number"
+      isValid={hasNumber}
+    />
+    <PasswordRequirement
+      text="At least one special character"
+      isValid={hasSpecial}
+    />
+  </div>
 
-            {/* Confirm Password Field */}
-            <div className={styles.formGroup}>
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              {errors.confirmPassword && (
-                <div className={styles.errorMessage}>
-                  {errors.confirmPassword}
-                </div>
-              )}
-            </div>
+  {/* Confirm Password */}
+  <div className={styles.formGroup}>
+    <label htmlFor="confirmPassword">Confirm Password</label>
+    <input
+      type="password"
+      id="confirmPassword"
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+    />
+    {errors.confirmPassword && (
+      <div className={styles.errorMessage}>
+        {errors.confirmPassword}
+      </div>
+    )}
+  </div>
 
-            {/* Password Match Indicator */}
-            <div className={styles.passwordMatch}>
-              <div
-                className={`${styles.requirementIcon} ${
-                  passwordsMatch ? styles.valid : styles.invalid
-                }`}
-              ></div>
-              <span>Passwords match</span>
-            </div>
+  {/* Password Match Indicator */}
+  <div className={styles.passwordMatch}>
+    <div
+      className={`${styles.requirementIcon} ${
+        passwordsMatch ? styles.valid : styles.invalid
+      }`}
+    ></div>
+    <span>Passwords match</span>
+  </div>
+</div>
+</div>
 
+            {/* Submit Button */}
             <button type="submit" className={styles.signupButton}>
               Sign Up
             </button>

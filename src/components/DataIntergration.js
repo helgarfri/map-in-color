@@ -1635,14 +1635,21 @@ function applyPalette(oldRanges, paletteColors) {
         </div>
 
 
-      <div className={styles.modalFormRow}>
-        <label>URL or Link:</label>
-        <input
-          type="text"
-          value={tempUrl}
-          onChange={(e) => setTempUrl(e.target.value)}
-        />
-      </div>
+        <div className={styles.modalFormRow}>
+          <label>URL or Link:</label>
+          <input
+            type="text"
+            value={tempUrl}
+            onChange={(e) => setTempUrl(e.target.value)}
+            onBlur={() => {
+              // If the URL doesn't start with http:// or https://, add "https://www."
+              if (tempUrl && !/^https?:\/\//i.test(tempUrl)) {
+                setTempUrl(`https://www.${tempUrl}`);
+              }
+            }}
+          />
+        </div>
+
 
       <div className={styles.modalFormRow}>
         <label>Description/Notes:</label>

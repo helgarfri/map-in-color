@@ -491,6 +491,7 @@ export default function ProfileSettings() {
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
+                            maxLength="150"
                           />
                         ) : (
                           <div className={styles.editableValue}>

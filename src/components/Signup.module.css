@@ -7,7 +7,7 @@
 
 /* The go-back button in the top-left corner */
 .goBackButton {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 20px;
   background: none;
@@ -58,7 +58,7 @@
 
 /* Container for the signup heading and form */
 .signupBox {
-  max-width: 450px;
+  
   width: 90%;
   text-align: center;
 
@@ -105,6 +105,27 @@
   font-size: 14px;
 }
 
+/* Container for the two columns in the form */
+.formColumns {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Left and right columns each take roughly half the width */
+.leftColumn,
+.rightColumn {
+  flex: 1;
+}
+
+/* Optional: Make the layout stack on smaller screens */
+@media (max-width: 1678px) {
+  .formColumns {
+    flex-direction: column;
+  }
+}
+
+
 .dobContainer {
   display: flex;
   gap: 10px;
@@ -119,6 +140,8 @@
   cursor: pointer;
   font-size: 14px;
   margin-top: 15px;
+  width: 100px;
+  margin: 0 auto;
 }
 
 .signupButton:hover {
