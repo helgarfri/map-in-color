@@ -7,6 +7,9 @@ const { check, validationResult } = require('express-validator');
 
 const { supabaseAdmin } = require('../config/supabase'); // Single admin client
 
+const { resend } = require('../config/resend');
+
+
 const saltRounds = 10;
 // Full public URL from Supabase
 const DEFAULT_PROFILE_PIC = 'https://cuijtjpwlzmamegajljz.supabase.co/storage/v1/object/public/profile-pictures/default-pic.jpg';
