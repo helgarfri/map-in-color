@@ -111,6 +111,30 @@ router.post(
       // Inserted user is in insertedUsers
       const newUser = insertedUsers;
 
+       // 5) Send a welcome email via Resend
+       try {
+        // Build your HTML string. Note the links can be simple <a> tags.
+        const welcomeEmailHTML = `
+          <p>Hello ${newUser.first_name},</p>
+          <p>Welcome to Map in Color! I’m really glad to have you on board. 🎉</p>
+          <p>You’ve successfully signed up, and you’re now ready to start <strong>creating and exploring data through maps</strong>. To get started, head over to your <a href="https://mapincolor.com/dashboard">dashboard</a>. You can create your first map today – all you need is a CSV file, and you’re good to go!</p>
+          <p>Need help? Check out our <a href="https://mapincolor.com/docs">docs</a> or feel free to reach out anytime at <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>.</p>
+          <p>Cheers,<br/>Helgi</p>
+        `;
+
+        await resend.emails.send({
+          from: 'no-reply@mapincolor.com',
+          to: newUser.email,
+          subject: 'Welcome to Map in Color!',
+          html: welcomeEmailHTML,
+        });
+
+        console.log(`Welcome email sent to: ${newUser.email}`);
+      } catch (emailError) {
+        // Log it but don't block user creation if the email fails
+        console.error('Failed to send welcome email:', emailError);
+      }
+
       // Sign JWT
       const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, {
         expiresIn: '1h',
