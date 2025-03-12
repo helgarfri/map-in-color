@@ -437,6 +437,8 @@
   resize: none;
   min-height: 80px;
   width: 100%;
+  height: 120px;
+  
 }
 
 /* Fixed-Size Tag Box */

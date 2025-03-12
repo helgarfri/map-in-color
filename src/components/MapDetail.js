@@ -68,7 +68,7 @@ export default function MapDetail() {
     const updateCountryListHeight = () => {
       if (discussionRef.current && countryListRef.current) {
         const discussionHeight = discussionRef.current.offsetHeight;
-        countryListRef.current.style.height = `${discussionHeight}px`;
+        countryListRef.current.style.height = `${discussionHeight + 150}px`;
       }
     };
 
@@ -874,10 +874,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 </div>
 
               <p className={styles.created_at}>
-                Created {timeAgo} by{' '}
-                <Link to={`/profile/${mapData?.user?.username || 'unknown'}`}>
-                  {mapData.user ? mapData.user.username : 'Unknown'}
-                </Link>
+                Created {timeAgo} 
               </p>
               <div className={styles.creatorInfo}>
                 <Link
