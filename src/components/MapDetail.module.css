@@ -411,6 +411,8 @@ a {
   font-size: 0.8rem;
   padding: 4px 8px;
 }
+
+
 .icon {
   width: 16px;
   height: 16px;
@@ -613,21 +615,90 @@ a {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* On top of everything */
+  z-index: 9999;
 }
 
 .modalContent {
   background: #fff;
-  padding: 1.5rem;
+  padding: 2rem;              /* Increased padding for a roomier layout */
   border-radius: 8px;
-  max-width: 400px;
+  max-width: 600px;           /* Increased max-width */
   width: 90%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* Header for profile picture & username */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modalProfilePicture {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+/* Report Options as a vertical list */
+.reportOptions {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.reportOption {
+  margin-bottom: 0.5rem;
+}
+
+/* Textarea styling when "Other" is selected */
+.reportDetails textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+/* Modal Actions: Submit and Cancel buttons */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modalActions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modalActions button:first-child {
+  background-color: #80a0b0;
+  color: #fff;
+}
+
+.modalActions button:last-child {
+  background-color: #ccc;
+  color: #333;
+}
+
+.loadingContainer,
+.successContainer {
+  text-align: center;
+  padding: 2rem;
+}
+
+
 
 
 /* ----------------------------------- */

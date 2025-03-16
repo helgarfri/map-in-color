@@ -3,6 +3,7 @@ const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
+const { resend } = require('../config/resend'); //  <-- import Resend client
 
 /* -----------------------------------------------
    GET /maps/:mapId/comments (Fetch comments + replies)
@@ -518,6 +519,61 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
         .eq('id', comment_id);
       if (hideErr) throw hideErr;
     }
+
+
+   // 4.5) Send emails to both the user and admin
+   //   a) Fetch the user's email from the "users" table
+   const { data: reportingUser, error: userErr } = await supabaseAdmin
+     .from('users')
+     .select('email, username')
+     .eq('id', user_id)
+     .maybeSingle();
+
+   if (userErr) {
+     console.error('Error fetching user email:', userErr);
+   }
+   // It's good to check if reportingUser was found
+   // but even if not, you may still want to continue. 
+   // For safety:
+   const userEmail = reportingUser?.email;
+   const userName = reportingUser?.username || 'unknown-user';
+
+   //   b) Send a confirmation email to the user who submitted the report
+   if (userEmail) {
+     try {
+       await resend.emails.send({
+         from: 'no-reply@mapincolor.com',
+         to: userEmail,
+         subject: 'We have received your report',
+         text: `Hello ${userName},\n\n` +
+               `We have received your report regarding comment #${comment_id}.\n` +
+               `Reasons: ${reasons}\nDetails: ${details}\n\n` +
+               `Thank you for helping us keep the community safe.\n` +
+               `- Helgi from Map in Color`
+       });
+     } catch (emailErr) {
+       console.error('Error sending user confirmation email:', emailErr);
+     }
+   }
+
+   //   c) Send an email to admin with the details
+   //      So you (hello@mapincolor.com) are aware that a new report just came in
+   try {
+     await resend.emails.send({
+       from: 'no-reply@mapincolor.com',
+       to: 'hello@mapincolor.com',
+       subject: `New comment report (#${comment_id})`,
+       text: `A user has reported comment #${comment_id}\n` +
+             `Reporter: ${userName} (ID: ${user_id}, email: ${userEmail})\n` +
+             `Reasons: ${reasons}\n` +
+           `Details: ${details}\n\n` +
+             `Total unique reporters so far: ${reportCount}\n`
+     });
+   } catch (emailAdminErr) {
+     console.error('Error sending admin notification email:', emailAdminErr);
+   }
+
+    
 
     // 5) Optionally send notifications/emails, etc.
     // if (reportCount >= 2) { ... send "the comment is now hidden" email to original author ... }

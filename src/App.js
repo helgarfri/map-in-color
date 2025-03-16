@@ -24,6 +24,7 @@ import NotificationList from './components/NotificationList';
 import ChangePassword from './components/ChangePassword';
 import DeleteAccount from './components/DeleteAccount';
 import Docs from './components/Docs';
+import AdminPanel from './components/AdminPanel';
 
 import { UserProvider } from './context/UserContext';
 
@@ -180,6 +181,9 @@ function App() {
               </PrivateRoute>
             }
           />
+
+<Route path="/adminPanel" element={<AdminPanel />} />
+
       </Routes>
 
     </Router>

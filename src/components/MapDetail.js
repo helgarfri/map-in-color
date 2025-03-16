@@ -52,9 +52,11 @@ export default function MapDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
+
   const [download_count, setDownloadCount] = useState(0);
 
   const [isPostingComment, setIsPostingComment] = useState(false);
+  const [isPostingReply, setIsPostingReply] = useState(false);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
@@ -68,11 +70,13 @@ export default function MapDetail() {
   const [showReportModal, setShowReportModal] = useState(false);
 
   // The user’s chosen reasons, e.g. ["Spam","Inappropriate"]
-  const [reportReasons, setReportReasons] = useState([]);
+  const [reportReasons, setReportReasons] = useState('');
   // If the user picks "Other," they can enter details
   const [reportDetails, setReportDetails] = useState('');
 
-
+  const [isReporting, setIsReporting] = useState(false);
+  const [showReportSuccess, setShowReportSuccess] = useState(false);
+  
 
   const { authToken, profile } = useContext(UserContext);
 
@@ -244,14 +248,13 @@ export default function MapDetail() {
       return;
     }
   
+    // 1) Indicate we are posting a reply
+    setIsPostingReply(true);
+  
     try {
-      // 1) Make the POST call
       const res = await postComment(id, { content: replyContent, parent_comment_id });
-      
-      // 2) Log the response to see exactly what the server returned
       console.log('Reply post response:', res.data);
   
-      // 3) Update local comments state
       setComments((prevComments) =>
         prevComments.map((comment) => {
           if (comment.id === parent_comment_id) {
@@ -267,8 +270,12 @@ export default function MapDetail() {
       setReplyingTo(null);
     } catch (err) {
       console.error(err);
+    } finally {
+      // 2) End the posting state
+      setIsPostingReply(false);
     }
   };
+  
   
 
 // Update handleLike and handleDislike functions
@@ -405,17 +412,13 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   }
   
   function handleToggleReason(e) {
-    const { value } = e.target;
-    setReportReasons((prev) => {
-      if (prev.includes(value)) {
-        // If reason already selected, remove it
-        return prev.filter((r) => r !== value);
-      } else {
-        // If reason not in array, add it
-        return [...prev, value];
-      }
-    });
+    setReportReasons(e.target.value);
   }
+  
+
+  const reportedComment = findCommentById(comments, reportTargetComment);
+
+  
   
 
   const handleZoom = (scaleFactor) => {
@@ -1104,35 +1107,62 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                   </button>
   
                                   <button
-                                    className={styles.replyButton}
+                                    className={styles.reactionButton}
                                     onClick={() =>
                                       setReplyingTo({ comment_id: comment.id, content: '' })
                                     }
                                   >
-                                    Reply
-                                  </button>
-                                  {(isOwner ||
-                                    (comment.user &&
-                                      comment.user.username === profile?.username)) && (
-                                    <button
-                                      className={styles.deleteButton}
-                                      onClick={() =>
-                                        handleDeleteCommentWithConfirm(comment.id)
-                                      }
+                                    <svg
+                                      className={styles.icon}
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
                                     >
-                                      Delete
+                                      <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z"/>
+                                    </svg>
+                                    <span>Reply</span>
+                                  </button>
+
+                                  {(isOwner ||
+                                    (comment.user && comment.user.username === profile?.username)) && (
+                                      <button
+                                      className={styles.reactionButton}
+                                      onClick={() => handleDeleteCommentWithConfirm(comment.id)}
+                                    >
+                                      <svg
+                                        className={styles.icon}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                      >
+                                        <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                                      </svg>
+                                      <span>Delete</span>
                                     </button>
+                                    
                                   )}
-                                    <button onClick={() => {
-                                      if (!isUserLoggedIn) {
-                                        navigate('/login');
-                                        return;
-                                      }
-                                      setReportTargetComment(comment.id);
-                                      setShowReportModal(true);
-                                    }}>
-                                      Report
-                                    </button>
+                                  <button
+                                  className={styles.reactionButton}
+                                  onClick={() => {
+                                    if (!isUserLoggedIn) {
+                                      navigate('/login');
+                                      return;
+                                    }
+                                    setReportTargetComment(comment.id);
+                                    setShowReportModal(true);
+                                  }}
+                                  >
+                                  <svg
+                                    className={styles.icon}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                                  </svg>
+                                  <span>Report</span>
+                                  </button>
+
+
 
                                 </div>
   
@@ -1163,11 +1193,13 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                         Cancel
                                       </button>
                                       <button
-                                        type="submit"
-                                        className={styles.replyButtonSubmit}
-                                      >
-                                        Post Reply
-                                      </button>
+                                          type="submit"
+                                          className={styles.replyButtonSubmit}
+                                          disabled={isPostingReply} // Add this
+                                        >
+                                          Post 
+                                        </button>
+
                                     </div>
                                   </form>
                                 )}
@@ -1256,14 +1288,44 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
                                               {profile?.username === reply.user?.username && (
                                                 <button
-                                                  className={`${styles.deleteButton} ${styles.deleteButtonSmall}`}
-                                                  onClick={() =>
-                                                    handleDeleteCommentWithConfirm(reply.id)
-                                                  }
+                                                  className={styles.reactionButton}
+                                                  onClick={() => handleDeleteCommentWithConfirm(reply.id)}
                                                 >
-                                                  Delete
+                                                  <svg
+                                                    className={styles.icon}
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24"
+                                                    fill="currentColor"
+                                                  >
+                                                    <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                                                  </svg>
+                                                  <span>Delete</span>
                                                 </button>
+
                                               )}
+                                     <button
+                                          className={styles.reactionButton}
+                                          onClick={() => {
+                                            if (!isUserLoggedIn) {
+                                              navigate('/login');
+                                              return;
+                                            }
+                                            setReportTargetComment(reply.id);
+                                            setShowReportModal(true);
+                                          }}
+                                        >
+                                          <svg
+                                            className={styles.icon}
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                          >
+                                            <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                                          </svg>
+                                          <span>Report</span>
+                                        </button>
+
+
                                             </div>
                                           </div>
                                         </div>
@@ -1342,70 +1404,97 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
         </div>
       </div>
 
-      {showReportModal && (
+      {showReportModal && reportedComment && (
   <div className={styles.modalOverlay}>
     <div className={styles.modalContent}>
-      <h2>Report Comment</h2>
-
-      <p>Please let us know why you are reporting this comment:</p>
-      <div className={styles.reportOptions}>
-        <label>
-          <input
-            type="checkbox"
-            value="Spam"
-            checked={reportReasons.includes('Spam')}
-            onChange={handleToggleReason}
-          />
-          Spam
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="Harassment"
-            checked={reportReasons.includes('Harassment')}
-            onChange={handleToggleReason}
-          />
-          Harassment
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="Inappropriate"
-            checked={reportReasons.includes('Inappropriate')}
-            onChange={handleToggleReason}
-          />
-          Inappropriate
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="Other"
-            checked={reportReasons.includes('Other')}
-            onChange={handleToggleReason}
-          />
-          Other
-        </label>
-      </div>
-
-      {/* If user selected "Other," show a textarea */}
-      {reportReasons.includes('Other') && (
-        <div className={styles.reportDetails}>
-          <label>Please describe:</label>
-          <textarea
-            value={reportDetails}
-            onChange={(e) => setReportDetails(e.target.value)}
-            placeholder="Tell us more"
-          />
+      {isReporting ? (
+        <div className={styles.loadingContainer}>
+          <p>Submitting report...</p>
         </div>
-      )}
+      ) : showReportSuccess ? (
+        <div className={styles.successContainer}>
+          <p>Your report has been submitted.</p>
+        </div>
+      ) : (
+        <>
+          {/* Header with profile picture and name */}
+          <div className={styles.modalHeader}>
+            <img
+              src={reportedComment.user?.profile_picture || '/default-profile-pic.jpg'}
+              alt={`${reportedComment.user?.username}'s profile`}
+              className={styles.modalProfilePicture}
+            />
+            <h2>{reportedComment.user?.username}</h2>
+          </div>
 
-      <div className={styles.modalActions}>
-        <button onClick={handleSubmitReport}>Submit</button>
-        <button onClick={() => setShowReportModal(false)}>Cancel</button>
-      </div>
+          <h3>Report Comment</h3>
+          <p>Please let us know why you are reporting this comment:</p>
+          <div className={styles.reportOptions}>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Spam"
+                checked={reportReasons === "Spam"}
+                onChange={handleToggleReason}
+              />
+              Spam
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Harassment"
+                checked={reportReasons === "Harassment"}
+                onChange={handleToggleReason}
+              />
+              Harassment
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Inappropriate"
+                checked={reportReasons === "Inappropriate"}
+                onChange={handleToggleReason}
+              />
+              Inappropriate
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Other"
+                checked={reportReasons === "Other"}
+                onChange={handleToggleReason}
+              />
+              Other
+            </label>
+          </div>
+
+          {/* Show textarea if "Other" is selected */}
+          {reportReasons === "Other" && (
+            <div className={styles.reportDetails}>
+              <label>Please describe:</label>
+              <textarea
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                placeholder="Tell us more"
+              />
+            </div>
+          )}
+
+          <div className={styles.modalActions}>
+            <button onClick={handleSubmitReport}>Submit</button>
+            <button onClick={() => setShowReportModal(false)}>Cancel</button>
+          </div>
+        </>
+      )}
     </div>
   </div>
 )}
+
+
 
     </div>
   );
@@ -1431,34 +1520,53 @@ function mapDataProps() {
 
 async function handleSubmitReport() {
   if (!reportTargetComment) return;
-
+  
+  // Start loading
+  setIsReporting(true);
+  
   try {
-    // For example, we can pass the array of reasons plus the text
     await reportComment(reportTargetComment, {
-      reasons: reportReasons,
+      reasons: [reportReasons],
       details: reportDetails,
     });
     
-    // Optionally: Hide the comment in local state or mark it as "under moderation"
-    // E.g., set status = 'hidden' in local state:
+    // Optionally update local comment state here...
     setComments((prev) =>
       prev.map((comment) =>
         comment.id === reportTargetComment
-          ? { ...comment, status: 'hidden' } // or add a custom field
+          ? { ...comment, status: 'hidden' }
           : comment
       )
     );
-
-    // Clear out everything and close the modal
-    setReportReasons([]);
+    
+    // Clear report fields and show success
+    setReportReasons('');
     setReportDetails('');
-    setReportTargetComment(null);
-    setShowReportModal(false);
-
-    // Optionally show a toast: "Thanks! Your report was submitted."
+    setShowReportSuccess(true);
+    
+    // Hide the modal after 3 seconds
+    setTimeout(() => {
+      setShowReportModal(false);
+      setShowReportSuccess(false);
+    }, 3000);
   } catch (err) {
     console.error('Error reporting comment:', err);
-    // Show user an error, or handle gracefully
+    // Optionally handle errors here (e.g., show an error message)
+  } finally {
+    setIsReporting(false);
   }
 }
+
+}
+
+function findCommentById(commentsArray, targetId) {
+  for (const c of commentsArray) {
+    if (c.id === targetId) return c;
+    if (c.Replies && c.Replies.length > 0) {
+      // Look in its replies
+      const found = c.Replies.find((r) => r.id === targetId);
+      if (found) return found;
+    }
+  }
+  return null;
 }

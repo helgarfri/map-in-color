@@ -125,3 +125,16 @@ export const reportComment = (commentId, reportData) => {
   // reportData should have { reasons: [], details: '...' }
   return API.post(`/comments/${commentId}/report`, reportData);
 };
+
+export const fetchPendingReports = () => {
+  return API.get('/admin/reports'); 
+  // => GET /api/admin/reports
+};
+
+export const approveReport = (reportId) => {
+  return API.post(`/admin/reports/${reportId}/approve`);
+};
+
+export const deleteReport = (reportId) => {
+  return API.post(`/admin/reports/${reportId}/delete`);
+};

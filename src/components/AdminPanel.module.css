@@ -1,0 +1,42 @@
+/* AdminPanel.module.css */
+
+.adminPanelContainer {
+    padding: 2rem;
+  }
+  
+  .loading {
+    font-size: 1.2rem;
+    padding: 2rem;
+  }
+  
+  .reportsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  .reportsTable th,
+  .reportsTable td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+  }
+  
+  .approveBtn {
+    margin-right: 0.5rem;
+    background-color: #4caf50; /* green */
+    color: #fff;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .deleteBtn {
+    background-color: #f44336; /* red */
+    color: #fff;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
