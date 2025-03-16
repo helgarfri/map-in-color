@@ -297,6 +297,12 @@
   }
 }
 
+@media (max-width: 600px) {
+  .profileContent {
+    padding: 0px;
+  }
+}
+
 /* 3) Further shrink for very small ~400px screens */
 @media (max-width: 400px) {
   .fullName {

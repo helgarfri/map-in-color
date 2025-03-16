@@ -31,6 +31,9 @@ import { FaDownload } from 'react-icons/fa'; // icon for download
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
+import { reportComment } from '../api'; // import at top
+
+
 export default function MapDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -59,6 +62,16 @@ export default function MapDetail() {
     if (width < 1000) setIsCollapsed(true);
     else setIsCollapsed(false);
   }, [width, setIsCollapsed]);
+
+    // For reporting a comment
+  const [reportTargetComment, setReportTargetComment] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  // The user’s chosen reasons, e.g. ["Spam","Inappropriate"]
+  const [reportReasons, setReportReasons] = useState([]);
+  // If the user picks "Other," they can enter details
+  const [reportDetails, setReportDetails] = useState('');
+
 
 
   const { authToken, profile } = useContext(UserContext);
@@ -389,6 +402,19 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
         }
         return comment;
       });
+  }
+  
+  function handleToggleReason(e) {
+    const { value } = e.target;
+    setReportReasons((prev) => {
+      if (prev.includes(value)) {
+        // If reason already selected, remove it
+        return prev.filter((r) => r !== value);
+      } else {
+        // If reason not in array, add it
+        return [...prev, value];
+      }
+    });
   }
   
 
@@ -1097,6 +1123,17 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                       Delete
                                     </button>
                                   )}
+                                    <button onClick={() => {
+                                      if (!isUserLoggedIn) {
+                                        navigate('/login');
+                                        return;
+                                      }
+                                      setReportTargetComment(comment.id);
+                                      setShowReportModal(true);
+                                    }}>
+                                      Report
+                                    </button>
+
                                 </div>
   
                                 {/* If replying */}
@@ -1304,6 +1341,72 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           </div>
         </div>
       </div>
+
+      {showReportModal && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContent}>
+      <h2>Report Comment</h2>
+
+      <p>Please let us know why you are reporting this comment:</p>
+      <div className={styles.reportOptions}>
+        <label>
+          <input
+            type="checkbox"
+            value="Spam"
+            checked={reportReasons.includes('Spam')}
+            onChange={handleToggleReason}
+          />
+          Spam
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            value="Harassment"
+            checked={reportReasons.includes('Harassment')}
+            onChange={handleToggleReason}
+          />
+          Harassment
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            value="Inappropriate"
+            checked={reportReasons.includes('Inappropriate')}
+            onChange={handleToggleReason}
+          />
+          Inappropriate
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            value="Other"
+            checked={reportReasons.includes('Other')}
+            onChange={handleToggleReason}
+          />
+          Other
+        </label>
+      </div>
+
+      {/* If user selected "Other," show a textarea */}
+      {reportReasons.includes('Other') && (
+        <div className={styles.reportDetails}>
+          <label>Please describe:</label>
+          <textarea
+            value={reportDetails}
+            onChange={(e) => setReportDetails(e.target.value)}
+            placeholder="Tell us more"
+          />
+        </div>
+      )}
+
+      <div className={styles.modalActions}>
+        <button onClick={handleSubmitReport}>Submit</button>
+        <button onClick={() => setShowReportModal(false)}>Cancel</button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
   
@@ -1323,5 +1426,39 @@ function mapDataProps() {
     top_low_values: mapData.top_low_values,
     is_title_hidden: mapData.is_title_hidden
   };
+}
+
+
+async function handleSubmitReport() {
+  if (!reportTargetComment) return;
+
+  try {
+    // For example, we can pass the array of reasons plus the text
+    await reportComment(reportTargetComment, {
+      reasons: reportReasons,
+      details: reportDetails,
+    });
+    
+    // Optionally: Hide the comment in local state or mark it as "under moderation"
+    // E.g., set status = 'hidden' in local state:
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.id === reportTargetComment
+          ? { ...comment, status: 'hidden' } // or add a custom field
+          : comment
+      )
+    );
+
+    // Clear out everything and close the modal
+    setReportReasons([]);
+    setReportDetails('');
+    setReportTargetComment(null);
+    setShowReportModal(false);
+
+    // Optionally show a toast: "Thanks! Your report was submitted."
+  } catch (err) {
+    console.error('Error reporting comment:', err);
+    // Show user an error, or handle gracefully
+  }
 }
 }

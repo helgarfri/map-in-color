@@ -471,6 +471,84 @@ router.delete('/comments/:comment_id', auth, async (req, res) => {
 });
 
 
+router.post('/comments/:comment_id/report', auth, async (req, res) => {
+  try {
+    const comment_id = parseInt(req.params.comment_id, 10);
+    const { reasons, details } = req.body; 
+    // reasons => array of strings: ["Harassment", "Inappropriate"]
+    // details => string from "Other"
+
+    const user_id = req.user.id;
+
+    // 1) Check if comment exists
+    const { data: comment, error: commentErr } = await supabaseAdmin
+      .from('comments')
+      .select(`
+        id,
+        user_id,
+        status
+      `)
+      .eq('id', comment_id)
+      .maybeSingle();
+
+    if (commentErr) throw commentErr;
+    if (!comment) {
+      return res.status(404).json({ msg: 'Comment not found' });
+    }
+
+    // 2) Insert into comment_reports
+    const { error: reportErr } = await supabaseAdmin
+      .from('comment_reports')
+      .insert({
+        comment_id,
+        reported_by: user_id,
+        reasons,
+        details,
+        status: 'pending'
+      });
+    if (reportErr) throw reportErr;
+
+    // 3) Immediately hide or mark comment as "pending_review"
+    //    (You decide which approach—here we’ll do 'hidden')
+    const { error: hideErr } = await supabaseAdmin
+      .from('comments')
+      .update({ status: 'hidden' }) 
+      .eq('id', comment_id);
+    if (hideErr) throw hideErr;
+
+    // 4) Send emails
+    //    a) to original commenter, that their comment is under review
+    //    b) to your admin/moderation email (or yourself)
+    // For example (pseudo-code, using your existing Resend setup):
+    /*
+      await resend.emails.send({
+        from: 'noreply@yourapp.com',
+        to: [originalCommenterEmail],
+        subject: 'Your comment is under review',
+        html: `Hello, your comment with ID #${comment_id} has been reported and is currently hidden. We'll review it soon.`
+      });
+
+      await resend.emails.send({
+        from: 'noreply@yourapp.com',
+        to: ['moderator@yourapp.com'], // or your personal email
+        subject: 'A comment has been reported',
+        html: `User #${user_id} reported comment #${comment_id}<br/>
+               Reasons: ${reasons.join(', ')}<br/>
+               Details: ${details || 'N/A'}<br/>
+               <a href="https://yourapp.com/admin/reports">Review now</a>
+              `
+      });
+    */
+
+    return res.json({ msg: 'Comment reported successfully' });
+  } catch (err) {
+    console.error('Error reporting comment:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
+
 
 
 module.exports = router;
