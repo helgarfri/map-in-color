@@ -12,6 +12,7 @@ import { FaPencilAlt, FaLock, FaHeartBroken } from 'react-icons/fa';
 import { format } from 'date-fns';
 import Cropper from 'react-easy-crop';
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize';
 
 export default function ProfileSettings() {
   const [activeTab, setActiveTab] = useState('account');
@@ -19,6 +20,12 @@ export default function ProfileSettings() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState('');
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize();
+
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
 
   const [formData, setFormData] = useState({

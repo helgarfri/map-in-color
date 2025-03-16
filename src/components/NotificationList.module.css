@@ -81,7 +81,7 @@
 
 .typeIcon {
   font-size: 20px;
-  color: #6d3261;
+  color: #80a0b0;
 }
 
 /* Profile Picture */
@@ -122,4 +122,75 @@
   color: #999;
   white-space: nowrap;
   margin-left: 10px;
+}
+
+/* 1) Remove left margin on small screens */
+@media (max-width: 1000px) {
+  .mainContent {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+}
+
+/* 2) Let notification text wrap + optional stacking at ~600px */
+@media (max-width: 600px) {
+  .notificationItem {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px; /* maybe reduce horizontal padding */
+    margin: 0 10px; 
+  }
+
+  /* Put action buttons below text, or keep them on top: your choice */
+  .leftActions {
+    order: 2; /* moves them after the text/time */
+    margin-top: 5px;
+    margin-right: 0;
+  }
+
+  .notificationContentWrapper {
+    order: 1;
+    width: 100%; /* so it spans full container */
+  }
+
+  /* Let text wrap normally */
+  .notificationText {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
+
+/* 3) Very small ~400px phones: shrink icons, fonts, pictures */
+@media (max-width: 400px) {
+  .notificationItem {
+    padding: 8px;
+    margin: 0 5px;
+  }
+
+  .profile_picture {
+    width: 30px;
+    height: 30px;
+  }
+
+  .typeIcon {
+    font-size: 16px; /* smaller than 20px */
+  }
+
+  .notificationContent {
+    font-size: 12px; 
+  }
+
+  .notificationTime {
+    font-size: 10px;
+    margin-left: auto; /* or put it on a new line, your choice */
+  }
+
+  .actionButton {
+    font-size: 14px;
+    padding: 3px;
+  }
 }

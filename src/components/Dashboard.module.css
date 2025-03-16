@@ -165,6 +165,7 @@
 /* Single feed item */
 .activityItem {
   display: flex;
+  flex-direction: column;
   background-color: #fafafa;
   border: 1px solid #eee;
   border-radius: 6px;
@@ -172,14 +173,17 @@
   gap: 15px;
 }
 .thumbContainer {
-  width: 120px;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   background-color: #ddd;
   border-radius: 4px;
   overflow: hidden;
-  display: flex;
   justify-content: center;
   align-items: center;
+}
+
+p {
+  margin: 10px 0px 10px 0px;
 }
 .defaultThumbnail {
   color: #666;
@@ -190,7 +194,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 .starCount {
   color: #444;
@@ -349,23 +353,6 @@
   background-color: #bbb;
 }
 
-/* RESPONSIVE (stack columns vertically if narrow) */
-@media (max-width: 992px) {
-  .dashboardContent {
-    margin-left: 0;
-  }
-  .mainWrapper {
-    flex-direction: column;
-  }
-  .leftMapsSidebar,
-  .rightNotifications {
-    position: static; 
-    width: 100%;
-    max-height: none;
-    overflow-y: visible;
-    margin-top: 20px;
-  }
-}
 
 .savedMapsSection {
   margin-top: 20px;
@@ -439,3 +426,138 @@
 .viewAllSavedBtn:hover {
   background-color: #bbb;
 }
+
+.sidebarOverlay {
+  position: fixed;
+  top: 60px;          /* same top as the header */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px);
+  background: rgba(0,0,0,0.4);
+  z-index: 998;       /* just below the sidebar’s 999 */
+}
+
+
+
+/* Tablet-ish - stack columns, reduce widths, but still keep some spacing */
+@media (max-width: 1000px) {
+  .mainWrapper {
+    flex-direction: column;
+    /* Possibly reduce side margins, font sizes, etc. */
+  }
+  .dashboardContent {
+    margin-left: 0 !important; 
+    width: 100%;
+    padding: 5px;
+  }
+  .contentCollapsed {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .centerColumn {
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .activityFeedSection {
+    padding: 10px;
+  }
+
+  .activityItem {
+    padding: 5px;
+  }
+}
+
+/* Phone-ish - narrower than 600 or 768 for truly small screens */
+@media (max-width: 600px) {
+  .statsContainer {
+    gap: 5px;  /* smaller gap */
+  }
+
+  .statItem {
+    padding: 3px 5px; /* reduce padding for phone */
+  }
+
+  .activityItem {
+    flex-direction: column;
+    /* maybe smaller thumbnails? */
+  }
+
+ 
+
+}
+
+/* small phones 400px */
+@media (max-width: 400px) {
+
+
+  .statsContainer {
+    flex-direction: row;
+    gap: 5px;  /* smaller gap */
+    
+  }
+
+  .statItem {
+    padding: 0px 10px; /* reduce padding for phone */
+    font-size: 12px;
+  }
+
+  .statIcon {
+    font-size: 14px;
+  }
+
+  .activityItem {
+    flex-direction: column;
+    /* maybe smaller thumbnails? */
+    font-size: smaller;
+  }
+
+  .leftMapsSidebar {
+    padding: 0px
+  }
+  .leftMapsSidebar h2 {
+    padding-top: 15px;
+    padding-left: 15px;
+  }
+
+  .commentBox {
+    margin: 0px;
+    padding: 5px;
+  }
+
+  h2 {
+    font-size: 1rem;
+    
+  }
+
+  .mapTitle {
+    font-size: 14px;
+  }
+
+  .mapModifiedDate {
+    display: none;
+  }
+
+  .mapListItem {
+    padding: 5px 15px;
+  }
+
+  .savedMapsSection {
+    margin-top: 0px;
+    padding: 10px;
+    
+
+  }
+  
+}
+
+
+@media (max-width: 768px) {
+  .leftMapsSidebar {
+    width: 100%;
+    margin-top: 0;
+    /* maybe remove that sticky positioning, or keep it */
+    position: static;
+  }
+}
+

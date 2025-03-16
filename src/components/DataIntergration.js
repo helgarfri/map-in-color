@@ -16,6 +16,7 @@ import { faGlobe, faLock, faCaretDown, faFileCsv } from '@fortawesome/free-solid
 import Header from "./Header";
 
 import { SidebarContext } from "../context/SidebarContext";
+import useWindowSize from "../hooks/useWindowSize";
 
 /** Color Palettes **/
 const themes = [
@@ -25,43 +26,43 @@ const themes = [
   },
   {
     name: 'Blues',
-    colors: ['#f7fbff', '#e1edf8', '#c3def1', '#a6d0ea', '#88c1e3', '#6ab3dc', '#4da4d5', '#2f95ce', '#1187c7', '#0078bf'],
+    colors: ['#e1edf8', '#c3def1', '#a6d0ea', '#88c1e3', '#6ab3dc', '#4da4d5', '#2f95ce', '#1187c7', '#0078bf', '#005f9e'],
   },
   {
     name: 'Reds',
-    colors: ['#fff5f0', '#ffe0d9', '#ffccc2', '#ffb7ab', '#ffa295', '#ff8e7e', '#ff7967', '#ff6450', '#ff5039', '#ff3b22'],
+    colors: ['#ffe0d9', '#ffccc2', '#ffb7ab', '#ffa295', '#ff8e7e', '#ff7967', '#ff6450', '#ff5039', '#ff3b22', '#e62e1a'],
   },
   {
     name: 'Greens',
-    colors: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#33a34d', '#26873c', '#1c6b31'],
+    colors: ['#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#33a34d', '#26873c', '#1c6b31', '#145227', '#0d3a1d'],
   },
   {
     name: 'Yellows',
-    colors: ['#ffffe5', '#fff7bc', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#d5600e', '#b04d0b', '#8a3907'],
+    colors: ['#fff7bc', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#d5600e', '#b04d0b', '#8a3907', '#6b2d05', '#4d2103'],
   },
   {
     name: 'Red to Green',
-    colors: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#d9ef8b', '#a6d96a', '#66bd63', '#4daf4a'],
+    colors: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#4daf4a', '#238b45', '#006837'],
   },
   {
     name: 'Heatmap',
-    colors: ['#ffffff', '#ffffcc', '#ffeda0', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#8e0152'],
+    colors: ['#ffffcc', '#ffeda0', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#8e0152', '#67001f', '#49000d'],
   },
   {
     name: 'Oranges',
-    colors: ['#fff5eb', '#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d55a0d', '#a94703', '#853200'],
+    colors: ['#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d55a0d', '#a94703', '#853200', '#662400', '#4d1800'],
   },
   {
     name: 'Purples',
-    colors: ['#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6b65ab', '#564699', '#453480'],
+    colors: ['#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6b65ab', '#564699', '#453480', '#352366', '#24124c'],
   },
   {
     name: 'GNBu',
-    colors: ['#f7fcf0', '#e0f3db', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#3791b7', '#1d7295', '#0f4d6f'],
+    colors: ['#e0f3db', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#3791b7', '#1d7295', '#0f4d6f', '#08306b', '#041f3a'],
   },
   {
     name: 'PuBu',
-    colors: ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#7a4ea0', '#65348b', '#50216e'],
+    colors: ['#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#7a4ea0', '#65348b', '#50216e', '#3b0f52', '#260036'],
   },
 ];
 
@@ -173,6 +174,13 @@ export default function DataIntegration({
   const [errors, setErrors] = useState([]);
   const [data, setData] = useState([]);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize();
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
+
+
   const [file_stats, setFileStats] = useState({
     lowestValue: null,
     lowestCountry: '',
@@ -1117,83 +1125,80 @@ function applyPalette(oldRanges, paletteColors) {
             </div>
           </div>
 
-          {/* RANGE TABLE */}
-          <div className={styles.section}>
-            <h3>Define Custom Ranges</h3>
-            <table className={styles.rangeTable}>
-              <thead>
-                <tr>
-                  <th>Lower Bound</th>
-                  <th>Upper Bound</th>
-                  <th>Name</th>
-                  <th>Color</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {custom_ranges.map((range) => (
-                  <tr key={range.id}>
-                    <td>
-                      <input
-                        type="number"
-                        className={styles.inputBox}
-                        value={range.lowerBound}
-                        onChange={(e) =>
-                          handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
-                        }
-                        placeholder="Min"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className={styles.inputBox}
-                        value={range.upperBound}
-                        onChange={(e) =>
-                          handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
-                        }
-                        placeholder="Max"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className={styles.inputBox}
-                        value={range.name}
-                        onChange={(e) =>
-                          handleRangeChange(range.id, 'name', e.target.value)
-                        }
-                        placeholder="Name"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="color"
-                        className={styles.inputBox}
-                        value={range.color}
-                        onChange={(e) =>
-                          handleRangeChange(range.id, 'color', e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      {custom_ranges.length > 1 ? (
-                        <button
-                          className={styles.removeButton}
-                          onClick={() => removeRange(range.id)}
-                        >
-                          &times;
-                        </button>
-                      ) : (
-                        <button className={styles.removeButton} disabled>
-                          &times;
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* RANGE TABLE */}
+<div className={styles.section}>
+  <h3>Define Custom Ranges</h3>
+  <table className={styles.rangeTable}>
+    <thead>
+      <tr>
+        <th>Lower Bound</th>
+        <th>Upper Bound</th>
+        <th>Name</th>
+        <th>Color</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {custom_ranges.map((range) => (
+        <tr key={range.id}>
+          <td data-label="Lower Bound">
+            <input
+              type="number"
+              className={styles.inputBox}
+              value={range.lowerBound}
+              onChange={(e) =>
+                handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
+              }
+              placeholder="Min"
+            />
+          </td>
+          <td data-label="Upper Bound">
+            <input
+              type="number"
+              className={styles.inputBox}
+              value={range.upperBound}
+              onChange={(e) =>
+                handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
+              }
+              placeholder="Max"
+            />
+          </td>
+          <td data-label="Name">
+            <input
+              type="text"
+              className={styles.inputBox}
+              value={range.name}
+              onChange={(e) => handleRangeChange(range.id, 'name', e.target.value)}
+              placeholder="Name"
+            />
+          </td>
+          <td data-label="Color">
+            <input
+              type="color"
+              className={styles.inputBox}
+              value={range.color}
+              onChange={(e) => handleRangeChange(range.id, 'color', e.target.value)}
+            />
+          </td>
+          <td data-label="Actions">
+            {custom_ranges.length > 1 ? (
+              <button
+                className={styles.removeButton}
+                onClick={() => removeRange(range.id)}
+              >
+                &times;
+              </button>
+            ) : (
+              <button className={styles.removeButton} disabled>
+                &times;
+              </button>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
 
             <div className={styles.rangeControls}>
               <div className={styles.leftControls}>

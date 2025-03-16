@@ -700,9 +700,22 @@
 }
 
 /* Make sure the rest of your themeFields, inputBox, etc. remain consistent. */
+/* 1) Remove left margin below 1000px */
+@media (max-width: 1000px) {
+  .content {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+}
 
-/* Responsive for smaller screens */
+/* 2) Stack columns below 768px */
 @media (max-width: 768px) {
+  .topThreeBoxes {
+    flex-direction: column;
+  }
   .mapLayoutContainer {
     flex-direction: column;
   }
@@ -712,19 +725,65 @@
     margin-bottom: 20px;
   }
 }
-
-
-/* (Popup / Modal styles can be removed if not used) */
-
-/* Responsive */
-@media (max-width: 768px) {
-  .topThreeBoxes {
-    flex-direction: column;
+@media (max-width: 930px) {
+  /* Range table – turn into “cards”/stacked rows */
+  .rangeTable {
+    border: 0;
+    width: 100%;
   }
-  .mapPreviewAndDetails {
-    flex-direction: column;
+
+  /* Hide the table header row */
+  .rangeTable thead {
+    display: none;
   }
-  .mapDetailsSection {
-    margin-top: 20px;
+
+  /* Each table row becomes a block */
+  .rangeTable tr {
+    display: block;
+    margin-bottom: 15px; /* space between “cards” */
+    border: 1px solid #ccc; /* optional card border */
+    border-radius: 6px;
+    padding: 8px; /* optional card padding */
+    background-color: #fafafa;
+  }
+
+  /* Each table cell becomes a row within the card */
+  .rangeTable td {
+    display: block;
+    text-align: left;       /* left-align the content */
+    border-bottom: none;    /* remove normal cell borders */
+    position: relative;
+    padding: 6px 0;         /* vertical spacing */
+    font-size: 14px;
+  }
+
+  /* Add the “Column Title” via ::before using data-label. */
+  .rangeTable td::before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    display: inline-block;
+    width: auto;   /* you can fix a width if you like */
+    margin-right: 5px;
+    color: #333;
+  }
+
+  /* Because we no longer need separate columns, reduce color input width, etc. */
+  .rangeTable td input[type="color"],
+  .rangeTable td input[type="number"],
+  .rangeTable td input[type="text"] {
+    width: 60%; /* or 100%, as you prefer */
+  }
+}
+
+@media (max-width: 400px) {
+  .settingItemRow {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+   
+  }
+
+  .contentInner {
+    padding: 10px;
   }
 }

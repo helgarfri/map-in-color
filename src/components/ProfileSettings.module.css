@@ -361,47 +361,38 @@
   background-color: #bbb;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .profileContainer {
-    flex-direction: column;
-    align-items: center;
-  }
-
+/* 1) Remove margin-left below 1000px */
+@media (max-width: 1000px) {
   .profileContent {
-    margin-left: 0;
-  }
-
-  .navigationTabs {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .navTab {
-    margin: 5px 0;
-  }
-
-  .mainContent {
-    width: 100%;
-    padding: 0 20px;
-  }
-
-  .formRow {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .formLabel,
-  .formField {
+    margin-left: 0 !important; 
     width: 100%;
   }
-
-  .formField {
-    margin-top: 5px;
-    text-align: left;
-  }
-
-  .editableValue {
-    justify-content: flex-start;
+  .profileContent.contentCollapsed {
+    margin-left: 0 !important;
   }
 }
+
+/* 2) Possibly shrink things further under 400px for very small phones */
+@media (max-width: 400px) {
+  .formRow {
+    padding: 10px 0; /* smaller vertical spacing */
+  }
+  .formField input,
+  .formField textarea {
+    font-size: 0.9rem;
+    padding: 8px; 
+  }
+  .saveButton {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+  .profile_picturePreview {
+    width: 80px;
+    height: 80px;
+  }
+  .navTab {
+    font-size: 0.8rem;
+    padding: 8px 0;
+  }
+}
+

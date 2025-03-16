@@ -18,6 +18,7 @@ import Header from './Header';
 import { UserContext } from '../context/UserContext';
 import LoadingSpinner from './LoadingSpinner';
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize';
 
 export default function StarredMaps() {
   const [maps, setMaps] = useState([]);
@@ -27,7 +28,14 @@ export default function StarredMaps() {
   const navigate = useNavigate();
   const { profile } = useContext(UserContext);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize();
 
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
+
+  
   useEffect(() => {
     const getStarredMaps = async () => {
       try {

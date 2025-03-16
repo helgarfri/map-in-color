@@ -2,11 +2,11 @@
 
 .sidebar {
   position: fixed;
-  top: 60px;                  /* push below the fixed header */
+  top: 60px; /* below the fixed header */
   left: 0;
   width: 250px;
-  height: calc(100% - 60px);  /* fill remaining viewport height */
-  overflow-y: auto;           /* allow scroll if content is longer */
+  height: calc(100% - 60px);
+  overflow-y: auto;
   background-color: #fff;
   color: #333;
   padding: 20px;
@@ -14,6 +14,20 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  
+  /* For smooth open/close transitions */
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+  z-index: 999; /* So it appears above the main content on mobile */
+}
+
+/* Collapsed always means "narrow" on desktop, so we keep that same style.
+   But for mobile, we also want it fully off-canvas. */
+.collapsed {
+  width: 70px;
+  /* For desktop usage (if you still want that narrow look):
+     nothing changes. But let's define a default style
+     for smaller screens below using media queries. */
 }
 
 /* Remove or comment out min-height: 100vh because we now use calc(100% - 60px)
@@ -175,21 +189,17 @@ min-height: 100vh;  <-- remove this! */
   font-size: 9px;
 }
 /* Responsive Design */
-@media (max-width: 768px) {
+
+/* MOBILE OVERRIDES */
+@media (max-width: 1000px) {
   .sidebar {
-    width: 70px;
-    padding: 10px;
+    transform: translateX(-100%); 
+    width: 250px;
   }
-
-  .username {
-    display: none;
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
   }
-
-  .navLink span {
-    display: none;
-  }
-
-  .icon {
-    margin-right: 0;
+  .collapsed {
+    width: 250px; /* so “collapsed = hidden” on mobile */
   }
 }

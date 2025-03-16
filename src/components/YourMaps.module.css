@@ -261,3 +261,61 @@
 .cancelButton:hover {
   background-color: #5a6268;
 }
+
+/* Force content to margin-left: 0 when width < 1000px */
+@media (max-width: 1000px) {
+  .myMapsContent {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  /* If collapsed is also applied, override that as well */
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+}
+
+
+/* 1) Tablet-ish (600px or 768px) media query - for stats 2x2 grid */
+@media (max-width: 600px) {
+  .statsBar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .statBox {
+    width: auto;     /* let it fill the grid column */
+    padding: 10px;   /* smaller padding */
+  }
+
+  .statIcon {
+    font-size: 1.4rem;
+  }
+  .statValue {
+    font-size: 1.2rem;
+  }
+  .statLabel {
+    font-size: 0.8rem;
+  }
+}
+
+/* 2) Very small phones (400px) */
+@media (max-width: 400px) {
+  .mapsGrid {
+    grid-template-columns: 1fr; /* single column */
+  }
+
+  .thumbnail {
+    height: 120px;
+  }
+
+  .mapTitle {
+    font-size: 1rem;
+  }
+
+  .actionsRow button {
+    font-size: 0.8rem;
+    padding: 6px;
+  }
+}

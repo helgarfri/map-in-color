@@ -33,6 +33,9 @@ import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize';
+
+
 
 // CSS
 import styles from './Dashboard.module.css';
@@ -50,8 +53,20 @@ export default function Dashboard() {
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
+  const showOverlay = !isCollapsed && width < 1000; 
+
+  // Whenever the width goes below 1000px, auto-collapse the sidebar
+  useEffect(() => {
+    if (width < 1000) {
+      setIsCollapsed(true);
+    } else {
+      // for bigger screens, you could auto-expand again:
+      setIsCollapsed(false);
+    }
+  }, [width, setIsCollapsed]);
   // ----------------------
   // Basic Stats
   // ----------------------
@@ -375,8 +390,15 @@ const userAvatarUrl = user?.profile_picture
   };
   return (
     <div className={styles.dashboardContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-  
+    <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      
+      {/* If off-canvas is open on mobile, show the overlay */}
+      {showOverlay && (
+        <div 
+          className={styles.sidebarOverlay} 
+          onClick={() => setIsCollapsed(true)} // click outside to close
+        />
+      )}  
       <div
         className={`${styles.dashboardContent} ${
           isCollapsed ? styles.contentCollapsed : ''

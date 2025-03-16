@@ -1,6 +1,6 @@
 /* MapDetail.module.css */
 
-/* Map Detail Container */
+/* Container around the sidebar & main content */
 .mapDetailContainer {
   display: flex;
   margin-top: 60px;
@@ -8,31 +8,32 @@
   min-height: 1000px;
 }
 
-/* Map Detail Content */
+/* The main content area next to the sidebar */
 .mapDetailContent {
   flex: 1;
   padding: 20px;
-  margin-left: 250px; /* Adjust as needed */
+  margin-left: 250px; /* expanded sidebar width */
   display: flex;
   flex-direction: column;
 }
 
 .contentCollapsed {
-  margin-left: 70px; /* Adjust as needed */
+  margin-left: 70px; /* collapsed sidebar width */
 }
 
-/* Map Display */
+/* ------------------------- */
+/* MAP DISPLAY AREA          */
+/* ------------------------- */
+
 .mapDisplay {
   position: relative;
   overflow: hidden;
-
   background-color: #f7f7f7;
   width: 100%;
   margin: 0 auto;
 }
 
-
-/* Zoom Controls */
+/* Zoom Controls (top-right) */
 .zoomControls {
   position: absolute;
   top: 10px;
@@ -50,12 +51,11 @@
   cursor: pointer;
   margin-bottom: 5px;
 }
-
 .zoomControls button:hover {
   background-color: #f0f0f0;
 }
 
-/* View Mode Button */
+/* Full Screen Button (bottom-right) */
 .viewModeButton {
   position: absolute;
   bottom: 20px;
@@ -68,35 +68,34 @@
   border-radius: 4px;
   z-index: 1;
 }
-
 .viewModeButton:hover {
   background-color: #f0f0f0;
 }
 
-/* Details and Statistics Section */
+/* ------------------------- */
+/* DETAILS & STATS LAYOUT    */
+/* ------------------------- */
+
+/* We have 2 columns:
+   1) leftContent (mapDetails + discussion)
+   2) mapStats
+*/
 .detailsAndStats {
-  display: table; /* Changed from flex to table */
+  display: flex; /* 2 columns on desktop */
   width: 100%;
   margin-top: 20px;
+  gap: 20px; /* If you want a gap */
 }
 
-/* Left Content: Map Details and Comments */
+/* Left column */
 .leftContent {
-  display: table-cell; /* Changed from flex to table-cell */
-  vertical-align: top;
-  padding-right: 20px; /* To simulate gap */
-  width: 75%; /* Adjust as needed */
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  /* put discussion below mapDetails inside here */
 }
 
-/* Right Side: Statistics */
-.mapStats {
-  display: table-cell; /* Changed from flex to table-cell */
-  vertical-align: top;
-  padding-left: 20px; /* To simulate gap */
-  width: 25%; /* Adjust as needed */
-}
-
-/* Map Details */
+/* The box with map details (title, tags, references, etc.) */
 .mapDetails {
   background-color: #fafafa;
   border: 1px solid #ddd;
@@ -104,7 +103,7 @@
   padding: 20px;
 }
 
-/* Discussion Section */
+/* The discussion section (below mapDetails on desktop) */
 .discussionSection {
   margin-top: 20px;
   background-color: #fafafa;
@@ -113,7 +112,69 @@
   padding: 20px;
 }
 
-/* Title Section */
+/* Right column: Stats + country table */
+.mapStats {
+  flex: 1;
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Zoomed to smaller widths if needed */
+.statsSummary {
+  flex-shrink: 0;
+}
+.statItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.statValue {
+  font-size: 32px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+.statLabel {
+  background-color: #ddd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.statItem p {
+  margin-left: auto;
+  font-size: 16px;
+  color: #555;
+}
+
+/* Country List Table */
+.countryList {
+  overflow-y: auto;
+  margin-top: 10px;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+.countryList table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.countryList th,
+.countryList td {
+  text-align: left;
+  padding: 8px;
+}
+.countryList tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+.countryList th {
+  background-color: #e0e0e0;
+}
+
+/* ------------------------- */
+/* TITLE & CREATOR           */
+/* ------------------------- */
 .titleSection {
   display: flex;
   align-items: center;
@@ -123,31 +184,26 @@
   flex: 1;
   margin: 0;
 }
-
 .saveButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-left: 10px;
-  font-size: 24px; /* ensure icons match text size if you want them equal */
+  font-size: 24px;
   cursor: pointer;
   background: none;
   border: none;
   gap: 3px;
 }
-
 .created_at {
   margin-top: 5px;
   margin-bottom: 10px;
 }
-
-/* Creator Info */
 .creatorInfo {
   display: flex;
   align-items: center;
   margin-top: 10px;
 }
-
 .creatorProfileLink {
   display: flex;
   align-items: center;
@@ -155,7 +211,6 @@
   color: inherit;
   margin-right: 10px;
 }
-
 .creatorProfilePicture {
   width: 35px;
   height: 35px;
@@ -163,70 +218,10 @@
   object-fit: cover;
   margin-right: 10px;
 }
-
 .creatorName {
   font-size: 16px;
   font-weight: bold;
 }
-
-.creatorUsername {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.creatorUsername:hover {
-  text-decoration: underline;
-}
-
-/* Comment Author Link */
-.commentAuthorLink {
-  text-decoration: none;
-  color: #007bff;
-}
-
-.commentAuthorLink:hover {
-  text-decoration: underline;
-}
-
-/* Adjustments for Profile Pictures in Comments */
-.commentProfilePicture {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
-}
-
-/* Ensure the comment header aligns properly */
-.commentHeader {
-  align-items: flex-start;
-}
-
-.commentButton {
-  margin-left: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  background-color: #55957b; /* or your "blue" color */
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  height: 40px;
-  align-self: center;
-}
-
-.commentButton:hover {
-  background-color: #6999b1; /* hover color */
-}
-
-.commentButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: none; /* Or remove if you want filter effects */
-}
-
-
-/* Visibility Tag */
 .visibilityTag {
   display: inline-block;
   margin-left: 10px;
@@ -236,14 +231,12 @@
   font-size: 14px;
   border-radius: 4px;
 }
-
 .description {
   margin-top: 10px;
   font-size: 16px;
 }
 
-
-/* Tag styling in MapDetail for clickable tags */
+/* Tags */
 .mapTag {
   display: inline-block;
   color: #333;
@@ -253,45 +246,42 @@
   border-radius: 7px;
   font-size: 14px;
   cursor: pointer;
-  text-decoration: none; /* Ensure no underline */
+  text-decoration: none;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
-
 .mapTag:hover {
   background-color: #80a0b0;
-  color: white; 
-}
-.referencesList {
-  list-style: decimal inside; /* gives us "1. 2. 3." with indentation */
-  margin-left: 0;
-  padding-left: 0; 
-  margin-top: 8px; 
+  color: #fff;
 }
 
+/* References list */
+.referencesList {
+  list-style: decimal inside;
+  margin-left: 0;
+  padding-left: 0;
+  margin-top: 8px;
+}
 .referenceItem {
   margin-bottom: 10px;
   line-height: 1.5;
 }
-
 .referenceNotes {
   margin-top: 5px;
-  margin-left: 20px; /* to indent "Notes:" under the main line if desired */
+  margin-left: 20px; /* indent "Notes:" if you like */
   font-style: italic;
 }
 
-
-/* Discussion Section */
+/* ------------------------- */
+/* DISCUSSION / COMMENTS     */
+/* ------------------------- */
 .discussionSection h2 {
   margin-top: 0;
 }
-
-/* Comment Form */
 .commentForm {
   display: flex;
   align-items: flex-start;
   margin-bottom: 20px;
 }
-
 .commentTextarea {
   flex: 1;
   border: 1px solid #ccc;
@@ -301,12 +291,10 @@
   resize: none;
   min-height: 40px;
 }
-
 .commentTextarea:focus {
   outline: none;
   border-color: #80a0b0;
 }
-
 .commentButton {
   margin-left: 10px;
   padding: 10px 20px;
@@ -319,9 +307,13 @@
   height: 40px;
   align-self: center;
 }
-
 .commentButton:hover {
   background-color: #6999b1;
+}
+.commentButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
 }
 
 /* Comments List */
@@ -329,7 +321,6 @@
   list-style-type: none;
   padding: 0;
 }
-
 .commentItem {
   display: flex;
   margin-bottom: 20px;
@@ -338,13 +329,11 @@
   border-radius: 8px;
   background-color: #fafafa;
 }
-
 .commentHeader {
   display: flex;
   width: 100%;
   align-items: flex-start;
 }
-
 .commentProfilePicture,
 .commentPlaceholder {
   width: 50px;
@@ -353,44 +342,37 @@
   object-fit: cover;
   margin-right: 15px;
 }
-
 .commentPlaceholder {
   background-color: #ccc;
 }
-
 .commentContentWrapper {
   flex: 1;
 }
-
 .commentInfo {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
 }
-
 .commentAuthor {
   font-weight: bold;
   font-size: 14px;
   margin-right: 10px;
 }
-
 .commentTime {
   font-size: 12px;
   color: #888;
 }
-
 .commentContent {
   font-size: 18px;
   margin: 0;
 }
 
-/* Comment Actions */
+/* Comment Actions (Like/Dislike/Reply/Delete) */
 .commentActions {
   display: flex;
   align-items: center;
   margin-top: 10px;
 }
-
 .reactionButton {
   display: inline-flex;
   align-items: center;
@@ -404,29 +386,22 @@
   padding: 4px 8px;
   transition: background-color 0.2s, color 0.2s;
 }
-
 .reactionButton:hover {
   background-color: #e0e0e0;
 }
-
 .reactionButton.active {
   background-color: #80a0b0;
   color: #fff;
 }
-
-/* Smaller reaction buttons */
 .reactionButtonSmall {
   padding: 4px 8px;
   font-size: 0.8rem;
 }
-
 .iconSmall {
   width: 16px;
   height: 16px;
   margin-right: 4px;
 }
-
-/* Smaller delete button */
 .deleteButtonSmall {
   font-size: 0.8rem;
   padding: 4px 8px;
@@ -437,31 +412,24 @@
   margin-right: 4px;
   fill: currentColor;
 }
-
-/* Reply Button */
 .replyButton {
   background: none;
   border: none;
   color: #80a0b0;
   cursor: pointer;
   margin-left: 10px;
-
-  
-  
 }
-
 .replyButton:hover {
   text-decoration: underline;
 }
 
-/* Reply Form */
+/* Reply Form + Replies */
 .replyForm {
   display: flex;
   flex-direction: column;
   margin-top: 10px;
   margin-left: 65px;
 }
-
 .replyTextarea {
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -470,12 +438,10 @@
   resize: none;
   min-height: 60px;
 }
-
 .replyTextarea:focus {
   outline: none;
   border-color: #80a0b0;
 }
-
 .replyButtonSubmit {
   align-self: flex-end;
   margin-top: 5px;
@@ -487,32 +453,25 @@
   border-radius: 8px;
   cursor: pointer;
 }
-
 .replyButtonSubmit:hover {
   background-color: #6999b1;
 }
-
-/* Replies List */
 .repliesList {
   list-style-type: none;
   padding: 0;
   margin-top: 10px;
   margin-left: 65px;
 }
-
-/* Reply Item */
 .replyItem {
   display: flex;
   margin-bottom: 15px;
   padding: 10px;
   background-color: #f9f9f9;
 }
-
 .replyItem .commentHeader {
   display: flex;
   width: 100%;
 }
-
 .replyItem .commentProfilePicture,
 .replyItem .commentPlaceholder {
   width: 40px;
@@ -521,71 +480,57 @@
   object-fit: cover;
   margin-right: 10px;
 }
-
 .replyItem .commentContentWrapper {
   flex: 1;
   font-size: 14px;
 }
-
 .replyItem .commentAuthor {
   font-weight: bold;
   font-size: 13px;
   margin-right: 8px;
 }
-
 .replyItem .commentTime {
   font-size: 11px;
   color: #888;
 }
-
 .replyItem .commentContent {
   font-size: 14px;
   margin: 0;
 }
-
 .replyItem .commentActions {
   margin-top: 8px;
 }
-
 .replyItem .reactionButton {
   font-size: 12px;
   padding: 3px 6px;
   margin-right: 8px;
 }
-
 .replyItem .icon {
   width: 14px;
   height: 14px;
   margin-right: 3px;
 }
-
-/* Increase margin between replies */
 .replyItem + .replyItem {
   margin-top: 15px;
 }
-
-   .replyCancelButton {
-     margin-left: 8px;
-     margin-top: 8px;
-     background: none;
-     border: none;
-     color: #888; 
-     cursor: pointer;
-
-   }
-   .replyCancelButton:hover {
-     text-decoration: underline;
-   }
-   .replyActions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end; /* Align to the right */
-    gap: 10px;
-    margin-top: 5px;
-  }
-  
-
-/* Toggle Replies Button */
+.replyCancelButton {
+  margin-left: 8px;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+}
+.replyCancelButton:hover {
+  text-decoration: underline;
+}
+.replyActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 5px;
+}
 .toggleRepliesButton {
   background: none;
   border: none;
@@ -595,11 +540,11 @@
   margin-bottom: 10px;
   font-size: 13px;
 }
-
 .toggleRepliesButton:hover {
   text-decoration: underline;
 }
 
+/* Edit/Delete Buttons */
 .editButton {
   background: #80a0b0;
   color: #fff;
@@ -608,11 +553,9 @@
   border-radius: 4px;
   cursor: pointer;
 }
-
 .editButton:hover {
   background: #5390ae;
 }
-
 .deleteButton {
   color: #bb655b;
   border: none;
@@ -622,103 +565,127 @@
   margin-left: 10px;
   background: none;
 }
-
 .deleteButton:hover {
   text-decoration: underline;
 }
 
+/* ----------------------------------- */
+/* Responsive Breakpoints              */
+/* ----------------------------------- */
 
-
-/* Map Statistics */
-.mapStats {
-  display: table-cell; /* Changed from flex to table-cell */
-  vertical-align: top;
-  padding-left: 20px; /* To simulate gap */
-  background-color: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  width: 25%; /* Adjust as needed */
-}
-
-.statsSummary {
-  flex-shrink: 0;
-}
-
-.mapStats h2 {
-  margin-top: 0;
-}
-
-.statItem {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.statValue {
-  font-size: 32px;
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.statLabel {
-  background-color: #ddd;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.statItem p {
-  margin-left: auto;
-  font-size: 16px;
-  color: #555;
-}
-
-/* Country List Table */
-.countryList {
-  overflow-y: auto; /* Enable vertical scrolling when content overflows */
-  margin-top: 10px;
-  background-color: #f9f9f9;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.countryList table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.countryList th,
-.countryList td {
-  text-align: left;
-  padding: 8px;
-}
-
-.countryList tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.countryList th {
-  background-color: #e0e0e0;
-  top: 0;
-}
-
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .detailsAndStats {
-    display: block; /* Revert to block layout on small screens */
-  }
-
-  .leftContent,
-  .mapStats {
-    display: block;
+/* 1) Remove left margin below 1000px */
+@media (max-width: 1000px) {
+  .mapDetailContent {
+    margin-left: 0 !important;
     width: 100%;
   }
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+}
 
+/* 2) Tablet-ish layout changes ~768px: 
+   keep left (mapDetails+discussion) and right (stats) side by side, 
+   but use smaller font for stats.
+*/
+@media (max-width: 1400px) {
+  .detailsAndStats {
+    display: flex; 
+  }
   .mapStats {
+    font-size: 0.9rem;
+  }
+  .statValue {
+    font-size: 1.2rem;
+  }
+  .statLabel {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+  .commentItem {
+    padding: 10px;
+  }
+  .titleSection h1 {
+    font-size: 1.2rem;
+  }
+  .description {
+    font-size: 0.9rem;
+  }
+  .commentContent {
+    font-size: 16px;
+  }
+
+  .commentButton {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+}
+
+/* 3) Phones (<600px): reorder so: 
+    1) mapDetails, 
+    2) stats, 
+    3) discussion 
+*/
+@media (max-width: 600px) {
+  .detailsAndStats {
+    flex-direction: column;
+  }
+  .leftContent {
+    order: 1;
+  }
+  .mapStats {
+    order: 2;
     margin-top: 20px;
   }
+  .discussionSection {
+    order: 3; /* now below stats */
+  }
+
+  /* Stats in a row if you prefer */
+  .statsSummary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .statItem {
+    flex: 1 1;
+    min-width: 100px;
+    text-align: center;
+    flex-direction: column;
+  }
+
+  .statItem p {
+    margin: 5px 0;
+  }
+  .statValue {
+    font-size: 1rem;
+  }
+  .statLabel {
+    font-size: 0.7rem;
+    margin-top: 5px;
+  }
+
+
+ 
+  
+}
+
+/* 4) Very small phones (~400px) for further tweaks */
+@media (max-width: 400px) {
+  
+  .commentProfilePicture,
+  .replyItem .commentProfilePicture {
+    width: 40px;
+    height: 40px;
+  }
+  .reactionButton,
+  .reactionButtonSmall {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+  .mapStats {
+    padding: 10px;
+  }
+  
 }

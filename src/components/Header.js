@@ -9,13 +9,14 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import MapSelectionModal from './MapSelectionModal';
 import { UserContext } from '../context/UserContext';
-
 import styles from './Header.module.css';
+import useWindowSize from '../hooks/useWindowSize';
 
 export default function Header({ isCollapsed, setIsCollapsed, title }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
+  const { width } = useWindowSize(); // or pass it down as props
 
   const [showMapModal, setShowMapModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -23,7 +24,6 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
 
   const navigate = useNavigate();
   const { profile, setAuthToken } = useContext(UserContext);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -106,14 +106,15 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     <header className={styles.header}>
       {/* LEFT: Hamburger + Logo + Title */}
       <div className={styles.headerLeft}>
-        <button
-          className={styles.hamburgerButton}
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          <span className={styles.iconWrapper}>
-            <FaBars />
-          </span>
-        </button>
+      {/* Always show the hamburger */}
+      <button
+        className={styles.hamburgerButton}
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <span className={styles.iconWrapper}>
+          <FaBars />
+        </span>
+      </button>
         <div className={styles.logoWrapper}>
   <Link to="/dashboard" className={styles.logoLink}>
     <img
@@ -131,7 +132,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
       <div className={styles.headerRight}>
         <button className={styles.createMapButton} onClick={handleCreateMap}>
           <FaPlus className={styles.plusIcon} />
-          <span>Create New Map</span>
+          <span>Create</span>
         </button>
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button

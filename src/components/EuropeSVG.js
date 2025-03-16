@@ -8,7 +8,7 @@ export default function EuropeSVG({
    font_color = 'black',
    isLargeMap = false,
    isThumbnail = false,
-   viewBox="0 0 680 530",
+   viewBox="-50 0 760 510",
    data = [],
    is_title_hidden
 
@@ -300,7 +300,7 @@ export default function EuropeSVG({
                <>
          {/* Map Title */}
          <text
-         x="5"
+         x="-8"
          y={titleY}
          style={{ fill: font_color, fontSize: `${fontSizeTitle}px` }}
       >

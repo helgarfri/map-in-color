@@ -14,6 +14,8 @@ import EuropeSVG from './EuropeSVG';
 import LoadingSpinner from './LoadingSpinner';
 
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize'; // or wherever you keep it
+
 
 function Explore() {
   // Maps & tags
@@ -40,6 +42,16 @@ function Explore() {
   const location = useLocation();
 
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize(); // so we can do the 1000px check
+  const showOverlay = !isCollapsed && width < 1000;
+
+    useEffect(() => {
+      if (width < 1000) {
+        setIsCollapsed(true);
+      } else {
+        setIsCollapsed(false);
+      }
+    }, [width, setIsCollapsed]);
 
   //-------------------------------------------
   // 1) Fetch top 50 tags
@@ -217,6 +229,12 @@ function Explore() {
     <div className={styles.explorePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
+      {showOverlay && (
+        <div
+          className={styles.sidebarOverlay}
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
       <div
         className={`${styles.mainContentWrapper} ${
           isCollapsed ? styles.collapsed : ''

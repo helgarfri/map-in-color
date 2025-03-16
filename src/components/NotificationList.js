@@ -15,6 +15,7 @@ import Header from './Header';
 import { UserContext } from '../context/UserContext';
 import LoadingSpinner from './LoadingSpinner';
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize';
 
 // Icons
 import { FaStar, FaComment, FaReply, FaThumbsUp, FaCheck, FaTrash } from 'react-icons/fa';
@@ -25,6 +26,15 @@ export default function NotificationList() {
   const navigate = useNavigate();
   const { profile } = useContext(UserContext);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize();
+
+  useEffect(() => {
+    if (width < 1000) {
+      setIsCollapsed(true);
+    } else {
+      setIsCollapsed(false);
+    }
+  }, [width, setIsCollapsed]);
 
   useEffect(() => {
     const getNotifications = async () => {

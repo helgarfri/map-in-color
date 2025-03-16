@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { FaStar, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
 import LoadingSpinner from './LoadingSpinner';
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize';
 
 export default function YourMaps() {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +23,13 @@ export default function YourMaps() {
   const [mapToDelete, setMapToDelete] = useState(null);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const navigate = useNavigate();
+
+  const { width } = useWindowSize(); // get screen width
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
+
 
   useEffect(() => {
     const getMaps = async () => {

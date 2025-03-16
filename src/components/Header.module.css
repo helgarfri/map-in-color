@@ -405,3 +405,90 @@
   align-items: center;
   margin-top: 2px; 
 }
+
+/* make media for phone 600px */
+@media (max-width: 600px) {
+  .header {
+    height: 50px;
+  }
+
+  .logo {
+    height: 30px;
+    width: 30px;
+  }
+
+  .headerLeft {
+    gap: 10px
+  }
+
+  .headerTitle {
+    font-size: 16px;
+  }
+
+  .createMapButton {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .headerRight {
+    gap: 5px;
+  }
+  
+  .profileWrapper {
+    padding-right: 15px;
+  }
+
+  .hamburgerButton {
+    padding-left: 10px;
+  }
+
+  .profile_picture {
+    width: 30px;
+    height: 30px;
+  }
+
+  .notificationHeader {
+    font-size: smaller;
+  }
+
+  .notificationContent {
+    font-size: 12px;
+  }
+
+  .notificationMeta {
+    font-size: 10px;
+    margin: 0;
+  }
+
+  .markAllAsRead {
+    font-size: 10px;
+  }
+
+  .viewAllLink {
+    font-size: smaller;
+  }
+
+  .notificationPopout {
+    width: 300px;
+    top: 42px;
+    right: -50px
+  }
+
+}
+
+/* make media for phone 370px */
+@media (max-width: 400px) {
+  .createMapButton {
+    display: none;
+  }
+
+  .headerRight {
+    margin-right: 20px;
+  }
+
+  .notificationPopout {
+    right: -50px;
+    top: 42px;
+    width: 250px;
+  }
+  }

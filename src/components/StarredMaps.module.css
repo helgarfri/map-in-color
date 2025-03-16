@@ -104,3 +104,48 @@
   border-radius: 4px;
   font-size: 12px;
 }
+
+/* 1) On screens under 1000px, remove left margin & optionally reduce padding */
+@media (max-width: 1000px) {
+  .starredMapsContent {
+    margin-left: 0 !important;
+    padding: 10px !important; /* optional smaller padding */
+    width: 100%;
+  }
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+}
+
+/* 2) On screens under 600px: 2 columns, smaller text, etc. */
+@media (max-width: 600px) {
+  .mapsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mapTitle {
+    font-size: 1rem;
+  }
+  .mapInfoRow {
+    font-size: 0.8rem;
+  }
+}
+
+/* 3) On screens under 400px: single column, even smaller text, smaller thumbnail */
+@media (max-width: 400px) {
+  .mapsGrid {
+    grid-template-columns: 1fr;
+  }
+  .thumbnail {
+    height: 120px;
+  }
+  .mapTitle {
+    font-size: 0.9rem;
+    margin: 8px;
+    white-space: normal; /* allow multiple lines if needed */
+  }
+  .mapInfoRow {
+    font-size: 0.8rem;
+    margin: 0 8px 8px 8px;
+  }
+}

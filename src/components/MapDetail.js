@@ -29,6 +29,7 @@ import Header from './Header';
 import LoadingSpinner from './LoadingSpinner'; 
 import { FaDownload } from 'react-icons/fa'; // icon for download
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize';
 
 export default function MapDetail() {
   const { id } = useParams();
@@ -52,6 +53,12 @@ export default function MapDetail() {
 
   const [isPostingComment, setIsPostingComment] = useState(false);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize();
+
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
 
   const { authToken, profile } = useContext(UserContext);
@@ -84,7 +91,7 @@ export default function MapDetail() {
     if (mapData.selected_map === 'usa') {
       setViewBox('-90 -10 1238 610');   // after editing the raw US SVG
     } else if (mapData.selected_map === 'europe') {
-      setViewBox('-80 0 760 510');    // after editing the raw Europe SVG
+      setViewBox('-50 0 760 510');    // after editing the raw Europe SVG
     } else {
       setViewBox('0 0 2754 1398');  // world
     }
@@ -537,7 +544,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
       // (Optional) Override viewBox if you want a custom bounding box
       if (mapData?.selected_map === 'europe') {
-        svgClone.setAttribute('viewBox', '-100 -6 780 530');
+        svgClone.setAttribute('viewBox', '-50 0 780 530');
       } else if (mapData?.selected_map === 'usa') {
         svgClone.setAttribute('viewBox', '-90 -10 1238 610');
       } else {
@@ -766,12 +773,15 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
   
   
-
   return (
     <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
-      <div className={`${styles.mapDetailContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+  
+      <div
+        className={`${styles.mapDetailContent} ${
+          isCollapsed ? styles.contentCollapsed : ''
+        }`}
+      >
         <Header
           title={`${mapData?.user?.username} / ${mapData.title || 'Untitled Map'}`}
           notifications={notifications.slice(0, 6)}
@@ -781,9 +791,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
-
-
-
+  
+        {/* Map Display */}
         <div
           className={styles.mapDisplay}
           onMouseDown={handleMouseDown}
@@ -801,7 +810,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           {mapData.selected_map === 'europe' && (
             <EuropeSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
           )}
-
+  
           <div
             className={styles.zoomControls}
             onMouseDown={(e) => e.stopPropagation()}
@@ -812,12 +821,12 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             <button onClick={() => handleZoom(1.2)}>+</button>
             <button onClick={() => handleZoom(0.8)}>-</button>
           </div>
-
+  
           <button className={styles.viewModeButton} onClick={toggleFullScreen}>
             🖵
           </button>
         </div>
-
+  
         {isFullScreen && (
           <FullScreenMap
             mapData={mapData}
@@ -831,429 +840,447 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             toggleFullScreen={toggleFullScreen}
           />
         )}
-
-        <div className={styles.detailsAndStats}>
-          <div className={styles.leftContent}>
-            <div className={styles.mapDetails}>
-              
-            <div className={styles.titleSection}>
-  <h1>
-    {mapData.title || 'Untitled Map'}
   
-    {isOwner && (
-      <span className={styles.visibilityTag}>
-        {is_public ? 'Public' : 'Private'}
-      </span>
-    )}
- 
-  </h1>
-      {/* Edit Button - only visible if the user isOwner */}
-      {isOwner && (
-        <button className={styles.editButton} onClick={handleEdit}>
-          Edit Map
-        </button>
-      )}
-
-  {is_public && (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-     
-
-      {/* Star (save) Button */}
-      <button className={styles.saveButton} onClick={handleSave}>
-        {isSaved ? '★' : '☆'} {save_count}
-      </button>
-
-      {/* Download Button */}
-      <button className={styles.saveButton} onClick={handleDownload}>
-        <BiDownload /> {download_count}
-      </button>
-
-    
-    </div>
-  )}
-</div>
-
-              <p className={styles.created_at}>
-                Created {timeAgo} 
-              </p>
+        {/*
+          DETAILS + STATS + DISCUSSION
+          We'll have a container .detailsAndStats that has:
+            1) .leftContent
+                 - .mapDetails (top)
+                 - .discussionSection (below)
+            2) .mapStats
+          Then on phone, we reorder so .mapStats comes above the .discussionSection.
+        */}
+        <div className={styles.detailsAndStats}>
+          {/* LEFT column: Map Details + Discussion */}
+          <div className={styles.leftContent}>
+            {/* MAP DETAILS */}
+            <div className={styles.mapDetails}>
+              {/* Title / Save / Download */}
+              <div className={styles.titleSection}>
+                <h1>
+                  {mapData.title || 'Untitled Map'}
+                  {isOwner && (
+                    <span className={styles.visibilityTag}>
+                      {is_public ? 'Public' : 'Private'}
+                    </span>
+                  )}
+                </h1>
+  
+                {/* Edit Button for Owner */}
+                {isOwner && (
+                  <button className={styles.editButton} onClick={handleEdit}>
+                    Edit Map
+                  </button>
+                )}
+  
+                {/* If public → Star + Download */}
+                {is_public && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button className={styles.saveButton} onClick={handleSave}>
+                      {isSaved ? '★' : '☆'} {save_count}
+                    </button>
+                    <button className={styles.saveButton} onClick={handleDownload}>
+                      <BiDownload /> {download_count}
+                    </button>
+                  </div>
+                )}
+              </div>
+  
+              <p className={styles.created_at}>Created {timeAgo}</p>
+  
+              {/* Creator Info */}
               <div className={styles.creatorInfo}>
                 <Link
                   to={`/profile/${mapData?.user?.username || 'unknown'}`}
                   className={styles.creatorProfileLink}
                 >
-                <img
+                  <img
                     src={
                       mapData.user?.profile_picture
                         ? mapData.user.profile_picture
                         : '/default-profile-pic.jpg'
                     }
-                    alt={`${mapData.user?.first_name || mapData?.user?.username || 'unknown'}'s profile`}
+                    alt={`${
+                      mapData.user?.first_name ||
+                      mapData?.user?.username ||
+                      'unknown'
+                    }'s profile`}
                     className={styles.creatorProfilePicture}
                   />
-
                   <span className={styles.creatorName}>
                     {mapData.user.first_name || ''} {mapData.user.last_name || ''}
                   </span>
                 </Link>
               </div>
-
+  
               <p className={styles.description}>{mapData.description}</p>
+  
+              {/* Tags */}
               <div className={styles.tags}>
-                {mapData.tags && mapData.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className={styles.mapTag}
-                    onClick={() => navigate(`/explore?tags=${encodeURIComponent(tag.toLowerCase())}`)}
-                    title={`See all maps with the tag "${tag}"`}
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {mapData.tags &&
+                  mapData.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className={styles.mapTag}
+                      onClick={() =>
+                        navigate(`/explore?tags=${encodeURIComponent(tag.toLowerCase())}`)
+                      }
+                      title={`See all maps with the tag "${tag}"`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
               </div>
+  
+              {/* References */}
               {mapData.sources && mapData.sources.length > 0 && (
-  <div className={styles.sources}>
-    <h3>References</h3>
-    <ol className={styles.referencesList}>
-      {mapData.sources.map((ref, idx) => (
-        <li key={idx} className={styles.referenceItem}>
-          {/* e.g. "United Nations (2023). WHO" */}
-          {ref.sourceName || 'Unknown'}
-          {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
-          {ref.publicator ? `. ${ref.publicator}` : ''}
-
-          {/* If there's a URL, display it in brackets */}
-          {ref.url && (
-            <>
-              {' '}
-              - [
-              <a href={ref.url} target="_blank" rel="noopener noreferrer">
-                {ref.url}
-              </a>
-              ]
-            </>
-          )}
-
-          {/* If there's notes, display them on a new line */}
-          {ref.notes && (
-            <div className={styles.referenceNotes}>
-              Notes: {ref.notes}
-            </div>
-          )}
-        </li>
-      ))}
-    </ol>
-  </div>
-)}
-
-
-            </div>
-{/* ---- Discussion Section ---- */}
-<div className={styles.discussionSection} ref={discussionRef}>
-  <h2>Discussion</h2>
-  {is_public ? (
-    <>
-      {/* Post a new top-level comment */}
-      <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
-  <textarea
-    value={newComment}
-    onChange={(e) => setNewComment(e.target.value)}
-    placeholder="Add a comment..."
-    required
-    className={styles.commentTextarea}
-  />
-
-  <button
-    type="submit"
-    className={styles.commentButton}
-    disabled={isPostingComment}  // <-- The magic
-  >
-    Post Comment
-  </button>
-</form>
-
-
-
-
-      {/* Render the server-sorted comments array in the order it’s given */}
-      {comments.length > 0 ? (
-        <ul className={styles.commentsList}>
-          {comments.map((comment) => {
-            const areRepliesExpanded = expandedReplies[comment.id] || false;
-            const repliesArray = comment.Replies || [];
-            const totalReplies = repliesArray.length;
-            // You can still cap replies at 3 or so:
-            const repliesToShow = areRepliesExpanded
-              ? repliesArray
-              : repliesArray.slice(0, 3);
-
-            return (
-              <li key={comment.id} className={styles.commentItem}>
-                <div className={styles.commentHeader}>
-                  {/* Profile picture */}
-                  {comment.user && comment.user.profile_picture ? (
-                    <Link to={`/profile/${comment?.user?.username || 'unknown'}`}>
-                      <img
-                        src={comment.user?.profile_picture || '/default-profile-pic.jpg'}
-
-                        alt={`${comment?.user?.username}'s profile` || 'unknown'}
-                        className={styles.commentProfilePicture}
-                      />
-                    </Link>
-                  ) : (
-                    <div className={styles.commentPlaceholder}></div>
-                  )}
-
-                  <div className={styles.commentContentWrapper}>
-                    {/* Author + Timestamp */}
-                    <div className={styles.commentInfo}>
-                      <Link
-                        to={`/profile/${comment?.user?.username || 'unknown'}`}
-                        className={styles.commentAuthorLink}
-                      >
-                        <span className={styles.commentAuthor}>
-                          {comment.user.username || 'Unknown'} 
-                        </span>
-                      </Link>
-                      <span className={styles.commentTime}>
-                        {formatDistanceToNow(new Date(comment.created_at), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                    </div>
-
-                    {/* Comment content */}
-                    <p className={styles.commentContent}>{comment.content}</p>
-
-                    {/* Like, Dislike, etc. */}
-                    <div className={styles.commentActions}>
-                      <button
-                        className={`${styles.reactionButton} ${
-                          comment.userReaction === 'like' ? styles.active : ''
-                        }`}
-                        onClick={() => handleLike(comment.id, comment.userReaction)}
-                      >
-                        {/* Like icon */}
-                        <svg
-                          className={styles.icon}
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                        </svg>
-                        <span>{comment.like_count}</span>
-                      </button>
-
-                      <button
-                        className={`${styles.reactionButton} ${
-                          comment.userReaction === 'dislike' ? styles.active : ''
-                        }`}
-                        onClick={() => handleDislike(comment.id, comment.userReaction)}
-                      >
-                        {/* Dislike icon */}
-                        <svg
-                          className={styles.icon}
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-                        </svg>
-                        <span>{comment.dislike_count}</span>
-                      </button>
-
-                      {/* Reply / Delete Buttons */}
-                      <button
-                        className={styles.replyButton}
-                        onClick={() =>
-                          setReplyingTo({ comment_id: comment.id, content: '' })
-                        }
-                      >
-                        Reply
-                      </button>
-                      {(isOwner ||
-                        (comment.user &&
-                          comment.user.username === profile?.username)) && (
-                        <button
-                          className={styles.deleteButton}
-                          onClick={() => handleDeleteCommentWithConfirm(comment.id)}
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </div>
-
-                    {/* If replying... */}
-                    {replyingTo && replyingTo.comment_id === comment.id && (
-                      <form
-                        onSubmit={(e) => handleReplySubmit(e, comment.id)}
-                        className={styles.replyForm}
-                      >
-                        <textarea
-                          value={replyingTo.content}
-                          onChange={(e) =>
-                            setReplyingTo({
-                              ...replyingTo,
-                              content: e.target.value,
-                            })
-                          }
-                          placeholder="Write a reply..."
-                          required
-                          className={styles.replyTextarea}
-                        />
-                        <div className={styles.replyActions}>
-                          <button
-                            type="button"
-                            className={styles.replyCancelButton}
-                            onClick={handleReplyCancel}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            className={styles.replyButtonSubmit}
-                          >
-                            Post Reply
-                          </button>
-                        </div>
-                      </form>
-                    )}
-
-                    {/* Replies */}
-                    {repliesArray.length > 0 && (
-                      <ul className={styles.repliesList}>
-                      {repliesToShow.map((reply) => (
-  <li key={reply.id} className={styles.replyItem}>
-    <div className={styles.commentHeader}>
-      {/* Profile picture */}
-      {reply.user?.profile_picture ? (
-        <Link to={`/profile/${reply.user.username}`}>
-          <img
-          src={reply.user?.profile_picture || '/default-profile-pic.jpg'}
-
-            alt={`${reply.user.username}'s profile`}
-            className={styles.commentProfilePicture}
-          />
-        </Link>
-      ) : (
-        <div className={styles.commentPlaceholder}></div>
-      )}
-
-      <div className={styles.commentContentWrapper}>
-        {/* Author + Timestamp */}
-        <div className={styles.commentInfo}>
-          <Link
-            to={`/profile/${reply.user?.username || 'unknown'}`}
-            className={styles.commentAuthorLink}
-          >
-            <span className={styles.commentAuthor}>
-              {reply.user?.username || 'Unknown'}
-            </span>
-          </Link>
-          <span className={styles.commentTime}>
-            {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-          </span>
-        </div>
-
-        {/* Reply content */}
-        <p className={styles.commentContent}>{reply.content}</p>
-
-        {/* Like/Dislike actions */}
-        <div className={styles.commentActions}>
-          <button
-            className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-              reply.userReaction === 'like' ? styles.active : ''
-            }`}
-            onClick={() => handleLike(reply.id)}
-          >
-            <svg
-              className={styles.iconSmall}
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-            </svg>
-            <span>{reply.like_count}</span>
-          </button>
-
-          <button
-            className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-              reply.userReaction === 'dislike' ? styles.active : ''
-            }`}
-            onClick={() => handleDislike(reply.id)}
-          >
-            <svg
-              className={styles.iconSmall}
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-            </svg>
-            <span>{reply.dislike_count}</span>
-          </button>
-
-          {(profile?.username === reply.user?.username) && (
-            <button
-              className={`${styles.deleteButton} ${styles.deleteButtonSmall}`}
-              onClick={() => handleDeleteCommentWithConfirm(reply.id)}
-            >
-              Delete
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  </li>
-))}
-                        {/* “View more replies” / “Show less replies” */}
-                        {totalReplies > 3 && (
-                          <button
-                            className={styles.toggleRepliesButton}
-                            onClick={() => toggleReplies(comment.id)}
-                          >
-                            {areRepliesExpanded
-                              ? 'Show less replies'
-                              : `View more replies (${totalReplies - 3})`}
-                          </button>
+                <div className={styles.sources}>
+                  <h3>References</h3>
+                  <ol className={styles.referencesList}>
+                    {mapData.sources.map((ref, idx) => (
+                      <li key={idx} className={styles.referenceItem}>
+                        {ref.sourceName || 'Unknown'}
+                        {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
+                        {ref.publicator ? `. ${ref.publicator}` : ''}
+  
+                        {ref.url && (
+                          <>
+                            {' '}
+                            - [
+                            <a href={ref.url} target="_blank" rel="noopener noreferrer">
+                              {ref.url}
+                            </a>
+                            ]
+                          </>
                         )}
-                      </ul>
-                    )}
-                  </div>
+                        {ref.notes && (
+                          <div className={styles.referenceNotes}>
+                            Notes: {ref.notes}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
                 </div>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p>No comments yet.</p>
-      )}
-    </>
-  ) : (
-    <p>Comments are not available for private maps.</p>
-  )}
-</div>
-
+              )}
+            </div>
+  
+            {/* DISCUSSION SECTION (below map details on desktop) */}
+            <div className={styles.discussionSection} ref={discussionRef}>
+              <h2>Discussion</h2>
+              {is_public ? (
+                <>
+                  <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Add a comment..."
+                      required
+                      className={styles.commentTextarea}
+                    />
+                    <button
+                      type="submit"
+                      className={styles.commentButton}
+                      disabled={isPostingComment}
+                    >
+                      Post
+                    </button>
+                  </form>
+  
+                  {comments.length > 0 ? (
+                    <ul className={styles.commentsList}>
+                      {comments.map((comment) => {
+                        const areRepliesExpanded = expandedReplies[comment.id] || false;
+                        const repliesArray = comment.Replies || [];
+                        const totalReplies = repliesArray.length;
+                        const repliesToShow = areRepliesExpanded
+                          ? repliesArray
+                          : repliesArray.slice(0, 3);
+  
+                        return (
+                          <li key={comment.id} className={styles.commentItem}>
+                            <div className={styles.commentHeader}>
+                              {comment.user && comment.user.profile_picture ? (
+                                <Link
+                                  to={`/profile/${comment?.user?.username || 'unknown'}`}
+                                >
+                                  <img
+                                    src={
+                                      comment.user?.profile_picture ||
+                                      '/default-profile-pic.jpg'
+                                    }
+                                    alt={`${comment?.user?.username || 'unknown'}'s profile`}
+                                    className={styles.commentProfilePicture}
+                                  />
+                                </Link>
+                              ) : (
+                                <div className={styles.commentPlaceholder}></div>
+                              )}
+  
+                              <div className={styles.commentContentWrapper}>
+                                <div className={styles.commentInfo}>
+                                  <Link
+                                    to={`/profile/${comment?.user?.username || 'unknown'}`}
+                                    className={styles.commentAuthorLink}
+                                  >
+                                    <span className={styles.commentAuthor}>
+                                      {comment.user.username || 'Unknown'}
+                                    </span>
+                                  </Link>
+                                  <span className={styles.commentTime}>
+                                    {formatDistanceToNow(new Date(comment.created_at), {
+                                      addSuffix: true,
+                                    })}
+                                  </span>
+                                </div>
+  
+                                <p className={styles.commentContent}>{comment.content}</p>
+  
+                                <div className={styles.commentActions}>
+                                  <button
+                                    className={`${styles.reactionButton} ${
+                                      comment.userReaction === 'like' ? styles.active : ''
+                                    }`}
+                                    onClick={() =>
+                                      handleLike(comment.id, comment.userReaction)
+                                    }
+                                  >
+                                    {/* Like icon */}
+                                    <svg
+                                      className={styles.icon}
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+                                    </svg>
+                                    <span>{comment.like_count}</span>
+                                  </button>
+  
+                                  <button
+                                    className={`${styles.reactionButton} ${
+                                      comment.userReaction === 'dislike'
+                                        ? styles.active
+                                        : ''
+                                    }`}
+                                    onClick={() =>
+                                      handleDislike(comment.id, comment.userReaction)
+                                    }
+                                  >
+                                    {/* Dislike icon */}
+                                    <svg
+                                      className={styles.icon}
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                                    </svg>
+                                    <span>{comment.dislike_count}</span>
+                                  </button>
+  
+                                  <button
+                                    className={styles.replyButton}
+                                    onClick={() =>
+                                      setReplyingTo({ comment_id: comment.id, content: '' })
+                                    }
+                                  >
+                                    Reply
+                                  </button>
+                                  {(isOwner ||
+                                    (comment.user &&
+                                      comment.user.username === profile?.username)) && (
+                                    <button
+                                      className={styles.deleteButton}
+                                      onClick={() =>
+                                        handleDeleteCommentWithConfirm(comment.id)
+                                      }
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
+  
+                                {/* If replying */}
+                                {replyingTo && replyingTo.comment_id === comment.id && (
+                                  <form
+                                    onSubmit={(e) => handleReplySubmit(e, comment.id)}
+                                    className={styles.replyForm}
+                                  >
+                                    <textarea
+                                      value={replyingTo.content}
+                                      onChange={(e) =>
+                                        setReplyingTo({
+                                          ...replyingTo,
+                                          content: e.target.value,
+                                        })
+                                      }
+                                      placeholder="Write a reply..."
+                                      required
+                                      className={styles.replyTextarea}
+                                    />
+                                    <div className={styles.replyActions}>
+                                      <button
+                                        type="button"
+                                        className={styles.replyCancelButton}
+                                        onClick={handleReplyCancel}
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="submit"
+                                        className={styles.replyButtonSubmit}
+                                      >
+                                        Post Reply
+                                      </button>
+                                    </div>
+                                  </form>
+                                )}
+  
+                                {/* Replies */}
+                                {repliesArray.length > 0 && (
+                                  <ul className={styles.repliesList}>
+                                    {repliesToShow.map((reply) => (
+                                      <li key={reply.id} className={styles.replyItem}>
+                                        <div className={styles.commentHeader}>
+                                          {reply.user?.profile_picture ? (
+                                            <Link to={`/profile/${reply.user.username}`}>
+                                              <img
+                                                src={
+                                                  reply.user?.profile_picture ||
+                                                  '/default-profile-pic.jpg'
+                                                }
+                                                alt={`${reply.user.username}'s profile`}
+                                                className={styles.commentProfilePicture}
+                                              />
+                                            </Link>
+                                          ) : (
+                                            <div className={styles.commentPlaceholder}></div>
+                                          )}
+  
+                                          <div className={styles.commentContentWrapper}>
+                                            <div className={styles.commentInfo}>
+                                              <Link
+                                                to={`/profile/${
+                                                  reply.user?.username || 'unknown'
+                                                }`}
+                                                className={styles.commentAuthorLink}
+                                              >
+                                                <span className={styles.commentAuthor}>
+                                                  {reply.user?.username || 'Unknown'}
+                                                </span>
+                                              </Link>
+                                              <span className={styles.commentTime}>
+                                                {formatDistanceToNow(
+                                                  new Date(reply.created_at),
+                                                  { addSuffix: true }
+                                                )}
+                                              </span>
+                                            </div>
+  
+                                            <p className={styles.commentContent}>
+                                              {reply.content}
+                                            </p>
+  
+                                            <div className={styles.commentActions}>
+                                              <button
+                                                className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
+                                                  reply.userReaction === 'like'
+                                                    ? styles.active
+                                                    : ''
+                                                }`}
+                                                onClick={() => handleLike(reply.id)}
+                                              >
+                                                <svg
+                                                  className={styles.iconSmall}
+                                                  viewBox="0 0 24 24"
+                                                  fill="currentColor"
+                                                >
+                                                  <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+                                                </svg>
+                                                <span>{reply.like_count}</span>
+                                              </button>
+  
+                                              <button
+                                                className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
+                                                  reply.userReaction === 'dislike'
+                                                    ? styles.active
+                                                    : ''
+                                                }`}
+                                                onClick={() => handleDislike(reply.id)}
+                                              >
+                                                <svg
+                                                  className={styles.iconSmall}
+                                                  viewBox="0 0 24 24"
+                                                  fill="currentColor"
+                                                >
+                                                  <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                                                </svg>
+                                                <span>{reply.dislike_count}</span>
+                                              </button>
+  
+                                              {profile?.username === reply.user?.username && (
+                                                <button
+                                                  className={`${styles.deleteButton} ${styles.deleteButtonSmall}`}
+                                                  onClick={() =>
+                                                    handleDeleteCommentWithConfirm(reply.id)
+                                                  }
+                                                >
+                                                  Delete
+                                                </button>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </li>
+                                    ))}
+                                    {totalReplies > 3 && (
+                                      <button
+                                        className={styles.toggleRepliesButton}
+                                        onClick={() => toggleReplies(comment.id)}
+                                      >
+                                        {areRepliesExpanded
+                                          ? 'Show less replies'
+                                          : `View more replies (${totalReplies - 3})`}
+                                      </button>
+                                    )}
+                                  </ul>
+                                )}
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p>No comments yet.</p>
+                  )}
+                </>
+              ) : (
+                <p>Comments are not available for private maps.</p>
+              )}
+            </div>
           </div>
-          {/* Right Side: Statistics */}
+  
+          {/* RIGHT column: Statistics */}
           <div className={styles.mapStats}>
             <div className={styles.statsSummary}>
-             
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>{formatValue(maxEntry.value)}</span>
-              <span className={styles.statLabel}>Highest Value</span>
-              <p>{maxEntry.countryName}</p>
+              <div className={styles.statItem}>
+                <span className={styles.statValue}>{formatValue(maxEntry.value)}</span>
+                <span className={styles.statLabel}>Highest Value</span>
+                <p>{maxEntry.countryName}</p>
+              </div>
+  
+              <div className={styles.statItem}>
+                <span className={styles.statValue}>{formatValue(minEntry.value)}</span>
+                <span className={styles.statLabel}>Lowest Value</span>
+                <p>{minEntry.countryName}</p>
+              </div>
+  
+              <div className={styles.statItem}>
+                <span className={styles.statValue}>{formatValue(avgValue)}</span>
+                <span className={styles.statLabel}>Average Value</span>
+              </div>
             </div>
-
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>{formatValue(minEntry.value)}</span>
-              <span className={styles.statLabel}>Lowest Value</span>
-              <p>{minEntry.countryName}</p>
-            </div>
-
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>{formatValue(avgValue)}</span>
-              <span className={styles.statLabel}>Average Value</span>
-            </div>
-            </div>
-            {/* Country List Table */}
+  
             <div className={styles.countryList} ref={countryListRef}>
               <table>
                 <thead>
@@ -1279,6 +1306,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       </div>
     </div>
   );
+  
 
 function mapDataProps() {
   return {
