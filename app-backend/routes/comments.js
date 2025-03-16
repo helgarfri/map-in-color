@@ -470,24 +470,20 @@ router.delete('/comments/:comment_id', auth, async (req, res) => {
   }
 });
 
-
+/* -----------------------------------------------
+   POST /comments/:comment_id/report
+   Only hide the comment after it has been reported by >= 2 distinct users
+------------------------------------------------ */
 router.post('/comments/:comment_id/report', auth, async (req, res) => {
   try {
     const comment_id = parseInt(req.params.comment_id, 10);
     const { reasons, details } = req.body; 
-    // reasons => array of strings: ["Harassment", "Inappropriate"]
-    // details => string from "Other"
-
     const user_id = req.user.id;
 
     // 1) Check if comment exists
     const { data: comment, error: commentErr } = await supabaseAdmin
       .from('comments')
-      .select(`
-        id,
-        user_id,
-        status
-      `)
+      .select('id, user_id, status')
       .eq('id', comment_id)
       .maybeSingle();
 
@@ -496,7 +492,7 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Comment not found' });
     }
 
-    // 2) Insert into comment_reports
+    // 2) Insert a new row into comment_reports
     const { error: reportErr } = await supabaseAdmin
       .from('comment_reports')
       .insert({
@@ -508,44 +504,40 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
       });
     if (reportErr) throw reportErr;
 
-    // 3) Immediately hide or mark comment as "pending_review"
-    //    (You decide which approach—here we’ll do 'hidden')
-    const { error: hideErr } = await supabaseAdmin
-      .from('comments')
-      .update({ status: 'hidden' }) 
-      .eq('id', comment_id);
-    if (hideErr) throw hideErr;
+    // 3) Check how many unique users have reported this comment so far
+    const { data: allReports, error: allRepErr } = await supabaseAdmin
+      .from('comment_reports')
+      .select('reported_by')
+      .eq('comment_id', comment_id);
 
-    // 4) Send emails
-    //    a) to original commenter, that their comment is under review
-    //    b) to your admin/moderation email (or yourself)
-    // For example (pseudo-code, using your existing Resend setup):
-    /*
-      await resend.emails.send({
-        from: 'noreply@yourapp.com',
-        to: [originalCommenterEmail],
-        subject: 'Your comment is under review',
-        html: `Hello, your comment with ID #${comment_id} has been reported and is currently hidden. We'll review it soon.`
-      });
+    if (allRepErr) throw allRepErr;
 
-      await resend.emails.send({
-        from: 'noreply@yourapp.com',
-        to: ['moderator@yourapp.com'], // or your personal email
-        subject: 'A comment has been reported',
-        html: `User #${user_id} reported comment #${comment_id}<br/>
-               Reasons: ${reasons.join(', ')}<br/>
-               Details: ${details || 'N/A'}<br/>
-               <a href="https://yourapp.com/admin/reports">Review now</a>
-              `
-      });
-    */
+    // Create a set of distinct user IDs
+    const distinctUsers = new Set(allReports.map((r) => r.reported_by));
+    const reportCount = distinctUsers.size;
 
-    return res.json({ msg: 'Comment reported successfully' });
+    // 4) Hide the comment only if it has 2 or more unique reporters
+    if (reportCount >= 2) {
+      // Hide or 'pending_review' — your choice
+      const { error: hideErr } = await supabaseAdmin
+        .from('comments')
+        .update({ status: 'hidden' })
+        .eq('id', comment_id);
+      if (hideErr) throw hideErr;
+    }
+
+    // 5) Optionally send notifications/emails, etc.
+    // if (reportCount >= 2) { ... send "the comment is now hidden" email to original author ... }
+
+    return res.json({
+      msg: `Comment reported successfully. This comment now has ${reportCount} total unique report(s).`
+    });
   } catch (err) {
     console.error('Error reporting comment:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 
 
