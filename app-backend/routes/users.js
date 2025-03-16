@@ -86,13 +86,14 @@ router.delete('/deleteAccount', auth, async (req, res) => {
    GET /api/users/:username/activity
    (Created maps, starred maps, commented)
 -------------------------------------------- */
+
 router.get('/:username/activity', async (req, res) => {
   const { username } = req.params;
   const offset = parseInt(req.query.offset, 10) || 0;
   const limit = parseInt(req.query.limit, 10) || 10;
 
   try {
-    // 1) Find the user by username in "users"
+    // 1) Find the user by username
     const { data: foundUser, error: userErr } = await supabaseAdmin
       .from('users')
       .select('id, username, first_name, last_name, profile_picture')
@@ -106,10 +107,6 @@ router.get('/:username/activity', async (req, res) => {
     if (!foundUser) {
       return res.status(404).json({ msg: 'User not found' });
     }
-
-    console.log(
-      `Fetching activity for user "${username}" offset=${offset} limit=${limit}`
-    );
 
     const user_id = foundUser.id;
 
@@ -133,7 +130,6 @@ router.get('/:username/activity', async (req, res) => {
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // Build "createdMap" records
     const createdActivities = (createdMaps || []).map((m) => ({
       type: 'createdMap',
       created_at: m.created_at,
@@ -150,11 +146,10 @@ router.get('/:username/activity', async (req, res) => {
         save_count: m.save_count,
         created_at: m.created_at,
       },
-      commentContent: null, // not applicable
+      commentContent: null,
     }));
 
     // 2b) "Starred" maps => from "mapsaves"
-    // We'll embed the Map using "Map:maps(*)" approach
     const { data: starredRows } = await supabaseAdmin
       .from('mapsaves')
       .select(`
@@ -166,7 +161,6 @@ router.get('/:username/activity', async (req, res) => {
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // Build "starredMap" records
     const starredActivities = (starredRows || []).map((save) => {
       const map = save.Map;
       return {
@@ -192,13 +186,14 @@ router.get('/:username/activity', async (req, res) => {
     });
 
     // 2c) "Commented" => user posted comments
-    // We'll embed the "Map" as "Map:maps(...)"
+    // Here we EXCLUDE any comments that are "hidden"
     const { data: userComments } = await supabaseAdmin
       .from('comments')
       .select(`
         id,
         content,
         created_at,
+        status,
         Map:maps(
           id,
           title,
@@ -214,10 +209,10 @@ router.get('/:username/activity', async (req, res) => {
         )
       `)
       .eq('user_id', user_id)
+      .eq('status', 'visible')           // <--- ONLY VISIBLE COMMENTS
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // Build "commented" records
     const commentedActivities = (userComments || []).map((comment) => {
       const map = comment.Map;
       return {
@@ -255,13 +250,13 @@ router.get('/:username/activity', async (req, res) => {
     // 5) Apply offset + limit to the combined array
     const paginated = allActivities.slice(offset, offset + limit);
 
-    // Return them
     return res.json(paginated);
   } catch (err) {
     console.error('Error fetching user activity:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    PUT /api/users/change-password
