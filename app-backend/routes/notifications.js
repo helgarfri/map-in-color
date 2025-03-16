@@ -9,6 +9,11 @@ const { supabaseAdmin } = require('../config/supabase');
    GET /api/notifications
    Fetch all notifications for the logged-in user
 -------------------------------------------- */
+/* --------------------------------------------
+   GET /api/notifications
+   Fetch all notifications for the logged-in user
+   BUT skip any that reference hidden comments
+-------------------------------------------- */
 router.get('/', auth, async (req, res) => {
   try {
     const user_id = req.user.id;
@@ -92,7 +97,8 @@ router.get('/', auth, async (req, res) => {
       }
     }
 
-    // 5) Fetch child comments
+    // 5) Fetch only the VISIBLE child comments
+    //    (this means hidden comments won't show up at all)
     let commentsById = {};
     if (commentIds.length > 0) {
       const { data: childComments, error: comErr } = await supabaseAdmin
@@ -100,9 +106,11 @@ router.get('/', auth, async (req, res) => {
         .select(`
           id,
           content,
-          parent_comment_id
+          parent_comment_id,
+          status
         `)
-        .in('id', commentIds); // these are the "child" comments we got from notifications
+        .in('id', commentIds)
+        .eq('status', 'visible');  // <--- ONLY get visible
 
       if (comErr) {
         console.error('Error fetching child comments:', comErr);
@@ -112,7 +120,7 @@ router.get('/', auth, async (req, res) => {
           commentsById[cmt.id] = cmt;
         });
 
-        // 5a) gather parent IDs
+        // 5a) gather parent IDs of these visible comments
         let parentIds = [];
         childComments.forEach((c) => {
           if (c.parent_comment_id) {
@@ -122,11 +130,12 @@ router.get('/', auth, async (req, res) => {
         parentIds = [...new Set(parentIds)]; // unique
 
         if (parentIds.length > 0) {
-          // 5b) fetch parent comments
+          // 5b) fetch parent comments (also only if they are visible, if you prefer)
           const { data: parentRows } = await supabaseAdmin
             .from('comments')
-            .select('id, content')
-            .in('id', parentIds);
+            .select('id, content, status')
+            .in('id', parentIds)
+            .eq('status', 'visible');  // <--- also only if parent is visible
 
           let parentsById = {};
           if (parentRows) {
@@ -137,10 +146,10 @@ router.get('/', auth, async (req, res) => {
 
           // 5c) attach each parent's content to the child
           childComments.forEach((child) => {
-            if (child.parent_comment_id && parentsById[child.parent_comment_id]) {
+            const parent = parentsById[child.parent_comment_id];
+            if (child.parent_comment_id && parent) {
               child.ParentComment = {
-                // we only need content, but you can attach more
-                content: parentsById[child.parent_comment_id].content,
+                content: parent.content,
               };
             }
           });
@@ -155,17 +164,27 @@ router.get('/', auth, async (req, res) => {
         ...n,
         Sender: n.sender_id ? sendersById[n.sender_id] || null : null,
         Map: n.map_id ? mapsById[n.map_id] || null : null,
-        Comment: childCmt || null, // includes childCmt.ParentComment if it has one
+        Comment: childCmt || null,
       };
     });
 
-    // 7) Return enriched notifications
-    res.json(enriched);
+    // 7) Filter out all notifications referencing a non-visible (null) comment
+    //    i.e. if n.comment_id was hidden or doesn't exist, remove it
+    const final = enriched.filter((n) => {
+      // If there's no comment_id, it might be a notification about a map, etc. 
+      // so we might want to keep it. 
+      // But if it references a comment_id, then we only keep if n.Comment != null
+      if (!n.comment_id) return true;  // e.g. a "map saved" or "follow" notification
+      return n.Comment !== null;       // keep only if we have a visible comment
+    });
+
+    res.json(final);
   } catch (err) {
     console.error('Error fetching notifications:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    PUT /api/notifications/:id/read
