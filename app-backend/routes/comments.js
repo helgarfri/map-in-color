@@ -13,7 +13,7 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
     const mapId = parseInt(req.params.mapId, 10);
     const user_id = req.user?.id || null;
 
-    // 1) Fetch top-level comments
+    // 1) Fetch top-level comments that are VISIBLE
     const { data: topComments, error: topErr } = await supabaseAdmin
       .from('comments')
       .select(`
@@ -27,7 +27,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
         )
       `)
       .eq('map_id', mapId)
-      .is('parent_comment_id', null);
+      .is('parent_comment_id', null)
+      .eq('status', 'visible');  // <--- Only fetch visible top-level
 
     if (topErr) {
       console.error('Error fetching top-level comments:', topErr);
@@ -49,7 +50,7 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       }
     }
 
-    // 3) Fetch replies for these top-level comments
+    // 3) Fetch VISIBLE replies for these top-level comments
     const topIds = topComments.map((c) => c.id);
     let allReplies = [];
     if (topIds.length > 0) {
@@ -65,7 +66,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
             profile_picture
           )
         `)
-        .in('parent_comment_id', topIds);
+        .in('parent_comment_id', topIds)
+        .eq('status', 'visible');  // <--- Only fetch visible replies
 
       if (repErr) {
         console.error('Error fetching replies:', repErr);
@@ -74,45 +76,36 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       allReplies = replies || [];
     }
 
-    // 4) Attach userReaction & compute Wilson score
+    // 4) Attach userReaction & compute Wilson score, etc. (unchanged)
     function computeWilsonScore(likes, dislikes) {
       const n = likes + dislikes;
       if (n === 0) return 0;
-
-      const z = 1.96;  // for 95% confidence
+      const z = 1.96;
       const p = likes / n;
       const z2 = z * z;
       const left = p + z2 / (2 * n);
       const right = z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n);
       const denom = 1 + z2 / n;
-      return (left - right) / denom; 
+      return (left - right) / denom;
     }
 
-    // Process top-level
     const topLevel = topComments.map((comment) => {
       const c = { ...comment };
-      c.userReaction = user_id ? userReactions[c.id] || null : null;
-
-      // compute Wilson score for top-level
+      c.userReaction = userReactions[c.id] || null;
       c.wilsonScore = computeWilsonScore(c.like_count || 0, c.dislike_count || 0);
 
-      // gather replies
       const childReplies = allReplies.filter((r) => r.parent_comment_id === c.id);
-
-      // also compute userReaction & Wilson for each reply
       childReplies.forEach((r) => {
-        r.userReaction = user_id ? userReactions[r.id] || null : null;
+        r.userReaction = userReactions[r.id] || null;
         r.wilsonScore = computeWilsonScore(r.like_count || 0, r.dislike_count || 0);
       });
-
-      // (Optional) Sort each comment’s replies by Wilson score descending
       childReplies.sort((a, b) => b.wilsonScore - a.wilsonScore);
 
       c.Replies = childReplies;
       return c;
     });
 
-    // 5) **Sort** top-level by Wilson score descending
+    // Sort by Wilson score
     topLevel.sort((a, b) => b.wilsonScore - a.wilsonScore);
 
     return res.json(topLevel);
