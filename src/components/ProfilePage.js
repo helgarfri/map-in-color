@@ -1,5 +1,3 @@
-// src/components/ProfilePage.js
-
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
@@ -28,11 +26,20 @@ import { formatDistanceToNow } from 'date-fns';
 import LoadingSpinner from './LoadingSpinner';
 import styles from './ProfilePage.module.css';
 import { SidebarContext } from '../context/SidebarContext';
+import useWindowSize from '../hooks/useWindowSize'; // <--- import your hook
 
 export default function ProfilePage() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { profile: currentUserProfile } = useContext(UserContext);
+  const { width } = useWindowSize(); // get screen width
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+
+  // If screen < 1000px, auto-collapse the sidebar
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
   // Local state
   const [profile, setProfile] = useState(null);
@@ -40,20 +47,24 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [totalMaps, setTotalMaps] = useState(0);
   const [totalStars, setTotalStars] = useState(0);
+
   // Tabs: 'maps' | 'starred' | 'activity'
   const [currentTab, setCurrentTab] = useState('maps');
+
   // Data for each tab
   const [userMaps, setUserMaps] = useState([]);
   const [starredMaps, setStarredMaps] = useState([]);
   const [activity, setActivity] = useState([]);
+
   // Loading states
   const [loadingMaps, setLoadingMaps] = useState(false);
   const [loadingStarred, setLoadingStarred] = useState(false);
   const [loadingActivity, setLoadingActivity] = useState(false);
+
   // Sorting
   const [sortMapsBy, setSortMapsBy] = useState('newest');
   const [sortStarredBy, setSortStarredBy] = useState('newest');
-  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+
   const isMyProfile =
     currentUserProfile && currentUserProfile.username === profile?.username;
 
@@ -86,6 +97,7 @@ export default function ProfilePage() {
     fetchMaps();
     fetchStarred();
     fetchActivity();
+    // eslint-disable-next-line
   }, [profile]);
 
   async function loadUserStats(user_id) {
@@ -223,9 +235,8 @@ export default function ProfilePage() {
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
           <Header
-          
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
           />
           <div className={styles.loadingContainer}>
             <LoadingSpinner />
@@ -241,9 +252,9 @@ export default function ProfilePage() {
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
           <Header
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          title={profile.username}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            title="User Not Found"
           />
           <div className={styles.error}>Profile not found.</div>
         </div>
@@ -256,76 +267,98 @@ export default function ProfilePage() {
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-        title={profile.username}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title={profile.username}
         />
+
         <div className={styles.mainContainer}>
-                <div className={styles.leftColumn}>
-                <div className={styles.profileInfoBox}>
-                  <div className={styles.profilePictureWrapper}>
-                  <img src={profilePictureUrl} alt="Profile" className={styles.profilePicture} />
-                  </div>
-                  <h2 className={styles.username}>@{profile.username}</h2>
-                  <h1 className={styles.fullName}>
-                  {profile.first_name} {profile.last_name}
-                  </h1>
-                  <div className={styles.infoRow}>
-                  {profile.location && (
-                    <div className={styles.infoItem}>
+          {/* LEFT COLUMN: Profile Info */}
+          <div className={styles.leftColumn}>
+            <div className={styles.profileInfoBox}>
+              <div className={styles.profilePictureWrapper}>
+                <img src={profilePictureUrl} alt="Profile" className={styles.profilePicture} />
+              </div>
+              <h2 className={styles.username}>@{profile.username}</h2>
+              <h1 className={styles.fullName}>
+                {profile.first_name} {profile.last_name}
+              </h1>
+
+              <div className={styles.infoRow}>
+                {profile.location && (
+                  <div className={styles.infoItem}>
                     <FaMapMarkerAlt className={styles.icon} />
                     <span>{profile.location}</span>
-                    </div>
-                  )}
-                  {profile.date_of_birth && (
-                    <div className={styles.infoItem}>
+                  </div>
+                )}
+                {profile.date_of_birth && (
+                  <div className={styles.infoItem}>
                     <FaBirthdayCake className={styles.icon} />
-                    <span>{new Date(profile.date_of_birth).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })}</span>
-                    </div>
-                  )}
+                    <span>
+                      {new Date(profile.date_of_birth).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </span>
                   </div>
-                  <div className={styles.statsRowInfo}>
-                  <div className={styles.statsItem}>
-                    <FaStar className={styles.icon} />
-                    <span>{totalStars} Stars</span>
-                  </div>
-                  <div className={styles.statsItem}>
-                    <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
-                    <span>{totalMaps} Maps</span>
-                  </div>
-                  </div>
-                  {profile.description && (
-                  <div className={styles.bio}>
-                    <p>{profile.description}</p>
-                  </div>
-                  )}
-                  {isMyProfile && (
-                  <button className={styles.editProfileButton} onClick={() => navigate('/settings')}>
-                    Edit Profile
-                  </button>
-                  )}
-                </div>
-                </div>
+                )}
+              </div>
 
-                {/* RIGHT COLUMN: Tabs */}
+              <div className={styles.statsRowInfo}>
+                <div className={styles.statsItem}>
+                  <FaStar className={styles.icon} />
+                  <span>{totalStars} Stars</span>
+                </div>
+                <div className={styles.statsItem}>
+                  <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
+                  <span>{totalMaps} Maps</span>
+                </div>
+              </div>
+
+              {profile.description && (
+                <div className={styles.bio}>
+                  <p>{profile.description}</p>
+                </div>
+              )}
+
+              {isMyProfile && (
+                <button
+                  className={styles.editProfileButton}
+                  onClick={() => navigate('/settings')}
+                >
+                  Edit Profile
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Tabs */}
           <div className={styles.rightColumn}>
             <div className={styles.tabs}>
-              <button className={`${styles.tabButton} ${currentTab === 'maps' ? styles.activeTab : ''}`}
-                onClick={() => handleTabChange('maps')}>
+              <button
+                className={`${styles.tabButton} ${currentTab === 'maps' ? styles.activeTab : ''}`}
+                onClick={() => handleTabChange('maps')}
+              >
                 <FaMap className={styles.tabIcon} />
                 <span>Maps</span>
               </button>
-              <button className={`${styles.tabButton} ${currentTab === 'starred' ? styles.activeTab : ''}`}
-                onClick={() => handleTabChange('starred')}>
+              <button
+                className={`${styles.tabButton} ${currentTab === 'starred' ? styles.activeTab : ''}`}
+                onClick={() => handleTabChange('starred')}
+              >
                 <FaBookmark className={styles.tabIcon} />
                 <span>Starred</span>
               </button>
-              <button className={`${styles.tabButton} ${currentTab === 'activity' ? styles.activeTab : ''}`}
-                onClick={() => handleTabChange('activity')}>
+              <button
+                className={`${styles.tabButton} ${currentTab === 'activity' ? styles.activeTab : ''}`}
+                onClick={() => handleTabChange('activity')}
+              >
                 <FaListUl className={styles.tabIcon} />
                 <span>Activity</span>
               </button>
             </div>
+
             <div className={styles.tabContent}>
               {currentTab === 'maps' && (
                 <>
@@ -355,6 +388,7 @@ export default function ProfilePage() {
                   )}
                 </>
               )}
+
               {currentTab === 'starred' && (
                 <>
                   <div className={styles.sortRow}>
@@ -383,6 +417,7 @@ export default function ProfilePage() {
                   )}
                 </>
               )}
+
               {currentTab === 'activity' && (
                 <>
                   {loadingActivity ? (

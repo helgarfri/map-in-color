@@ -1,33 +1,29 @@
-/* src/components/ProfilePage.module.css */
-
 /* Container */
 .profilePageContainer {
   display: flex;
   margin-top: 60px;
   background-color: #f7f7f7;
   min-height: 1000px;
-
-  
 }
 
-/* Main content (unchanged width) */
+/* Main content (beside sidebar) */
 .profileContent {
   flex: 1;
   padding: 20px;
-  margin-left: 250px;
+  margin-left: 250px; /* Default expanded sidebar width */
+  transition: margin-left 0.3s ease;
 }
 
 .contentCollapsed {
-  margin-left: 80px;
+  margin-left: 80px; /* Collapsed sidebar width */
 }
 
-/* Main Container */
+/* Main Container: holds leftColumn + rightColumn */
 .mainContainer {
   display: flex;
   gap: 20px;
   margin: 20px auto;
   width: 90%;
-
 }
 
 /* Left Column - Profile Info */
@@ -35,8 +31,9 @@
   width: 380px;
 }
 
+/* Profile Info Box */
 .profileInfoBox {
-  background-color: #fff; /* Light background to stand out */
+  background-color: #fff;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -118,7 +115,6 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
-
 .editProfileButton:hover {
   background-color: #4a846d;
 }
@@ -146,11 +142,9 @@
   color: #444;
   transition: background 0.2s, border-color 0.2s;
 }
-
 .tabButton:hover {
   background: #f0f0f0;
 }
-
 .activeTab {
   background: #eaeaea;
   border-color: #ccc;
@@ -170,7 +164,7 @@
   flex: 1;
 }
 
-/* Sort row */
+/* Sort row above the grid */
 .sortRow {
   display: flex;
   align-items: center;
@@ -178,7 +172,6 @@
   font-size: 0.95rem;
   margin-bottom: 20px;
 }
-
 .sortSelect {
   padding: 5px 8px;
   border-radius: 4px;
@@ -189,7 +182,7 @@
 /* Cards Grid */
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Slightly bigger cards */
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
 
@@ -235,7 +228,6 @@
   white-space: nowrap;
 }
 
-/* Details Row: Modified on left, star count on right */
 .detailsRow {
   display: flex;
   justify-content: space-between;
@@ -271,4 +263,65 @@
   justify-content: center;
   align-items: center;
   min-height: 200px;
+}
+
+/* Error message (optional) */
+.error {
+  color: #ff3333;
+  font-weight: bold;
+}
+
+/* RESPONSIVE RULES */
+
+/* 1) Remove left margin below 1000px */
+@media (max-width: 1000px) {
+  .profileContent {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+}
+
+/* 2) Stack columns below 768px */
+@media (max-width: 768px) {
+  .mainContainer {
+    flex-direction: column;
+  }
+  .leftColumn {
+    width: 100%;
+  }
+  .rightColumn {
+    width: 100%;
+  }
+}
+
+/* 3) Further shrink for very small ~400px screens */
+@media (max-width: 400px) {
+  .fullName {
+    font-size: 1.6rem;
+  }
+  .bio {
+    font-size: 0.95rem;
+  }
+  .cardsGrid {
+    grid-template-columns: 1fr; /* single column */
+  }
+  .cardThumbnail {
+    height: 150px; /* smaller */
+  }
+  .tabButton {
+    font-size: 0.9rem;
+    padding: 6px 8px;
+  }
+  .cardTitle {
+    font-size: 1rem;
+  }
+  .infoItem {
+    font-size: 0.9rem;
+  }
+  .statsItem {
+    font-size: 0.9rem;
+  }
 }

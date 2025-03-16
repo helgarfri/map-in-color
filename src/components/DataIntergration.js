@@ -944,6 +944,8 @@ function applyPalette(oldRanges, paletteColors) {
         <Header 
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
+        title={isEditing ? `Edit ${mapTitle}` : 'Create Map'}
+
         />
 
         <div className={styles.contentInner}>

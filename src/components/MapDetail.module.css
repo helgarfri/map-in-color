@@ -357,6 +357,11 @@
   font-weight: bold;
   font-size: 14px;
   margin-right: 10px;
+  color: black;
+}
+
+a {
+  text-decoration: none;
 }
 .commentTime {
   font-size: 12px;
@@ -462,12 +467,45 @@
   margin-top: 10px;
   margin-left: 65px;
 }
+/* ----------------------------------- */
+/* Make replies align further left and show L-shaped lines */
+/* ----------------------------------- */
+
+/* Remove or reduce the big margin-left if you like. */
 .replyItem {
-  display: flex;
-  margin-bottom: 15px;
+  position: relative;
+  margin-left: 10px; /* you can adjust this as needed */
   padding: 10px;
   background-color: #f9f9f9;
+  margin-bottom: 15px;
+  display: flex;
+  border-radius: 8px;
 }
+
+/* The "L-shaped" lines go here */
+.replyItem::before,
+.replyItem::after {
+  content: "";
+  position: absolute;
+  background-color: #ccc; /* line color */
+}
+
+/* Vertical line */
+.replyItem::before {
+  left: -20px;   /* positions the vertical line to the left of the box */
+  top: 0;        /* from the top of the replyItem */
+  width: 2px;    /* thickness of the vertical line */
+  height: 100%;  /* full height of the reply */
+}
+
+/* Horizontal line (the top bar of the "L") */
+.replyItem::after {
+  left: -20px;
+  top: 25px;     /* how far down from the top the horizontal bar appears */
+  width: 20px;   /* length of the horizontal bar */
+  height: 2px;   /* thickness of the horizontal bar */
+}
+
 .replyItem .commentHeader {
   display: flex;
   width: 100%;

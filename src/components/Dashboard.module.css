@@ -466,51 +466,7 @@ p {
   .activityItem {
     padding: 5px;
   }
-}
 
-/* Phone-ish - narrower than 600 or 768 for truly small screens */
-@media (max-width: 600px) {
-  .statsContainer {
-    gap: 5px;  /* smaller gap */
-  }
-
-  .statItem {
-    padding: 3px 5px; /* reduce padding for phone */
-  }
-
-  .activityItem {
-    flex-direction: column;
-    /* maybe smaller thumbnails? */
-  }
-
- 
-
-}
-
-/* small phones 400px */
-@media (max-width: 400px) {
-
-
-  .statsContainer {
-    flex-direction: row;
-    gap: 5px;  /* smaller gap */
-    
-  }
-
-  .statItem {
-    padding: 0px 10px; /* reduce padding for phone */
-    font-size: 12px;
-  }
-
-  .statIcon {
-    font-size: 14px;
-  }
-
-  .activityItem {
-    flex-direction: column;
-    /* maybe smaller thumbnails? */
-    font-size: smaller;
-  }
 
   .leftMapsSidebar {
     padding: 0px
@@ -534,9 +490,7 @@ p {
     font-size: 14px;
   }
 
-  .mapModifiedDate {
-    display: none;
-  }
+  
 
   .mapListItem {
     padding: 5px 15px;
@@ -548,16 +502,56 @@ p {
     
 
   }
-  
-}
 
-
-@media (max-width: 768px) {
+  .statsContainer {
+    flex-direction: row;
+    gap: 5px;  /* smaller gap */
+    margin-top: 20px;
+  }
   .leftMapsSidebar {
     width: 100%;
     margin-top: 0;
     /* maybe remove that sticky positioning, or keep it */
     position: static;
   }
+
+}
+
+/* Phone-ish - narrower than 600 or 768 for truly small screens */
+@media (max-width: 600px) {
+  .statsContainer {
+    gap: 5px;  /* smaller gap */
+  }
+
+  .statItem {
+    padding: 3px 5px; /* reduce padding for phone */
+  }
+
+  .activityItem {
+    flex-direction: column;
+    /* maybe smaller thumbnails? */
+  }
+
+ 
+ 
+  .statItem {
+    padding: 0px 10px; /* reduce padding for phone */
+    font-size: 12px;
+  }
+
+  .statIcon {
+    font-size: 14px;
+  }
+
+  .activityItem {
+    flex-direction: column;
+    /* maybe smaller thumbnails? */
+    font-size: smaller;
+  }
+
+  .mapModifiedDate {
+    display: none;
+  }
+
 }
 
