@@ -11,24 +11,25 @@ router.get('/reports', auth, async (req, res) => {
     // e.g. if (!req.user.is_admin) return res.status(403).json({ msg: 'Forbidden' });
 
     const { data: reports, error } = await supabaseAdmin
-      .from('comment_reports')
-      .select(`
-        id,
-        comment_id,
-        reported_by,
-        reasons,
-        details,
-        status,
-        created_at,
-        updated_at,
-        comments (
-          content,
-          status,
-          user_id
-        )
-      `)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+    .from('profile_reports')
+    .select(`
+      id,
+      reported_user_id,
+      reported_by,
+      reasons,
+      details,
+      status,
+      created_at,
+      updated_at,
+      reported_user:users!profile_reports_reported_user_id_fkey (
+        username,
+        email,
+        status
+      )
+    `)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  
 
     if (error) throw error;
     return res.json(reports);
