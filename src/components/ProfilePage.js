@@ -387,6 +387,14 @@ export default function ProfilePage() {
                   className={styles.reportProfileButton}
                   onClick={handleReportProfile}
                 >
+                   <svg
+                      className={styles.icon}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                    </svg>
                   Report Profile
                 </button>
               )}

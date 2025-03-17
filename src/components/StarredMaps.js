@@ -141,12 +141,9 @@ export default function StarredMaps() {
             {maps.map((map) => {
               const mapTitle = map.title || 'Untitled Map';
               // Check if the joined user data is returned as an array or object
+              const creator = map.user;
               const creatorUsername =
-                map.users
-                  ? Array.isArray(map.users)
-                    ? map.users[0]?.username || 'Unknown'
-                    : map.users.username || 'Unknown'
-                  : 'Unknown';
+                creator?.username || 'Unknown';
               return (
                 <div
                   key={map.id}

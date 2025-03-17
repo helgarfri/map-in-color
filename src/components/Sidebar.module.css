@@ -195,7 +195,10 @@ min-height: 100vh;  <-- remove this! */
   .sidebar {
     transform: translateX(-100%); 
     width: 250px;
-    top: 40px;
+    top: 60px;
+    height: 100%;
+    padding-bottom: 80px;
+    
   }
   .sidebar:not(.collapsed) {
     transform: translateX(0);

@@ -495,18 +495,19 @@ const userAvatarUrl = user?.profile_picture
                   ) : (
                     <div className={styles.savedMapsGrid}>
                       {savedMaps.slice(0, 2).map((map) => {
-                        // Creator display name
-                        const firstName = map.users?.first_name || '';
-                        const lastName = map.users?.last_name || '';
-                        const creatorUsername = map.users?.username || 'Unknown';
-                        
-                        const displayName =
-                          firstName || lastName
-                            ? `${firstName} ${lastName}`.trim()
-                            : creatorUsername;
-  
-                        const mapTitle = map.title || 'Untitled Map';
-  
+                    // If your route returns map.user (singular):
+                    const userObj = map.user; // <-- use "user" not "users"
+                    
+                    // Build display name
+                    const firstName = userObj?.first_name || '';
+                    const lastName = userObj?.last_name || '';
+                    const creatorUsername = userObj?.username || 'Unknown';
+
+                    // If first/last is present, show that, otherwise fallback to username
+                    const displayName =  creatorUsername;
+
+                    const mapTitle = map.title || 'Untitled Map';
+
                         // Determine thumbnail
                         let Thumbnail = (
                           <div className={styles.defaultThumbnail}>No preview</div>

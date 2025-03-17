@@ -1140,27 +1140,30 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                     </button>
                                     
                                   )}
-                                  <button
-                                  className={styles.reactionButton}
-                                  onClick={() => {
-                                    if (!isUserLoggedIn) {
-                                      navigate('/login');
-                                      return;
-                                    }
-                                    setReportTargetComment(comment.id);
-                                    setShowReportModal(true);
-                                  }}
-                                  >
-                                  <svg
-                                    className={styles.icon}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
-                                  </svg>
-                                  <span>Report</span>
-                                  </button>
+                                 {comment.user?.username !== profile?.username && (
+                                    <button
+                                      className={styles.reactionButton}
+                                      onClick={() => {
+                                        if (!isUserLoggedIn) {
+                                          navigate('/login');
+                                          return;
+                                        }
+                                        setReportTargetComment(comment.id);
+                                        setShowReportModal(true);
+                                      }}
+                                    >
+                                      <svg
+                                        className={styles.icon}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                      >
+                                        <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                                      </svg>
+                                      <span>Report</span>
+                                    </button>
+                                  )}
+
 
 
 
@@ -1303,7 +1306,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                                 </button>
 
                                               )}
-                                     <button
+                                    {reply.user?.username !== profile?.username && (
+                                        <button
                                           className={styles.reactionButton}
                                           onClick={() => {
                                             if (!isUserLoggedIn) {
@@ -1324,6 +1328,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                           </svg>
                                           <span>Report</span>
                                         </button>
+)}
+
 
 
                                             </div>

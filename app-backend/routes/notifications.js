@@ -1,5 +1,3 @@
-// routes/notifications.js
-
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
@@ -23,8 +21,9 @@ router.get('/', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
+    // If no notifications, return empty array
     if (!notifications || notifications.length === 0) {
-      return res.json([]); // No notifications
+      return res.json([]);
     }
 
     // Collect sender_ids, map_ids, comment_ids
@@ -61,7 +60,7 @@ router.get('/', auth, async (req, res) => {
       }
     }
 
-    // 3) Fetch maps for map notifications (if needed)
+    // 3) Fetch maps for map notifications
     let mapsById = {};
     if (mapIds.length > 0) {
       const { data: fetchedMaps, error: mapErr } = await supabaseAdmin
@@ -90,35 +89,63 @@ router.get('/', auth, async (req, res) => {
     }
 
     // 4) Fetch only VISIBLE comments if comment_id is referenced
-    //    So if a comment is hidden or doesn't exist, we'll skip it later
+    //    and attach each comment’s owner to `Comment.Owner`
     let commentsById = {};
     if (commentIds.length > 0) {
-      // fetch child comments
       const { data: childComments, error: comErr } = await supabaseAdmin
         .from('comments')
         .select(`
           id,
           content,
+          user_id,
           parent_comment_id,
           status
         `)
         .in('id', commentIds)
-        .eq('status', 'visible');  // Only visible
+        .eq('status', 'visible'); // Only visible comments
       if (comErr) {
-        console.error('Error fetching child comments:', comErr);
+        console.error('Error fetching comments:', comErr);
       } else if (childComments) {
-        // store them by ID
+        // Store them in an object for easy lookup
         childComments.forEach((cmt) => {
           commentsById[cmt.id] = cmt;
         });
 
-        // Optionally fetch parent comments to show them
-        let parentIds = [];
-        childComments.forEach((c) => {
-          if (c.parent_comment_id) parentIds.push(c.parent_comment_id);
-        });
-        parentIds = [...new Set(parentIds)];
+        // Gather parent_comment_ids to fetch parent text
+        const parentIds = [
+          ...new Set(childComments.map((c) => c.parent_comment_id).filter(Boolean)),
+        ];
 
+        // Gather user_ids (comment owners)
+        const commentOwnerIds = childComments
+          .map((cmt) => cmt.user_id)
+          .filter(Boolean);
+        const distinctOwnerIds = [...new Set(commentOwnerIds)];
+
+        // Fetch comment owners
+        let commentOwnersById = {};
+        if (distinctOwnerIds.length > 0) {
+          const { data: commentOwners, error: ownersErr } = await supabaseAdmin
+            .from('users')
+            .select('id, username, first_name, profile_picture, status')
+            .in('id', distinctOwnerIds);
+          if (ownersErr) {
+            console.error('Error fetching comment owners:', ownersErr);
+          } else if (commentOwners) {
+            commentOwners.forEach((u) => {
+              commentOwnersById[u.id] = u;
+            });
+          }
+        }
+
+        // Attach .Owner to each comment
+        childComments.forEach((cmt) => {
+          if (cmt.user_id && commentOwnersById[cmt.user_id]) {
+            cmt.Owner = commentOwnersById[cmt.user_id];
+          }
+        });
+
+        // Optionally fetch parent comments (for "reply" notifications)
         if (parentIds.length > 0) {
           const { data: parentRows } = await supabaseAdmin
             .from('comments')
@@ -132,7 +159,7 @@ router.get('/', auth, async (req, res) => {
             });
           }
 
-          // attach parent content to the child
+          // Attach parent content
           childComments.forEach((child) => {
             const parent = parentsById[child.parent_comment_id];
             if (parent) {
@@ -145,30 +172,30 @@ router.get('/', auth, async (req, res) => {
       }
     }
 
-    // 5) Combine data into each notification
-    const enriched = notifications.map((n) => {
-      return {
-        ...n,
-        Sender: n.sender_id ? sendersById[n.sender_id] || null : null,
-        Map: n.map_id ? mapsById[n.map_id] || null : null,
-        Comment: n.comment_id ? commentsById[n.comment_id] || null : null,
-      };
-    });
+    // 5) Combine data into each notification object
+    const enriched = notifications.map((n) => ({
+      ...n,
+      Sender: n.sender_id ? sendersById[n.sender_id] || null : null,
+      Map: n.map_id ? mapsById[n.map_id] || null : null,
+      Comment: n.comment_id ? commentsById[n.comment_id] || null : null,
+    }));
 
     // 6) Filter out any notification from a banned sender
     const filtered = enriched.filter((n) => {
-      if (!n.Sender) return true;  // maybe system notification with no sender
+      // If there's no sender (maybe system notification), keep it
+      if (!n.Sender) return true;
+      // Otherwise, exclude if sender is banned
       return n.Sender.status !== 'banned';
     });
 
-    // 7) Filter out notifications referencing a hidden comment
-    //    i.e. if n.comment_id but n.Comment == null => hidden
+    // 7) Filter out notifications referencing a hidden or missing comment
+    //    (if n.comment_id is set but n.Comment is null => skip)
     const final = filtered.filter((n) => {
       if (!n.comment_id) return true; // no comment => keep
       return n.Comment !== null;     // keep only if comment is visible
     });
 
-    res.json(final);
+    return res.json(final);
   } catch (err) {
     console.error('Error fetching notifications:', err);
     return res.status(500).json({ msg: 'Server error' });
@@ -181,7 +208,7 @@ router.put('/:id/read', auth, async (req, res) => {
     const notificationId = req.params.id;
     const user_id = req.user.id;
 
-    // Check if notification belongs to user
+    // Check if notification belongs to this user
     const { data: notif, error: findErr } = await supabaseAdmin
       .from('notifications')
       .select('id, user_id, is_read')
@@ -208,10 +235,10 @@ router.put('/:id/read', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Error marking notification read' });
     }
 
-    res.json({ msg: 'Notification marked as read' });
+    return res.json({ msg: 'Notification marked as read' });
   } catch (err) {
     console.error('Error updating notification:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
@@ -231,7 +258,7 @@ router.put('/read-all', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Error marking notifications read' });
     }
 
-    res.json({ msg: 'All notifications marked as read' });
+    return res.json({ msg: 'All notifications marked as read' });
   } catch (err) {
     console.error('Error updating notifications:', err);
     return res.status(500).json({ msg: 'Server error' });
@@ -244,7 +271,7 @@ router.delete('/:id', auth, async (req, res) => {
     const notificationId = req.params.id;
     const user_id = req.user.id;
 
-    // check ownership
+    // Check ownership
     const { data: notif } = await supabaseAdmin
       .from('notifications')
       .select('id, user_id')
@@ -266,7 +293,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
-    res.json({ msg: 'Notification deleted successfully' });
+    return res.json({ msg: 'Notification deleted successfully' });
   } catch (err) {
     console.error('Error deleting notification:', err);
     return res.status(500).json({ msg: 'Server error' });
