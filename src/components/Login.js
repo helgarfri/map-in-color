@@ -1,7 +1,8 @@
+// Login.js
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
-import { logIn } from '../api';
+import { logIn } from '../api';  // your API function for login
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
@@ -23,22 +24,35 @@ export default function Login() {
     );
 
     try {
-      // We now call logIn with { identifier, password } instead of { email, password }
+      // We now call logIn({ identifier, password }) instead of email/password
       const res = await Promise.race([logIn({ identifier, password }), timeout]);
       const token = res.data.token;
       localStorage.setItem('token', token);
       setAuthToken(token);
     } catch (err) {
       console.error('Login Error:', err);
+
       if (err.message === 'timeout') {
         alert(
-          'Sorry, the server is not responding (timeout after 10 seconds). Please check your network or try again later.'
+          'Sorry, the server is not responding (timeout after 10 seconds). ' +
+          'Please check your network or try again later.'
         );
       } else if (err.response) {
-        alert(`Server Error: ${err.response.data.msg || 'Unknown error from server.'}`);
+        // If the server returned an HTTP error
+        if (err.response.status === 403) {
+          // The server says "banned"
+          // Show a special alert or navigate to a "banned" page
+          alert(`Your account is banned: ${err.response.data.msg}`);
+          navigate('/banned'); 
+        } else {
+          // Some other 4xx / 5xx error
+          alert(`Server Error: ${err.response.data.msg || 'Unknown error from server.'}`);
+        }
       } else if (err.request) {
+        // No response at all
         alert('No response from server. It might be down or experiencing issues.');
       } else {
+        // Some other unexpected error
         alert(`An unexpected error occurred: ${err.message}`);
       }
     } finally {
@@ -46,6 +60,7 @@ export default function Login() {
     }
   };
 
+  // If already logged in and not still loading the profile, go to dashboard
   useEffect(() => {
     if (authToken && !loadingProfile) {
       navigate('/dashboard');

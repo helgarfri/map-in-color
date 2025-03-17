@@ -184,6 +184,8 @@ function App() {
 
 <Route path="/adminPanel" element={<AdminPanel />} />
 
+<Route path="/banned" element={<BannedUser />} />
+
       </Routes>
 
     </Router>

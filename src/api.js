@@ -152,6 +152,6 @@ export const approveProfileReport = (reportId) => {
   return API.post(`/admin/profile-reports/${reportId}/approve`);
 };
 
-export const deleteProfileReport = (reportId) => {
-  return API.post(`/admin/profile-reports/${reportId}/delete`);
+export const banProfileReport = (reportId) => {
+  return API.post(`/admin/profile-reports/${reportId}/ban`);
 };

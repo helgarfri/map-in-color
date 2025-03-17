@@ -11,7 +11,7 @@ import {
   // For profile reports
   fetchPendingProfileReports,
   approveProfileReport,
-  deleteProfileReport
+  banProfileReport
 } from '../api';
 
 import styles from './AdminPanel.module.css';
@@ -86,9 +86,9 @@ export default function AdminPanel() {
     }
   }
 
-  async function handleDeleteProfile(reportId) {
+  async function handleBanProfile(reportId) {
     try {
-      await deleteProfileReport(reportId);
+      await banProfileReport(reportId);
       // Remove from local state
       setProfileReports((prev) => prev.filter((r) => r.id !== reportId));
     } catch (err) {
@@ -183,7 +183,7 @@ export default function AdminPanel() {
                   </button>
                   <button
                     className={styles.deleteBtn}
-                    onClick={() => handleDeleteProfile(rep.id)}
+                    onClick={() => handleBanProfile(rep.id)}
                   >
                     Ban
                   </button>
