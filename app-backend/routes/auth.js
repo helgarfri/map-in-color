@@ -1,12 +1,10 @@
-// authRoutes.js (for example)
+// auth.js
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
-
-const { supabaseAdmin } = require('../config/supabase'); // Single admin client
-
+const { supabaseAdmin } = require('../config/supabase'); 
 const { resend } = require('../config/resend');
 
 
@@ -176,14 +174,15 @@ router.post('/login', [check('password').exists()], async (req, res) => {
 
   try {
     let foundUser;
-    // Decide if identifier is an email or a username:
+    // Decide if identifier is an email or username
     if (identifier.includes('@')) {
       // Possibly an email
       const { data, error } = await supabaseAdmin
         .from('users')
-        .select('id, email, username, password, first_name, last_name')
+        .select('id, email, username, password, first_name, last_name, status') // IMPORTANT: select "status"
         .eq('email', identifier)
         .maybeSingle();
+
       if (error) {
         console.error(error);
         return res.status(500).json({ msg: 'Error fetching user by email' });
@@ -193,9 +192,10 @@ router.post('/login', [check('password').exists()], async (req, res) => {
       // Probably a username
       const { data, error } = await supabaseAdmin
         .from('users')
-        .select('id, email, username, password, first_name, last_name')
+        .select('id, email, username, password, first_name, last_name, status') // include status
         .eq('username', identifier)
         .maybeSingle();
+
       if (error) {
         console.error(error);
         return res.status(500).json({ msg: 'Error fetching user by username' });
@@ -213,7 +213,13 @@ router.post('/login', [check('password').exists()], async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials (bad password)' });
     }
 
-    // Make JWT
+    //  ***** Check if user is banned *****
+    if (foundUser.status === 'banned') {
+      // Return 403 => user is not allowed to log in
+      return res.status(403).json({ msg: 'Your account is banned.' });
+    }
+
+    // If not banned => proceed as normal
     const token = jwt.sign({ id: foundUser.id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
@@ -226,6 +232,7 @@ router.post('/login', [check('password').exists()], async (req, res) => {
         username: foundUser.username,
         first_name: foundUser.first_name,
         last_name: foundUser.last_name,
+        status: foundUser.status,
       },
     });
   } catch (err) {
@@ -233,6 +240,5 @@ router.post('/login', [check('password').exists()], async (req, res) => {
     return res.status(500).json({ msg: 'Server error' });
   }
 });
-
 
 module.exports = router;

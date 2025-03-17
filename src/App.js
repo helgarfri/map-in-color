@@ -25,6 +25,7 @@ import ChangePassword from './components/ChangePassword';
 import DeleteAccount from './components/DeleteAccount';
 import Docs from './components/Docs';
 import AdminPanel from './components/AdminPanel';
+import BannedUser from './components/BannedUser';
 
 import { UserProvider } from './context/UserContext';
 

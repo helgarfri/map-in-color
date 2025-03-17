@@ -2,14 +2,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
-import { logIn } from '../api';  // your API function for login
+import { logIn } from '../api';  
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 
 export default function Login() {
   const { setAuthToken, authToken, loadingProfile } = useContext(UserContext);
-  const [identifier, setIdentifier] = useState(''); // was "email"
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
@@ -18,13 +18,11 @@ export default function Login() {
     e.preventDefault();
     setIsLoggingIn(true);
 
-    // 10-second timeout
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 10000)
     );
 
     try {
-      // We now call logIn({ identifier, password }) instead of email/password
       const res = await Promise.race([logIn({ identifier, password }), timeout]);
       const token = res.data.token;
       localStorage.setItem('token', token);
@@ -33,26 +31,21 @@ export default function Login() {
       console.error('Login Error:', err);
 
       if (err.message === 'timeout') {
-        alert(
-          'Sorry, the server is not responding (timeout after 10 seconds). ' +
-          'Please check your network or try again later.'
-        );
+        alert('Server timed out after 10 seconds. Please try again later.');
       } else if (err.response) {
-        // If the server returned an HTTP error
+        // Check status
         if (err.response.status === 403) {
           // The server says "banned"
-          // Show a special alert or navigate to a "banned" page
           alert(`Your account is banned: ${err.response.data.msg}`);
-          navigate('/banned'); 
+          // Possibly navigate to a special route
+          navigate('/banned');
         } else {
-          // Some other 4xx / 5xx error
-          alert(`Server Error: ${err.response.data.msg || 'Unknown error from server.'}`);
+          // Some other error, e.g. 400, 500
+          alert(`Server Error: ${err.response.data.msg || 'Unknown error'}`);
         }
       } else if (err.request) {
-        // No response at all
-        alert('No response from server. It might be down or experiencing issues.');
+        alert('No response from server.');
       } else {
-        // Some other unexpected error
         alert(`An unexpected error occurred: ${err.message}`);
       }
     } finally {
@@ -60,7 +53,6 @@ export default function Login() {
     }
   };
 
-  // If already logged in and not still loading the profile, go to dashboard
   useEffect(() => {
     if (authToken && !loadingProfile) {
       navigate('/dashboard');
