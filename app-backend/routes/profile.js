@@ -40,6 +40,10 @@ router.get('/:username/activity', async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
+    if (foundUser.status === 'banned') {
+      return res.status(403).json({ msg: 'This user is banned.' });
+    }
+
     const user_id = foundUser.id;
 
     // We'll do 3 separate queries:
@@ -359,7 +363,7 @@ router.get('/:username', async (req, res) => {
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
       .select(
-        'id, username, first_name, last_name, date_of_birth, location, description, gender, profile_picture, created_at, updated_at'
+        'id, username, first_name, last_name, date_of_birth, location, description, gender, profile_picture, created_at, updated_at, status'
       )
       .eq('username', username)
       .maybeSingle();
@@ -370,6 +374,10 @@ router.get('/:username', async (req, res) => {
     }
     if (!userRow) {
       return res.status(404).json({ msg: 'User not found' });
+    }
+
+    if (userRow.status === 'banned') {
+      return res.status(403).json({ msg: 'This user is banned.' });
     }
 
     return res.json(userRow);

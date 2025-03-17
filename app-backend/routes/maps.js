@@ -495,26 +495,45 @@ router.get('/user/:user_id', async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 10;
 
-    const { data: userMaps, error } = await supabaseAdmin
-      .from('maps')
-      .select('*')
-      .eq('user_id', user_id)
-      .eq('is_public', true)
-      .order('created_at', { ascending: false })
-      // range is [start, end] inclusive
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Server error' });
-    }
-
-    res.json(userMaps);
-  } catch (err) {
-    console.error('Error fetching maps:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+       // 1) Check the user’s status
+       const { data: userRow, error: userErr } = await supabaseAdmin
+         .from('users')
+         .select('id, status')
+         .eq('id', user_id)
+         .maybeSingle();
+       if (userErr) {
+         console.error('Error fetching user:', userErr);
+         return res.status(500).json({ message: 'Server error (user fetch)' });
+       }
+       if (!userRow) {
+         return res.status(404).json({ message: 'User not found' });
+       }
+       // If user is banned => hide their maps
+       if (userRow.status === 'banned') {
+         return res.json([]); 
+         // or res.status(404).json({ msg: 'User not found' });
+       }
+    
+        // 2) If not banned => fetch their public maps
+        const { data: userMaps, error } = await supabaseAdmin
+          .from('maps')
+          .select('*')
+          .eq('user_id', user_id)
+          .eq('is_public', true)
+          .order('created_at', { ascending: false })
+          .range(offset, offset + limit - 1);
+    
+        if (error) {
+          console.error(error);
+          return res.status(500).json({ message: 'Server error' });
+        }
+    
+        res.json(userMaps);
+      } catch (err) {
+        console.error('Error fetching maps:', err);
+        res.status(500).json({ message: 'Server error' });
+      }
+    });
 
 /* --------------------------------------------
    GET /api/maps/user/:user_id/starred

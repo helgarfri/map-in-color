@@ -57,7 +57,7 @@ router.get('/', auth, async (req, res) => {
     if (senderIds.length > 0) {
       const { data: senders, error: sendErr } = await supabaseAdmin
         .from('users')
-        .select('id, username, first_name, profile_picture')
+        .select('id, username, first_name, profile_picture, status')
         .in('id', senderIds);
 
       if (sendErr) {
@@ -166,6 +166,13 @@ router.get('/', auth, async (req, res) => {
         Map: n.map_id ? mapsById[n.map_id] || null : null,
         Comment: childCmt || null,
       };
+    });
+
+    //6.5) filter out notifications from banned senders
+
+    const filtered = enriched.filter((n) => {
+      if (!n.Sender) return true;
+      return n.Sender.status !== 'banned';
     });
 
     // 7) Filter out all notifications referencing a non-visible (null) comment

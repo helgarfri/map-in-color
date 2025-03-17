@@ -24,7 +24,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
           username,
           first_name,
           last_name,
-          profile_picture
+          profile_picture,
+          status
         )
       `)
       .eq('map_id', mapId)
@@ -64,7 +65,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
             username,
             first_name,
             last_name,
-            profile_picture
+            profile_picture,
+            status
           )
         `)
         .in('parent_comment_id', topIds)
@@ -76,6 +78,13 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       }
       allReplies = replies || [];
     }
+    // 3.5) Filtor out any top-level comment whose user is banned
+
+    const filteredTop = topComments.filter((c) => c.user?.status !== 'banned');
+
+    // filter out any replies from banned users
+
+    const filteredReplies = allReplies.filter((r) => r.user?.status !== 'banned');
 
     // 4) Attach userReaction & compute Wilson score, etc. (unchanged)
     function computeWilsonScore(likes, dislikes) {
