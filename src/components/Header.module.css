@@ -473,14 +473,14 @@
     top: 42px;
     right: -50px
   }
-
+  .createMapButton {
+    display: none;
+  }
 }
 
 /* make media for phone 370px */
 @media (max-width: 400px) {
-  .createMapButton {
-    display: none;
-  }
+  
 
   .headerRight {
     margin-right: 20px;

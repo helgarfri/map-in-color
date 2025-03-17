@@ -271,6 +271,75 @@
   font-weight: bold;
 }
 
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.reportOptions {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.reportOption {
+  margin-bottom: 0.5rem;
+}
+
+.reportDetails textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modalActions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #ccc;
+}
+
+.modalActions button:first-child {
+  background-color: #80a0b0;
+  color: #fff;
+}
+
+/* Loading states, success container, etc. */
+.loadingContainer,
+.successContainer {
+  text-align: center;
+  padding: 2rem;
+}
+
 /* RESPONSIVE RULES */
 
 /* 1) Remove left margin below 1000px */

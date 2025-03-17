@@ -375,8 +375,10 @@ a {
 /* Comment Actions (Like/Dislike/Reply/Delete) */
 .commentActions {
   display: flex;
+  flex-wrap: wrap; /* allow wrapping onto a new line */
   align-items: center;
   margin-top: 10px;
+  gap: 8px; /* optional: adds spacing between buttons */
 }
 .reactionButton {
   display: inline-flex;
@@ -797,8 +799,28 @@ a {
     font-size: 0.7rem;
     margin-top: 5px;
   }
+  .repliesList {
+    margin-left: 0px;
+  }
+  .reactionButton  {
+    font-size: 12px;
+  }
 
+  .commentProfilePicture {
+    width: 40px;
+    height: 40px;
+  }
+  .commentActions {
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: flex-start;
+  }
 
+  .reactionButton {
+    margin-right: 4px; 
+    margin-bottom: 6px;  /* so rows aren't too cramped */
+    font-size: 13px;     /* optionally decrease font-size */
+  }
  
   
 }
@@ -806,18 +828,11 @@ a {
 /* 4) Very small phones (~400px) for further tweaks */
 @media (max-width: 400px) {
   
-  .commentProfilePicture,
-  .replyItem .commentProfilePicture {
-    width: 40px;
-    height: 40px;
-  }
-  .reactionButton,
-  .reactionButtonSmall {
-    font-size: 0.8rem;
-    padding: 3px 6px;
-  }
+ 
+
   .mapStats {
     padding: 10px;
   }
-  
+
+ 
 }

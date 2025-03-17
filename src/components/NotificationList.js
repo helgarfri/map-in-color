@@ -121,15 +121,15 @@ export default function NotificationList() {
 
     switch (notification.type) {
       case 'star':
-        return `${senderName} starred your map "${mapTitle}".`;
+        return <>starred your map <strong>{mapTitle}</strong>.</>;
       case 'comment':
-        return `${senderName} commented on your map "${mapTitle}".`;
+        return <>commented on your map <strong>{mapTitle}</strong>.</>;
       case 'reply':
-        return `${senderName} replied to your comment on "${mapTitle}".`;
+        return <>replied to your comment on <strong>{mapTitle}</strong>.</>;
       case 'like':
-        return `${senderName} liked your comment on "${mapTitle}".`;
+        return <>liked your comment on <strong>{mapTitle}</strong>.</>;
       default:
-        return `${senderName} performed an action on "${mapTitle}".`;
+        return <>performed an action on <strong>{mapTitle}</strong>.</>;
     }
   };
 
@@ -222,6 +222,7 @@ export default function NotificationList() {
                       <Link
                         to={`/profile/${notification.Sender?.username || 'unknown'}`}
                         onClick={(e) => e.stopPropagation()} // so we don't click open the map
+                        className={styles.senderLink}
                       >
                         {notification.Sender?.first_name ||
                           notification.Sender?.username ||

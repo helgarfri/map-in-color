@@ -138,3 +138,8 @@ export const approveReport = (reportId) => {
 export const deleteReport = (reportId) => {
   return API.post(`/admin/reports/${reportId}/delete`);
 };
+
+export const reportProfile = (username, reportData) => {
+  // reportData might look like: { reasons: ['Inappropriate'], details: '...' }
+  return API.post(`/profile/${username}/report`, reportData);
+};

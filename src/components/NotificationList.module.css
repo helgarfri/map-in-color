@@ -3,7 +3,7 @@
 .notificationsContainer {
   display: flex;
   min-height: 100vh;
-  color: black;
+  color: #000;
   margin-top: 60px;
   background-color: #f7f7f7;
 }
@@ -79,6 +79,14 @@
   margin-right: 10px;
 }
 
+.senderLink {
+  color: #000;
+  font-weight: bold;
+}
+
+.senderLink:hover {
+  text-decoration: underline;
+}
 .typeIcon {
   font-size: 20px;
   color: #80a0b0;

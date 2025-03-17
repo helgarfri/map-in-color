@@ -496,4 +496,130 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
   }
 });
 
+/***********************************************
+ *   POST /profile/:username/report
+ *   Allows a logged-in user to report another user’s profile
+ ***********************************************/
+router.post('/:username/report', auth, async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { reasons, details } = req.body; // same shape as comment reports
+    const reportingUserId = req.user.id;   // from auth middleware
+
+    // 1) Find the user by username
+    const { data: reportedUser, error: userErr } = await supabaseAdmin
+      .from('users')
+      .select('id, username, profile_picture, status')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (userErr) {
+      console.error('Error fetching user:', userErr);
+      return res.status(500).json({ msg: 'Server error (fetch user)' });
+    }
+    if (!reportedUser) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Don’t allow a user to report themselves, if that’s your policy:
+    if (reportedUser.id === reportingUserId) {
+      return res.status(400).json({ msg: 'You cannot report yourself.' });
+    }
+
+    // 2) Insert the new row into "profile_reports"
+    const { error: repErr } = await supabaseAdmin
+      .from('profile_reports')
+      .insert({
+        reported_user_id: reportedUser.id,
+        reported_by: reportingUserId,
+        reasons,
+        details,
+        status: 'pending',
+      });
+    if (repErr) {
+      console.error('Error inserting profile report:', repErr);
+      return res.status(500).json({ msg: 'Error inserting profile report' });
+    }
+
+    // 3) Count how many unique users have reported this profile
+    const { data: allReports, error: fetchErr } = await supabaseAdmin
+      .from('profile_reports')
+      .select('reported_by')
+      .eq('reported_user_id', reportedUser.id);
+
+    if (fetchErr) {
+      console.error('Error fetching profile reports:', fetchErr);
+      return res.status(500).json({ msg: 'Error fetching profile reports' });
+    }
+
+    const distinctReporters = new Set(allReports.map((r) => r.reported_by));
+    const reportCount = distinctReporters.size;
+
+    // 4) If the user has 2 or more distinct reporters, we can mark them “flagged” or hide them, etc.
+    // Adjust logic as needed
+    if (reportCount >= 3) {
+      // e.g. mark user as “flagged” or “hidden” in the user table
+      // or do something else. For example:
+      const { error: updErr } = await supabaseAdmin
+        .from('users')
+        .update({ status: 'flagged' }) // or “suspended”
+        .eq('id', reportedUser.id);
+      if (updErr) {
+        console.error('Error flagging user:', updErr);
+        // we can still continue, or handle as needed
+      }
+    }
+
+    // 5) Send emails to the user who filed the report, and to admin
+    // Same pattern as your comment report code
+    // a) fetch reporter info
+    const { data: reporterInfo, error: repInfoErr } = await supabaseAdmin
+      .from('users')
+      .select('email, username')
+      .eq('id', reportingUserId)
+      .maybeSingle();
+
+    // b) email the reporter, if email is present
+    if (reporterInfo?.email) {
+      try {
+        await resend.emails.send({
+          from: 'no-reply@mapincolor.com',
+          to: reporterInfo.email,
+          subject: 'We have received your profile report',
+          text: `Hello ${reporterInfo.username},\n\n` +
+                `We have received your report regarding user "${username}".\n` +
+                `Reasons: ${reasons}\nDetails: ${details}\n\n` +
+                `Thank you for helping us keep the community safe.\n` +
+                `- Helgi from Map in Color`,
+        });
+      } catch (emailErr) {
+        console.error('Error sending user confirmation email:', emailErr);
+      }
+    }
+
+    // c) email admin
+    try {
+      await resend.emails.send({
+        from: 'no-reply@mapincolor.com',
+        to: 'hello@mapincolor.com',  // your admin email
+        subject: `New profile report for @${username}`,
+        text: `A user has reported profile @${username}.\n` +
+              `Reporter: ${reporterInfo?.username} (ID: ${reportingUserId})\n` +
+              `Reasons: ${reasons}\nDetails: ${details}\n\n` +
+              `Total unique reporters so far: ${reportCount}\n`,
+      });
+    } catch (adminEmailErr) {
+      console.error('Error sending admin notification email:', adminEmailErr);
+    }
+
+    return res.json({
+      msg: `Profile reported successfully. User @${username} now has ${reportCount} total unique report(s).`
+    });
+  } catch (err) {
+    console.error('Error reporting user profile:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
 module.exports = router;

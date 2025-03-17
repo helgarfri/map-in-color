@@ -9,7 +9,8 @@ import {
   fetchMapsByuser_id,
   fetchStarredMapsByuser_id,
   fetchUserActivity,
-  fetchUserMapStats
+  fetchUserMapStats,
+  reportProfile
 } from '../api';
 import {
   FaMapMarkerAlt,
@@ -31,7 +32,7 @@ import useWindowSize from '../hooks/useWindowSize'; // <--- import your hook
 export default function ProfilePage() {
   const { username } = useParams();
   const navigate = useNavigate();
-  const { profile: currentUserProfile } = useContext(UserContext);
+  const { profile: currentUserProfile, authToken } = useContext(UserContext);
   const { width } = useWindowSize(); // get screen width
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
@@ -65,9 +66,17 @@ export default function ProfilePage() {
   const [sortMapsBy, setSortMapsBy] = useState('newest');
   const [sortStarredBy, setSortStarredBy] = useState('newest');
 
+  // For “Report Profile” modal
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReasons, setReportReasons] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
+  const [showReportSuccess, setShowReportSuccess] = useState(false);
+
+
   const isMyProfile =
     currentUserProfile && currentUserProfile.username === profile?.username;
-
+    const isUserLoggedIn = !!authToken && !!currentUserProfile;
   // Load user profile data
   useEffect(() => {
     async function loadUserProfile() {
@@ -107,6 +116,46 @@ export default function ProfilePage() {
       setTotalStars(res.data.totalStars);
     } catch (err) {
       console.error('Error fetching user stats:', err);
+    }
+  }
+
+
+  // “Report” button click → show the modal
+  function handleReportProfile() {
+    if (!isUserLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    setShowReportModal(true);
+  }
+
+
+  // Submitting the report
+  async function handleSubmitProfileReport() {
+    if (!profile?.username) return;
+    setIsReporting(true);
+    try {
+      await reportProfile(profile.username, {
+        reasons: [reportReasons],
+        details: reportDetails
+      });
+
+      // Optionally do something (e.g. set a “flagged” state in the UI)
+      setShowReportSuccess(true);
+      setReportReasons('');
+      setReportDetails('');
+
+      // Hide modal after 2 seconds, for example
+      setTimeout(() => {
+        setShowReportModal(false);
+        setShowReportSuccess(false);
+      }, 2000);
+
+    } catch (err) {
+      console.error('Error reporting profile:', err);
+      // Optionally show an error to the user
+    } finally {
+      setIsReporting(false);
     }
   }
 
@@ -171,6 +220,8 @@ export default function ProfilePage() {
     }
     return copy;
   }
+
+
 
   useEffect(() => {
     if (userMaps.length === 0) return;
@@ -330,6 +381,15 @@ export default function ProfilePage() {
                   Edit Profile
                 </button>
               )}
+
+              {!isMyProfile && isUserLoggedIn && (
+                <button
+                  className={styles.reportProfileButton}
+                  onClick={handleReportProfile}
+                >
+                  Report Profile
+                </button>
+              )}
             </div>
           </div>
 
@@ -438,6 +498,99 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {showReportModal && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContent}>
+      {isReporting ? (
+        <div className={styles.loadingContainer}>
+          <p>Submitting report...</p>
+        </div>
+      ) : showReportSuccess ? (
+        <div className={styles.successContainer}>
+          <p>Your report has been submitted.</p>
+        </div>
+      ) : (
+        <>
+          <h3>Report Profile</h3>
+          <p>
+            Please let us know why you are reporting{' '}
+            <strong>@{profile.username}</strong>:
+          </p>
+
+          <div className={styles.reportOptions}>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Inappropriate profile picture"
+                checked={reportReasons === 'Inappropriate profile picture'}
+                onChange={(e) => setReportReasons(e.target.value)}
+              />
+              Inappropriate profile picture
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Inappropriate name or username"
+                checked={reportReasons === 'Inappropriate name or username'}
+                onChange={(e) => setReportReasons(e.target.value)}
+              />
+              Inappropriate name or username
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Inappropriate description/bio"
+                checked={reportReasons === 'Inappropriate description/bio'}
+                onChange={(e) => setReportReasons(e.target.value)}
+              />
+              Inappropriate description/bio
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Spam or fake profile"
+                checked={reportReasons === 'Spam or fake profile'}
+                onChange={(e) => setReportReasons(e.target.value)}
+              />
+              Spam or fake profile
+            </label>
+            <label className={styles.reportOption}>
+              <input
+                type="radio"
+                name="reportReason"
+                value="Harassment or bullying"
+                checked={reportReasons === 'Harassment or bullying'}
+                onChange={(e) => setReportReasons(e.target.value)}
+              />
+              Harassment or bullying
+            </label>
+          </div>
+
+          <div className={styles.reportDetails}>
+            <label>Optional additional details:</label>
+            <textarea
+              value={reportDetails}
+              onChange={(e) => setReportDetails(e.target.value)}
+              placeholder="Share more information (optional)"
+            />
+          </div>
+
+          <div className={styles.modalActions}>
+            <button onClick={handleSubmitProfileReport}>Submit</button>
+            <button onClick={() => setShowReportModal(false)}>Cancel</button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }
