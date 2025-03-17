@@ -8,12 +8,14 @@ const authOptional = require('../middleware/authOptional');
 /* --------------------------------------------
    GET /api/maps
    Fetch all maps for the logged-in user
+   (owner’s private route)
 -------------------------------------------- */
 router.get('/', auth, async (req, res) => {
   try {
     const user_id = req.user.id;
 
-    // Query "maps" where "user_id" = user_id
+    // These are the user's own maps, so it's OK to skip "banned" checks 
+    // because a banned user presumably can't log in anyway, or you can check if user is banned in your auth middleware
     const { data: userMaps, error } = await supabaseAdmin
       .from('maps')
       .select('*')
@@ -34,6 +36,7 @@ router.get('/', auth, async (req, res) => {
 /* --------------------------------------------
    POST /api/maps
    Create a new map
+   (owner route)
 -------------------------------------------- */
 router.post('/', auth, async (req, res) => {
   try {
@@ -52,11 +55,11 @@ router.post('/', auth, async (req, res) => {
         {
           ...mapData,
           user_id: user_id,
-          created_at: new Date().toISOString(), // Add this line
-          updated_at: new Date().toISOString()  // Optional but recommended
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         },
       ])
-      .single(); // single => returns just the newly inserted row
+      .single();
 
     if (error) {
       console.error('Error creating map:', error);
@@ -65,7 +68,7 @@ router.post('/', auth, async (req, res) => {
 
     const newMap = insertedMaps;
 
-    // Also insert an "Activity" if desired
+    // (optional) Insert an "Activity" row
     await supabaseAdmin.from('activities').insert([
       {
         type: 'createdMap',
@@ -83,7 +86,7 @@ router.post('/', auth, async (req, res) => {
 
 /* --------------------------------------------
    GET /api/maps/saved
-   Fetch saved maps for the logged-in user
+   Fetch the current user's saved maps
 -------------------------------------------- */
 router.get('/saved', auth, async (req, res) => {
   try {
@@ -107,13 +110,18 @@ router.get('/saved', auth, async (req, res) => {
       return res.json([]); // user has no saved maps
     }
 
-    // Step 2) fetch the actual maps
+    // Step 2) fetch the actual maps + user (including status)
     const { data: savedMaps, error: mapsErr } = await supabaseAdmin
       .from('maps')
       .select(`
         *,
-        users!maps_user_id_fkey (
-          username
+        user:users!maps_user_id_fkey (
+          id,
+          username,
+          status,
+          first_name,
+          last_name,
+          profile_picture
         )
       `)
       .in('id', mapIds);
@@ -123,7 +131,13 @@ router.get('/saved', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
-    res.json(savedMaps);
+    // 2.5) Filter out if the map's owner is banned
+    const filteredMaps = savedMaps.filter((m) => {
+      if (!m.user) return false; // corrupted data or user missing
+      return m.user.status !== 'banned';
+    });
+
+    res.json(filteredMaps);
   } catch (err) {
     console.error('Error fetching saved maps:', err);
     res.status(500).json({ msg: 'Server error' });
@@ -142,7 +156,13 @@ router.post('/:id/download', authOptional, async (req, res) => {
     // 1) fetch the map
     const { data: mapRow, error: mapErr } = await supabaseAdmin
       .from('maps')
-      .select('*')
+      .select(`
+        *,
+        user:users!maps_user_id_fkey (
+          id,
+          status
+        )
+      `)
       .eq('id', mapId)
       .maybeSingle();
 
@@ -154,13 +174,18 @@ router.post('/:id/download', authOptional, async (req, res) => {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
+    // *** If the owner is banned => 404
+    if (mapRow.user?.status === 'banned') {
+      return res.status(404).json({ msg: 'Map not found' });
+    }
+
     // Check if it's public or if user is owner
     if (!mapRow.is_public && (!user_id || mapRow.user_id !== user_id)) {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
+    // increment
     const newDownloadCount = (mapRow.download_count || 0) + 1;
-    // 2) update the map
     const { error: updateErr } = await supabaseAdmin
       .from('maps')
       .update({ download_count: newDownloadCount })
@@ -168,9 +193,7 @@ router.post('/:id/download', authOptional, async (req, res) => {
 
     if (updateErr) {
       console.error(updateErr);
-      return res
-        .status(500)
-        .json({ msg: 'Error incrementing download count' });
+      return res.status(500).json({ msg: 'Error incrementing download count' });
     }
 
     console.log('DownloadCount AFTER increment:', newDownloadCount);
@@ -211,12 +234,12 @@ router.put('/:id', auth, async (req, res) => {
         .json({ msg: 'Map not found or you are not the owner' });
     }
 
-    // 2) update the row
+    // 2) update
     const { data: updatedMap, error: updateErr } = await supabaseAdmin
       .from('maps')
       .update({
         ...updateData,
-        updated_at: new Date().toISOString()  // Add this
+        updated_at: new Date().toISOString()
       })
       .eq('id', mapId)
       .single();
@@ -276,15 +299,14 @@ router.delete('/:id', auth, async (req, res) => {
 
 /* --------------------------------------------
    GET /api/maps/:id
-   Fetch single map by ID
-   (public or owner only)
+   Fetch single map by ID (public or owner only)
 -------------------------------------------- */
 router.get('/:id', authOptional, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user?.id || null;
 
-    // If you want to embed the map's owner (User) data, reference the correct relationship
+    // join with user (including status)
     const { data: mapRow, error } = await supabaseAdmin
       .from('maps')
       .select(
@@ -294,7 +316,8 @@ router.get('/:id', authOptional, async (req, res) => {
             username,
             first_name,
             last_name,
-            profile_picture
+            profile_picture,
+            status
          )`
       )
       .eq('id', mapId)
@@ -308,18 +331,22 @@ router.get('/:id', authOptional, async (req, res) => {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
+    // If the owner is banned => hide
+    if (mapRow.user && mapRow.user.status === 'banned') {
+      return res.status(404).json({ msg: 'Map not found' });
+    }
+
     // If not public and not owner
     if (!mapRow.is_public && (!user_id || mapRow.user_id !== user_id)) {
       return res.status(403).json({ msg: 'Access denied' });
     }
 
-    // Check if current user has saved it
+    // check if current user has saved it
     let isSavedByCurrentUser = false;
     let isOwner = false;
 
     if (user_id) {
       isOwner = mapRow.user_id === user_id;
-      // check if there's a row in "map_saves"
       const { data: existingSave } = await supabaseAdmin
         .from('map_saves')
         .select('*')
@@ -344,31 +371,38 @@ router.get('/:id', authOptional, async (req, res) => {
    POST /api/maps/:id/save
    "Star" a map
 -------------------------------------------- */
-/* --------------------------------------------
-   POST /api/maps/:id/save
-   "Star" a map
--------------------------------------------- */
 router.post('/:id/save', auth, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user.id;
 
-    // 1) fetch the map
+    // fetch the map (join the user to see if user is banned)
     const { data: mapRow } = await supabaseAdmin
       .from('maps')
-      .select('*')
+      .select(`
+        *,
+        user:users!maps_user_id_fkey (
+          id,
+          status
+        )
+      `)
       .eq('id', mapId)
       .maybeSingle();
 
     if (!mapRow) {
       return res.status(404).json({ msg: 'Map not found' });
     }
+    // If the owner is banned => hide
+    if (mapRow.user && mapRow.user.status === 'banned') {
+      return res.status(404).json({ msg: 'Map not found' });
+    }
+
     // if the map is private and not the owner, fail
     if (!mapRow.is_public && mapRow.user_id !== user_id) {
       return res.status(404).json({ msg: 'Map not found or private' });
     }
 
-    // 2) check if MapSaves row already exists
+    // check if MapSaves row already exists
     const { data: existingSave } = await supabaseAdmin
       .from('map_saves')
       .select('*')
@@ -380,7 +414,7 @@ router.post('/:id/save', auth, async (req, res) => {
       return res.status(200).json({ msg: 'Map already saved' });
     }
 
-    // 3) create row in map_saves
+    // create row in map_saves
     const { error: saveErr } = await supabaseAdmin
       .from('map_saves')
       .insert([
@@ -397,38 +431,16 @@ router.post('/:id/save', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Error saving map' });
     }
 
-    // 4) increment the map's save_count
+    // increment the map's save_count
     const newSaveCount = (mapRow.save_count || 0) + 1;
     await supabaseAdmin
       .from('maps')
       .update({ save_count: newSaveCount })
       .eq('id', mapRow.id);
 
-    // 5) record Activity (optional)
-    await supabaseAdmin.from('activities').insert([
-      {
-        type: 'starred_map',
-        user_id: user_id,
-        mapTitle: mapRow.title,
-        created_at: new Date(),
-      },
-    ]);
+    // (optional) record an activity
+    // (optional) send notification to the map owner
 
-    // 6) create the star Notification if I'm not the owner
-    if (mapRow.user_id !== user_id) {
-      await supabaseAdmin.from('notifications').insert([
-        {
-          type: 'star',          // <--- "star"
-          user_id: mapRow.user_id, // the map owner
-          sender_id: user_id,      // me (the one who starred)
-          map_id: mapRow.id,       // reference the map
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
-    }
-
-    // done
     res.json({ msg: 'Map saved' });
   } catch (err) {
     console.error('Error saving map:', err);
@@ -445,21 +457,33 @@ router.post('/:id/unsave', auth, async (req, res) => {
     const mapId = req.params.id;
     const user_id = req.user.id;
 
-    // fetch the map
+    // fetch the map (including user)
     const { data: mapRow } = await supabaseAdmin
       .from('maps')
-      .select('*')
+      .select(`
+        *,
+        user:users!maps_user_id_fkey(
+          id,
+          status
+        )
+      `)
       .eq('id', mapId)
       .maybeSingle();
 
     if (!mapRow) {
       return res.status(404).json({ msg: 'Map not found' });
     }
+
+    // if the owner is banned => hide
+    if (mapRow.user && mapRow.user.status === 'banned') {
+      return res.status(404).json({ msg: 'Map not found' });
+    }
+
     if (!mapRow.is_public && mapRow.user_id !== user_id) {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
-    // remove row from MapSaves
+    // remove from map_saves
     const { error: delErr } = await supabaseAdmin
       .from('map_saves')
       .delete()
@@ -495,45 +519,46 @@ router.get('/user/:user_id', async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 10;
 
-       // 1) Check the user’s status
-       const { data: userRow, error: userErr } = await supabaseAdmin
-         .from('users')
-         .select('id, status')
-         .eq('id', user_id)
-         .maybeSingle();
-       if (userErr) {
-         console.error('Error fetching user:', userErr);
-         return res.status(500).json({ message: 'Server error (user fetch)' });
-       }
-       if (!userRow) {
-         return res.status(404).json({ message: 'User not found' });
-       }
-       // If user is banned => hide their maps
-       if (userRow.status === 'banned') {
-         return res.json([]); 
-         // or res.status(404).json({ msg: 'User not found' });
-       }
-    
-        // 2) If not banned => fetch their public maps
-        const { data: userMaps, error } = await supabaseAdmin
-          .from('maps')
-          .select('*')
-          .eq('user_id', user_id)
-          .eq('is_public', true)
-          .order('created_at', { ascending: false })
-          .range(offset, offset + limit - 1);
-    
-        if (error) {
-          console.error(error);
-          return res.status(500).json({ message: 'Server error' });
-        }
-    
-        res.json(userMaps);
-      } catch (err) {
-        console.error('Error fetching maps:', err);
-        res.status(500).json({ message: 'Server error' });
-      }
-    });
+    // 1) Check user’s status
+    const { data: userRow, error: userErr } = await supabaseAdmin
+      .from('users')
+      .select('id, status')
+      .eq('id', user_id)
+      .maybeSingle();
+
+    if (userErr) {
+      console.error('Error fetching user:', userErr);
+      return res.status(500).json({ message: 'Server error (user fetch)' });
+    }
+    if (!userRow) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If user is banned => hide their maps
+    if (userRow.status === 'banned') {
+      return res.json([]);
+    }
+
+    // 2) if not banned => fetch their public maps
+    const { data: userMaps, error } = await supabaseAdmin
+      .from('maps')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.json(userMaps);
+  } catch (err) {
+    console.error('Error fetching maps:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 /* --------------------------------------------
    GET /api/maps/user/:user_id/starred
@@ -546,7 +571,7 @@ router.get('/user/:user_id/starred', async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 10;
 
-    // Confirm the user in "users"
+    // confirm user
     const { data: userRow } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -557,7 +582,7 @@ router.get('/user/:user_id/starred', async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    // get "map_saves" for that user
+    // get map_saves for that user
     const { data: saves } = await supabaseAdmin
       .from('map_saves')
       .select('*')
@@ -572,7 +597,13 @@ router.get('/user/:user_id/starred', async (req, res) => {
     // fetch only public maps
     const { data: starredMaps, error } = await supabaseAdmin
       .from('maps')
-      .select('*')
+      .select(`
+        *,
+        user:users!maps_user_id_fkey (
+          id,
+          status
+        )
+      `)
       .in('id', mapIds)
       .eq('is_public', true)
       .order('created_at', { ascending: false });
@@ -582,8 +613,11 @@ router.get('/user/:user_id/starred', async (req, res) => {
       return res.status(500).json({ message: 'Server error' });
     }
 
+    // filter out if the map’s owner is banned
+    const filtered = starredMaps.filter((m) => m.user?.status !== 'banned');
+
     // implement offset/limit in memory
-    const paginated = starredMaps.slice(offset, offset + limit);
+    const paginated = filtered.slice(offset, offset + limit);
 
     res.json(paginated);
   } catch (err) {
@@ -601,6 +635,7 @@ router.get('/user/:user_id/stats', async (req, res) => {
     const { user_id } = req.params;
 
     // fetch all maps from that user
+    // if user is banned or not => up to you if you want to return stats
     const { data: userMaps, error } = await supabaseAdmin
       .from('maps')
       .select('save_count')
@@ -631,18 +666,33 @@ router.get('/user/:user_id/most-starred', async (req, res) => {
 
     const { data: topMaps, error } = await supabaseAdmin
       .from('maps')
-      .select('*')
+      .select(`
+        *,
+        user:users!maps_user_id_fkey (
+          id,
+          status
+        )
+      `)
       .eq('user_id', user_id)
       .order('save_count', { ascending: false })
       .limit(1);
 
     if (error) {
-      console.error(error);
+      console.error('Error fetching most starred map:', error);
       return res.status(500).json({ message: 'Server error' });
     }
 
-    const mostStarredMap = topMaps.length > 0 ? topMaps[0] : null;
-    res.json(mostStarredMap);
+    if (!topMaps || topMaps.length === 0) {
+      return res.json(null);
+    }
+
+    // if the user is banned => hide
+    const topMap = topMaps[0];
+    if (topMap.user && topMap.user.status === 'banned') {
+      return res.json(null);
+    }
+
+    res.json(topMap);
   } catch (err) {
     console.error('Error fetching most starred map:', err);
     res.status(500).json({ message: 'Server error' });

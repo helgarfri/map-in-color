@@ -7,14 +7,14 @@ const { resend } = require('../config/resend'); //  <-- import Resend client
 
 /* -----------------------------------------------
    GET /maps/:mapId/comments (Fetch comments + replies)
-   ----------------------------------------------- */
-/* GET /maps/:mapId/comments */
+   Exclude any comments from banned users
+----------------------------------------------- */
 router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
   try {
     const mapId = parseInt(req.params.mapId, 10);
     const user_id = req.user?.id || null;
 
-    // 1) Fetch top-level comments that are VISIBLE
+    // 1) Fetch top-level comments that are VISIBLE (and join user: status)
     const { data: topComments, error: topErr } = await supabaseAdmin
       .from('comments')
       .select(`
@@ -30,7 +30,7 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       `)
       .eq('map_id', mapId)
       .is('parent_comment_id', null)
-      .eq('status', 'visible');  // <--- Only fetch visible top-level
+      .eq('status', 'visible'); // only "visible" top-level
 
     if (topErr) {
       console.error('Error fetching top-level comments:', topErr);
@@ -70,7 +70,7 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
           )
         `)
         .in('parent_comment_id', topIds)
-        .eq('status', 'visible');  // <--- Only fetch visible replies
+        .eq('status', 'visible'); // only "visible" replies
 
       if (repErr) {
         console.error('Error fetching replies:', repErr);
@@ -78,15 +78,18 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       }
       allReplies = replies || [];
     }
-    // 3.5) Filtor out any top-level comment whose user is banned
 
-    const filteredTop = topComments.filter((c) => c.user?.status !== 'banned');
+    // 3.5) Filter out any top-level comment whose user is banned
+    const filteredTop = topComments.filter(
+      (c) => c.user && c.user.status !== 'banned'
+    );
 
-    // filter out any replies from banned users
+    // Filter out any replies from banned users
+    const filteredReplies = allReplies.filter(
+      (r) => r.user && r.user.status !== 'banned'
+    );
 
-    const filteredReplies = allReplies.filter((r) => r.user?.status !== 'banned');
-
-    // 4) Attach userReaction & compute Wilson score, etc. (unchanged)
+    // 4) Attach userReaction & compute Wilson score, etc.
     function computeWilsonScore(likes, dislikes) {
       const n = likes + dislikes;
       if (n === 0) return 0;
@@ -99,25 +102,35 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       return (left - right) / denom;
     }
 
-    const topLevel = topComments.map((comment) => {
+    // 5) Build the final top-level array from filteredTop
+    const topLevel = filteredTop.map((comment) => {
       const c = { ...comment };
+
+      // user’s reaction
       c.userReaction = userReactions[c.id] || null;
       c.wilsonScore = computeWilsonScore(c.like_count || 0, c.dislike_count || 0);
 
-      const childReplies = allReplies.filter((r) => r.parent_comment_id === c.id);
+      // gather child replies that match this top-level comment
+      const childReplies = filteredReplies.filter(
+        (r) => r.parent_comment_id === c.id
+      );
+
       childReplies.forEach((r) => {
         r.userReaction = userReactions[r.id] || null;
         r.wilsonScore = computeWilsonScore(r.like_count || 0, r.dislike_count || 0);
       });
+
+      // sort replies by Wilson
       childReplies.sort((a, b) => b.wilsonScore - a.wilsonScore);
 
       c.Replies = childReplies;
       return c;
     });
 
-    // Sort by Wilson score
+    // 6) Sort top-level by Wilson score
     topLevel.sort((a, b) => b.wilsonScore - a.wilsonScore);
 
+    // Return final
     return res.json(topLevel);
   } catch (err) {
     console.error('Error in GET /maps/:mapId/comments:', err);
