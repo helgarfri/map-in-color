@@ -12,6 +12,7 @@ router.get('/reports', auth, async (req, res) => {
 
     const { data: reports, error } = await supabaseAdmin
     .from('profile_reports')
+    .from('comment_reports')
     .select(`
       id,
       reported_user_id,
