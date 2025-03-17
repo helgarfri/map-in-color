@@ -3,121 +3,129 @@ const express = require('express');
 const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
 const auth = require('../middleware/auth');
-// (Or possibly a custom isAdmin middleware)
 
+// =======================
+// 1) COMMENT REPORTS
+// =======================
+
+// GET /admin/reports => fetch *pending* comment reports
 router.get('/reports', auth, async (req, res) => {
   try {
-    // 1) Check if the user is an admin or mod
-    // e.g. if (!req.user.is_admin) return res.status(403).json({ msg: 'Forbidden' });
+    // e.g. if (!req.user.is_admin) { return res.status(403).json({ msg: 'Forbidden' }) }
 
+    // Load all pending comment reports from "comment_reports"
     const { data: reports, error } = await supabaseAdmin
-    .from('profile_reports')
-    .from('comment_reports')
-    .select(`
-      id,
-      reported_user_id,
-      reported_by,
-      reasons,
-      details,
-      status,
-      created_at,
-      updated_at,
-      reported_user:users!profile_reports_reported_user_id_fkey (
-        username,
-        email,
-        status
-      )
-    `)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
-  
+      .from('comment_reports')
+      .select(`
+        id,
+        comment_id,
+        reported_by,
+        reasons,
+        details,
+        status,
+        created_at,
+        updated_at,
+        comments (
+          content,
+          status,
+          user_id
+        )
+      `)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return res.json(reports);
   } catch (err) {
-    console.error('Error fetching reports:', err);
+    console.error('Error fetching comment reports:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
+// POST /admin/reports/:report_id/approve => re-approve a comment
 router.post('/reports/:report_id/approve', auth, async (req, res) => {
   try {
-    // Possibly check if user is admin
     const reportId = parseInt(req.params.report_id, 10);
 
-    // 1) fetch the report
+    // 1) fetch the comment_reports row
     const { data: report, error: repErr } = await supabaseAdmin
       .from('comment_reports')
       .select('id, comment_id')
       .eq('id', reportId)
       .maybeSingle();
     if (repErr) throw repErr;
-    if (!report) return res.status(404).json({ msg: 'Report not found' });
+    if (!report) {
+      return res.status(404).json({ msg: 'Comment report not found' });
+    }
 
-    // 2) Mark report status "closed" (or "approved")
+    // 2) Mark report as closed/approved
     const { error: updErr } = await supabaseAdmin
       .from('comment_reports')
       .update({ status: 'closed' })
       .eq('id', reportId);
     if (updErr) throw updErr;
 
-    // 3) “Unhide” the comment
-    //    (only if your policy is to restore the comment rather than keep it hidden)
-    const { error: comErr } = await supabaseAdmin
+    // 3) Optionally “un-hide” the comment
+    const { error: unhideErr } = await supabaseAdmin
       .from('comments')
       .update({ status: 'visible' })
       .eq('id', report.comment_id);
-    if (comErr) throw comErr;
+    if (unhideErr) throw unhideErr;
 
-    return res.json({ msg: 'Comment re-approved' });
+    return res.json({ msg: 'Comment re-approved successfully.' });
   } catch (err) {
     console.error('Error approving comment:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
+// POST /admin/reports/:report_id/delete => permanently delete the comment
 router.post('/reports/:report_id/delete', auth, async (req, res) => {
   try {
-    // Possibly check if user is admin
     const reportId = parseInt(req.params.report_id, 10);
 
-    // 1) fetch the report
+    // 1) fetch the comment_reports row
     const { data: report, error: repErr } = await supabaseAdmin
       .from('comment_reports')
       .select('id, comment_id')
       .eq('id', reportId)
       .maybeSingle();
     if (repErr) throw repErr;
-    if (!report) return res.status(404).json({ msg: 'Report not found' });
+    if (!report) {
+      return res.status(404).json({ msg: 'Comment report not found' });
+    }
 
-    // 2) Mark report status "closed"
+    // 2) Mark the report status to "closed"
     const { error: updErr } = await supabaseAdmin
       .from('comment_reports')
       .update({ status: 'closed' })
       .eq('id', reportId);
     if (updErr) throw updErr;
 
-    // 3) Permanently delete the comment
+    // 3) Delete the comment from the DB
     const { error: delErr } = await supabaseAdmin
       .from('comments')
       .delete()
       .eq('id', report.comment_id);
     if (delErr) throw delErr;
 
-    return res.json({ msg: 'Comment deleted successfully' });
+    return res.json({ msg: 'Comment deleted successfully.' });
   } catch (err) {
     console.error('Error deleting comment:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// routes/admin.js
+// =======================
+// 2) PROFILE REPORTS
+// =======================
 
+// GET /admin/profile-reports => fetch *pending* profile reports
 router.get('/profile-reports', auth, async (req, res) => {
   try {
-    // Check if user is admin, etc.
+    // e.g. if (!req.user.is_admin) { return res.status(403).json({ msg: 'Forbidden' }) }
 
-    // Fetch all pending profile reports
+    // Load all pending profile reports from "profile_reports"
     const { data: reports, error } = await supabaseAdmin
       .from('profile_reports')
       .select(`
@@ -139,7 +147,6 @@ router.get('/profile-reports', auth, async (req, res) => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-
     return res.json(reports);
   } catch (err) {
     console.error('Error fetching profile reports:', err);
@@ -154,14 +161,16 @@ router.post('/profile-reports/:report_id/approve', auth, async (req, res) => {
   try {
     const reportId = parseInt(req.params.report_id, 10);
 
-    // 1) fetch the report
+    // 1) fetch the profile_reports row
     const { data: report, error: repErr } = await supabaseAdmin
       .from('profile_reports')
       .select('id, reported_user_id')
       .eq('id', reportId)
       .maybeSingle();
     if (repErr) throw repErr;
-    if (!report) return res.status(404).json({ msg: 'Report not found' });
+    if (!report) {
+      return res.status(404).json({ msg: 'Profile report not found' });
+    }
 
     // 2) Mark the report "closed" or "approved"
     const { error: updErr } = await supabaseAdmin
@@ -170,9 +179,8 @@ router.post('/profile-reports/:report_id/approve', auth, async (req, res) => {
       .eq('id', reportId);
     if (updErr) throw updErr;
 
-    // 3) Optionally “restore” the user’s status if it was set to 'flagged'
-    // or do nothing if you only do manual admin actions
-    // e.g.:
+    // 3) Optionally revert user status if previously flagged
+    // e.g.
     // await supabaseAdmin
     //   .from('users')
     //   .update({ status: 'active' })
@@ -186,20 +194,22 @@ router.post('/profile-reports/:report_id/approve', auth, async (req, res) => {
 });
 
 /**
- * "Delete" or "Ban" the user’s profile
+ * "Ban" the user’s profile
  */
 router.post('/profile-reports/:report_id/ban', auth, async (req, res) => {
   try {
     const reportId = parseInt(req.params.report_id, 10);
 
-    // 1) fetch the report
+    // 1) fetch the profile_reports row
     const { data: report, error: repErr } = await supabaseAdmin
       .from('profile_reports')
       .select('id, reported_user_id')
       .eq('id', reportId)
       .maybeSingle();
     if (repErr) throw repErr;
-    if (!report) return res.status(404).json({ msg: 'Report not found' });
+    if (!report) {
+      return res.status(404).json({ msg: 'Profile report not found' });
+    }
 
     // 2) Mark report status “closed”
     const { error: updErr } = await supabaseAdmin
@@ -208,22 +218,20 @@ router.post('/profile-reports/:report_id/ban', auth, async (req, res) => {
       .eq('id', reportId);
     if (updErr) throw updErr;
 
-    // 3) Ban or remove the user entirely:
-    //    - For “soft ban”, set "status" = "banned"
-    //    - For “hard delete”, remove them from “users” table
-    // Example: “soft ban” approach
+    // 3) For a “soft ban” => set user.status = 'banned'
+    // For “hard delete,” remove them from users table.
     const { error: banErr } = await supabaseAdmin
       .from('users')
       .update({ status: 'banned' })
       .eq('id', report.reported_user_id);
     if (banErr) throw banErr;
 
-    return res.json({ msg: 'User banned successfully' });
+    return res.json({ msg: 'User banned successfully.' });
   } catch (err) {
     console.error('Error banning user:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
-
+// Export the router
 module.exports = router;
