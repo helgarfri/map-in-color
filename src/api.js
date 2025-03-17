@@ -143,3 +143,15 @@ export const reportProfile = (username, reportData) => {
   // reportData might look like: { reasons: ['Inappropriate'], details: '...' }
   return API.post(`/profile/${username}/report`, reportData);
 };
+
+export const fetchPendingProfileReports = () => {
+  return API.get('/admin/profile-reports');
+};
+
+export const approveProfileReport = (reportId) => {
+  return API.post(`/admin/profile-reports/${reportId}/approve`);
+};
+
+export const deleteProfileReport = (reportId) => {
+  return API.post(`/admin/profile-reports/${reportId}/delete`);
+};

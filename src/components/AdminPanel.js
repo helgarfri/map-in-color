@@ -2,61 +2,97 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-// We'll create these new API helpers below
-import { fetchPendingReports, approveReport, deleteReport } from '../api';
+
+import {
+  // For comment reports
+  fetchPendingReports,
+  approveReport,
+  deleteReport,
+  // For profile reports
+  fetchPendingProfileReports,
+  approveProfileReport,
+  deleteProfileReport
+} from '../api';
+
 import styles from './AdminPanel.module.css';
 
 export default function AdminPanel() {
-  const [reports, setReports] = useState([]);
+  // We store comment vs. profile reports in separate arrays
+  const [commentReports, setCommentReports] = useState([]);
+  const [profileReports, setProfileReports] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
-  const { profile } = useContext(UserContext); // assume this has user info {id, username,...}
+  const { profile } = useContext(UserContext);
   const navigate = useNavigate();
 
-  // 1) Check if the user is the admin (id=28). If not, redirect or show error.
+  // Check if current user is admin => if not, redirect or show error
   useEffect(() => {
     if (!profile) return;
     if (profile.id !== 28) {
-      // If not me, redirect to home or show a 403 message
-      navigate('/');
+      navigate('/'); // or show a 403 message
     }
   }, [profile, navigate]);
 
-  // 2) Fetch pending reports
+  // Fetch both comment + profile reports in one go
   useEffect(() => {
-    async function loadReports() {
+    async function loadAllReports() {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const res = await fetchPendingReports();
-        // res.data => array of pending reports
-        setReports(res.data);
+        // 1) Load comment reports
+        const resComments = await fetchPendingReports();
+        setCommentReports(resComments.data);
+
+        // 2) Load profile reports
+        const resProfiles = await fetchPendingProfileReports();
+        setProfileReports(resProfiles.data);
       } catch (err) {
         console.error('Error loading reports:', err);
       } finally {
         setIsLoading(false);
       }
     }
-    loadReports();
+    loadAllReports();
   }, []);
 
-  // 3) Approve
-  async function handleApprove(reportId) {
+  // Handlers for COMMENT reports
+  async function handleApproveComment(reportId) {
     try {
       await approveReport(reportId);
-      // Remove from local list
-      setReports((prev) => prev.filter((r) => r.id !== reportId));
+      // Remove from local state
+      setCommentReports((prev) => prev.filter((r) => r.id !== reportId));
     } catch (err) {
-      console.error('Error approving report:', err);
+      console.error('Error approving comment report:', err);
     }
   }
 
-  // 4) Delete
-  async function handleDelete(reportId) {
+  async function handleDeleteComment(reportId) {
     try {
       await deleteReport(reportId);
-      // Remove from local list
-      setReports((prev) => prev.filter((r) => r.id !== reportId));
+      // Remove from local state
+      setCommentReports((prev) => prev.filter((r) => r.id !== reportId));
     } catch (err) {
-      console.error('Error deleting comment:', err);
+      console.error('Error deleting comment report:', err);
+    }
+  }
+
+  // Handlers for PROFILE reports
+  async function handleApproveProfile(reportId) {
+    try {
+      await approveProfileReport(reportId);
+      // Remove from local state
+      setProfileReports((prev) => prev.filter((r) => r.id !== reportId));
+    } catch (err) {
+      console.error('Error approving profile report:', err);
+    }
+  }
+
+  async function handleDeleteProfile(reportId) {
+    try {
+      await deleteProfileReport(reportId);
+      // Remove from local state
+      setProfileReports((prev) => prev.filter((r) => r.id !== reportId));
+    } catch (err) {
+      console.error('Error banning user:', err);
     }
   }
 
@@ -67,8 +103,11 @@ export default function AdminPanel() {
   return (
     <div className={styles.adminPanelContainer}>
       <h1>Admin Panel - Pending Reports</h1>
-      {reports.length === 0 ? (
-        <p>No pending reports.</p>
+
+      {/* COMMENT REPORTS TABLE */}
+      <h2>Comment Reports</h2>
+      {commentReports.length === 0 ? (
+        <p>No pending comment reports.</p>
       ) : (
         <table className={styles.reportsTable}>
           <thead>
@@ -77,13 +116,13 @@ export default function AdminPanel() {
               <th>Comment ID</th>
               <th>Reported By</th>
               <th>Comment Author</th>
-              <th>Comment Content</th>
+              <th>Content</th>
               <th>Reasons</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {reports.map((rep) => (
+            {commentReports.map((rep) => (
               <tr key={rep.id}>
                 <td>{rep.id}</td>
                 <td>{rep.comment_id}</td>
@@ -94,15 +133,59 @@ export default function AdminPanel() {
                 <td>
                   <button
                     className={styles.approveBtn}
-                    onClick={() => handleApprove(rep.id)}
+                    onClick={() => handleApproveComment(rep.id)}
                   >
                     Approve
                   </button>
                   <button
                     className={styles.deleteBtn}
-                    onClick={() => handleDelete(rep.id)}
+                    onClick={() => handleDeleteComment(rep.id)}
                   >
                     Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* PROFILE REPORTS TABLE */}
+      <h2>Profile Reports</h2>
+      {profileReports.length === 0 ? (
+        <p>No pending profile reports.</p>
+      ) : (
+        <table className={styles.reportsTable}>
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Reported User</th>
+              <th>Reported By</th>
+              <th>Reasons</th>
+              <th>Details</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {profileReports.map((rep) => (
+              <tr key={rep.id}>
+                <td>{rep.id}</td>
+                <td>{rep.reported_user?.username} (ID: {rep.reported_user_id})</td>
+                <td>{rep.reported_by}</td>
+                <td>{(rep.reasons || []).join(', ')}</td>
+                <td>{rep.details}</td>
+                <td>
+                  <button
+                    className={styles.approveBtn}
+                    onClick={() => handleApproveProfile(rep.id)}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => handleDeleteProfile(rep.id)}
+                  >
+                    Ban
                   </button>
                 </td>
               </tr>

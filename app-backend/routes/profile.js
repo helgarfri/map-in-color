@@ -6,6 +6,8 @@ const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const { check, validationResult } = require('express-validator');
+const { resend } = require('../config/resend');
+
 
 // 1) Import the service role client (admin) from supabase.js
 const { supabaseAdmin } = require('../config/supabase');
