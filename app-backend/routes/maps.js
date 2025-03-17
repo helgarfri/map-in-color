@@ -456,6 +456,8 @@ router.post('/:id/save', auth, async (req, res) => {
           type: 'star',
           is_read: false,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+
         });
       if (notifErr) {
         console.error('Error inserting star notification:', notifErr);
