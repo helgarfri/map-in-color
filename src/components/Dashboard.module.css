@@ -173,6 +173,11 @@
   gap: 15px;
 }
 
+.userNameLink:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Above 600px → side-by-side, each half the width */
 @media (min-width: 1350px) {
   .activityItem {

@@ -346,30 +346,45 @@ const userAvatarUrl = user?.profile_picture
       // (and might have commentObj.ParentComment if it was a reply, etc.)
       const likedCommentText = commentObj?.content || "No comment text.";
     
+      // Here's the owner of the comment
+      const commentOwner = commentObj?.Owner;
+      const commentOwnerAvatar = commentOwner?.profile_picture || '/default-profile-pic.jpg';
+      const commentOwnerUsername = commentOwner?.username || 'Unknown';
+    
+      // This is the user who performed the "like":
+      // const senderName = user?.first_name || user?.username || 'Someone';
+    
+      // If you really want to say “X liked your comment,” you can keep it as is,
+      // but if you want to highlight the actual comment owner’s name or avatar,
+      // here is where you do it.
+    
       mainText = (
         <>
           <strong
             className={styles.userNameLink}
-            onClick={(e) => handleUserClick(e, user?.username)}
+            onClick={(e) => handleUserClick(e, user?.username)} // The "liker"
           >
             {senderName}
           </strong>{' '}
-          liked your comment on "<em>{mapTitle}</em>"
+          liked your
+          
+          comment on "<em>{mapTitle}</em>"
         </>
       );
-      
+    
       body = (
         <div className={styles.commentBox}>
           <img
             className={styles.userAvatar}
-            src={userAvatarUrl}
-            alt="User"
-            onClick={(e) => handleUserClick(e, user?.username)}
+            src={commentOwnerAvatar}
+            alt="Comment Owner"
+            onClick={(e) => handleUserClick(e, commentOwnerUsername)}
           />
           <div className={styles.commentText}>{likedCommentText}</div>
         </div>
       );
     }
+    
     
     return (
       <div

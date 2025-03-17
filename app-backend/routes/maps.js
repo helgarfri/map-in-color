@@ -366,7 +366,6 @@ router.get('/:id', authOptional, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
-
 /* --------------------------------------------
    POST /api/maps/:id/save
    "Star" a map
@@ -438,8 +437,31 @@ router.post('/:id/save', auth, async (req, res) => {
       .update({ save_count: newSaveCount })
       .eq('id', mapRow.id);
 
-    // (optional) record an activity
-    // (optional) send notification to the map owner
+    // -----------------------------------------------------------
+    // INSERT THE "star" NOTIFICATION (if starring someone else's map)
+    // -----------------------------------------------------------
+    // user_id: who *receives* the notification (map owner)
+    // sender_id: who *performed* the action (the star)
+    // map_id: reference to which map
+    // type: 'star'
+    // is_read: false by default
+
+    if (mapRow.user_id !== user_id) {
+      const { error: notifErr } = await supabaseAdmin
+        .from('notifications')
+        .insert({
+          user_id: mapRow.user_id,   // map's owner gets the notification
+          sender_id: user_id,        // the user who just starred it
+          map_id: mapRow.id,
+          type: 'star',
+          is_read: false,
+          created_at: new Date().toISOString(),
+        });
+      if (notifErr) {
+        console.error('Error inserting star notification:', notifErr);
+        // We'll still return success, or you can handle it differently
+      }
+    }
 
     res.json({ msg: 'Map saved' });
   } catch (err) {
