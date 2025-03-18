@@ -151,7 +151,7 @@ router.get('/:username/activity', async (req, res) => {
 
     // 2b) "Starred" maps => from "mapsaves"
     const { data: starredRows } = await supabaseAdmin
-      .from('mapsaves')
+      .from('map_saves')
       .select(`
         created_at,
         map_id,

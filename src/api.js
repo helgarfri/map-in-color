@@ -65,12 +65,12 @@ export const fetchUserProfileByUsername = (username) => API.get(`/profile/${user
 
 
 // fetch all public maps by that user, with pagination & sorting
-export const fetchMapsByuser_id = (user_id, page = 1, limit = 24, sort = 'newest') => {
+export const fetchMapsByuser_id = (user_id, page = 1, limit = 12, sort = 'newest') => {
   return API.get(`/maps/user/${user_id}?page=${page}&limit=${limit}&sort=${sort}`);
 };
 
 // to fetch starred maps by user ID
-export const fetchStarredMapsByuser_id = (user_id, page = 1, limit = 24, sort = 'newest') => {
+export const fetchStarredMapsByuser_id = (user_id, page = 1, limit = 12, sort = 'newest') => {
   return API.get(`/maps/user/${user_id}/starred?page=${page}&limit=${limit}&sort=${sort}`);
 };
 

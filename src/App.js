@@ -35,6 +35,9 @@ import Explore from './components/Explore';
 
 import { SidebarProvider } from './context/SidebarContext';
 
+import ScrollToTop from './components/ScrollToTop'; // <-- import the helper
+
+
 library.add(fas);
 
 function App() {
@@ -43,6 +46,7 @@ function App() {
     <SidebarProvider>
     <UserProvider>
     <Router>
+    <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
 

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import Sidebar from './Sidebar';
@@ -59,7 +59,7 @@ export default function ProfilePage() {
   // "Report Profile" modal
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReasons, setReportReasons] = useState('');
-  const [reportDetails, setReportDetails] = useState('');
+  const reportDetailsRef = useRef('');
   const [isReporting, setIsReporting] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
 
@@ -72,21 +72,21 @@ export default function ProfilePage() {
     currentUserProfile && currentUserProfile.username === profile?.username;
   const isUserLoggedIn = !!authToken && !!currentUserProfile;
 
-  // -----------------------------
+  // -----------------------------------------------
   //  Pagination + Sorting (Maps)
-  // -----------------------------
+  // -----------------------------------------------
   const [userMaps, setUserMaps] = useState([]);
   const [loadingMaps, setLoadingMaps] = useState(false);
 
   const [mapsPage, setMapsPage] = useState(1);
-  const mapsPerPage = 24;
+  const mapsPerPage = 12; // or 24, up to you
   const [mapsTotal, setMapsTotal] = useState(0);
 
   const [sortMapsBy, setSortMapsBy] = useState('newest');
 
-  // -----------------------------
+  // -----------------------------------------------
   //  Pagination + Sorting (Starred)
-  // -----------------------------
+  // -----------------------------------------------
   const [starredMaps, setStarredMaps] = useState([]);
   const [loadingStarred, setLoadingStarred] = useState(false);
 
@@ -96,9 +96,9 @@ export default function ProfilePage() {
 
   const [sortStarredBy, setSortStarredBy] = useState('newest');
 
-  // ========================================================
+  // =========================================================================
   // 1) Load user profile by username
-  // ========================================================
+  // =========================================================================
   useEffect(() => {
     async function loadUserProfile() {
       try {
@@ -121,10 +121,9 @@ export default function ProfilePage() {
     loadUserProfile();
   }, [username, navigate]);
 
-  // ========================================================
+  // =========================================================================
   // 2) Once profile is loaded, fetch stats
-  //    (we only do this once per user load)
-  // ========================================================
+  // =========================================================================
   useEffect(() => {
     if (!profile) return;
     (async function loadStats() {
@@ -138,12 +137,12 @@ export default function ProfilePage() {
     })();
   }, [profile]);
 
-  // ========================================================
-  // 3) Fetch the user’s public MAPS (with pagination + sorting)
-  //    Whenever profile, mapsPage, or sortMapsBy changes
-  // ========================================================
+  // =========================================================================
+  // 3) Fetch MAPS (only if currentTab === 'maps')
+  // =========================================================================
   useEffect(() => {
     if (!profile) return;
+    if (currentTab !== 'maps') return;
 
     async function fetchMaps() {
       try {
@@ -154,7 +153,6 @@ export default function ProfilePage() {
           mapsPerPage,
           sortMapsBy
         );
-        // The server returns { maps, total }
         setUserMaps(response.data.maps);
         setMapsTotal(response.data.total);
       } catch (err) {
@@ -163,18 +161,15 @@ export default function ProfilePage() {
         setLoadingMaps(false);
       }
     }
+    fetchMaps();
+  }, [profile, currentTab, mapsPage, mapsPerPage, sortMapsBy]);
 
-    if (currentTab === 'maps') {
-      fetchMaps();
-    }
-  }, [profile, mapsPage, sortMapsBy, currentTab]);
-
-  // ========================================================
-  // 4) Fetch the user’s public STARRED maps (with pagination + sorting)
-  //    Whenever profile, starredPage, or sortStarredBy changes
-  // ========================================================
+  // =========================================================================
+  // 4) Fetch STARRED (only if currentTab === 'starred')
+  // =========================================================================
   useEffect(() => {
     if (!profile) return;
+    if (currentTab !== 'starred') return;
 
     async function fetchStarredMapsFn() {
       try {
@@ -193,16 +188,12 @@ export default function ProfilePage() {
         setLoadingStarred(false);
       }
     }
+    fetchStarredMapsFn();
+  }, [profile, currentTab, starredPage, starredPerPage, sortStarredBy]);
 
-    if (currentTab === 'starred') {
-      fetchStarredMapsFn();
-    }
-  }, [profile, starredPage, sortStarredBy, currentTab]);
-
-  // ========================================================
-  // 5) Fetch the user’s ACTIVITY
-  //    We do this whenever profile changes or user picks "activity" tab
-  // ========================================================
+  // =========================================================================
+  // 5) Fetch ACTIVITY (only if currentTab === 'activity')
+  // =========================================================================
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'activity') return;
@@ -222,12 +213,13 @@ export default function ProfilePage() {
     fetchActivityData();
   }, [profile, currentTab]);
 
-  // ========================================================
+  // =========================================================================
   // 6) Handle tab changes
-  // ========================================================
+  // =========================================================================
   function handleTabChange(tab) {
     setCurrentTab(tab);
-    // Reset pages if switching from one tab to another
+
+    // reset pages if switching tabs
     if (tab === 'maps') {
       setMapsPage(1);
     } else if (tab === 'starred') {
@@ -235,9 +227,9 @@ export default function ProfilePage() {
     }
   }
 
-  // ========================================================
-  // 7) “Report” profile
-  // ========================================================
+  // =========================================================================
+  // 7) Report profile
+  // =========================================================================
   function handleReportProfile() {
     if (!isUserLoggedIn) {
       navigate('/login');
@@ -251,14 +243,12 @@ export default function ProfilePage() {
     setIsReporting(true);
     try {
       await reportProfile(profile.username, {
-        reasons: [reportReasons],
-        details: reportDetails
+        reasons: [reportReasons],         // still from state or ref
+        details: reportDetailsRef.current // read from ref here
       });
       setShowReportSuccess(true);
       setReportReasons('');
-      setReportDetails('');
 
-      // Hide modal after a short delay
       setTimeout(() => {
         setShowReportModal(false);
         setShowReportSuccess(false);
@@ -270,9 +260,9 @@ export default function ProfilePage() {
     }
   }
 
-  // ========================================================
-  // 8) Render a map card (used in "maps" and "starred" tabs)
-  // ========================================================
+  // =========================================================================
+  // 8) Render a single map card
+  // =========================================================================
   function renderMapCard(map) {
     const mapTitle = map.title || 'Untitled Map';
     const sharedProps = {
@@ -299,9 +289,7 @@ export default function ProfilePage() {
         className={styles.card}
         onClick={() => navigate(`/map/${map.id}`)}
       >
-        <div className={styles.cardThumbnail}>
-          {thumbnail}
-        </div>
+        <div className={styles.cardThumbnail}>{thumbnail}</div>
         <div className={styles.cardBody}>
           <h3 className={styles.cardTitle}>{mapTitle}</h3>
           <div className={styles.detailsRow}>
@@ -318,7 +306,24 @@ export default function ProfilePage() {
     );
   }
 
-  // =============== PAGE LOADING STATE ===============
+  // =========================================================================
+  // 9) Pagination handlers
+  // =========================================================================
+  const handleMapsPageChange = (newPage) => {
+    if (newPage === mapsPage) return;
+    setMapsPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleStarredPageChange = (newPage) => {
+    if (newPage === starredPage) return;
+    setStarredPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // -------------
+  // PAGE LOADING
+  // -------------
   if (loadingProfile) {
     return (
       <div className={styles.profilePageContainer}>
@@ -328,10 +333,7 @@ export default function ProfilePage() {
             isCollapsed ? styles.contentCollapsed : ''
           }`}
         >
-          <Header
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />
+          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
           <div className={styles.loadingContainer}>
             <LoadingSpinner />
           </div>
@@ -340,7 +342,9 @@ export default function ProfilePage() {
     );
   }
 
-  // =============== NO PROFILE FOUND ===============
+  // -------------
+  // NO PROFILE FOUND
+  // -------------
   if (!profile) {
     return (
       <div className={styles.profilePageContainer}>
@@ -361,7 +365,12 @@ export default function ProfilePage() {
     );
   }
 
-  // =============== MAIN RENDER ===============
+  // -------------
+  // MAIN RENDER
+  // -------------
+  const mapsTotalPages = Math.ceil(mapsTotal / mapsPerPage);
+  const starredTotalPages = Math.ceil(starredTotal / starredPerPage);
+
   return (
     <div className={styles.profilePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -494,30 +503,42 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* TAB CONTENT */}
             <div className={styles.tabContent}>
               {/* =========== MAPS TAB =========== */}
               {currentTab === 'maps' && (
                 <>
-                  {/* Sorting */}
-                  <div className={styles.sortRow}>
-                    <label htmlFor="sortMapsSelect">Sort by:</label>
-                    <select
-                      id="sortMapsSelect"
-                      className={styles.sortSelect}
-                      value={sortMapsBy}
-                      onChange={(e) => {
-                        setMapsPage(1); // Reset to page 1 if sorting changes
-                        setSortMapsBy(e.target.value);
-                      }}
-                    >
-                      <option value="newest">Newest</option>
-                      <option value="oldest">Oldest</option>
-                      <option value="mostStarred">Most Starred</option>
-                    </select>
+                  {/* Single row: LEFT: "Sort by..."    RIGHT: "Page X of Y" */}
+                  <div className={styles.topBarRow}>
+                    {/* Left side: sort */}
+                    <div className={styles.sortRowLeft}>
+                      <label htmlFor="sortMapsSelect">Sort by:</label>
+                      <select
+                        id="sortMapsSelect"
+                        className={styles.sortSelect}
+                        value={sortMapsBy}
+                        onChange={(e) => {
+                          setMapsPage(1);
+                          setSortMapsBy(e.target.value);
+                        }}
+                      >
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="mostStarred">Most Starred</option>
+                      </select>
+                    </div>
+                    {/* Right side: Page X of Y */}
+                    {mapsTotal > 0 && (
+                      <div className={styles.pageCountRight}>
+                        {mapsTotal > 0 && (
+                          <span>
+                            Page {mapsPage} of {Math.ceil(mapsTotal / mapsPerPage)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Loading or no maps */}
+                  {/* Loading / No Maps / Maps */}
                   {loadingMaps ? (
                     <div className={styles.loadingContainer}>
                       <LoadingSpinner />
@@ -525,27 +546,44 @@ export default function ProfilePage() {
                   ) : userMaps.length === 0 ? (
                     <p>No maps found.</p>
                   ) : (
-                    // Render the map cards
                     <div className={styles.cardsGrid}>
                       {userMaps.map((map) => renderMapCard(map))}
                     </div>
                   )}
 
-                  {/* Pagination */}
-                  {!loadingMaps && userMaps.length > 0 && (
+                  {/* Pagination (‹ 1 2 3 ›) */}
+                  {userMaps.length > 0 && (
                     <div className={styles.pagination}>
-                      {Array.from(
-                        { length: Math.ceil(mapsTotal / mapsPerPage) },
-                        (_, i) => i + 1
-                      ).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setMapsPage(p)}
-                          className={p === mapsPage ? styles.activePage : ''}
-                        >
-                          {p}
-                        </button>
-                      ))}
+                      {/* only show if multiple pages */}
+                      {mapsTotalPages > 1 && (
+                        <>
+                          <button
+                            onClick={() => handleMapsPageChange(mapsPage - 1)}
+                            disabled={mapsPage <= 1}
+                          >
+                            ‹
+                          </button>
+
+                          {Array.from({ length: mapsTotalPages }, (_, i) => i + 1).map(
+                            (p) => (
+                              <button
+                                key={p}
+                                onClick={() => handleMapsPageChange(p)}
+                                className={p === mapsPage ? styles.activePage : ''}
+                              >
+                                {p}
+                              </button>
+                            )
+                          )}
+
+                          <button
+                            onClick={() => handleMapsPageChange(mapsPage + 1)}
+                            disabled={mapsPage >= mapsTotalPages}
+                          >
+                            ›
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </>
@@ -554,22 +592,30 @@ export default function ProfilePage() {
               {/* =========== STARRED TAB =========== */}
               {currentTab === 'starred' && (
                 <>
-                  {/* Sorting */}
-                  <div className={styles.sortRow}>
-                    <label htmlFor="sortStarredSelect">Sort by:</label>
-                    <select
-                      id="sortStarredSelect"
-                      className={styles.sortSelect}
-                      value={sortStarredBy}
-                      onChange={(e) => {
-                        setStarredPage(1); // reset to page 1
-                        setSortStarredBy(e.target.value);
-                      }}
-                    >
-                      <option value="newest">Newest</option>
-                      <option value="oldest">Oldest</option>
-                      <option value="mostStarred">Most Starred</option>
-                    </select>
+                  <div className={styles.topBarRow}>
+                    <div className={styles.sortRowLeft}>
+                      <label htmlFor="sortStarredSelect">Sort by:</label>
+                      <select
+                        id="sortStarredSelect"
+                        className={styles.sortSelect}
+                        value={sortStarredBy}
+                        onChange={(e) => {
+                          setStarredPage(1);
+                          setSortStarredBy(e.target.value);
+                        }}
+                      >
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="mostStarred">Most Starred</option>
+                      </select>
+                    </div>
+                    {starredTotal > 0 && (
+                      <div className={styles.pageCountRight}>
+                        <span>
+                          Page {starredPage} of {Math.ceil(starredTotal / starredPerPage)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {loadingStarred ? (
@@ -584,21 +630,37 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Pagination */}
-                  {!loadingStarred && starredMaps.length > 0 && (
+                  {starredMaps.length > 0 && (
                     <div className={styles.pagination}>
-                      {Array.from(
-                        { length: Math.ceil(starredTotal / starredPerPage) },
-                        (_, i) => i + 1
-                      ).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setStarredPage(p)}
-                          className={p === starredPage ? styles.activePage : ''}
-                        >
-                          {p}
-                        </button>
-                      ))}
+                      {starredTotalPages > 1 && (
+                        <>
+                          <button
+                            onClick={() => handleStarredPageChange(starredPage - 1)}
+                            disabled={starredPage <= 1}
+                          >
+                            ‹
+                          </button>
+
+                          {Array.from({ length: starredTotalPages }, (_, i) => i + 1).map(
+                            (p) => (
+                              <button
+                                key={p}
+                                onClick={() => handleStarredPageChange(p)}
+                                className={p === starredPage ? styles.activePage : ''}
+                              >
+                                {p}
+                              </button>
+                            )
+                          )}
+
+                          <button
+                            onClick={() => handleStarredPageChange(starredPage + 1)}
+                            disabled={starredPage >= starredTotalPages}
+                          >
+                            ›
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </>
@@ -702,9 +764,10 @@ export default function ProfilePage() {
                 <div className={styles.reportDetails}>
                   <label>Optional additional details:</label>
                   <textarea
-                    value={reportDetails}
-                    onChange={(e) => setReportDetails(e.target.value)}
                     placeholder="Share more information (optional)"
+                    onChange={(e) => {
+                      reportDetailsRef.current = e.target.value;
+                    }}
                   />
                 </div>
 

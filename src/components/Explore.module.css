@@ -112,6 +112,24 @@
   background-color: #bbb;
 }
 
+.clearSearchButton {
+  background-color: #ccc;
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+  border-radius: 4px 0 0 4px; 
+  /* so it merges nicely with the left side of input */
+  margin-right: 10px; /* spacing between it & the input */
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: #555;
+  transition: background-color 0.3s ease;
+}
+
+.clearSearchButton:hover {
+  background-color: #bbb;
+}
+
+
 /* Results Row */
 .resultsRow {
   display: flex;

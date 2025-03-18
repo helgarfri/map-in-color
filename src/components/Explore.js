@@ -1,5 +1,3 @@
-// src/components/Explore.js
-
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
@@ -14,8 +12,7 @@ import EuropeSVG from './EuropeSVG';
 import LoadingSpinner from './LoadingSpinner';
 
 import { SidebarContext } from '../context/SidebarContext';
-import useWindowSize from '../hooks/useWindowSize'; // or wherever you keep it
-
+import useWindowSize from '../hooks/useWindowSize';
 
 function Explore() {
   // Maps & tags
@@ -42,11 +39,11 @@ function Explore() {
   const location = useLocation();
 
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const { width } = useWindowSize(); // so we can do the 1000px check
+  const { width } = useWindowSize();
   const showOverlay = !isCollapsed && width < 1000;
 
+  // Auto-collapse on narrow screens
   useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
     if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
     }
@@ -84,12 +81,9 @@ function Explore() {
     } else {
       setSelectedTags([]);
     }
+
     const urlPage = parseInt(params.get('page'), 10);
-    if (urlPage && urlPage > 0) {
-      setPage(urlPage);
-    } else {
-      setPage(1);
-    }
+    setPage(urlPage && urlPage > 0 ? urlPage : 1);
   }, [location.search]);
 
   //-------------------------------------------
@@ -135,6 +129,22 @@ function Explore() {
     e.preventDefault();
     const typedValue = searchRef.current.value;
     setSearchApplied(typedValue);
+
+    const params = new URLSearchParams(location.search);
+    params.delete('page');
+    navigate(`?${params.toString()}`, { replace: true });
+  };
+
+  // Clear the search
+  const handleClearSearch = () => {
+    // reset search input + state
+    if (searchRef.current) {
+      searchRef.current.value = '';
+    }
+    setSearchApplied('');
+    setPage(1);
+
+    // also remove ?page from the URL
     const params = new URLSearchParams(location.search);
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
@@ -192,9 +202,7 @@ function Explore() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  //-------------------------------------------
-  // Helper: Render the correct SVG thumbnail based on map type
-  //-------------------------------------------
+  // Render SVG thumbnail
   const renderMapThumbnail = (map) => {
     const mapTitle = map.title || 'Untitled Map';
     const sharedProps = {
@@ -215,7 +223,7 @@ function Explore() {
     return null;
   };
 
-  // Helper: Get display name for the map creator
+  // Display name
   const getDisplayName = (user) => {
     if (!user) return 'Unknown';
     const { first_name, last_name, username } = user;
@@ -234,15 +242,16 @@ function Explore() {
           onClick={() => setIsCollapsed(true)}
         />
       )}
+
       <div
         className={`${styles.mainContentWrapper} ${
           isCollapsed ? styles.collapsed : ''
         }`}
       >
         <Header
-         isCollapsed={isCollapsed}
-         setIsCollapsed={setIsCollapsed}
-         title="Explore"
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title="Explore"
         />
 
         <div className={styles.exploreContent}>
@@ -278,6 +287,17 @@ function Explore() {
 
             <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
               <div className={styles.searchInputContainer}>
+                {/* Clear Search Button (only if searchApplied is non-empty) */}
+                {searchApplied.trim() !== '' && (
+                  <button
+                    type="button"
+                    className={styles.clearSearchButton}
+                    onClick={handleClearSearch}
+                  >
+                    Clear search
+                  </button>
+                )}
+
                 <input
                   type="text"
                   placeholder="Search by map title..."
@@ -294,9 +314,17 @@ function Explore() {
             </form>
           </div>
 
-          {/* Results Row */}
+          {/* Results Row (show total results + Page X of Y) */}
           <div className={styles.resultsRow}>
-            <span className={styles.totalResults}>{totalMaps} results</span>
+            <span className={styles.totalResults}>
+              {totalMaps} results
+              {totalPages > 1 && (
+                <>
+                  {' '}| Page {page} of {totalPages}
+                </>
+              )}
+            </span>
+
             {selectedTags.length > 0 && (
               <div className={styles.selectedTagsRow}>
                 <div className={styles.selectedTagsList}>
