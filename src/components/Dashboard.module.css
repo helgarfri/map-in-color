@@ -109,7 +109,6 @@
   white-space: nowrap;
 }
 
-/* CENTER COLUMN: Stats + Activity Feed */
 .centerColumn {
   flex: 1;
   display: flex;
@@ -146,136 +145,13 @@
   color: #222;
 }
 
-/* ACTIVITY FEED (below stats) */
-.activityFeedSection {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.activityFeedSection h2 {
-  margin-top: 0;
-}
-.activityFeed {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Single feed item */
-.activityItem {
-  display: flex;
-  flex-direction: column; /* Default: stacked for mobile (<600px) */
-  background-color: #fafafa;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 15px;
-  gap: 15px;
-}
-
-.userNameLink:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* Above 600px → side-by-side, each half the width */
-@media (min-width: 1350px) {
-  .activityItem {
-    flex-direction: row;
-  }
-
-  /* 50% each for map thumb & activity text */
-  .thumbContainer,
-  .activityDetails {
-    flex: 0 0 50%;
-    max-width: 50%;
-  }
-
-  .thumbContainer {
-    margin-bottom: 0;   /* remove extra bottom gap at larger widths */
-    margin-right: 20px; /* optional spacing between columns */
-  }
-}
 
 
-/* Thumbnail container */
-.thumbContainer {
-  width: 100%;   /* For mobile, let it stretch */
-  background-color: #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-  display: flex; 
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 10px; /* Some spacing on small screens */
-}
 
 p {
   margin: 10px 0px 10px 0px;
 }
-.defaultThumbnail {
-  color: #666;
-  font-size: 0.9rem;
-  text-align: center;
-}
-.activityDetails {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.starCount {
-  color: #444;
-  font-weight: bold;
-  margin: 0px;
-}
-.commentBox {
-  display: flex;
-  align-items: flex-start;
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 10px;
-  margin: 8px 0;
-  border: 1px solid #eee;
-}
-.commentReplyBox {
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 10px;
-  margin: 8px 0;
-  border: 1px solid #eee;
-}
-.userAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 8px;
-  min-width: 40px;
-}
-.commentText {
-  background-color: #f9f9f9;
-  padding: 8px 12px;
-  border-radius: 4px;
-}
-.originalComment {
-  background-color: #fafafa;
-  border-left: 4px solid #ccc;
-  padding: 8px;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-}
-.replyBox {
-  display: flex;
-  gap: 8px;
-}
-.timestamp {
-  font-size: 0.8rem;
-  color: #999;
-}
+
 
 /* RIGHT COLUMN: Notifications (not sticky) */
 .rightNotifications {
@@ -487,14 +363,6 @@ p {
     width: 100%;
   }
 
-  .activityFeedSection {
-    padding: 10px;
-  }
-
-  .activityItem {
-    padding: 5px;
-  }
-
 
   .leftMapsSidebar {
     padding: 0px
@@ -563,9 +431,6 @@ p {
     margin-bottom: 0;  /* remove extra bottom margin at larger widths */
   }
 
-  .activityDetails {
-    flex: 1;
-  }
 
  
  

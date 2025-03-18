@@ -1,136 +1,129 @@
 /* src/components/ProfileActivityFeed.module.css */
 
-/* The main container for the activity feed */
+/* The feed container */
 .activityFeed {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  /* Single feed item */
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* smaller vertical gap */
+  margin-top: 10px; /* optional spacing from top */
+}
+
+/* One item per row */
+.activityItem {
+  display: flex;
+  flex-direction: row; /* side by side: map + details */
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px; /* smaller padding => smaller item height */
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+/* Slight hover highlight */
+.activityItem:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+}
+
+/* The container for the map thumbnail */
+.thumbContainer {
+  position: relative; /* so we can absolutely-position the star overlay */
+  width: 150px;       /* fix a smaller width */
+  height: 80px;       /* shorter height => more compact */
+  background-color: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0; /* so it doesn't stretch */
+  margin-right: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* If you want the actual <svg> to fill that space: */
+.thumbContainer svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* if it were an <img> */
+}
+
+/* For the "No map" fallback text */
+.defaultThumbnail {
+  font-size: 0.85rem;
+  color: #555;
+  text-align: center;
+}
+
+/* The star overlay for "starredMap" type */
+.starOverlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.4);
+  border-top-left-radius: 8px; /* optional to round that top-left corner */
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The user avatar in the overlay */
+.starAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff; /* a small white ring around it */
+}
+
+/* The star icon in the overlay */
+.starIcon {
+  color: #ffd700; /* gold color */
+  font-size: 1rem;
+}
+
+/* The text detail area (right side) */
+.activityDetails {
+  display: flex;
+  flex-direction: column;
+  flex: 1;  /* fill remaining space */
+  gap: 5px;
+}
+
+/* The main text line like "Created a map..." or "Starred..." */
+.mainText {
+  font-size: 0.95rem;
+  color: #333;
+  margin: 0;
+}
+
+/* The comment text area, if any */
+.commentText {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+/* The timestamp like "3 hours ago" */
+.timestamp {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* -------------- Responsive -------------- */
+@media (max-width: 600px) {
   .activityItem {
-    display: flex;
-    flex-direction: column; /* default stacked for mobile */
-    background-color: #fafafa;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    padding: 15px;
-    gap: 15px;
-    cursor: pointer;
-  }
-  
-  /*  e.g. If you want side-by-side only on large screens: */
-  @media (min-width: 1350px) {
-    .activityItem {
-      flex-direction: row;
-    }
-  
-    /* 50% each for map thumb & activity text */
-    .thumbContainer,
-    .activityDetails {
-      flex: 0 0 50%;
-      max-width: 50%;
-    }
-    .thumbContainer {
-      margin-bottom: 0; 
-      margin-right: 20px; 
-    }
-  }
-  
-  /* Map thumbnail container in feed */
-  .thumbContainer {
-    width: 100%; 
-    background-color: #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-    display: flex; 
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px; 
-  }
-  
-  .defaultThumbnail {
-    color: #666;
-    font-size: 0.9rem;
-    text-align: center;
-  }
-  
-  .activityDetails {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  /* For 'starredMap' type activity, if you want a star icon or text */
-  .starCount {
-    color: #444;
-    font-weight: bold;
-    margin: 0;
-  }
-  
-  /* Comments, replies, etc. */
-  .commentBox,
-  .commentReplyBox {
-    display: flex;
+    flex-direction: column; /* stack for mobile */
     align-items: flex-start;
-    background-color: #fff;
-    border-radius: 4px;
-    padding: 10px;
-    margin: 8px 0;
-    border: 1px solid #eee;
-    gap: 8px; /* space between avatar & text */
   }
-  
-  .commentReplyBox {
-    flex-direction: column; 
-  }
-  
-  .userAvatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
-  .commentText {
-    background-color: #f9f9f9;
-    padding: 8px 12px;
-    border-radius: 4px;
-  }
-  
-  /* Possibly used if showing a parent comment? */
-  .originalComment {
-    background-color: #fafafa;
-    border-left: 4px solid #ccc;
-    padding: 8px;
+  .thumbContainer {
+    width: 100%;
+    height: 120px; /* bigger if you want for mobile */
+    margin-right: 0;
     margin-bottom: 8px;
-    font-size: 0.9rem;
   }
-  
-  .replyBox {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .timestamp {
-    font-size: 0.8rem;
-    color: #999;
-  }
-  
-  /* Additional phone or small media queries if needed */
-  @media (max-width: 600px) {
-    .activityItem {
-      padding: 10px;
-    }
-    .commentBox,
-    .commentReplyBox {
-      margin: 4px 0;
-      padding: 5px;
-    }
-    .userAvatar {
-      width: 32px;
-      height: 32px;
-    }
-  }
-  
+}

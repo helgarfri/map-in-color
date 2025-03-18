@@ -32,6 +32,8 @@ import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 
+import DashboardActivityFeed from './DashboardActivityFeed';
+
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
@@ -454,13 +456,10 @@ const userAvatarUrl = user?.profile_picture
   
                 <section className={styles.activityFeedSection}>
                   <h2>Activity Feed</h2>
-                  {notifications.length === 0 ? (
-                    <p>No activity yet.</p>
-                  ) : (
-                    <div className={styles.activityFeed}>
-                      {notifications.map(renderActivityItem)}
-                    </div>
-                  )}
+
+                  {/* Instead of notifications.map(renderActivityItem), 
+                      we just use the new DashboardActivityFeed: */}
+                  <DashboardActivityFeed userProfile={profile} />
                 </section>
               </div>
   

@@ -1,0 +1,58 @@
+/* src/components/DashboardActivityFeed.module.css */
+
+.dashActivityFeed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  /* Each item row */
+  .activityItem {
+    display: flex;
+    flex-direction: row;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  .activityItem:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+  }
+  
+  /* The small map thumbnail area */
+  .thumbContainer {
+    width: 120px;
+    height: 80px;
+    background-color: #eee;
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .defaultThumbnail {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  .activityDetails {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .mainText {
+    margin: 0 0 4px 0;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .timestamp {
+    font-size: 0.75rem;
+    color: #999;
+  }
+  

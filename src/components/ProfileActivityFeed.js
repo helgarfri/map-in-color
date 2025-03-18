@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
 import { fetchUserActivity } from '../api';
-
-// Icons
-import { FaStar, FaRegComment, FaReply } from 'react-icons/fa';
-import { MdCreate } from 'react-icons/md';
-
-// Map thumbnails
+import { FaStar } from 'react-icons/fa'; // Possibly used in the overlay
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
@@ -17,7 +12,6 @@ import styles from './ProfileActivityFeed.module.css';
 
 export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
-
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -37,19 +31,25 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     loadActivity();
   }, [username]);
 
-  // Generate a map thumbnail for each activity’s associated map
+  // Format date => "3 hours ago"
+  function timeAgo(dateString) {
+    if (!dateString) return '';
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  }
+
+  // Generate a map thumbnail
   function renderMapThumbnail(map, mapTitle) {
     if (!map) return <div className={styles.defaultThumbnail}>Map</div>;
 
     const sharedProps = {
       groups: map.groups || [],
-      mapTitleValue: mapTitle,
+      mapTitleValue: mapTitle || 'Untitled',
       ocean_color: map.ocean_color,
       unassigned_color: map.unassigned_color,
       data: map.data,
       font_color: map.font_color,
       is_title_hidden: map.is_title_hidden,
-      isThumbnail: true
+      isThumbnail: true,
     };
 
     if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
@@ -58,119 +58,69 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     return <div className={styles.defaultThumbnail}>Map</div>;
   }
 
-  // When user clicks on activity => go to the corresponding map
-  const handleActivityItemClick = (mapId) => {
-    if (mapId) {
-      navigate(`/map/${mapId}`);
-    }
-  };
-
-  // Basic date formatting
-  function timeAgo(dateString) {
-    if (!dateString) return '';
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  // On click => go to map detail
+  function handleActivityItemClick(mapId) {
+    if (mapId) navigate(`/map/${mapId}`);
   }
 
-  // Here is the main difference: we always use the "profile_pictureUrl" 
-  // from the profile page for "commented" or "reply" items.
+  // Renders each activity row
   function renderActivityItem(activity, index) {
-    const {
-      type,
-      map,
-      commentContent,
-      created_at,
-      user,       // the actor
-      commentObj, // e.g., if type=reply, includes ParentComment data
-    } = activity;
-
+    const { type, map, commentContent, created_at } = activity;
     const mapTitle = map?.title || 'Untitled Map';
     const mapThumb = renderMapThumbnail(map, mapTitle);
 
-    let mainText;
+    let mainText = '';
     let body = null;
 
+    // Examples
     if (type === 'createdMap') {
-      mainText = (
-        <>
-          <strong>{username}</strong> created a map "<em>{mapTitle}</em>"
-        </>
-      );
+      mainText = `Created a map "${mapTitle}"`;
     } else if (type === 'starredMap') {
-      mainText = (
-        <>
-          <strong>{username}</strong> starred "<em>{mapTitle}</em>"
-        </>
-      );
-      body = (
-        <p className={styles.starCount}>
-          <FaStar style={{ marginRight: 4, color: 'black' }} />
-          {map?.save_count || 0}
-        </p>
-      );
+      mainText = `Starred "${mapTitle}"`;
     } else if (type === 'commented') {
-      // Instead of user?.profile_picture, we use "profile_pictureUrl" from the parent
-      const text = commentContent || '(No comment text)';
-      mainText = (
-        <>
-          <strong>{username}</strong> commented on "<em>{mapTitle}</em>"
-        </>
-      );
+      mainText = `Commented on "${mapTitle}"`;
       body = (
-        <div className={styles.commentBox}>
-          <img
-            className={styles.userAvatar}
-            src={profile_pictureUrl || '/default-profile-picture.png'}
-            alt="Profile Owner Avatar"
-          />
-          <div className={styles.commentText}>{text}</div>
-        </div>
-      );
-    } else if (type === 'reply') {
-      // Similarly, for a reply we also want the page owner's avatar
-      const replyText = commentContent || '(No reply text)';
-      mainText = (
-        <>
-          <strong>{username}</strong> replied on "<em>{mapTitle}</em>"
-        </>
-      );
-
-      // We could also show the parent comment if we want, 
-      // but if you only want *this* user’s avatar, do so:
-      body = (
-        <div className={styles.commentReplyBox}>
-          <img
-            className={styles.userAvatar}
-            src={profile_pictureUrl || '/default-profile-picture.png'}
-            alt="Profile Owner Avatar"
-          />
-          <div className={styles.commentText}>{replyText}</div>
+        <div className={styles.commentText}>
+          {commentContent || '(no comment)'}
         </div>
       );
     } else {
-      mainText = (
-        <>
-          <strong>{username}</strong> performed an action on "<em>{mapTitle}</em>"
-        </>
-      );
+      mainText = `Activity on "${mapTitle}"`;
     }
 
     return (
       <div
-        key={`${type}-${index}-${map?.id}`}
+        key={index}
         className={styles.activityItem}
         onClick={() => handleActivityItemClick(map?.id)}
       >
-        <div className={styles.thumbContainer}>{mapThumb}</div>
+        {/* Map thumbnail */}
+        <div className={styles.thumbContainer}>
+          {mapThumb}
+
+          {/* If "starredMap", show the user avatar + star icon overlay */}
+          {type === 'starredMap' && (
+            <div className={styles.starOverlay}>
+              <img
+                className={styles.starAvatar}
+                src={profile_pictureUrl || '/default-profile-picture.png'}
+                alt="User"
+              />
+              <FaStar className={styles.starIcon} />
+            </div>
+          )}
+        </div>
+
+        {/* Details text */}
         <div className={styles.activityDetails}>
-          <p>{mainText}</p>
-          {body}
+          <p className={styles.mainText}>{mainText}</p>
+          {body && <div>{body}</div>}
           <span className={styles.timestamp}>{timeAgo(created_at)}</span>
         </div>
       </div>
     );
   }
 
-  // --- RENDER COMPONENT ---
   if (isLoading) {
     return <p>Loading user activity...</p>;
   }

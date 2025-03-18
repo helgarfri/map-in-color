@@ -15,6 +15,7 @@ const usersRoutes = require('./routes/users');
 const exploreRoutes = require('./routes/explore');
 const notifyRoutes = require('./routes/notify'); // NEW
 const adminRoutes = require('./routes/admin'); // NEW
+const activityRoutes = require('./routes/activity'); // NEW
 
 // If you want to test a Supabase connection at startup, 
 // you can import the client (optional):
@@ -58,8 +59,9 @@ app.use('/api/', commentsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/explore', exploreRoutes);
-app.use('/api/notify', notifyRoutes); // NEW
-app.use('/api/admin', adminRoutes); // NEW
+app.use('/api/notify', notifyRoutes); 
+app.use('/api/admin', adminRoutes); 
+app.use/('/api/activity', activityRoutes); 
 
 // Handle undefined routes
 app.use((req, res) => {
