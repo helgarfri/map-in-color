@@ -1,9 +1,13 @@
+// src/components/ProfileActivityFeed.js
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
+// 1) Make sure this function uses GET /api/activity/profile/:username
 import { fetchUserActivity } from '../api';
-import { FaStar } from 'react-icons/fa'; // Possibly used in the overlay
+import { FaStar } from 'react-icons/fa';
+
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
@@ -15,31 +19,39 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 2) On mount, call fetchUserActivity(username)
   useEffect(() => {
     if (!username) return;
+
     async function loadActivity() {
       try {
         setIsLoading(true);
+
+        // fetchUserActivity now calls: GET /api/activity/profile/:username
         const res = await fetchUserActivity(username, 0, 50);
         setActivities(res.data);
+
       } catch (err) {
         console.error('Error fetching user activity:', err);
       } finally {
         setIsLoading(false);
       }
     }
+
     loadActivity();
   }, [username]);
 
-  // Format date => "3 hours ago"
+  // Helper to format "3 hours ago"
   function timeAgo(dateString) {
     if (!dateString) return '';
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   }
 
-  // Generate a map thumbnail
+  // Renders a map thumbnail if activity.map is present
   function renderMapThumbnail(map, mapTitle) {
-    if (!map) return <div className={styles.defaultThumbnail}>Map</div>;
+    if (!map) {
+      return <div className={styles.defaultThumbnail}>Map</div>;
+    }
 
     const sharedProps = {
       groups: map.groups || [],
@@ -52,31 +64,37 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
       isThumbnail: true,
     };
 
-    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
+    if (map.selected_map === 'world') {
+      return <WorldMapSVG {...sharedProps} />;
+    } else if (map.selected_map === 'usa') {
+      return <UsSVG {...sharedProps} />;
+    } else if (map.selected_map === 'europe') {
+      return <EuropeSVG {...sharedProps} />;
+    }
+    // fallback
     return <div className={styles.defaultThumbnail}>Map</div>;
   }
 
-  // On click => go to map detail
+  // Clicking an activity => go to the map detail page
   function handleActivityItemClick(mapId) {
     if (mapId) navigate(`/map/${mapId}`);
   }
 
-  // Renders each activity row
+  // Render each activity row
   function renderActivityItem(activity, index) {
     const { type, map, commentContent, created_at } = activity;
     const mapTitle = map?.title || 'Untitled Map';
     const mapThumb = renderMapThumbnail(map, mapTitle);
 
+    // main text & optional comment body
     let mainText = '';
     let body = null;
 
-    // Examples
     if (type === 'createdMap') {
       mainText = `Created a map "${mapTitle}"`;
     } else if (type === 'starredMap') {
       mainText = `Starred "${mapTitle}"`;
+      // You can also show the star overlay, as you do below:
     } else if (type === 'commented') {
       mainText = `Commented on "${mapTitle}"`;
       body = (
@@ -98,7 +116,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
         <div className={styles.thumbContainer}>
           {mapThumb}
 
-          {/* If "starredMap", show the user avatar + star icon overlay */}
+          {/* If "starredMap", show the user’s avatar + star icon overlay */}
           {type === 'starredMap' && (
             <div className={styles.starOverlay}>
               <img
@@ -111,10 +129,11 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
           )}
         </div>
 
-        {/* Details text */}
+        {/* Activity details */}
         <div className={styles.activityDetails}>
           <p className={styles.mainText}>{mainText}</p>
           {body && <div>{body}</div>}
+
           <span className={styles.timestamp}>{timeAgo(created_at)}</span>
         </div>
       </div>

@@ -96,13 +96,13 @@ export const deleteComment = (comment_id) => API.delete(`/comments/${comment_id}
 // Delete a notification
 export const deleteNotification = (id) => API.delete(`/notifications/${id}`);
 
-export const fetchAllActivity = () => {
-  return API.get('/activity'); // calls GET /api/activity
-};
+export const fetchDashboardActivity = () =>
+  API.get('/activity/dashboard');
+
 
 // Fetch user activity with pagination
 export const fetchUserActivity = (username, offset = 0, limit = 10) =>
-  API.get(`/users/${username}/activity?offset=${offset}&limit=${limit}`);
+  API.get(`/activity/profile/${username}?offset=${offset}&limit=${limit}`);
 
 
 // Fetch user map stats (total maps and total stars)

@@ -4,70 +4,55 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
-// We'll assume you have an API function for your dash activity
-import { fetchNotifications, markNotificationAsRead } from '../api';
+// 1) Import your new function for the dashboard feed:
+import { fetchDashboardActivity, markNotificationAsRead } from '../api';
 
-// Possibly some icons
-import { FaStar } from 'react-icons/fa';
-
-// (Optional) If you want to display map thumbnails:
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
-
-// Import the new CSS you create
 import dashFeedStyles from './DashboardActivityFeed.module.css';
 
 export default function DashboardActivityFeed({ userProfile }) {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Optionally, fetch up to 6 notifications or something
   useEffect(() => {
     if (!userProfile) return;
 
     async function loadDashboardFeed() {
       try {
         setIsLoading(true);
-        // Could fetch “notifications” or some custom “dashboard feed”
-        const notifsRes = await fetchNotifications();
-        // Sort by created_at desc, limit to 6
-        const sorted = notifsRes.data
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          .slice(0, 6);
-        setNotifications(sorted);
+        
+        // 2) Use fetchDashboardActivity() to get the merged feed:
+        const res = await fetchDashboardActivity();
+        
+        // The server returns an array of "activity" objects: 
+        // some are user-based ("createdMap", "starredMap", "commented"), 
+        // some are notifications ("notification_star", etc.)
+        setActivities(res.data);
       } catch (err) {
         console.error('Error fetching dashboard activity:', err);
       } finally {
         setIsLoading(false);
       }
     }
+
     loadDashboardFeed();
   }, [userProfile]);
 
-  const handleItemClick = async (notif) => {
-    // Mark as read
-    try {
-      await markNotificationAsRead(notif.id);
-      // Then navigate if there's a map_id, etc.
-      if (notif.map_id) {
-        navigate(`/map/${notif.map_id}`);
-      }
-    } catch (err) {
-      console.error('Error marking notification read:', err);
-    }
-  };
-
+  // Optional helper to show "X hours ago"
   function timeAgo(dateString) {
     if (!dateString) return '';
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   }
 
+  // Render a small map thumbnail if an activity object has .map
   function renderMapThumbnail(mapObj) {
     if (!mapObj) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
+
     const {
       selected_map,
       title,
@@ -89,32 +74,70 @@ export default function DashboardActivityFeed({ userProfile }) {
       is_title_hidden,
       isThumbnail: true,
     };
+
     if (selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (selected_map === 'usa') return <UsSVG {...sharedProps} />;
-    if (selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
+    if (selected_map === 'usa')   return <UsSVG {...sharedProps} />;
+    if (selected_map === 'europe')return <EuropeSVG {...sharedProps} />;
     return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
   }
 
-  function renderNotificationItem(notif, idx) {
-    const { type, map_id, map_title, created_at, Map } = notif;
-    // If we fetched a Map object or partial map
-    const mapThumb = renderMapThumbnail(Map);
+  // If this activity item is from "notifications", we mark it read
+  async function handleItemClick(act) {
+    if (act.notificationData) {
+      try {
+        await markNotificationAsRead(act.notificationData.id);
+      } catch (err) {
+        console.error('Error marking notification read:', err);
+      }
+    }
+    // If there's a map => navigate to /map/:id
+    if (act.map?.id) {
+      navigate(`/map/${act.map.id}`);
+    }
+  }
 
-    // Basic text
-    let mainText = `Notification: ${type} on ${map_title || 'Untitled'}`;
+  // Convert each activity object into display text & render
+  function renderActivityItem(act, idx) {
+    // "type" can be: 
+    // 'createdMap', 'starredMap', 'commented'
+    // 'notification_star', 'notification_reply', etc.
+    const { type, map, commentContent, created_at } = act;
+    const mapThumb = renderMapThumbnail(map);
 
-    // e.g. if (type === 'star') { mainText = 'some star text...' }
+    let mainText = '';
+    if (type === 'createdMap') {
+      mainText = `You created map "${map?.title || 'Untitled'}"`;
+    } else if (type === 'starredMap') {
+      mainText = `You starred map "${map?.title || 'Untitled'}"`;
+    } else if (type === 'commented') {
+      mainText = `You commented on "${map?.title || 'Untitled'}"`;
+    } else if (type === 'notification_star') {
+      mainText = `Someone starred your map "${map?.title || 'Untitled'}"`;
+    } else if (type === 'notification_reply') {
+      mainText = `Someone replied to your comment on "${map?.title || 'Untitled'}"`;
+    } else {
+      // fallback
+      mainText = `Activity: ${type}`;
+    }
 
     return (
       <div
-        key={notif.id || idx}
+        key={idx}
         className={dashFeedStyles.activityItem}
-        onClick={() => handleItemClick(notif)}
+        onClick={() => handleItemClick(act)}
       >
         <div className={dashFeedStyles.thumbContainer}>{mapThumb}</div>
         <div className={dashFeedStyles.activityDetails}>
           <p className={dashFeedStyles.mainText}>{mainText}</p>
-          <span className={dashFeedStyles.timestamp}>{timeAgo(created_at)}</span>
+
+          {/* Show comment content if present */}
+          {commentContent && (
+            <div className={dashFeedStyles.commentText}>{commentContent}</div>
+          )}
+
+          <span className={dashFeedStyles.timestamp}>
+            {timeAgo(created_at)}
+          </span>
         </div>
       </div>
     );
@@ -123,13 +146,13 @@ export default function DashboardActivityFeed({ userProfile }) {
   if (isLoading) {
     return <p>Loading Dashboard Activity...</p>;
   }
-  if (notifications.length === 0) {
+  if (activities.length === 0) {
     return <p>No recent activity.</p>;
   }
 
   return (
     <div className={dashFeedStyles.dashActivityFeed}>
-      {notifications.map((notif, idx) => renderNotificationItem(notif, idx))}
+      {activities.map((act, i) => renderActivityItem(act, i))}
     </div>
   );
 }
