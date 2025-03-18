@@ -255,31 +255,84 @@ router.put('/:id', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
-
 /* --------------------------------------------
    DELETE /api/maps/:id
-   Delete a map (owner only)
+   Delete a map (owner only),
+   AND remove references in other tables.
 -------------------------------------------- */
 router.delete('/:id', auth, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user.id;
 
-    // 1) check ownership
-    const { data: existingMap } = await supabaseAdmin
+    // 1) Check ownership
+    const { data: existingMap, error: findErr } = await supabaseAdmin
       .from('maps')
       .select('*')
       .eq('id', mapId)
       .eq('user_id', user_id)
       .maybeSingle();
 
+    if (findErr) {
+      console.error(findErr);
+      return res.status(500).json({ msg: 'Server error fetching map' });
+    }
     if (!existingMap) {
-      return res
-        .status(404)
-        .json({ msg: 'Map not found or you are not the owner' });
+      return res.status(404).json({ msg: 'Map not found or you are not the owner' });
     }
 
-    // 2) delete
+    // 2) Remove references from notifications that mention this map
+    const { error: notifErr } = await supabaseAdmin
+      .from('notifications')
+      .delete()
+      .eq('map_id', mapId);
+
+    if (notifErr) {
+      console.error('Error removing notifications for map:', notifErr);
+      // Not fatal; continue
+    }
+
+    // 3) Remove saves for this map
+    const { error: savesErr } = await supabaseAdmin
+      .from('map_saves')
+      .delete()
+      .eq('map_id', mapId);
+
+    if (savesErr) {
+      console.error('Error removing map_saves for map:', savesErr);
+      // Not fatal; continue
+    }
+
+    // 4) Remove comments referencing this map
+    //    Either fully delete them, or just set "status" = "hidden"
+    const { error: commentsErr } = await supabaseAdmin
+      .from('comments')
+      .delete()
+      .eq('map_id', mapId);
+
+    if (commentsErr) {
+      console.error('Error removing comments for map:', commentsErr);
+      // Not fatal; continue
+    }
+
+    // 5) Optionally remove the 'createdMap' Activity row for this map
+    //    If you store it in a "activities" table, remove it:
+    const { error: activityErr } = await supabaseAdmin
+      .from('activities')
+      .delete()
+      .eq('type', 'createdMap')
+      .eq('user_id', user_id)
+      // If you store the map_id, you can eq('map_id', mapId).
+      // or if you store "mapTitle", you can eq('mapTitle', existingMap.title)
+      // depends how you originally inserted it
+      ;
+
+    if (activityErr) {
+      console.error('Error removing createdMap Activity:', activityErr);
+      // Not fatal; continue
+    }
+
+    // 6) Finally, remove the map itself
     const { error: delErr } = await supabaseAdmin
       .from('maps')
       .delete()
@@ -290,82 +343,13 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Error deleting map' });
     }
 
-    res.json({ msg: 'Map deleted' });
+    res.json({ msg: 'Map deleted successfully (and references removed)' });
   } catch (err) {
     console.error('Error deleting map:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
 
-/* --------------------------------------------
-   GET /api/maps/:id
-   Fetch single map by ID (public or owner only)
--------------------------------------------- */
-router.get('/:id', authOptional, async (req, res) => {
-  try {
-    const mapId = req.params.id;
-    const user_id = req.user?.id || null;
-
-    // join with user (including status)
-    const { data: mapRow, error } = await supabaseAdmin
-      .from('maps')
-      .select(
-        `*,
-         user:users!maps_user_id_fkey (
-            id,
-            username,
-            first_name,
-            last_name,
-            profile_picture,
-            status
-         )`
-      )
-      .eq('id', mapId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching map:', error);
-      return res.status(500).json({ msg: 'Server error' });
-    }
-    if (!mapRow) {
-      return res.status(404).json({ msg: 'Map not found' });
-    }
-
-    // If the owner is banned => hide
-    if (mapRow.user && mapRow.user.status === 'banned') {
-      return res.status(404).json({ msg: 'Map not found' });
-    }
-
-    // If not public and not owner
-    if (!mapRow.is_public && (!user_id || mapRow.user_id !== user_id)) {
-      return res.status(403).json({ msg: 'Access denied' });
-    }
-
-    // check if current user has saved it
-    let isSavedByCurrentUser = false;
-    let isOwner = false;
-
-    if (user_id) {
-      isOwner = mapRow.user_id === user_id;
-      const { data: existingSave } = await supabaseAdmin
-        .from('map_saves')
-        .select('*')
-        .eq('map_id', mapRow.id)
-        .eq('user_id', user_id)
-        .maybeSingle();
-
-      isSavedByCurrentUser = !!existingSave;
-    }
-
-    mapRow.isSavedByCurrentUser = isSavedByCurrentUser;
-    mapRow.isOwner = isOwner;
-
-    res.json(mapRow);
-  } catch (err) {
-    console.error('Error fetching map:', err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
 /* --------------------------------------------
    POST /api/maps/:id/save
    "Star" a map

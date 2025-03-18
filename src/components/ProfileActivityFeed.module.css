@@ -1,0 +1,136 @@
+/* src/components/ProfileActivityFeed.module.css */
+
+/* The main container for the activity feed */
+.activityFeed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* Single feed item */
+  .activityItem {
+    display: flex;
+    flex-direction: column; /* default stacked for mobile */
+    background-color: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 15px;
+    gap: 15px;
+    cursor: pointer;
+  }
+  
+  /*  e.g. If you want side-by-side only on large screens: */
+  @media (min-width: 1350px) {
+    .activityItem {
+      flex-direction: row;
+    }
+  
+    /* 50% each for map thumb & activity text */
+    .thumbContainer,
+    .activityDetails {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+    .thumbContainer {
+      margin-bottom: 0; 
+      margin-right: 20px; 
+    }
+  }
+  
+  /* Map thumbnail container in feed */
+  .thumbContainer {
+    width: 100%; 
+    background-color: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px; 
+  }
+  
+  .defaultThumbnail {
+    color: #666;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  
+  .activityDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  /* For 'starredMap' type activity, if you want a star icon or text */
+  .starCount {
+    color: #444;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  /* Comments, replies, etc. */
+  .commentBox,
+  .commentReplyBox {
+    display: flex;
+    align-items: flex-start;
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #eee;
+    gap: 8px; /* space between avatar & text */
+  }
+  
+  .commentReplyBox {
+    flex-direction: column; 
+  }
+  
+  .userAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .commentText {
+    background-color: #f9f9f9;
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+  
+  /* Possibly used if showing a parent comment? */
+  .originalComment {
+    background-color: #fafafa;
+    border-left: 4px solid #ccc;
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .replyBox {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .timestamp {
+    font-size: 0.8rem;
+    color: #999;
+  }
+  
+  /* Additional phone or small media queries if needed */
+  @media (max-width: 600px) {
+    .activityItem {
+      padding: 10px;
+    }
+    .commentBox,
+    .commentReplyBox {
+      margin: 4px 0;
+      padding: 5px;
+    }
+    .userAvatar {
+      width: 32px;
+      height: 32px;
+    }
+  }
+  

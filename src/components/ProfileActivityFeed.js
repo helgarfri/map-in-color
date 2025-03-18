@@ -13,7 +13,7 @@ import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 
-import styles from './Dashboard.module.css';  // Reusing styling from Dashboard (or create a separate .css)
+import styles from './ProfileActivityFeed.module.css';
 
 export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
