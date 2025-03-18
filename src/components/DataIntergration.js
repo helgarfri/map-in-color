@@ -175,10 +175,13 @@ export default function DataIntegration({
   const [data, setData] = useState([]);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
+  
   useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
+    if (width < 1000 && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [width, isCollapsed, setIsCollapsed]);
 
 
   const [file_stats, setFileStats] = useState({

@@ -1122,7 +1122,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                     <span>Reply</span>
                                   </button>
 
-                                  {(isOwner ||
+                                  {(
                                     (comment.user && comment.user.username === profile?.username)) && (
                                       <button
                                       className={styles.reactionButton}

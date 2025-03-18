@@ -29,12 +29,12 @@ export default function NotificationList() {
   const { width } = useWindowSize();
 
   useEffect(() => {
-    if (width < 1000) {
+    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
+    if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
-    } else {
-      setIsCollapsed(false);
     }
-  }, [width, setIsCollapsed]);
+  }, [width, isCollapsed, setIsCollapsed]);
+  
 
   useEffect(() => {
     const getNotifications = async () => {

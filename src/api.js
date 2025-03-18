@@ -64,14 +64,15 @@ export const postComment = (mapId, commentData) =>
 export const fetchUserProfileByUsername = (username) => API.get(`/profile/${username}`);
 
 
-// Fetch maps by user ID with pagination
-export const fetchMapsByuser_id = (user_id, offset = 0, limit = 10) =>
-  API.get(`/maps/user/${user_id}?offset=${offset}&limit=${limit}`);
+// fetch all public maps by that user, with pagination & sorting
+export const fetchMapsByuser_id = (user_id, page = 1, limit = 24, sort = 'newest') => {
+  return API.get(`/maps/user/${user_id}?page=${page}&limit=${limit}&sort=${sort}`);
+};
 
-
-// **Add this function** to fetch starred maps by user ID
-export const fetchStarredMapsByuser_id = (user_id, offset = 0, limit = 10) =>
-  API.get(`/maps/user/${user_id}/starred?offset=${offset}&limit=${limit}`);
+// to fetch starred maps by user ID
+export const fetchStarredMapsByuser_id = (user_id, page = 1, limit = 24, sort = 'newest') => {
+  return API.get(`/maps/user/${user_id}/starred?page=${page}&limit=${limit}&sort=${sort}`);
+};
 
 // Fetch saved maps for the authenticated user
 export const fetchSavedMaps = () => API.get('/maps/saved');

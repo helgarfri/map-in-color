@@ -26,9 +26,11 @@ export default function YourMaps() {
 
   const { width } = useWindowSize(); // get screen width
   useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
+    if (width < 1000 && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [width, isCollapsed, setIsCollapsed]);
 
 
   useEffect(() => {

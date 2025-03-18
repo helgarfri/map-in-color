@@ -540,10 +540,12 @@ router.post('/:id/unsave', auth, async (req, res) => {
 router.get('/user/:user_id', async (req, res) => {
   try {
     const { user_id } = req.params;
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 24;
+    const sort = req.query.sort || 'newest'; 
+      // 'newest', 'oldest', 'mostStarred' etc.
 
-    // 1) Check user’s status
+    // 1) confirm user
     const { data: userRow, error: userErr } = await supabaseAdmin
       .from('users')
       .select('id, status')
@@ -552,32 +554,53 @@ router.get('/user/:user_id', async (req, res) => {
 
     if (userErr) {
       console.error('Error fetching user:', userErr);
-      return res.status(500).json({ message: 'Server error (user fetch)' });
+      return res.status(500).json({ message: 'Server error' });
     }
     if (!userRow) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // If user is banned => hide their maps
     if (userRow.status === 'banned') {
-      return res.json([]);
+      // If they’re banned, return empty
+      return res.json({ maps: [], total: 0 });
     }
 
-    // 2) if not banned => fetch their public maps
-    const { data: userMaps, error } = await supabaseAdmin
+    // 2) build a base query with count: 'exact', no range yet
+    let baseQuery = supabaseAdmin
       .from('maps')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', user_id)
-      .eq('is_public', true)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .eq('is_public', true);
 
+    // 3) apply your sorting
+    if (sort === 'oldest') {
+      baseQuery = baseQuery.order('created_at', { ascending: true });
+    } else if (sort === 'mostStarred') {
+      baseQuery = baseQuery.order('save_count', { ascending: false });
+    } else {
+      // default newest
+      baseQuery = baseQuery.order('created_at', { ascending: false });
+    }
+
+    // 4) run it
+    const { data, count, error } = await baseQuery;
     if (error) {
-      console.error(error);
+      console.error('Error fetching user maps:', error);
       return res.status(500).json({ message: 'Server error' });
     }
 
-    res.json(userMaps);
+    // 5) total is count
+    const total = count || 0;
+
+    // 6) do final slicing in memory
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const finalSlice = data.slice(startIndex, endIndex);
+
+    return res.json({
+      maps: finalSlice,
+      total
+    });
   } catch (err) {
     console.error('Error fetching maps:', err);
     res.status(500).json({ message: 'Server error' });
@@ -592,58 +615,91 @@ router.get('/user/:user_id', async (req, res) => {
 router.get('/user/:user_id/starred', async (req, res) => {
   try {
     const { user_id } = req.params;
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 24;
+    const sort = req.query.sort || 'newest'; 
 
     // confirm user
-    const { data: userRow } = await supabaseAdmin
+    const { data: userRow, error: userErr } = await supabaseAdmin
       .from('users')
-      .select('*')
+      .select('id, status')
       .eq('id', user_id)
       .maybeSingle();
 
+    if (userErr) {
+      console.error('Error:', userErr);
+      return res.status(500).json({ message: 'Server error' });
+    }
     if (!userRow) {
-      return res.status(404).json({ msg: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (userRow.status === 'banned') {
+      // If they’re banned, can just return empty
+      return res.json({ maps: [], total: 0 });
     }
 
     // get map_saves for that user
-    const { data: saves } = await supabaseAdmin
+    const { data: saves, error: savesErr } = await supabaseAdmin
       .from('map_saves')
       .select('*')
       .eq('user_id', user_id);
 
+    if (savesErr) {
+      console.error('Error fetching map_saves:', savesErr);
+      return res.status(500).json({ message: 'Server error' });
+    }
     if (!saves || saves.length === 0) {
-      return res.json([]); // no saved maps
+      return res.json({ maps: [], total: 0 });
     }
 
     const mapIds = saves.map((s) => s.map_id);
 
-    // fetch only public maps
-    const { data: starredMaps, error } = await supabaseAdmin
+    // 1) we want all those maps that are public
+    // 2) we also want total. But supabase won't do `.in(...).select('*', { count: 'exact' })`
+    //    and then a separate .range easily, so let's do it in memory again
+    let baseQuery = supabaseAdmin
       .from('maps')
       .select(`
         *,
         user:users!maps_user_id_fkey (
           id,
+          username,
           status
         )
-      `)
+      `, { count: 'exact' })
       .in('id', mapIds)
-      .eq('is_public', true)
-      .order('created_at', { ascending: false });
+      .eq('is_public', true);
 
+    // apply sorting
+    if (sort === 'oldest') {
+      baseQuery = baseQuery.order('created_at', { ascending: true });
+    } else if (sort === 'mostStarred') {
+      baseQuery = baseQuery.order('save_count', { ascending: false });
+    } else {
+      baseQuery = baseQuery.order('created_at', { ascending: false });
+    }
+
+    const { data: allStarred, count, error } = await baseQuery;
     if (error) {
-      console.error('Error fetching starred maps:', error);
+      console.error(error);
       return res.status(500).json({ message: 'Server error' });
     }
 
     // filter out if the map’s owner is banned
-    const filtered = starredMaps.filter((m) => m.user?.status !== 'banned');
+    const filtered = (allStarred || []).filter((m) => {
+      if (!m.user) return false;
+      return m.user.status !== 'banned';
+    });
 
-    // implement offset/limit in memory
-    const paginated = filtered.slice(offset, offset + limit);
+    const total = filtered.length;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const finalSlice = filtered.slice(startIndex, endIndex);
 
-    res.json(paginated);
+    return res.json({
+      maps: finalSlice,
+      total
+    });
   } catch (err) {
     console.error('Error fetching starred maps:', err);
     res.status(500).json({ message: 'Server error' });

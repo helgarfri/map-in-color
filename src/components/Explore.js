@@ -45,13 +45,12 @@ function Explore() {
   const { width } = useWindowSize(); // so we can do the 1000px check
   const showOverlay = !isCollapsed && width < 1000;
 
-    useEffect(() => {
-      if (width < 1000) {
-        setIsCollapsed(true);
-      } else {
-        setIsCollapsed(false);
-      }
-    }, [width, setIsCollapsed]);
+  useEffect(() => {
+    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
+    if (width < 1000 && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [width, isCollapsed, setIsCollapsed]);
 
   //-------------------------------------------
   // 1) Fetch top 50 tags

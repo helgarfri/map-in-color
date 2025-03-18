@@ -58,15 +58,13 @@ export default function Dashboard() {
 
   const showOverlay = !isCollapsed && width < 1000; 
 
-  // Whenever the width goes below 1000px, auto-collapse the sidebar
   useEffect(() => {
-    if (width < 1000) {
+    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
+    if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
-    } else {
-      // for bigger screens, you could auto-expand again:
-      setIsCollapsed(false);
     }
-  }, [width, setIsCollapsed]);
+  }, [width, isCollapsed, setIsCollapsed]);
+  
   // ----------------------
   // Basic Stats
   // ----------------------
