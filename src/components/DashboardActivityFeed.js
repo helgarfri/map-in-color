@@ -212,11 +212,23 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   // Who wrote the comment? For "notification_like", "notification_reply", etc.
   // We'll assume the backend returned act.commentAuthor = { username, profile_picture }
-  function getCommentAuthorAvatar(act) {
-    if (!act.commentAuthor) return '/default-profile-picture.png';
-    return act.commentAuthor.profile_picture || '/default-profile-picture.png';
+ // We pass userProfile so we can fallback to userProfile.profile_picture
+  function getCommentAuthorAvatar(act, userProfile) {
+    // If the server already gave us commentAuthor, use that
+    if (act.commentAuthor && act.commentAuthor.profile_picture) {
+      return act.commentAuthor.profile_picture;
+    }
+
+    // If there's no commentAuthor, but the type is "commented", it means "you" commented
+    // => fallback to your own userProfile picture
+    if (act.type === 'commented' && userProfile?.profile_picture) {
+      return userProfile.profile_picture;
+    }
+
+    // Otherwise fallback to default
+    return '/default-profile-picture.png';
   }
-  
+
   function getCommentAuthorUsername(act) {
     if (!act.commentAuthor) return 'unknown';
     return act.commentAuthor.username || 'unknown';
@@ -224,11 +236,14 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   // Renders the "comment box" with the author's avatar + the comment text
   function renderCommentBox(act) {
-    // If there's no comment content or no author, just do a fallback
-    // (But typically you'll always have them for "commented", "notification_comment", "notification_reply", "notification_like", etc.)
-    const commentAvatarUrl = getCommentAuthorAvatar(act);
-    const commentAuthorUsername = getCommentAuthorUsername(act);
-
+    const commentAvatarUrl = getCommentAuthorAvatar(act, userProfile); 
+    // Pass userProfile so we can fallback
+  
+    // If you want a clickable avatar => user sees themselves? Up to you:
+    const commentAuthorUsername = act.commentAuthor?.username 
+      || userProfile?.username 
+      || 'unknown';
+  
     return (
       <div className={dashFeedStyles.commentBox}>
         <img
@@ -244,6 +259,7 @@ export default function DashboardActivityFeed({ userProfile }) {
       </div>
     );
   }
+  
 
   function renderActivityItem(act, idx) {
     const { type, map, commentContent, created_at } = act;

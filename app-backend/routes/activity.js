@@ -209,6 +209,9 @@ router.get('/profile/:username', async (req, res) => {
 -------------------------------------------- */
 router.get('/dashboard', auth, async (req, res) => {
     const user_id = req.user.id;
+
+    const offset = parseInt(req.query.offset, 10) || 0;
+    const limit  = parseInt(req.query.limit, 10) || 20;
   
     try {
       // ---------------------------------------------
@@ -486,12 +489,14 @@ router.get('/dashboard', auth, async (req, res) => {
       let allActivities = [...userActivity, ...notifActivities];
       allActivities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   
-      // Return the combined feed
-      return res.json(allActivities);
+      //  (F) Now slice:
+      const paginated = allActivities.slice(offset, offset + limit);
+
+      return res.json(paginated);
     } catch (err) {
       console.error('Error in GET /api/activity/dashboard:', err);
       return res.status(500).json({ msg: 'Server error' });
     }
-  });
+    });
   
 module.exports = router;

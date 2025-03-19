@@ -91,6 +91,7 @@
   color: #333;
   margin: 0 0 6px 0;
   font-weight: 400;
+  margin: 10px 0;
 }
 
 /* The clickable sender name within mainText */
@@ -123,11 +124,13 @@
   margin-bottom: 8px;
   max-width: 100%;
   word-break: break-word;
+  align-items: center;
+  width: fit-content;
 }
 
 .commentAuthorAvatar {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer; /* so user can click to go to that person's profile */
@@ -143,12 +146,8 @@
 
 /* The timestamp box in bottom-right corner */
 .timestampBox {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
   color: #888;
   font-size: 0.75rem;
-  background-color: #f1f1f1;
   padding: 3px 8px;
   border-radius: 4px;
   width: fit-content;
