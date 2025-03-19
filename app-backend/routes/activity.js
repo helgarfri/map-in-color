@@ -412,38 +412,45 @@ router.get('/dashboard', auth, async (req, res) => {
         const sender = n.sender_id ? sendersById[n.sender_id] || null : null;
         const mapObj = n.map_id ? mapsById[n.map_id] || null : null;
         const commentObj = n.comment_id ? commentsById[n.comment_id] || null : null;
-  
-        // If you want to exclude banned senders or hidden comments, you can filter them out
-        // For example, if (sender && sender.status==='banned') => skip
-        // Or if (commentObj === null) => skip
-        // That’s up to you.
-  
+      
+        let commentAuthorData = null;
+        if (commentObj && commentObj.User) {
+          commentAuthorData = {
+            id: commentObj.User.id,
+            username: commentObj.User.username,
+            profile_picture: commentObj.User.profile_picture,
+          };
+        }
+      
         return {
-          type: `notification_${n.type}`, // e.g. “notification_star”, “notification_reply”
+          type: `notification_${n.type}`,
           created_at: n.created_at,
           map: mapObj
             ? {
-                id: mapObj.id,
-                title: mapObj.title,
-                selected_map: mapObj.selected_map,
-                ocean_color: mapObj.ocean_color,
-                unassigned_color: mapObj.unassigned_color,
-                font_color: mapObj.font_color,
-                is_title_hidden: mapObj.is_title_hidden,
-                groups: mapObj.groups,
-                data: mapObj.data,
-                save_count: mapObj.save_count,
-                created_at: mapObj.created_at,
-              }
+              id: mapObj.id,
+              title: mapObj.title,
+              selected_map: mapObj.selected_map,
+              ocean_color: mapObj.ocean_color,
+              unassigned_color: mapObj.unassigned_color,
+              font_color: mapObj.font_color,
+              is_title_hidden: mapObj.is_title_hidden,
+              groups: mapObj.groups,
+              data: mapObj.data,
+              save_count: mapObj.save_count,
+              created_at: mapObj.created_at,
+            }
             : null,
           commentContent: commentObj ? commentObj.content : null,
+          commentAuthor: commentAuthorData, // <-- add this
+      
           notificationData: {
             id: n.id,
             is_read: n.is_read,
-            sender: sender, // If you want to show "User X did something"
+            sender: sender,
           },
         };
       });
+      
   
       // ---------------------------------------------
       // (E) Merge all activity + sort descending

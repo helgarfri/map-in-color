@@ -52,16 +52,19 @@ export default function DashboardActivityFeed({ userProfile }) {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   }
 
-  // Decide which user’s avatar to show
-  function getAvatarUrl(act) {
+  /**
+   * The main user avatar in the thumbnail overlay (bottom-right).
+   */
+  function getOverlayAvatarUrl(act) {
+    // If it's a notification from someone else => show sender's avatar
     if (act.type.startsWith('notification_') && act.notificationData?.sender) {
       return act.notificationData.sender.profile_picture || '/default-profile-picture.png';
     }
+    // Otherwise => the current user
     return userProfile?.profile_picture || '/default-profile-picture.png';
   }
 
-  // Determine which username to link to
-  function getAvatarUsername(act) {
+  function getOverlayAvatarUsername(act) {
     if (act.type.startsWith('notification_') && act.notificationData?.sender) {
       return act.notificationData.sender.username || 'unknown';
     }
@@ -88,7 +91,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     }
   }
 
-  // Renders a map thumbnail with overlay for avatar + icon
+  // Map thumbnail + bottom-right overlay
   function renderMapThumbnail(mapObj, act) {
     if (!mapObj) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
@@ -121,8 +124,8 @@ export default function DashboardActivityFeed({ userProfile }) {
     if (selected_map === 'usa')     MapComponent = <UsSVG {...sharedProps} />;
     if (selected_map === 'europe')  MapComponent = <EuropeSVG {...sharedProps} />;
 
-    const avatarUrl = getAvatarUrl(act);
-    const avatarUsername = getAvatarUsername(act);
+    const overlayAvatarUrl = getOverlayAvatarUrl(act);
+    const overlayAvatarUsername = getOverlayAvatarUsername(act);
     const icon = getActivityIcon(act.type);
 
     return (
@@ -133,12 +136,12 @@ export default function DashboardActivityFeed({ userProfile }) {
           className={dashFeedStyles.activityOverlay}
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/profile/${avatarUsername}`);
+            navigate(`/profile/${overlayAvatarUsername}`);
           }}
         >
           <img
             className={dashFeedStyles.activityAvatar}
-            src={avatarUrl}
+            src={overlayAvatarUrl}
             alt="User"
           />
           <div className={dashFeedStyles.activityIcon}>{icon}</div>
@@ -161,24 +164,21 @@ export default function DashboardActivityFeed({ userProfile }) {
     }
   }
 
-  // Renders the clickable name for "sender"
+  // Display name for the user who triggered the notification
   function renderSenderName(act) {
-    // For the user's own activity => "You"
     if (!act.type.startsWith('notification_')) {
       return <strong>You</strong>;
     }
-
-    // Otherwise => external user’s name/username
     const sender = act.notificationData?.sender;
-    if (!sender) {
-      return <strong>Someone</strong>;
-    }
+    if (!sender) return <strong>Someone</strong>;
 
-    let displayName = 'Someone';
+    let displayName = '';
     if (sender.first_name || sender.last_name) {
       displayName = `${sender.first_name || ''} ${sender.last_name || ''}`.trim();
     } else if (sender.username) {
       displayName = sender.username;
+    } else {
+      displayName = 'Someone';
     }
 
     return (
@@ -194,10 +194,9 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  // Renders a bold, clickable map title => goes to /map/:id
+  // Bold, clickable map title => goes to /map/:id
   function renderMapTitle(map) {
-    if (!map) return 'Untitled'; // fallback
-
+    if (!map) return 'Untitled';
     return (
       <strong
         className={dashFeedStyles.mapTitleLink}
@@ -211,12 +210,46 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  // Renders a single activity row
+  // Who wrote the comment? For "notification_like", "notification_reply", etc.
+  // We'll assume the backend returned act.commentAuthor = { username, profile_picture }
+  function getCommentAuthorAvatar(act) {
+    if (!act.commentAuthor) return '/default-profile-picture.png';
+    return act.commentAuthor.profile_picture || '/default-profile-picture.png';
+  }
+
+  function getCommentAuthorUsername(act) {
+    if (!act.commentAuthor) return 'unknown';
+    return act.commentAuthor.username || 'unknown';
+  }
+
+  // Renders the "comment box" with the author's avatar + the comment text
+  function renderCommentBox(act) {
+    // If there's no comment content or no author, just do a fallback
+    // (But typically you'll always have them for "commented", "notification_comment", "notification_reply", "notification_like", etc.)
+    const commentAvatarUrl = getCommentAuthorAvatar(act);
+    const commentAuthorUsername = getCommentAuthorUsername(act);
+
+    return (
+      <div className={dashFeedStyles.commentBox}>
+        <img
+          className={dashFeedStyles.commentAuthorAvatar}
+          src={commentAvatarUrl}
+          alt="Comment Author"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/profile/${commentAuthorUsername}`);
+          }}
+        />
+        <div className={dashFeedStyles.commentBody}>{act.commentContent}</div>
+      </div>
+    );
+  }
+
   function renderActivityItem(act, idx) {
     const { type, map, commentContent, created_at } = act;
     const mapThumb = renderMapThumbnail(map, act);
 
-    // Build the main text, substituting clickable sender name and clickable map title
+    // Build the main text, referencing clickable sender name & map title
     let mainText;
     if (type === 'createdMap') {
       mainText = <>You created map {renderMapTitle(map)}</>;
@@ -225,40 +258,27 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else if (type === 'commented') {
       mainText = <>You commented on {renderMapTitle(map)}</>;
     } else if (type === 'notification_star') {
-      mainText = (
-        <>
-          {renderSenderName(act)} starred your map {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} starred your map {renderMapTitle(map)}</>;
     } else if (type === 'notification_reply') {
-      mainText = (
-        <>
-          {renderSenderName(act)} replied to your comment on {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} replied to your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_like') {
-      mainText = (
-        <>
-          {renderSenderName(act)} liked your comment: {commentContent}
-        </>
-      );
+      // We also show the comment box now
+      mainText = <>{renderSenderName(act)} liked your comment </>;
     } else if (type === 'notification_comment') {
-      mainText = (
-        <>
-          {renderSenderName(act)} commented on your map {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} commented on your map {renderMapTitle(map)}</>;
     } else {
-      // fallback
       mainText = <>Activity: {type}</>;
     }
 
-    // Decide whether to show the comment box
-    const shouldShowCommentBox = (
-      (type === 'commented') ||
-      (type === 'notification_comment') ||
-      (type === 'notification_reply')
-    ) && commentContent;
+    // Show the comment box if we have commentContent and it's a comment-ish event:
+    // That includes notification_like, so the user can see which comment was liked
+    const isCommentRelated = [
+      'commented',
+      'notification_comment',
+      'notification_reply',
+      'notification_like'
+    ].includes(type);
+    const shouldShowCommentBox = isCommentRelated && commentContent;
 
     return (
       <div
@@ -270,11 +290,9 @@ export default function DashboardActivityFeed({ userProfile }) {
 
         <div className={dashFeedStyles.activityDetails}>
           <p className={dashFeedStyles.mainText}>{mainText}</p>
-          {shouldShowCommentBox && (
-            <div className={dashFeedStyles.commentText}>
-              {commentContent}
-            </div>
-          )}
+
+          {shouldShowCommentBox && renderCommentBox(act)}
+
           {/* The dedicated timestamp box in the bottom-right corner */}
           <div className={dashFeedStyles.timestampBox}>
             {timeAgo(created_at)}

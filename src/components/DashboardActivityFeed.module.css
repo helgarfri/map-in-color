@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 10px; /* optional spacing from top */
+  margin-top: 10px;
 }
 
 /* One item per row */
@@ -23,7 +23,7 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.12);
 }
 
-/* Container for the map thumbnail */
+/* Map thumbnail container */
 .thumbContainer {
   position: relative;
   width: 200px;
@@ -44,14 +44,14 @@
   object-fit: cover;
 }
 
-/* If there's no map fallback */
+/* Fallback if there's no map */
 .defaultThumbnail {
   font-size: 0.85rem;
   color: #666;
   text-align: center;
 }
 
-/* The bottom-right overlay with avatar + icon */
+/* Bottom-right overlay with avatar + icon */
 .activityOverlay {
   position: absolute;
   bottom: 0;
@@ -64,7 +64,6 @@
   gap: 4px;
 }
 
-/* Circular user avatar in overlay */
 .activityAvatar {
   width: 26px;
   height: 26px;
@@ -73,14 +72,13 @@
   border: 2px solid #fff;
 }
 
-/* Icon next to avatar */
 .activityIcon {
   font-size: 1rem;
   color: white;
   margin-top: 2px;
 }
 
-/* The details container: main text, comment, timestamp */
+/* Right side details */
 .activityDetails {
   display: flex;
   flex-direction: column;
@@ -88,11 +86,10 @@
   flex: 1;
 }
 
-/* The main text line, e.g. “You created map X” */
 .mainText {
   font-size: 0.95rem;
   color: #333;
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
   font-weight: 400;
 }
 
@@ -114,35 +111,55 @@
   text-decoration: underline;
 }
 
-/* The optional comment box: used for replies/comments */
-.commentText {
+/* The new "comment box" with the comment author’s avatar, next to the comment text */
+.commentBox {
+  display: flex;
+  align-items: flex-start;
   background-color: #f9f9f9;
   border: 1px solid #eee;
-  padding: 6px 8px;
   border-radius: 4px;
-  width: fit-content;
-  font-size: 0.85rem;
-  color: #444;
+  padding: 6px 8px;
+  gap: 8px;
+  margin-bottom: 8px;
   max-width: 100%;
   word-break: break-word;
-  margin-bottom: 8px;
 }
 
-/* The timestamp box in the bottom-right corner of the activity item */
+.commentAuthorAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer; /* so user can click to go to that person's profile */
+  flex-shrink: 0;
+  border: 1px solid #ccc;
+}
+
+.commentBody {
+  font-size: 0.85rem;
+  color: #444;
+  overflow-wrap: break-word;
+}
+
+/* The timestamp box in bottom-right corner */
 .timestampBox {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
   color: #888;
   font-size: 0.75rem;
-  padding-left: 3px;
+  background-color: #f1f1f1;
+  padding: 3px 8px;
   border-radius: 4px;
   width: fit-content;
 }
 
-/* Responsive layout: stack them for smaller screens */
+/* Responsive layout */
 @media (max-width: 600px) {
   .activityItem {
     flex-direction: column;
     align-items: flex-start;
-    padding-bottom: 32px; /* to make room for the absolute-positioned timestamp */
+    padding-bottom: 32px; /* space for the absolute-positioned timestampBox */
   }
 
   .thumbContainer {
@@ -153,8 +170,7 @@
   }
 
   .timestampBox {
-    /* For mobile, place it at bottom-left or adjust as you see fit */
     bottom: 8px;
-    left: 8px;
+    left: 8px; /* shift to the left on mobile if you want */
   }
 }
