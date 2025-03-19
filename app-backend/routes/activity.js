@@ -483,16 +483,19 @@ router.get('/dashboard', auth, async (req, res) => {
       });
       
   
-      // ---------------------------------------------
-      // (E) Merge all activity + sort descending
-      // ---------------------------------------------
+      // (E) Merge all activities + sort descending
       let allActivities = [...userActivity, ...notifActivities];
       allActivities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  
-      //  (F) Now slice:
+
+      const offset = parseInt(req.query.offset, 10) || 0;
+      const limit = parseInt(req.query.limit, 10) || 20;
+
+      // Now slice out only the chunk
       const paginated = allActivities.slice(offset, offset + limit);
 
+      // Return the chunk
       return res.json(paginated);
+
     } catch (err) {
       console.error('Error in GET /api/activity/dashboard:', err);
       return res.status(500).json({ msg: 'Server error' });

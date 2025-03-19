@@ -96,9 +96,9 @@ export const deleteComment = (comment_id) => API.delete(`/comments/${comment_id}
 // Delete a notification
 export const deleteNotification = (id) => API.delete(`/notifications/${id}`);
 
-export const fetchDashboardActivity = () =>
-  API.get('/activity/dashboard');
-
+export const fetchDashboardActivity = (offset=0, limit=20) => {
+  return API.get(`/activity/dashboard?offset=${offset}&limit=${limit}`);
+};
 
 // Fetch user activity with pagination
 export const fetchUserActivity = (username, offset = 0, limit = 10) =>

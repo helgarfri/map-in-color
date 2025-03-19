@@ -26,32 +26,59 @@ import dashFeedStyles from './DashboardActivityFeed.module.css';
 export default function DashboardActivityFeed({ userProfile }) {
   const navigate = useNavigate();
   const [activities, setActivities] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [limit] = useState(20); // always load 20 at a time
+  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
+  
   useEffect(() => {
     if (!userProfile) return;
-
-    async function loadDashboardFeed() {
-      try {
-        setIsLoading(true);
-        const res = await fetchDashboardActivity();
-        setActivities(res.data);
-      } catch (err) {
-        console.error('Error fetching dashboard activity:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadDashboardFeed();
+    // On first mount (or if userProfile changes), load the first page
+    loadDashboardFeed(0, limit);
+    // Reset offset to 0 in case userProfile changed
+    setOffset(0);
   }, [userProfile]);
+
+  async function loadDashboardFeed(offsetVal, limitVal) {
+    try {
+      setIsLoading(true);
+      // pass offset & limit in the query, e.g. /activity/dashboard?offset=...&limit=...
+      const res = await fetchDashboardActivity(offsetVal, limitVal);
+      const newBatch = res.data; // array of up to 20 activities
+
+      // if this is offset=0 => fresh load, else append
+      if (offsetVal === 0) {
+        setActivities(newBatch);
+      } else {
+        setActivities((prev) => [...prev, ...newBatch]);
+      }
+
+      // if we got fewer than 'limit' items => no more to load
+      if (newBatch.length < limitVal) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard activity:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // triggered by the "Load more" button
+  function handleLoadMore() {
+    const newOffset = offset + limit;
+    setOffset(newOffset);
+    loadDashboardFeed(newOffset, limit);
+  }
 
   // Format "X hours ago"
   function timeAgo(dateString) {
     if (!dateString) return '';
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   }
-
   /**
    * The main user avatar in the thumbnail overlay (bottom-right).
    */
@@ -327,7 +354,21 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   return (
     <div className={dashFeedStyles.dashActivityFeed}>
-      {activities.map((act, i) => renderActivityItem(act, i))}
-    </div>
+    {activities.map((act, i) => renderActivityItem(act, i))}
+
+    {isLoading && offset === 0 && <LoadingSpinner />}
+
+    {/* Show "Load More" if we have more data to fetch */}
+    {hasMore && !isLoading && (
+      <button
+        onClick={handleLoadMore}
+        className={dashFeedStyles.loadMoreBtn}
+      >
+        Load More Activities
+      </button>
+    )}
+
+    {isLoading && offset > 0 && <p>Loading more...</p>}
+  </div>
   );
 }
