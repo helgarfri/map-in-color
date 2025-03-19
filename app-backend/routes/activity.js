@@ -110,14 +110,15 @@ router.get('/profile/:username', async (req, res) => {
       };
     });
 
-    // 2c) “Commented” => user posted comments (visible)
-    const { data: userComments } = await supabaseAdmin
+      // 2c) “Commented” => user posted comments (visible)
+      const { data: userComments } = await supabaseAdmin
       .from('comments')
       .select(`
         id,
         content,
         created_at,
         status,
+        user_id,
         Map:maps(
           id,
           title,
@@ -130,12 +131,18 @@ router.get('/profile/:username', async (req, res) => {
           data,
           save_count,
           created_at
+        ),
+        User:users(
+          id,
+          username,
+          profile_picture
         )
       `)
       .eq('user_id', user_id)
       .eq('status', 'visible')
       .order('created_at', { ascending: false })
       .limit(1000);
+    
 
       const commentedActivities = (userComments || []).map((c) => {
         const map = c.Map;
