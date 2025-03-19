@@ -382,18 +382,30 @@ router.get('/dashboard', auth, async (req, res) => {
       // (D3) Fetch comments for notifications
       let commentsById = {};
       if (commentIds.length > 0) {
-        // Only fetch “visible” comment(s)
+        // We want the comment's content, status, user, etc.
         const { data: fetchedComments } = await supabaseAdmin
           .from('comments')
-          .select(`id, content, status`)
+          .select(`
+            id,
+            content,
+            status,
+            user_id,
+            User:users(
+              id,
+              username,
+              profile_picture
+            )
+          `)
           .in('id', commentIds)
           .eq('status', 'visible');
+
         if (fetchedComments) {
           fetchedComments.forEach((c) => {
             commentsById[c.id] = c;
           });
         }
       }
+
   
       // (D4) Build “notifActivities” array, merging the data we fetched
       const notifActivities = notifications.map((n) => {

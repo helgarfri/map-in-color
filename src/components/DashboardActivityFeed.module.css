@@ -1,58 +1,160 @@
-/* src/components/DashboardActivityFeed.module.css */
-
 .dashActivityFeed {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  /* Each item row */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px; /* optional spacing from top */
+}
+
+/* One item per row */
+.activityItem {
+  position: relative; /* so we can absolutely position the timestamp box */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+.activityItem:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+}
+
+/* Container for the map thumbnail */
+.thumbContainer {
+  position: relative;
+  width: 200px;
+  height: 100px;
+  background-color: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.thumbContainer svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* If there's no map fallback */
+.defaultThumbnail {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+}
+
+/* The bottom-right overlay with avatar + icon */
+.activityOverlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.4);
+  border-top-left-radius: 8px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Circular user avatar in overlay */
+.activityAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+}
+
+/* Icon next to avatar */
+.activityIcon {
+  font-size: 1rem;
+  color: white;
+  margin-top: 2px;
+}
+
+/* The details container: main text, comment, timestamp */
+.activityDetails {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+/* The main text line, e.g. “You created map X” */
+.mainText {
+  font-size: 0.95rem;
+  color: #333;
+  margin: 0 0 4px 0;
+  font-weight: 400;
+}
+
+/* The clickable sender name within mainText */
+.senderName {
+  font-weight: 600;
+  cursor: pointer;
+}
+.senderName:hover {
+  text-decoration: underline;
+}
+
+/* The clickable map title link, bold plus pointer */
+.mapTitleLink {
+  cursor: pointer;
+  font-weight: 600;
+}
+.mapTitleLink:hover {
+  text-decoration: underline;
+}
+
+/* The optional comment box: used for replies/comments */
+.commentText {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  padding: 6px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  font-size: 0.85rem;
+  color: #444;
+  max-width: 100%;
+  word-break: break-word;
+  margin-bottom: 8px;
+}
+
+/* The timestamp box in the bottom-right corner of the activity item */
+.timestampBox {
+  color: #888;
+  font-size: 0.75rem;
+  padding-left: 3px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+/* Responsive layout: stack them for smaller screens */
+@media (max-width: 600px) {
   .activityItem {
-    display: flex;
-    flex-direction: row;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 8px;
-    cursor: pointer;
-  }
-  
-  .activityItem:hover {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-  }
-  
-  /* The small map thumbnail area */
-  .thumbContainer {
-    width: 120px;
-    height: 80px;
-    background-color: #eee;
-    border-radius: 4px;
-    margin-right: 12px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .defaultThumbnail {
-    font-size: 0.85rem;
-    color: #666;
-  }
-  
-  .activityDetails {
-    display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: flex-start;
+    padding-bottom: 32px; /* to make room for the absolute-positioned timestamp */
   }
-  
-  .mainText {
-    margin: 0 0 4px 0;
-    font-size: 0.9rem;
-    color: #333;
+
+  .thumbContainer {
+    width: 100%;
+    height: 120px;
+    margin-right: 0;
+    margin-bottom: 8px;
   }
-  
-  .timestamp {
-    font-size: 0.75rem;
-    color: #999;
+
+  .timestampBox {
+    /* For mobile, place it at bottom-left or adjust as you see fit */
+    bottom: 8px;
+    left: 8px;
   }
-  
+}
