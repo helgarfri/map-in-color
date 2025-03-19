@@ -216,7 +216,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     if (!act.commentAuthor) return '/default-profile-picture.png';
     return act.commentAuthor.profile_picture || '/default-profile-picture.png';
   }
-
+  
   function getCommentAuthorUsername(act) {
     if (!act.commentAuthor) return 'unknown';
     return act.commentAuthor.username || 'unknown';

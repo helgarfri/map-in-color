@@ -261,18 +261,28 @@ router.get('/dashboard', auth, async (req, res) => {
       // (C) Get the user’s own “commented” maps
       // ---------------------------------------------
       const { data: userComments } = await supabaseAdmin
-        .from('comments')
-        .select(`
-          id, content, created_at, status,
-          Map:maps(
-            id, title, selected_map,
-            ocean_color, unassigned_color, font_color,
-            is_title_hidden, groups, data,
-            save_count, created_at
-          )
-        `)
-        .eq('user_id', user_id)
-        .eq('status', 'visible');
+      .from('comments')
+      .select(`
+        id,
+        content,
+        created_at,
+        status,
+        user_id,
+        Map:maps(
+          id, title, selected_map,
+          ocean_color, unassigned_color, font_color,
+          is_title_hidden, groups, data,
+          save_count, created_at
+        ),
+        User:users(
+          id,
+          username,
+          profile_picture
+        )
+      `)
+      .eq('user_id', user_id)
+      .eq('status', 'visible');
+    
   
       const commentedActivities = (userComments || []).map((c) => ({
         type: 'commented',
