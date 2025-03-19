@@ -181,131 +181,268 @@ router.get('/profile/:username', async (req, res) => {
   }
 });
 
-
 /* --------------------------------------------
    GET /api/activity/dashboard
    => (Requires auth)
    => Return “merged feed” for *this* user:
-      - created, starred, commented 
-      - plus notifications
+      1) Created, starred, commented 
+      2) Notifications = other users starring/commenting
 -------------------------------------------- */
 router.get('/dashboard', auth, async (req, res) => {
-  const user_id = req.user.id;
-
-  try {
-    // 1) “Created” maps
-    const { data: createdMaps } = await supabaseAdmin
-      .from('maps')
-      .select(`
-        id, title, selected_map,
-        ocean_color, unassigned_color, font_color,
-        is_title_hidden, groups, data,
-        save_count, created_at
-      `)
-      .eq('user_id', user_id);
-
-    const createdActivities = (createdMaps || []).map((m) => ({
-      type: 'createdMap',
-      created_at: m.created_at,
-      map: {
-        id: m.id,
-        title: m.title,
-        selected_map: m.selected_map,
-        // ...the rest
-      },
-      commentContent: null,
-    }));
-
-    // 2) “Starred” maps => from “map_saves”
-    const { data: starredRows } = await supabaseAdmin
-      .from('map_saves')
-      .select(`created_at, map_id, Map:maps(*)`)
-      .eq('user_id', user_id);
-
-    const starredActivities = (starredRows || []).map((save) => {
-      const m = save.Map;
-      return {
-        type: 'starredMap',
-        created_at: save.created_at,
-        map: m
-          ? {
-              id: m.id,
-              title: m.title,
-              selected_map: m.selected_map,
-              // ...
-            }
-          : null,
-        commentContent: null,
-      };
-    });
-
-    // 3) “Commented” => user posted comments (visible)
-    const { data: userComments } = await supabaseAdmin
-      .from('comments')
-      .select(`
-        id, content, created_at, status,
-        Map:maps(
+    const user_id = req.user.id;
+  
+    try {
+      // ---------------------------------------------
+      // (A) Get the user's own created maps
+      // ---------------------------------------------
+      const { data: createdMaps } = await supabaseAdmin
+        .from('maps')
+        .select(`
           id, title, selected_map,
           ocean_color, unassigned_color, font_color,
           is_title_hidden, groups, data,
           save_count, created_at
-        )
-      `)
-      .eq('user_id', user_id)
-      .eq('status', 'visible');
-
-    const commentedActivities = (userComments || []).map((c) => ({
-      type: 'commented',
-      created_at: c.created_at,
-      commentContent: c.content,
-      map: c.Map || null,
-    }));
-
-    // combine user-based
-    let userActivity = [
-      ...createdActivities,
-      ...starredActivities,
-      ...commentedActivities,
-    ];
-
-    // 4) fetch notifications
-    const { data: allNotifs } = await supabaseAdmin
-      .from('notifications')
-      .select(`
-        id,
-        type,
-        map_id,
-        comment_id,
-        sender_id,
-        created_at,
-        is_read,
-        Map:maps(*),
-        Comment:comments(*),
-        Sender:users!notifications_sender_id_fkey(id, username, profile_picture, status)
-      `)
-      .eq('user_id', user_id);
-
-    const notifActivities = (allNotifs || []).map((n) => ({
-      type: `notification_${n.type}`, 
-      created_at: n.created_at,
-      map: n.Map || null,
-      commentContent: n.Comment?.content || null,
-      notificationData: {
-        id: n.id,
-        is_read: n.is_read,
-        sender: n.Sender || null,
-      },
-    }));
-
-    // 5) Merge + sort
-    let allActivities = [...userActivity, ...notifActivities];
-    allActivities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    return res.json(allActivities);
-  } catch (err) {
-    console.error('Error in GET /api/activity/dashboard:', err);
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-module.exports = router;
+        `)
+        .eq('user_id', user_id);
+  
+      const createdActivities = (createdMaps || []).map((m) => ({
+        type: 'createdMap',
+        created_at: m.created_at,
+        map: {
+          id: m.id,
+          title: m.title,
+          selected_map: m.selected_map,
+          ocean_color: m.ocean_color,
+          unassigned_color: m.unassigned_color,
+          font_color: m.font_color,
+          is_title_hidden: m.is_title_hidden,
+          groups: m.groups,
+          data: m.data,
+          save_count: m.save_count,
+          created_at: m.created_at,
+        },
+        commentContent: null,
+      }));
+  
+      // ---------------------------------------------
+      // (B) Get the user's own "starred" maps
+      // ---------------------------------------------
+      const { data: starredRows } = await supabaseAdmin
+        .from('map_saves')
+        .select(`created_at, map_id, Map:maps(*)`)
+        .eq('user_id', user_id);
+  
+      const starredActivities = (starredRows || []).map((save) => {
+        const m = save.Map;
+        return {
+          type: 'starredMap',
+          created_at: save.created_at,
+          map: m
+            ? {
+                id: m.id,
+                title: m.title,
+                selected_map: m.selected_map,
+                ocean_color: m.ocean_color,
+                unassigned_color: m.unassigned_color,
+                font_color: m.font_color,
+                is_title_hidden: m.is_title_hidden,
+                groups: m.groups,
+                data: m.data,
+                save_count: m.save_count,
+                created_at: m.created_at,
+              }
+            : null,
+          commentContent: null,
+        };
+      });
+  
+      // ---------------------------------------------
+      // (C) Get the user’s own “commented” maps
+      // ---------------------------------------------
+      const { data: userComments } = await supabaseAdmin
+        .from('comments')
+        .select(`
+          id, content, created_at, status,
+          Map:maps(
+            id, title, selected_map,
+            ocean_color, unassigned_color, font_color,
+            is_title_hidden, groups, data,
+            save_count, created_at
+          )
+        `)
+        .eq('user_id', user_id)
+        .eq('status', 'visible');
+  
+      const commentedActivities = (userComments || []).map((c) => ({
+        type: 'commented',
+        created_at: c.created_at,
+        commentContent: c.content,
+        map: c.Map
+          ? {
+              id: c.Map.id,
+              title: c.Map.title,
+              selected_map: c.Map.selected_map,
+              ocean_color: c.Map.ocean_color,
+              unassigned_color: c.Map.unassigned_color,
+              font_color: c.Map.font_color,
+              is_title_hidden: c.Map.is_title_hidden,
+              groups: c.Map.groups,
+              data: c.Map.data,
+              save_count: c.Map.save_count,
+              created_at: c.Map.created_at,
+            }
+          : null,
+      }));
+  
+      // Combine the user’s own activity
+      let userActivity = [
+        ...createdActivities,
+        ...starredActivities,
+        ...commentedActivities,
+      ];
+  
+      // ---------------------------------------------
+      // (D) Fetch and enrich notifications
+      //  => “other users” starring or commenting on *my* maps
+      // ---------------------------------------------
+      const { data: allNotifs, error: notiErr } = await supabaseAdmin
+        .from('notifications')
+        .select(`
+          id,
+          type,
+          user_id,
+          sender_id,
+          map_id,
+          comment_id,
+          created_at,
+          is_read
+        `)
+        .eq('user_id', user_id) // notifications for *this* user
+        .order('created_at', { ascending: false });
+  
+      if (notiErr) {
+        console.error('Error fetching notifications:', notiErr);
+        return res.status(500).json({ msg: 'Server error' });
+      }
+  
+      // If no notifications, just proceed with an empty array
+      const notifications = allNotifs || [];
+  
+      // Gather all relevant IDs so we can fetch the data in 1-2 queries:
+      const senderIds = [];
+      const mapIds = [];
+      const commentIds = [];
+  
+      notifications.forEach((n) => {
+        if (n.sender_id && !senderIds.includes(n.sender_id)) {
+          senderIds.push(n.sender_id);
+        }
+        if (n.map_id && !mapIds.includes(n.map_id)) {
+          mapIds.push(n.map_id);
+        }
+        if (n.comment_id && !commentIds.includes(n.comment_id)) {
+          commentIds.push(n.comment_id);
+        }
+      });
+  
+      // (D1) Fetch sender info
+      let sendersById = {};
+      if (senderIds.length > 0) {
+        const { data: senders } = await supabaseAdmin
+          .from('users')
+          .select(`id, username, profile_picture, status`)
+          .in('id', senderIds);
+  
+        if (senders) {
+          senders.forEach((s) => {
+            sendersById[s.id] = s;
+          });
+        }
+      }
+  
+      // (D2) Fetch maps for notifications
+      let mapsById = {};
+      if (mapIds.length > 0) {
+        const { data: fetchedMaps } = await supabaseAdmin
+          .from('maps')
+          .select(`
+            id, title, selected_map,
+            ocean_color, unassigned_color, font_color,
+            is_title_hidden, groups, data, save_count, created_at
+          `)
+          .in('id', mapIds);
+        if (fetchedMaps) {
+          fetchedMaps.forEach((m) => {
+            mapsById[m.id] = m;
+          });
+        }
+      }
+  
+      // (D3) Fetch comments for notifications
+      let commentsById = {};
+      if (commentIds.length > 0) {
+        // Only fetch “visible” comment(s)
+        const { data: fetchedComments } = await supabaseAdmin
+          .from('comments')
+          .select(`id, content, status`)
+          .in('id', commentIds)
+          .eq('status', 'visible');
+        if (fetchedComments) {
+          fetchedComments.forEach((c) => {
+            commentsById[c.id] = c;
+          });
+        }
+      }
+  
+      // (D4) Build “notifActivities” array, merging the data we fetched
+      const notifActivities = notifications.map((n) => {
+        const sender = n.sender_id ? sendersById[n.sender_id] || null : null;
+        const mapObj = n.map_id ? mapsById[n.map_id] || null : null;
+        const commentObj = n.comment_id ? commentsById[n.comment_id] || null : null;
+  
+        // If you want to exclude banned senders or hidden comments, you can filter them out
+        // For example, if (sender && sender.status==='banned') => skip
+        // Or if (commentObj === null) => skip
+        // That’s up to you.
+  
+        return {
+          type: `notification_${n.type}`, // e.g. “notification_star”, “notification_reply”
+          created_at: n.created_at,
+          map: mapObj
+            ? {
+                id: mapObj.id,
+                title: mapObj.title,
+                selected_map: mapObj.selected_map,
+                ocean_color: mapObj.ocean_color,
+                unassigned_color: mapObj.unassigned_color,
+                font_color: mapObj.font_color,
+                is_title_hidden: mapObj.is_title_hidden,
+                groups: mapObj.groups,
+                data: mapObj.data,
+                save_count: mapObj.save_count,
+                created_at: mapObj.created_at,
+              }
+            : null,
+          commentContent: commentObj ? commentObj.content : null,
+          notificationData: {
+            id: n.id,
+            is_read: n.is_read,
+            sender: sender, // If you want to show "User X did something"
+          },
+        };
+      });
+  
+      // ---------------------------------------------
+      // (E) Merge all activity + sort descending
+      // ---------------------------------------------
+      let allActivities = [...userActivity, ...notifActivities];
+      allActivities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
+      // Return the combined feed
+      return res.json(allActivities);
+    } catch (err) {
+      console.error('Error in GET /api/activity/dashboard:', err);
+      return res.status(500).json({ msg: 'Server error' });
+    }
+  });
+  

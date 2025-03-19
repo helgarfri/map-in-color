@@ -56,10 +56,10 @@ export default function DashboardActivityFeed({ userProfile }) {
     const {
       selected_map,
       title,
-      groups,
+      groups = [],
       ocean_color,
       unassigned_color,
-      data,
+      data = [],
       font_color,
       is_title_hidden,
     } = mapObj;
