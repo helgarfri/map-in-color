@@ -181,6 +181,7 @@ router.get('/profile/:username', async (req, res) => {
   }
 });
 
+
 /* --------------------------------------------
    GET /api/activity/dashboard
    => (Requires auth)
@@ -446,3 +447,4 @@ router.get('/dashboard', auth, async (req, res) => {
     }
   });
   
+module.exports = router;
