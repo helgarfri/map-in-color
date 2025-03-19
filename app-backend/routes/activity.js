@@ -137,30 +137,41 @@ router.get('/profile/:username', async (req, res) => {
       .order('created_at', { ascending: false })
       .limit(1000);
 
-    const commentedActivities = (userComments || []).map((c) => {
-      const map = c.Map;
-      return {
-        type: 'commented',
-        created_at: c.created_at,
-        commentContent: c.content,
-        map: map
-          ? {
-              id: map.id,
-              title: map.title,
-              selected_map: map.selected_map,
-              ocean_color: map.ocean_color,
-              unassigned_color: map.unassigned_color,
-              font_color: map.font_color,
-              is_title_hidden: map.is_title_hidden,
-              groups: map.groups,
-              data: map.data,
-              save_count: map.save_count,
-              created_at: map.created_at,
-            }
-          : null,
-      };
-    });
-
+      const commentedActivities = (userComments || []).map((c) => {
+        const map = c.Map;
+      
+        let commentAuthorData = null;
+        if (c.User) {
+          commentAuthorData = {
+            id: c.User.id,
+            username: c.User.username,
+            profile_picture: c.User.profile_picture,
+          };
+        }
+      
+        return {
+          type: 'commented',
+          created_at: c.created_at,
+          commentContent: c.content,
+          commentAuthor: commentAuthorData, // <-- add this
+          map: map
+            ? {
+                id: map.id,
+                title: map.title,
+                selected_map: map.selected_map,
+                ocean_color: map.ocean_color,
+                unassigned_color: map.unassigned_color,
+                font_color: map.font_color,
+                is_title_hidden: map.is_title_hidden,
+                groups: map.groups,
+                data: map.data,
+                save_count: map.save_count,
+                created_at: map.created_at,
+              }
+            : null,
+        };
+      });
+      
     // 3) Combine them
     let allActivities = [
       ...createdActivities,
