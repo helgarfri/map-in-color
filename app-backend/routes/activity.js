@@ -351,7 +351,7 @@ router.get('/dashboard', auth, async (req, res) => {
       if (senderIds.length > 0) {
         const { data: senders } = await supabaseAdmin
           .from('users')
-          .select(`id, username, profile_picture, status`)
+          .select(`id, username, first_name, last_name, profile_picture, status`)
           .in('id', senderIds);
   
         if (senders) {

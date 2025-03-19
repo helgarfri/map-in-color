@@ -98,28 +98,44 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   // Convert each activity object into display text & render
   function renderActivityItem(act, idx) {
-    // "type" can be: 
-    // 'createdMap', 'starredMap', 'commented'
-    // 'notification_star', 'notification_reply', etc.
-    const { type, map, commentContent, created_at } = act;
+    const { type, map, commentContent, created_at, notificationData } = act;
     const mapThumb = renderMapThumbnail(map);
-
+  
+    // 1) Construct a fallback senderName
+    let senderName = 'Someone';
+    const senderObj = notificationData?.sender;
+    if (senderObj) {
+      if (senderObj.first_name || senderObj.last_name) {
+        senderName = `${senderObj.first_name || ''} ${senderObj.last_name || ''}`.trim();
+      } else if (senderObj.username) {
+        senderName = senderObj.username;
+      }
+    }
+  
+    // 2) Derive the main text
     let mainText = '';
+    const mapTitle = map?.title || 'Untitled';
+  
     if (type === 'createdMap') {
-      mainText = `You created map "${map?.title || 'Untitled'}"`;
+      mainText = `You created map "${mapTitle}"`;
     } else if (type === 'starredMap') {
-      mainText = `You starred map "${map?.title || 'Untitled'}"`;
+      mainText = `You starred map "${mapTitle}"`;
     } else if (type === 'commented') {
-      mainText = `You commented on "${map?.title || 'Untitled'}"`;
-    } else if (type === 'notification_star') {
-      mainText = `Someone starred your map "${map?.title || 'Untitled'}"`;
+      mainText = `You commented on "${mapTitle}"`;
+    } 
+    // Notification types from others
+    else if (type === 'notification_star') {
+      mainText = `${senderName} starred your map "${mapTitle}"`;
     } else if (type === 'notification_reply') {
-      mainText = `Someone replied to your comment on "${map?.title || 'Untitled'}"`;
+      mainText = `${senderName} replied to your comment on "${mapTitle}"`;
+    } else if (type === 'notification_like') {
+      mainText = `${senderName} liked your comment: "${commentContent}"`;
+    } else if (type === 'notification_comment') {
+      mainText = `${senderName} commented on your map "${mapTitle}"`;
     } else {
-      // fallback
       mainText = `Activity: ${type}`;
     }
-
+  
     return (
       <div
         key={idx}
@@ -129,12 +145,9 @@ export default function DashboardActivityFeed({ userProfile }) {
         <div className={dashFeedStyles.thumbContainer}>{mapThumb}</div>
         <div className={dashFeedStyles.activityDetails}>
           <p className={dashFeedStyles.mainText}>{mainText}</p>
-
-          {/* Show comment content if present */}
           {commentContent && (
             <div className={dashFeedStyles.commentText}>{commentContent}</div>
           )}
-
           <span className={dashFeedStyles.timestamp}>
             {timeAgo(created_at)}
           </span>
@@ -142,6 +155,7 @@ export default function DashboardActivityFeed({ userProfile }) {
       </div>
     );
   }
+  
 
   if (isLoading) {
     return <p>Loading Dashboard Activity...</p>;
