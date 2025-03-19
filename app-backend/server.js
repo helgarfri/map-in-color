@@ -61,7 +61,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/explore', exploreRoutes);
 app.use('/api/notify', notifyRoutes); 
 app.use('/api/admin', adminRoutes); 
-app.use/('/api/activity', activityRoutes); 
+app.use('/api/activity', activityRoutes);
 
 // Handle undefined routes
 app.use((req, res) => {
