@@ -330,9 +330,24 @@ router.get('/', auth, async (req, res) => {
   try {
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
-      .select(
-        'id, username, email, first_name, last_name, date_of_birth, location, description, gender, profile_picture, created_at, updated_at'
-      )
+      .select(`
+        id,
+        username,
+        email,
+        first_name,
+        last_name,
+        date_of_birth,
+        location,
+        description,
+        gender,
+        profile_picture,
+        profile_visibility,
+        show_saved_maps,
+        show_comments,
+        show_activity_feed,
+        created_at,
+        updated_at
+      `)
       .eq('id', req.user.id)
       .maybeSingle();
 
@@ -340,7 +355,6 @@ router.get('/', auth, async (req, res) => {
       console.error('Error fetching user:', error);
       return res.status(500).json({ msg: 'Server error' });
     }
-
     if (!userRow) {
       return res.status(404).json({ msg: 'User not found' });
     }
