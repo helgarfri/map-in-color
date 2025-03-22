@@ -25,7 +25,7 @@ export default function ProfileSettings() {
   // ----------------------------
   const [profileVisibility, setProfileVisibility] = useState('everyone');
   const [showSavedMaps, setShowSavedMaps] = useState(true);
-  const [showComments, setShowComments] = useState(true);
+  const [starNotifications, setStarNotifications] = useState(true);
   const [showActivityFeed, setShowActivityFeed] = useState(true);
 
   // ----------------------------
@@ -94,13 +94,22 @@ export default function ProfileSettings() {
           date_of_birth: p.date_of_birth || '',
         });
 
-        // Privacy fields
-        if (p.profile_visibility) {
-          setProfileVisibility(p.profile_visibility);
-        }
-        if (typeof p.show_saved_maps === 'boolean') setShowSavedMaps(p.show_saved_maps);
-        if (typeof p.show_comments === 'boolean') setShowComments(p.show_comments);
-        if (typeof p.show_activity_feed === 'boolean') setShowActivityFeed(p.show_activity_feed);
+          // Privacy fields
+          if (p.profile_visibility) {
+            setProfileVisibility(p.profile_visibility);
+          }
+          if (typeof p.show_saved_maps === 'boolean') {
+            setShowSavedMaps(p.show_saved_maps);
+          }
+          if (typeof p.show_activity_feed === 'boolean') {
+            setShowActivityFeed(p.show_activity_feed);
+          }
+  
+          // NEW: starNotifications
+          if (typeof p.star_notifications === 'boolean') {
+            setStarNotifications(p.star_notifications);
+          }
+
 
         // Profile pic
         if (p.profile_picture) {
@@ -236,11 +245,13 @@ export default function ProfileSettings() {
       payload.append('description', formData.description);
       payload.append('gender', formData.gender);
 
-      // Privacy fields
+     // Privacy fields
       payload.append('profile_visibility', profileVisibility);
       payload.append('show_saved_maps', showSavedMaps);
-      payload.append('show_comments', showComments);
       payload.append('show_activity_feed', showActivityFeed);
+
+      // NEW:
+      payload.append('star_notifications', starNotifications);
 
       // Date of birth only if user never had one
       if (!profile?.date_of_birth && formData.date_of_birth) {
@@ -275,9 +286,9 @@ export default function ProfileSettings() {
       if (typeof updatedProfile.show_saved_maps === 'boolean') {
         setShowSavedMaps(updatedProfile.show_saved_maps);
       }
-      if (typeof updatedProfile.show_comments === 'boolean') {
-        setShowComments(updatedProfile.show_comments);
-      }
+      if (typeof updatedProfile.star_notifications === 'boolean') {
+          setStarNotifications(updatedProfile.star_notifications);
+        }
       if (typeof updatedProfile.show_activity_feed === 'boolean') {
         setShowActivityFeed(updatedProfile.show_activity_feed);
       }
@@ -602,11 +613,11 @@ export default function ProfileSettings() {
                       </div>
 
                       <div className={styles.formRow}>
-                        <label className={styles.formLabel}>Show comments on profile:</label>
+                        <label className={styles.formLabel}>Notify others when you star a map:</label>
                         <div className={styles.formField}>
                           <ToggleSwitch
-                            isOn={showComments}
-                            onToggle={() => setShowComments((prev) => !prev)}
+                            isOn={starNotifications}
+                            onToggle={() => setStarNotifications((prev) => !prev)}
                           />
                         </div>
                       </div>

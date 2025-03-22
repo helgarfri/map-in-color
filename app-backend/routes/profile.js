@@ -391,7 +391,7 @@ router.get('/:username', async (req, res) => {
         status,
         profile_visibility,
         show_saved_maps,
-        show_comments,
+        star_notifications,
         show_activity_feed
       `)
       
@@ -438,7 +438,7 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     gender,
     profile_visibility,
     show_saved_maps,
-    show_comments,
+    star_notifications,
     show_activity_feed,
   } = req.body;
   try {
@@ -485,7 +485,7 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     if (gender !== undefined) updateData.gender = gender;
     if (profile_visibility !== undefined) updateData.profile_visibility = profile_visibility;
     if (show_saved_maps !== undefined)   updateData.show_saved_maps = show_saved_maps;
-    if (show_comments !== undefined)     updateData.show_comments = show_comments;
+    if (star_notifications !== undefined)     updateData.star_notifications = star_notifications;
     if (show_activity_feed !== undefined) updateData.show_activity_feed = show_activity_feed;
 
 
