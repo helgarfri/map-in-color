@@ -222,17 +222,14 @@ export default function ProfileSettings() {
     setProfileVisibility(newVal);
   
     if (newVal === 'onlyMe') {
-      // Force toggles off, disable them
       setShowSavedMaps(false);
       setShowActivityFeed(false);
-      setStarNotifications(false);
     } else if (newVal === 'everyone') {
-      // Force toggles on, enable them
       setShowSavedMaps(true);
       setShowActivityFeed(true);
-      setStarNotifications(true);
     }
   };
+  
   
 
   // ----------------------------
@@ -646,12 +643,12 @@ export default function ProfileSettings() {
                         <label className={styles.formLabel}>Notify others when you star a map:</label>
                         <div className={styles.formField}>
                           <ToggleSwitch
-                                isOn={starNotifications}
-                                onToggle={() => setStarNotifications((prev) => !prev)}
-                                disabled={profileVisibility === 'onlyMe'}
+                            isOn={starNotifications}
+                            onToggle={() => setStarNotifications((prev) => !prev)}
                           />
                         </div>
                       </div>
+
 
                     </div>
 

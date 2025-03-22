@@ -211,11 +211,8 @@ router.get('/', auth, async (req, res) => {
       // If no sender, keep
       if (!s) return true;
 
-      // If this user is private => skip ALL notifications from them
-      // (You can choose to skip only star notifications, or skip everything.)
-      if (s.profile_visibility === 'onlyMe') {
-        return false; // skip all
-      }
+   
+      
 
       // If this is a star-type notification, skip if they disabled star notifications
       // (depending on your naming convention, check `n.type` or `notification_star` etc.)

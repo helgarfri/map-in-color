@@ -453,7 +453,6 @@ router.get('/dashboard', auth, async (req, res) => {
             (n.type === 'star' || n.type === 'map_star' /* adjust if needed */)
             && sender
             && (
-              sender.profile_visibility === 'onlyMe' ||
               sender.star_notifications === false
             )
           ) {
