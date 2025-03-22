@@ -376,9 +376,25 @@ router.get('/:username', async (req, res) => {
   try {
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
-      .select(
-        'id, username, first_name, last_name, date_of_birth, location, description, gender, profile_picture, created_at, updated_at, status', 'profile_visibility', 'show_saved_maps', 'show_comments', 'show_activity_feed'
-      )
+      .select(`
+        id,
+        username,
+        first_name,
+        last_name,
+        date_of_birth,
+        location,
+        description,
+        gender,
+        profile_picture,
+        created_at,
+        updated_at,
+        status,
+        profile_visibility,
+        show_saved_maps,
+        show_comments,
+        show_activity_feed
+      `)
+      
       .eq('username', username)
       .maybeSingle();
 
