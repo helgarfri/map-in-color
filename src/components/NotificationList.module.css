@@ -1,5 +1,4 @@
-/* src/components/NotificationList.module.css */
-
+/* Overall container */
 .notificationsContainer {
   display: flex;
   min-height: 100vh;
@@ -20,40 +19,133 @@
   margin-left: 70px; /* Sidebar width when collapsed */
 }
 
+/* Stat box at the top */
+.statsBar {
+  display: flex;
+  margin: 20px 20px;
+}
+
+.statBox {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-right: 10px;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Notification List */
 .notificationList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+/* Each notification as a card */
 .notificationItem {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  border-bottom: 1px solid #ddd;
+  background-color: #fff;
+  margin: 10px 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   cursor: pointer;
-  margin: 0px 20px 0px 20px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .notificationItem:hover {
   background-color: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .unread {
-  background-color: #e6f7ff; /* Light blue background for unread notifications */
+  background-color: #e6f7ff;
 }
 
 .read {
   background-color: #fff;
 }
 
-/* Left Actions (Mark as Read and Remove) */
-.leftActions {
+/* Notification content layout */
+.notificationContentWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Main info section on the left */
+.mainInfo {
   display: flex;
   align-items: center;
+  flex: 1;
+}
+
+/* Type icon */
+.typeIconWrapper {
   margin-right: 10px;
 }
 
+.typeIcon {
+  font-size: 20px;
+  color: #80a0b0;
+}
+
+/* Profile picture */
+.profile_picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+/* Notification text and time */
+.notificationText {
+  flex: 1;
+}
+
+.notificationContent {
+  margin: 0;
+  font-size: 14px;
+}
+
+.senderLink {
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.senderLink:hover {
+  text-decoration: underline;
+}
+
+.notificationTime {
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
+}
+
+/* Actions on the right */
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Action button styling */
 .actionButton {
   background: none;
   border: none;
@@ -67,72 +159,144 @@
   color: #000;
 }
 
-/* Notification Content */
-.notificationContentWrapper {
+/* No notifications text */
+.noNotifications {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+}
+
+/* --- Skeleton Styles --- */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeletonShimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: #eee;
+}
+
+.skeletonShimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px;
+}
+
+.skeletonNotification {
   display: flex;
   align-items: center;
-  flex: 1;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
 }
 
-/* Notification Type Icon */
-.typeIconWrapper {
-  margin-right: 10px;
-}
-
-.senderLink {
-  color: #000;
-  font-weight: bold;
-}
-
-.senderLink:hover {
-  text-decoration: underline;
-}
-.typeIcon {
-  font-size: 20px;
-  color: #80a0b0;
-}
-
-/* Profile Picture */
-.profile_picture {
+.skeletonAvatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  object-fit: cover;
+  background-color: #ddd;
   margin-right: 10px;
-}
-
-/* Notification Text */
-.notificationText {
-  flex: 1;
-  white-space: nowrap;
+  position: relative;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.notificationContent {
-  margin: 0;
-  font-size: 14px;
+.skeletonAvatar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
 }
 
-.senderName {
-  font-weight: bold;
-  color: #55957b;
-  text-decoration: none;
+.skeletonTextWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.senderName:hover {
-  text-decoration: underline;
+.skeletonLine {
+  height: 12px;
+  background-color: #eee;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Notification Time */
-.notificationTime {
-  font-size: 12px;
-  color: #999;
-  white-space: nowrap;
-  margin-left: 10px;
+.skeletonLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
 }
 
-/* 1) Remove left margin on small screens */
+/* Skeleton actions (optional) */
+.skeletonActions {
+  width: 50px;
+  height: 20px;
+  background-color: #ddd;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonActions::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* Responsive adjustments */
 @media (max-width: 1000px) {
   .mainContent {
     margin-left: 0 !important;
@@ -143,60 +307,45 @@
   }
 }
 
-/* 2) Let notification text wrap + optional stacking at ~600px */
 @media (max-width: 600px) {
   .notificationItem {
     flex-direction: column;
     align-items: flex-start;
-    padding: 10px; /* maybe reduce horizontal padding */
-    margin: 0 10px; 
   }
-
-  /* Put action buttons below text, or keep them on top: your choice */
-  .leftActions {
-    order: 2; /* moves them after the text/time */
+  .mainInfo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actions {
+    align-self: flex-end;
     margin-top: 5px;
-    margin-right: 0;
   }
-
-  .notificationContentWrapper {
-    order: 1;
-    width: 100%; /* so it spans full container */
-  }
-
-  /* Let text wrap normally */
   .notificationText {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
+    margin-left: 0;
+  }
+  .notificationTime {
+    margin-top: 5px;
   }
 }
 
-/* 3) Very small ~400px phones: shrink icons, fonts, pictures */
 @media (max-width: 400px) {
   .notificationItem {
-    padding: 8px;
-    margin: 0 5px;
+    padding: 10px;
+    margin: 5px;
   }
-
   .profile_picture {
     width: 30px;
     height: 30px;
   }
-
   .typeIcon {
-    font-size: 16px; /* smaller than 20px */
+    font-size: 16px;
   }
-
   .notificationContent {
-    font-size: 12px; 
+    font-size: 12px;
   }
-
   .notificationTime {
     font-size: 10px;
-    margin-left: auto; /* or put it on a new line, your choice */
   }
-
   .actionButton {
     font-size: 14px;
     padding: 3px;

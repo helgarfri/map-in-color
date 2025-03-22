@@ -9,7 +9,6 @@ import { FaStar, FaSearch } from 'react-icons/fa';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
-import LoadingSpinner from './LoadingSpinner';
 
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
@@ -18,6 +17,9 @@ function Explore() {
   // Maps & tags
   const [maps, setMaps] = useState([]);
   const [allMapsForTags, setAllMapsForTags] = useState([]);
+
+  // Tracking if we've fully loaded once
+  const [initialLoad, setInitialLoad] = useState(true);
 
   // Search (uncontrolled)
   const [searchApplied, setSearchApplied] = useState('');
@@ -30,7 +32,7 @@ function Explore() {
   // Pagination
   const [page, setPage] = useState(1);
   const [totalMaps, setTotalMaps] = useState(0);
-  const mapsPerPage = 24;
+  const mapsPerPage = 40;
 
   // Loading
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,7 @@ function Explore() {
   }, [width, isCollapsed, setIsCollapsed]);
 
   //-------------------------------------------
-  // 1) Fetch top 50 tags
+  // 1) Fetch top 50 tags (on mount)
   //-------------------------------------------
   useEffect(() => {
     const fetchTags = async () => {
@@ -99,12 +101,18 @@ function Explore() {
       if (selectedTags.length > 0) {
         params.tags = selectedTags.join(',');
       }
+
       const res = await axios.get(
         'https://map-in-color.onrender.com/api/explore',
         { params }
       );
       setMaps(res.data.maps);
       setTotalMaps(res.data.total);
+
+      // If this is the first time we load, set initialLoad to false once done
+      if (initialLoad) {
+        setInitialLoad(false);
+      }
     } catch (err) {
       console.error('Error fetching maps:', err);
     } finally {
@@ -137,14 +145,12 @@ function Explore() {
 
   // Clear the search
   const handleClearSearch = () => {
-    // reset search input + state
     if (searchRef.current) {
       searchRef.current.value = '';
     }
     setSearchApplied('');
     setPage(1);
 
-    // also remove ?page from the URL
     const params = new URLSearchParams(location.search);
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
@@ -152,13 +158,17 @@ function Explore() {
 
   // (B) Toggling a tag
   const handleTagChange = (tag) => {
-    setLoading(true);
+    // We do not treat this as a brand new initial load.
+    // So we won't revert initialLoad to true again – we only
+    // set it to false once and keep it false thereafter.
+
     let newSelected;
     if (selectedTags.includes(tag)) {
       newSelected = selectedTags.filter((t) => t !== tag);
     } else {
       newSelected = [...selectedTags, tag];
     }
+
     const params = new URLSearchParams(location.search);
     if (newSelected.length) {
       params.set('tags', newSelected.join(','));
@@ -195,7 +205,9 @@ function Explore() {
   const totalPages = Math.ceil(totalMaps / mapsPerPage);
   const handlePageChange = (newPage) => {
     if (newPage === page) return;
+    // We only do partial skeleton on subsequent loads
     setLoading(true);
+
     const params = new URLSearchParams(location.search);
     params.set('page', newPage.toString());
     navigate(`?${params.toString()}`, { replace: true });
@@ -232,6 +244,96 @@ function Explore() {
       : username;
   };
 
+  /* ------------------------------------------------------------------
+     RENDER LOGIC:
+     1) If first load & loading => show FULL skeleton (tags, inputs, etc.)
+     2) Else => show normal layout, but if loading => show skeleton
+        only for the map cards portion.
+  ------------------------------------------------------------------ */
+
+  // 1) If STILL loading *and* it's the first load => show entire skeleton
+  if (initialLoad && loading) {
+    return (
+      <div className={styles.explorePageContainer}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+        {showOverlay && (
+          <div
+            className={styles.sidebarOverlay}
+            onClick={() => setIsCollapsed(true)}
+          />
+        )}
+
+        <div
+          className={`${styles.mainContentWrapper} ${
+            isCollapsed ? styles.collapsed : ''
+          }`}
+        >
+          <Header
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            title="Explore"
+          />
+
+          <div className={styles.exploreContent}>
+            {/* Skeleton Top Bar (Sort + Search) */}
+            <div className={styles.skeletonTopBar}>
+              <div className={styles.skeletonSortTabs}>
+                <div className={styles.skeletonSortTab} />
+                <div className={styles.skeletonSortTab} />
+                <div className={styles.skeletonSortTab} />
+              </div>
+
+              <div className={styles.skeletonSearchForm}>
+                <div className={styles.skeletonSearchInput} />
+                <div className={styles.skeletonSearchButton} />
+                
+              </div>
+            </div>
+
+            {/* Skeleton "Results" text */}
+            <div className={styles.skeletonResultsRow}>
+              <div className={styles.skeletonResultsText} />
+            </div>
+
+            <div className={styles.skeletonMainContent}>
+              {/* Left: Skeleton Grid of Map Cards */}
+              <div className={styles.skeletonMapsGrid}>
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div className={styles.skeletonMapCard} key={i}>
+                    <div className={styles.skeletonThumb} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Right: Skeleton Tags Sidebar */}
+              <div className={styles.skeletonTagsSidebar}>
+                <div className={styles.skeletonTagTitle} />
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div key={i} className={styles.skeletonTagLine} />
+                ))}
+              </div>
+            </div>
+
+            {/* Skeleton Pagination (optional) */}
+            <div className={styles.skeletonPagination}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className={styles.skeletonPageBtn} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2) Otherwise => Render normal layout
+  //    But if loading & NOT the first load => partial skeleton for map cards
+  const showMapsSkeleton = !initialLoad && loading;
+
   return (
     <div className={styles.explorePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -255,7 +357,7 @@ function Explore() {
         />
 
         <div className={styles.exploreContent}>
-          {/* Top Bar: Sort & Search */}
+          {/* Top Bar: Sort & Search (always real, never skeleton now) */}
           <div className={styles.topBar}>
             <div className={styles.sortTabs}>
               <span className={styles.sortByLabel}>Sort by:</span>
@@ -287,7 +389,6 @@ function Explore() {
 
             <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
               <div className={styles.searchInputContainer}>
-                {/* Clear Search Button (only if searchApplied is non-empty) */}
                 {searchApplied.trim() !== '' && (
                   <button
                     type="button"
@@ -347,9 +448,20 @@ function Explore() {
           <div className={styles.mainContent}>
             {/* Maps Section */}
             <div className={styles.mapsSection}>
-              {loading ? (
-                <LoadingSpinner />
+              {showMapsSkeleton ? (
+                /* PARTIAL skeleton for map cards only */
+                <div className={styles.skeletonMapsGrid}>
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div className={styles.skeletonMapCard} key={i}>
+                      <div className={styles.skeletonThumb} />
+                      <div className={styles.skeletonLine} />
+                      <div className={styles.skeletonLine} />
+                      <div className={styles.skeletonLine} />
+                    </div>
+                  ))}
+                </div>
               ) : (
+                /* Real map cards */
                 <div className={styles.mapsGrid}>
                   {maps.length === 0 ? (
                     <p>No maps found.</p>
@@ -394,8 +506,8 @@ function Explore() {
                 </div>
               )}
 
-              {/* Pagination: Render only when not loading */}
-              {!loading && totalPages > 1 && (
+              {/* Pagination: show only if more than 1 page */}
+              {!showMapsSkeleton && totalPages > 1 && (
                 <div className={styles.pagination}>
                   <button
                     onClick={() => handlePageChange(page - 1)}
@@ -422,7 +534,7 @@ function Explore() {
               )}
             </div>
 
-            {/* Tag Sidebar */}
+            {/* Tag Sidebar (always real, never skeleton after first load) */}
             <div className={styles.tagsSidebar}>
               <h2>Filter by Tags</h2>
               <div className={styles.tagsList}>
@@ -434,7 +546,7 @@ function Explore() {
                       onChange={() => handleTagChange(item.tag)}
                     />
                     <span className={styles.checkboxTag}>
-                      {item.tag}{' '}
+                      {item.tag}&nbsp;
                       <span style={{ color: '#999', fontSize: '0.9em' }}>
                         ({item.count})
                       </span>

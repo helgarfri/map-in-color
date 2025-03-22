@@ -1,5 +1,3 @@
-// src/components/StarredMaps.js
-
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './StarredMaps.module.css';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +14,6 @@ import { FaStar } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { UserContext } from '../context/UserContext';
-import LoadingSpinner from './LoadingSpinner';
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
@@ -31,13 +28,11 @@ export default function StarredMaps() {
   const { width } = useWindowSize();
 
   useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
     if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
     }
   }, [width, isCollapsed, setIsCollapsed]);
 
-  
   useEffect(() => {
     const getStarredMaps = async () => {
       try {
@@ -116,6 +111,50 @@ export default function StarredMaps() {
     return null;
   }
 
+  // --------------------------
+  // SKELETON VIEW (while loading)
+  // --------------------------
+  if (loading) {
+    return (
+      <div className={styles.starredMapsContainer}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <div
+          className={`${styles.starredMapsContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
+          <Header
+            title="Starred Maps"
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+          <div className={styles.skeletonMapsGrid}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className={styles.skeletonMapCard}>
+                <div className={styles.skeletonThumbnail} />
+                <div
+                  className={styles.skeletonLine}
+                  style={{ width: '70%', marginBottom: '6px' }}
+                />
+                <div
+                  className={styles.skeletonLine}
+                  style={{ width: '40%', marginBottom: '6px' }}
+                />
+                <div
+                  className={styles.skeletonLine}
+                  style={{ width: '90%' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --------------------------
+  // REAL CONTENT
+  // --------------------------
   return (
     <div className={styles.starredMapsContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -134,18 +173,14 @@ export default function StarredMaps() {
           title="Starred Maps"
         />
 
-        {loading ? (
-          <LoadingSpinner />
-        ) : error ? (
+        {error ? (
           <p>Error fetching starred maps. Please try again later.</p>
         ) : maps.length > 0 ? (
           <div className={styles.mapsGrid}>
             {maps.map((map) => {
               const mapTitle = map.title || 'Untitled Map';
-              // Check if the joined user data is returned as an array or object
               const creator = map.user;
-              const creatorUsername =
-                creator?.username || 'Unknown';
+              const creatorUsername = creator?.username || 'Unknown';
               return (
                 <div
                   key={map.id}

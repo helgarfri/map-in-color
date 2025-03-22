@@ -1,5 +1,3 @@
-// src/components/NotificationList.js
-
 import React, { useEffect, useState, useContext } from 'react';
 import styles from './NotificationList.module.css';
 import {
@@ -18,7 +16,14 @@ import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
 // Icons
-import { FaStar, FaComment, FaReply, FaThumbsUp, FaCheck, FaTrash } from 'react-icons/fa';
+import {
+  FaStar,
+  FaComment,
+  FaReply,
+  FaThumbsUp,
+  FaCheck,
+  FaTrash,
+} from 'react-icons/fa';
 
 export default function NotificationList() {
   const [notifications, setNotifications] = useState([]);
@@ -29,17 +34,14 @@ export default function NotificationList() {
   const { width } = useWindowSize();
 
   useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
     if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
     }
   }, [width, isCollapsed, setIsCollapsed]);
-  
 
   useEffect(() => {
     const getNotifications = async () => {
       try {
-        // Make the API call to your backend to get notifications
         const res = await fetchNotifications();
         setNotifications(res.data);
       } catch (err) {
@@ -48,18 +50,20 @@ export default function NotificationList() {
         setIsLoading(false);
       }
     };
-
     getNotifications();
   }, []);
 
-  // Clicking anywhere on the notification → mark as read + navigate to map
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  // Clicking on a notification marks it as read and navigates (if map_id exists)
   const handleNotificationClick = async (notification) => {
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
+        prev.map((n) =>
+          n.id === notification.id ? { ...n, is_read: true } : n
+        )
       );
-      // If the notification references a map, navigate to it
       if (notification.map_id) {
         navigate(`/map/${notification.map_id}`);
       }
@@ -68,31 +72,35 @@ export default function NotificationList() {
     }
   };
 
-  // Mark a notification as read, but don’t navigate
+  // Mark a notification as read without navigating
   const handleMarkAsRead = async (e, notification) => {
-    e.stopPropagation(); // avoid triggering the parent click
+    e.stopPropagation();
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
+        prev.map((n) =>
+          n.id === notification.id ? { ...n, is_read: true } : n
+        )
       );
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
   };
 
-  // Delete notification
+  // Delete a notification
   const handleDeleteNotification = async (e, notification) => {
     e.stopPropagation();
     try {
       await deleteNotification(notification.id);
-      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      setNotifications((prev) =>
+        prev.filter((n) => n.id !== notification.id)
+      );
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
   };
 
-  // Determine the best icon based on notification.type
+  // Choose an icon based on notification type
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'star':
@@ -108,28 +116,44 @@ export default function NotificationList() {
     }
   };
 
-  // Generate the main text of the notification
-  // (You can customize this further if needed)
+  // Create the notification message
   const getNotificationMessage = (notification) => {
-    // Safely read out the fields with optional chaining
     const senderName =
       notification.Sender?.first_name ||
       notification.Sender?.username ||
       'Unknown';
-
     const mapTitle = notification.Map?.title || 'Untitled Map';
-
     switch (notification.type) {
       case 'star':
-        return <>starred your map <strong>{mapTitle}</strong>.</>;
+        return (
+          <>
+            starred your map <strong>{mapTitle}</strong>.
+          </>
+        );
       case 'comment':
-        return <>commented on your map <strong>{mapTitle}</strong>.</>;
+        return (
+          <>
+            commented on your map <strong>{mapTitle}</strong>.
+          </>
+        );
       case 'reply':
-        return <>replied to your comment on <strong>{mapTitle}</strong>.</>;
+        return (
+          <>
+            replied to your comment on <strong>{mapTitle}</strong>.
+          </>
+        );
       case 'like':
-        return <>liked your comment on <strong>{mapTitle}</strong>.</>;
+        return (
+          <>
+            liked your comment on <strong>{mapTitle}</strong>.
+          </>
+        );
       default:
-        return <>performed an action on <strong>{mapTitle}</strong>.</>;
+        return (
+          <>
+            performed an action on <strong>{mapTitle}</strong>.
+          </>
+        );
     }
   };
 
@@ -145,16 +169,13 @@ export default function NotificationList() {
 
   return (
     <div className={styles.notificationsContainer}>
-      {/* Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      {/* Main content area */}
       <div
         className={`${styles.mainContent} ${
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-        {/* Header with "mark all as read" */}
         <Header
           notifications={notifications.slice(0, 6)}
           onNotificationClick={handleNotificationClick}
@@ -164,9 +185,33 @@ export default function NotificationList() {
           title="Notifications"
         />
 
-        {/* If loading, show spinner; otherwise show notifications list */}
+        {/* Stat box showing unread notifications */}
+        <div className={styles.statsBar}>
+          <div className={styles.statBox}>
+            <span className={styles.statValue}>{unreadCount}</span>
+            <div className={styles.statLabel}>Unread Notifications</div>
+          </div>
+        </div>
+
         {isLoading ? (
-          <LoadingSpinner />
+          <div className={styles.skeletonContainer}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={styles.skeletonNotification}>
+                <div className={styles.skeletonAvatar}></div>
+                <div className={styles.skeletonTextWrapper}>
+                  <div
+                    className={styles.skeletonLine}
+                    style={{ width: '80%', marginBottom: '6px' }}
+                  ></div>
+                  <div
+                    className={styles.skeletonLine}
+                    style={{ width: '60%' }}
+                  ></div>
+                </div>
+                <div className={styles.skeletonActions}></div>
+              </div>
+            ))}
+          </div>
         ) : notifications.length > 0 ? (
           <ul className={styles.notificationList}>
             {notifications.map((notification) => (
@@ -177,73 +222,68 @@ export default function NotificationList() {
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                {/* Left quick actions (Mark as read, Delete) */}
-                <div className={styles.leftActions}>
-                  <button
-                    className={styles.actionButton}
-                    onClick={(e) => handleMarkAsRead(e, notification)}
-                    title="Mark as read"
-                  >
-                    <FaCheck />
-                  </button>
-                  <button
-                    className={styles.actionButton}
-                    onClick={(e) => handleDeleteNotification(e, notification)}
-                    title="Remove notification"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-
-                {/* Main notification content */}
                 <div className={styles.notificationContentWrapper}>
-                  <div className={styles.typeIconWrapper}>
-                    {getNotificationIcon(notification.type)}
+                  <div className={styles.mainInfo}>
+                    <div className={styles.typeIconWrapper}>
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <img
+                      src={
+                        notification.Sender?.profile_picture
+                          ? notification.Sender.profile_picture
+                          : '/default-profile-pic.jpg'
+                      }
+                      alt={`${
+                        notification.Sender?.first_name ||
+                        notification.Sender?.username ||
+                        'Unknown'
+                      }'s profile`}
+                      className={styles.profile_picture}
+                    />
+                    <div className={styles.notificationText}>
+                      <p className={styles.notificationContent}>
+                        <Link
+                          to={`/profile/${
+                            notification.Sender?.username || 'unknown'
+                          }`}
+                          onClick={(e) => e.stopPropagation()}
+                          className={styles.senderLink}
+                        >
+                          {notification.Sender?.first_name ||
+                            notification.Sender?.username ||
+                            'Unknown'}
+                        </Link>{' '}
+                        {getNotificationMessage(notification)}
+                      </p>
+                      <div className={styles.notificationTime}>
+                        {formatDistanceToNow(new Date(notification.created_at), {
+                          addSuffix: true,
+                        })}
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Sender's profile picture (if any) */}
-                  <img
-                     src={
-                      notification.Sender?.profile_picture
-                        ? notification.Sender.profile_picture
-                        : '/default-profile-pic.jpg'
-                    }
-                    alt={`${
-                      notification.Sender?.first_name ||
-                      notification.Sender?.username ||
-                      'Unknown'
-                    }'s profile`}
-                    className={styles.profile_picture}
-                  />
-
-                  <div className={styles.notificationText}>
-                    <p className={styles.notificationContent}>
-                      {/* Link to the sender’s profile (if they exist) */}
-                      <Link
-                        to={`/profile/${notification.Sender?.username || 'unknown'}`}
-                        onClick={(e) => e.stopPropagation()} // so we don't click open the map
-                        className={styles.senderLink}
-                      >
-                        {notification.Sender?.first_name ||
-                          notification.Sender?.username ||
-                          'Unknown'}
-                      </Link>{' '}
-                      {getNotificationMessage(notification)}
-                    </p>
-                  </div>
-
-                  {/* Time ago */}
-                  <div className={styles.notificationTime}>
-                    {formatDistanceToNow(new Date(notification.created_at), {
-                      addSuffix: true,
-                    })}
+                  <div className={styles.actions}>
+                    <button
+                      className={styles.actionButton}
+                      onClick={(e) => handleMarkAsRead(e, notification)}
+                      title="Mark as read"
+                    >
+                      <FaCheck />
+                    </button>
+                    <button
+                      className={styles.actionButton}
+                      onClick={(e) => handleDeleteNotification(e, notification)}
+                      title="Remove notification"
+                    >
+                      <FaTrash />
+                    </button>
                   </div>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p>No notifications.</p>
+          <p className={styles.noNotifications}>No notifications.</p>
         )}
       </div>
     </div>

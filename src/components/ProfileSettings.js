@@ -22,14 +22,17 @@ export default function ProfileSettings() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
-    if (width < 1000 && !isCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [width, isCollapsed, setIsCollapsed]);
+  // ----------------------------
+  // Privacy states
+  // ----------------------------
+  const [profileVisibility, setProfileVisibility] = useState('everyone');
+  const [showSavedMaps, setShowSavedMaps] = useState(true);
+  const [showComments, setShowComments] = useState(true);
+  const [showActivityFeed, setShowActivityFeed] = useState(true);
 
-
+  // ----------------------------
+  // Basic profile form states
+  // ----------------------------
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -41,8 +44,11 @@ export default function ProfileSettings() {
     date_of_birth: '',
   });
 
+  // Profile picture states
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('');
   const [profile_picture, setProfilePicture] = useState(null);
+
+  // UI feedback
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -52,6 +58,7 @@ export default function ProfileSettings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
 
+  // Which fields are in “edit mode”
   const [editFields, setEditFields] = useState({
     first_name: false,
     last_name: false,
@@ -61,12 +68,26 @@ export default function ProfileSettings() {
 
   const navigate = useNavigate();
 
+  // ----------------------------
+  // Auto-collapse sidebar on narrow screens
+  // ----------------------------
+  useEffect(() => {
+    if (width < 1000 && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [width, isCollapsed, setIsCollapsed]);
+
+  // ----------------------------
+  // Fetch initial profile
+  // ----------------------------
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const res = await fetchUserProfile();
         const profileData = res.data;
         setProfile(profileData);
+
+        // Fill out form data
         setFormData({
           username: profileData.username,
           email: profileData.email,
@@ -77,6 +98,22 @@ export default function ProfileSettings() {
           gender: profileData.gender || '',
           date_of_birth: profileData.date_of_birth || '',
         });
+
+        // Fill out privacy data
+        if (profileData.profile_visibility) {
+          setProfileVisibility(profileData.profile_visibility);
+        }
+        if (typeof profileData.show_saved_maps === 'boolean') {
+          setShowSavedMaps(profileData.show_saved_maps);
+        }
+        if (typeof profileData.show_comments === 'boolean') {
+          setShowComments(profileData.show_comments);
+        }
+        if (typeof profileData.show_activity_feed === 'boolean') {
+          setShowActivityFeed(profileData.show_activity_feed);
+        }
+
+        // Profile picture
         const pictureUrl = profileData.profile_picture
           ? profileData.profile_picture
           : '/default-profile-pic.jpg';
@@ -91,7 +128,9 @@ export default function ProfileSettings() {
     fetchProfileData();
   }, []);
 
+  // ----------------------------
   // Crop states and functions
+  // ----------------------------
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -142,9 +181,12 @@ export default function ProfileSettings() {
     });
   }
 
+  // ----------------------------
+  // Input handlers
+  // ----------------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleProfilePictureChange = (e) => {
@@ -190,25 +232,45 @@ export default function ProfileSettings() {
     setShowCountryModal(false);
   };
 
+  // ----------------------------
+  // Submit all changes at once
+  // ----------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
     try {
       const formDataToSend = new FormData();
+
+      // Basic fields
       formDataToSend.append('first_name', formData.first_name);
       formDataToSend.append('last_name', formData.last_name);
       formDataToSend.append('location', formData.location);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('gender', formData.gender);
+
+      // New: the privacy settings
+      formDataToSend.append('profile_visibility', profileVisibility);
+      formDataToSend.append('show_saved_maps', showSavedMaps);
+      formDataToSend.append('show_comments', showComments);
+      formDataToSend.append('show_activity_feed', showActivityFeed);
+
+      // Only send DOB if user never had one before but now set it
       if (!profile.date_of_birth && formData.date_of_birth) {
         formDataToSend.append('date_of_birth', formData.date_of_birth);
       }
+
+      // If there's a new (cropped) image
       if (profile_picture) {
         formDataToSend.append('profile_picture', profile_picture);
       }
+
+      // Update the server
       const res = await updateUserProfile(formDataToSend);
       const updatedProfile = res.data;
+
+      // Update local states
       setProfile(updatedProfile);
       setFormData({
         username: updatedProfile.username,
@@ -220,10 +282,27 @@ export default function ProfileSettings() {
         gender: updatedProfile.gender || '',
         date_of_birth: updatedProfile.date_of_birth || '',
       });
+
+      // Also update local privacy states with what the server returned, in case
+      // we want to read it back from server response. (Optional)
+      if (updatedProfile.profile_visibility) {
+        setProfileVisibility(updatedProfile.profile_visibility);
+      }
+      if (typeof updatedProfile.show_saved_maps === 'boolean') {
+        setShowSavedMaps(updatedProfile.show_saved_maps);
+      }
+      if (typeof updatedProfile.show_comments === 'boolean') {
+        setShowComments(updatedProfile.show_comments);
+      }
+      if (typeof updatedProfile.show_activity_feed === 'boolean') {
+        setShowActivityFeed(updatedProfile.show_activity_feed);
+      }
+
       const pictureUrl = updatedProfile.profile_picture
         ? updatedProfile.profile_picture
         : '/default-profile-pic.jpg';
       setLocalProfilePictureUrl(pictureUrl);
+
       setSuccess('Profile updated successfully!');
       setEditFields({
         first_name: false,
@@ -237,6 +316,9 @@ export default function ProfileSettings() {
     }
   };
 
+  // ----------------------------
+  // Delete account
+  // ----------------------------
   const handleDeleteAccount = () => {
     setShowDeleteModal(true);
   };
@@ -244,18 +326,26 @@ export default function ProfileSettings() {
     setShowDeleteModal(false);
     navigate('/delete-account');
   };
+
+  // ----------------------------
+  // Change password
+  // ----------------------------
   const handleChangePassword = () => {
     navigate('/change-password');
   };
 
-  // Format date of birth to dd/mm/yyyy
+  // ----------------------------
+  // Format DOB to dd/mm/yyyy
+  // ----------------------------
   const formattedDOB = formData.date_of_birth
     ? format(new Date(formData.date_of_birth), 'dd/MM/yyyy')
     : 'Not specified';
 
+  // ----------------------------
+  // Rendering
+  // ----------------------------
   return (
     <div className={styles.profileContainer}>
-      {/* Always render Sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
         <Header
@@ -263,13 +353,14 @@ export default function ProfileSettings() {
          setIsCollapsed={setIsCollapsed}
          title="Settings"
         />
+
         {loadingProfile ? (
           <LoadingSpinner />
         ) : errorProfile ? (
           <div className={styles.error}>{errorProfile}</div>
         ) : (
           <>
-            {/* Navigation Tabs */}
+            {/* Tabs */}
             <div className={styles.navigationTabs}>
               <button
                 className={`${styles.navTab} ${activeTab === 'account' ? styles.activeTab : ''}`}
@@ -284,22 +375,20 @@ export default function ProfileSettings() {
                 Profile
               </button>
               <button
-                className={`${styles.navTab} ${activeTab === 'notifications' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('notifications')}
-              >
-                Notifications
-              </button>
-              <button
                 className={`${styles.navTab} ${activeTab === 'privacy' ? styles.activeTab : ''}`}
                 onClick={() => setActiveTab('privacy')}
               >
                 Privacy
               </button>
             </div>
+
+            {/* Success / Error messages */}
             {success && <div className={styles.successBox}>{success}</div>}
             {error && <div className={styles.errorBox}>{error}</div>}
+
             <div className={styles.mainContent}>
               <form onSubmit={handleSubmit} className={styles.profileForm}>
+                {/* ACCOUNT TAB */}
                 {activeTab === 'account' && (
                   <>
                     <div className={styles.formRow}>
@@ -311,6 +400,7 @@ export default function ProfileSettings() {
                         </div>
                       </div>
                     </div>
+
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Username:</label>
                       <div className={styles.formField}>
@@ -320,6 +410,8 @@ export default function ProfileSettings() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Gender - using a modal */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Gender:</label>
                       <div className={styles.formField}>
@@ -342,6 +434,8 @@ export default function ProfileSettings() {
                         onClose={() => setShowGenderModal(false)}
                       />
                     )}
+
+                    {/* Location - using a modal */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Location:</label>
                       <div className={styles.formField}>
@@ -360,6 +454,8 @@ export default function ProfileSettings() {
                         onClose={() => setShowCountryModal(false)}
                       />
                     )}
+
+                    {/* DOB logic */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Date of Birth:</label>
                       <div className={styles.formField}>
@@ -381,13 +477,15 @@ export default function ProfileSettings() {
                             <FaPencilAlt
                               className={styles.editIcon}
                               onClick={() =>
-                                setEditFields({ ...editFields, date_of_birth: true })
+                                setEditFields((prev) => ({ ...prev, date_of_birth: true }))
                               }
                             />
                           </div>
                         )}
                       </div>
                     </div>
+
+                    {/* Change password */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Password:</label>
                       <div className={styles.formField}>
@@ -401,21 +499,10 @@ export default function ProfileSettings() {
                         </button>
                       </div>
                     </div>
-                    <div className={styles.formRow}>
-                      <label className={styles.formLabel}></label>
-                      <div className={styles.formField}>
-                        <button
-                          type="button"
-                          className={styles.deleteButton}
-                          onClick={handleDeleteAccount}
-                        >
-                          <FaHeartBroken className={styles.buttonIcon} />
-                          Delete Account
-                        </button>
-                      </div>
-                    </div>
                   </>
                 )}
+
+                {/* PROFILE TAB */}
                 {activeTab === 'profile' && (
                   <>
                     <div className={styles.formRow}>
@@ -434,13 +521,14 @@ export default function ProfileSettings() {
                             <FaPencilAlt
                               className={styles.editIcon}
                               onClick={() =>
-                                setEditFields({ ...editFields, first_name: true })
+                                setEditFields((prev) => ({ ...prev, first_name: true }))
                               }
                             />
                           </div>
                         )}
                       </div>
                     </div>
+
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Last Name:</label>
                       <div className={styles.formField}>
@@ -457,13 +545,14 @@ export default function ProfileSettings() {
                             <FaPencilAlt
                               className={styles.editIcon}
                               onClick={() =>
-                                setEditFields({ ...editFields, last_name: true })
+                                setEditFields((prev) => ({ ...prev, last_name: true }))
                               }
                             />
                           </div>
                         )}
                       </div>
                     </div>
+
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Profile Picture:</label>
                       <div className={styles.formField}>
@@ -492,6 +581,7 @@ export default function ProfileSettings() {
                         </div>
                       </div>
                     </div>
+
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Description:</label>
                       <div className={styles.formField}>
@@ -508,7 +598,7 @@ export default function ProfileSettings() {
                             <FaPencilAlt
                               className={styles.editIcon}
                               onClick={() =>
-                                setEditFields({ ...editFields, description: true })
+                                setEditFields((prev) => ({ ...prev, description: true }))
                               }
                             />
                           </div>
@@ -517,12 +607,75 @@ export default function ProfileSettings() {
                     </div>
                   </>
                 )}
-                {activeTab === 'notifications' && (
-                  <p>Notification settings are not implemented yet.</p>
-                )}
+
+                {/* PRIVACY TAB */}
                 {activeTab === 'privacy' && (
-                  <p>Privacy settings are not implemented yet.</p>
+                  <>
+                    <div className={styles.privacySection}>
+                      <h3 className={styles.privacyHeading}>Profile Visibility</h3>
+
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel}>Who can view your profile:</label>
+                        <div className={styles.formField}>
+                          <select
+                            value={profileVisibility}
+                            onChange={(e) => setProfileVisibility(e.target.value)}
+                            className={styles.privacySelect}
+                          >
+                            <option value="everyone">Everyone</option>
+                            <option value="onlyMe">Only Me</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel}>Show saved maps on profile:</label>
+                        <div className={styles.formField}>
+                          <ToggleSwitch
+                            isOn={showSavedMaps}
+                            onToggle={() => setShowSavedMaps((prev) => !prev)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel}>Show comments on profile:</label>
+                        <div className={styles.formField}>
+                          <ToggleSwitch
+                            isOn={showComments}
+                            onToggle={() => setShowComments((prev) => !prev)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel}>Show activity feed on profile:</label>
+                        <div className={styles.formField}>
+                          <ToggleSwitch
+                            isOn={showActivityFeed}
+                            onToggle={() => setShowActivityFeed((prev) => !prev)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.deleteSection}>
+                      <h3 className={styles.deleteHeading}>Delete Account</h3>
+                      <p className={styles.deleteWarning}>
+                        ⚠️ Permanently delete your account and all data
+                      </p>
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={handleDeleteAccount}
+                      >
+                        <FaHeartBroken className={styles.buttonIcon} />
+                        Delete My Account
+                      </button>
+                    </div>
+                  </>
                 )}
+
                 <button type="submit" className={styles.saveButton}>
                   Save Changes
                 </button>
@@ -532,6 +685,7 @@ export default function ProfileSettings() {
         )}
       </div>
 
+      {/* Delete Confirmation */}
       {showDeleteModal && (
         <DeleteConfirmationModal
           onClose={() => setShowDeleteModal(false)}
@@ -539,6 +693,7 @@ export default function ProfileSettings() {
         />
       )}
 
+      {/* Crop Modal */}
       {showCropModal && (
         <CropModal
           imageSrc={localProfilePictureUrl}
@@ -608,9 +763,7 @@ function GenderPickerModal({ selectedGender, onSelectGender, onClose }) {
           {genders.map((g) => (
             <div
               key={g}
-              className={`${styles.genderItem} ${
-                g === selectedGender ? styles.selectedItem : ''
-              }`}
+              className={`${styles.genderItem} ${g === selectedGender ? styles.selectedItem : ''}`}
               onClick={() => onSelectGender(g)}
             >
               {g}
@@ -688,5 +841,20 @@ function CropModal({ imageSrc, crop, setCrop, zoom, setZoom, onCropComplete, onS
         </div>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------
+   Toggle Switch
+------------------------------ */
+function ToggleSwitch({ isOn, onToggle }) {
+  return (
+    <button
+      type="button"
+      className={`${styles.toggleButton} ${isOn ? styles.toggleOn : styles.toggleOff}`}
+      onClick={onToggle}
+    >
+      {isOn ? 'On' : 'Off'}
+    </button>
   );
 }

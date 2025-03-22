@@ -332,6 +332,73 @@
   font-weight: bold;
 }
 
+/* Privacy Section */
+.privacySection {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.privacyHeading {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.3rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.privacySelect {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 200px;
+}
+
+/* Toggle Switch */
+.toggleButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  min-width: 70px;
+}
+
+.toggleOn {
+  background-color: #55957b;
+  color: white;
+}
+
+.toggleOff {
+  background-color: #e0e0e0;
+  color: #666;
+}
+
+/* Delete Account Section */
+.deleteSection {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #fff8f8;
+  border-radius: 8px;
+  border: 1px solid #ffe0e0;
+}
+
+.deleteHeading {
+  color: #d9534f;
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+.deleteWarning {
+  color: #721c24;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
 /* DELETE MODAL */
 .modalButtons {
   display: flex;

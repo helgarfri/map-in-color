@@ -1,5 +1,3 @@
-/* src/components/StarredMaps.module.css */
-
 /* Overall container */
 .starredMapsContainer {
   display: flex;
@@ -7,7 +5,6 @@
   color: black;
   margin-top: 60px;
   background-color: #f7f7f7;
-
 }
 
 /* Main content area */
@@ -22,19 +19,19 @@
   margin-left: 70px; /* Adjust for collapsed sidebar */
 }
 
-/* Grid of map cards */
+/* Grid of map cards - matching YourMaps layout */
 .mapsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
-  margin: 20px 0;
+  margin-top: 20px;
 }
 
 /* Individual map card styling */
 .mapCard {
   background: #fff;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow 0.2s ease;
@@ -49,7 +46,7 @@
 /* Thumbnail container */
 .thumbnail {
   width: 100%;
-  height: 200px;
+  height: 150px; /* Adjusted to match YourMaps */
   position: relative;
   overflow: hidden;
   display: flex;
@@ -105,11 +102,112 @@
   font-size: 12px;
 }
 
-/* 1) On screens under 1000px, remove left margin & optionally reduce padding */
+/* --- Skeleton Animation --- */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeletonShimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: #eee;
+}
+.skeletonShimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* --- Skeleton Maps Grid --- */
+.skeletonMapsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Skeleton map card */
+.skeletonMapCard {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+/* Skeleton thumbnail */
+.skeletonThumbnail {
+  width: 100%;
+  height: 150px;
+  border-radius: 4px;
+  background-color: #ddd;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.skeletonThumbnail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* Skeleton line for text */
+.skeletonLine {
+  width: 100%;
+  height: 12px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.skeletonLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* Responsive adjustments */
+
+/* Under 1000px */
 @media (max-width: 1000px) {
   .starredMapsContent {
     margin-left: 0 !important;
-    padding: 10px !important; /* optional smaller padding */
+    padding: 10px !important;
     width: 100%;
   }
   .contentCollapsed {
@@ -117,7 +215,7 @@
   }
 }
 
-/* 2) On screens under 600px: 2 columns, smaller text, etc. */
+/* Under 600px: two columns */
 @media (max-width: 600px) {
   .mapsGrid {
     grid-template-columns: 1fr 1fr;
@@ -131,7 +229,7 @@
   }
 }
 
-/* 3) On screens under 400px: single column, even smaller text, smaller thumbnail */
+/* Under 400px: single column */
 @media (max-width: 400px) {
   .mapsGrid {
     grid-template-columns: 1fr;
@@ -142,7 +240,7 @@
   .mapTitle {
     font-size: 0.9rem;
     margin: 8px;
-    white-space: normal; /* allow multiple lines if needed */
+    white-space: normal;
   }
   .mapInfoRow {
     font-size: 0.8rem;

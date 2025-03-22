@@ -1,9 +1,13 @@
-// src/components/YourMaps.js
-
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './YourMaps.module.css';
 import { useNavigate } from 'react-router-dom';
-import { fetchMaps, deleteMap, fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../api';
+import {
+  fetchMaps,
+  deleteMap,
+  fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '../api';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
@@ -11,7 +15,6 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import { formatDistanceToNow } from 'date-fns';
 import { FaStar, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
-import LoadingSpinner from './LoadingSpinner';
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
@@ -21,22 +24,22 @@ export default function YourMaps() {
   const [notifications, setNotifications] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState(null);
+
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const navigate = useNavigate();
+  const { width } = useWindowSize();
 
-  const { width } = useWindowSize(); // get screen width
   useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
     if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
     }
   }, [width, isCollapsed, setIsCollapsed]);
 
-
   useEffect(() => {
     const getMaps = async () => {
       try {
         const res = await fetchMaps();
+        // Sort maps by updated_at descending
         const sortedMaps = res.data.sort(
           (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
@@ -149,11 +152,68 @@ export default function YourMaps() {
     return null;
   };
 
+  // --------------------------
+  // SKELETON VIEW
+  // --------------------------
+  if (isLoading) {
+    return (
+      <div className={styles.myMapsContainer}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <div
+          className={`${styles.myMapsContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
+          <Header
+            title="Your Maps"
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+
+          {/* Skeleton Stats Bar */}
+          <div className={styles.skeletonStatsBar}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={styles.skeletonStatBox} />
+            ))}
+          </div>
+
+          {/* Skeleton Maps Grid */}
+          <div className={styles.skeletonMapsGrid}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className={styles.skeletonMapCard}>
+                <div className={styles.skeletonThumbnail} />
+                <div
+                  className={styles.skeletonLine}
+                  style={{ width: '70%', marginBottom: '6px' }}
+                />
+                <div
+                  className={styles.skeletonLine}
+                  style={{ width: '40%', marginBottom: '6px' }}
+                />
+                <div
+                  className={styles.skeletonLine}
+                  style={{ width: '90%' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --------------------------
+  // REAL CONTENT
+  // --------------------------
   return (
     <div className={styles.myMapsContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <div className={`${styles.myMapsContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+      <div
+        className={`${styles.myMapsContent} ${
+          isCollapsed ? styles.contentCollapsed : ''
+        }`}
+      >
         <Header
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
@@ -164,39 +224,39 @@ export default function YourMaps() {
         />
 
         {/* Stats Bar */}
-        {!isLoading && (
-          <div className={styles.statsBar}>
-            <div className={styles.statBox}>
-              <FaMap className={styles.statIcon} />
-              <div className={styles.statValue}>{totalMaps}</div>
-              <div className={styles.statLabel}>Total Maps</div>
-            </div>
-            <div className={styles.statBox}>
-              <FaGlobe className={styles.statIcon} />
-              <div className={styles.statValue}>{publicMaps}</div>
-              <div className={styles.statLabel}>Public</div>
-            </div>
-            <div className={styles.statBox}>
-              <FaLock className={styles.statIcon} />
-              <div className={styles.statValue}>{privateMaps}</div>
-              <div className={styles.statLabel}>Private</div>
-            </div>
-            <div className={styles.statBox}>
-              <FaStar className={styles.statIcon} style={{ color: '#000' }} />
-              <div className={styles.statValue}>{totalStars}</div>
-              <div className={styles.statLabel}>Stars</div>
-            </div>
+        <div className={styles.statsBar}>
+          <div className={styles.statBox}>
+            <FaMap className={styles.statIcon} />
+            <div className={styles.statValue}>{totalMaps}</div>
+            <div className={styles.statLabel}>Total Maps</div>
           </div>
-        )}
+          <div className={styles.statBox}>
+            <FaGlobe className={styles.statIcon} />
+            <div className={styles.statValue}>{publicMaps}</div>
+            <div className={styles.statLabel}>Public</div>
+          </div>
+          <div className={styles.statBox}>
+            <FaLock className={styles.statIcon} />
+            <div className={styles.statValue}>{privateMaps}</div>
+            <div className={styles.statLabel}>Private</div>
+          </div>
+          <div className={styles.statBox}>
+            <FaStar className={styles.statIcon} style={{ color: '#000' }} />
+            <div className={styles.statValue}>{totalStars}</div>
+            <div className={styles.statLabel}>Stars</div>
+          </div>
+        </div>
 
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : maps.length > 0 ? (
+        {maps.length > 0 ? (
           <div className={styles.mapsGrid}>
             {maps.map((map) => {
               const mapTitle = map.title || 'Untitled Map';
               return (
-                <div key={map.id} className={styles.mapCard} onClick={() => navigate(`/map/${map.id}`)}>
+                <div
+                  key={map.id}
+                  className={styles.mapCard}
+                  onClick={() => navigate(`/map/${map.id}`)}
+                >
                   <div className={styles.thumbnail}>
                     {renderMapThumbnail(map)}
                   </div>
@@ -204,7 +264,10 @@ export default function YourMaps() {
                     <h3 className={styles.mapTitle}>{mapTitle}</h3>
                     <div className={styles.detailsRow}>
                       <span className={styles.modified}>
-                        Modified {formatDistanceToNow(new Date(map.updated_at), { addSuffix: true })}
+                        Modified{' '}
+                        {formatDistanceToNow(new Date(map.updated_at), {
+                          addSuffix: true,
+                        })}
                       </span>
                       <span className={styles.visibility}>
                         {map.is_public ? (
@@ -220,13 +283,29 @@ export default function YourMaps() {
                     </div>
                     <div className={styles.statsRow}>
                       <div className={styles.starCount}>
-                        <FaStar className={styles.starIcon} /> {map.save_count || 0}
+                        <FaStar className={styles.starIcon} />{' '}
+                        {map.save_count || 0}
                       </div>
                     </div>
                     <div className={styles.actionsRow}>
-                      <button className={styles.viewButton} onClick={(e) => handleView(e, map.id)}>View</button>
-                      <button className={styles.editButton} onClick={(e) => handleEdit(e, map.id)}>Edit</button>
-                      <button className={styles.deleteButton} onClick={(e) => handleDelete(e, map.id)}>Delete</button>
+                      <button
+                        className={styles.viewButton}
+                        onClick={(e) => handleView(e, map.id)}
+                      >
+                        View
+                      </button>
+                      <button
+                        className={styles.editButton}
+                        onClick={(e) => handleEdit(e, map.id)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className={styles.deleteButton}
+                        onClick={(e) => handleDelete(e, map.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -239,14 +318,29 @@ export default function YourMaps() {
 
         {showDeleteModal && (
           <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div
+              className={styles.modalContent}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h2>Confirm Delete</h2>
               <p>
-                Are you sure you want to delete the map titled "<strong>{mapToDelete?.title || 'Untitled Map'}</strong>"? This action cannot be undone.
+                Are you sure you want to delete the map titled{' '}
+                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>? This
+                action cannot be undone.
               </p>
               <div className={styles.modalButtons}>
-                <button className={styles.deleteButtonModal} onClick={confirmDelete}>Delete</button>
-                <button className={styles.cancelButton} onClick={cancelDelete}>Cancel</button>
+                <button
+                  className={styles.deleteButtonModal}
+                  onClick={confirmDelete}
+                >
+                  Delete
+                </button>
+                <button
+                  className={styles.cancelButton}
+                  onClick={cancelDelete}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

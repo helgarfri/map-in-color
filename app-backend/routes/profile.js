@@ -406,8 +406,11 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     location,
     description,
     gender,
+    profile_visibility,
+    show_saved_maps,
+    show_comments,
+    show_activity_feed,
   } = req.body;
-
   try {
     // 1) fetch user from "users"
     const { data: userRow, error: findErr } = await supabaseAdmin
@@ -450,6 +453,11 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     if (location !== undefined) updateData.location = location;
     if (description !== undefined) updateData.description = description;
     if (gender !== undefined) updateData.gender = gender;
+    if (profile_visibility !== undefined) updateData.profile_visibility = profile_visibility;
+    if (show_saved_maps !== undefined)   updateData.show_saved_maps = show_saved_maps;
+    if (show_comments !== undefined)     updateData.show_comments = show_comments;
+    if (show_activity_feed !== undefined) updateData.show_activity_feed = show_activity_feed;
+
 
     // Only set date_of_birth if userRow.date_of_birth is null
     if (!userRow.date_of_birth && date_of_birth) {

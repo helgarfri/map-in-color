@@ -79,7 +79,7 @@ export default function ProfilePage() {
   const [loadingMaps, setLoadingMaps] = useState(false);
 
   const [mapsPage, setMapsPage] = useState(1);
-  const mapsPerPage = 12; // or 24, up to you
+  const mapsPerPage = 12;
   const [mapsTotal, setMapsTotal] = useState(0);
 
   const [sortMapsBy, setSortMapsBy] = useState('newest');
@@ -96,6 +96,8 @@ export default function ProfilePage() {
 
   const [sortStarredBy, setSortStarredBy] = useState('newest');
 
+  
+
   // =========================================================================
   // 1) Load user profile by username
   // =========================================================================
@@ -105,7 +107,6 @@ export default function ProfilePage() {
         setLoadingProfile(true);
         const res = await fetchUserProfileByUsername(username);
         setProfile(res.data);
-
         if (res.data?.profile_picture) {
           setProfilePictureUrl(res.data.profile_picture);
         } else {
@@ -143,7 +144,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'maps') return;
-
     async function fetchMaps() {
       try {
         setLoadingMaps(true);
@@ -170,7 +170,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'starred') return;
-
     async function fetchStarredMapsFn() {
       try {
         setLoadingStarred(true);
@@ -197,7 +196,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'activity') return;
-
     async function fetchActivityData() {
       try {
         setLoadingActivity(true);
@@ -209,7 +207,6 @@ export default function ProfilePage() {
         setLoadingActivity(false);
       }
     }
-
     fetchActivityData();
   }, [profile, currentTab]);
 
@@ -218,8 +215,6 @@ export default function ProfilePage() {
   // =========================================================================
   function handleTabChange(tab) {
     setCurrentTab(tab);
-
-    // reset pages if switching tabs
     if (tab === 'maps') {
       setMapsPage(1);
     } else if (tab === 'starred') {
@@ -243,12 +238,11 @@ export default function ProfilePage() {
     setIsReporting(true);
     try {
       await reportProfile(profile.username, {
-        reasons: [reportReasons],         // still from state or ref
-        details: reportDetailsRef.current // read from ref here
+        reasons: [reportReasons],
+        details: reportDetailsRef.current
       });
       setShowReportSuccess(true);
       setReportReasons('');
-
       setTimeout(() => {
         setShowReportModal(false);
         setShowReportSuccess(false);
@@ -294,8 +288,7 @@ export default function ProfilePage() {
           <h3 className={styles.cardTitle}>{mapTitle}</h3>
           <div className={styles.detailsRow}>
             <span className={styles.modified}>
-              Modified{' '}
-              {formatDistanceToNow(new Date(map.updated_at), { addSuffix: true })}
+              Modified {formatDistanceToNow(new Date(map.updated_at), { addSuffix: true })}
             </span>
             <span className={styles.starDisplay}>
               <FaStar className={styles.starIcon} /> {map.save_count || 0}
@@ -321,87 +314,96 @@ export default function ProfilePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // -------------
-  // PAGE LOADING
-  // -------------
+  // =========================================================================
+  // SKELETON VIEW for Profile (if loadingProfile is true)
+  // =========================================================================
   if (loadingProfile) {
     return (
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div
-          className={`${styles.profileContent} ${
-            isCollapsed ? styles.contentCollapsed : ''
-          }`}
-        >
+        <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
           <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-          <div className={styles.loadingContainer}>
-            <LoadingSpinner />
+          {/* Use the same container as the final layout */}
+          <div className={styles.mainContainer}>
+            {/* Left Column: Skeleton Profile Info */}
+            <div className={styles.leftColumn}>
+              <div className={styles.skeletonProfileInfo}>
+                <div className={styles.skeletonProfilePicture} />
+                <div className={styles.skeletonUsername} />
+                <div className={styles.skeletonFullName} />
+                <div className={styles.skeletonInfoRow}>
+                  <div className={styles.skeletonInfoItem} />
+                  <div className={styles.skeletonInfoItem} />
+                </div>
+                <div className={styles.skeletonStatsRow}>
+                  <div className={styles.skeletonStatsItem} />
+                  <div className={styles.skeletonStatsItem} />
+                </div>
+                <div className={styles.skeletonBio} />
+                <div className={styles.skeletonButton} />
+              </div>
+            </div>
+            {/* Right Column: Skeleton Tabs and Cards */}
+            <div className={styles.rightColumn}>
+              <div className={styles.skeletonTabs}>
+                <div className={styles.skeletonTab} />
+                <div className={styles.skeletonTab} />
+                <div className={styles.skeletonTab} />
+              </div>
+              <div className={styles.skeletonCardsGrid}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className={styles.skeletonCard}>
+                    <div className={styles.skeletonCardThumbnail} />
+                    <div className={styles.skeletonCardText} />
+                    <div className={styles.skeletonCardTextShort} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // -------------
+  // =========================================================================
   // NO PROFILE FOUND
-  // -------------
+  // =========================================================================
   if (!profile) {
     return (
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div
-          className={`${styles.profileContent} ${
-            isCollapsed ? styles.contentCollapsed : ''
-          }`}
-        >
-          <Header
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            title="User Not Found"
-          />
+        <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title="User Not Found" />
           <div className={styles.error}>Profile not found.</div>
         </div>
       </div>
     );
   }
 
-  // -------------
+  // =========================================================================
   // MAIN RENDER
-  // -------------
+  // =========================================================================
   const mapsTotalPages = Math.ceil(mapsTotal / mapsPerPage);
   const starredTotalPages = Math.ceil(starredTotal / starredPerPage);
 
   return (
     <div className={styles.profilePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
-      <div
-        className={`${styles.profileContent} ${
-          isCollapsed ? styles.contentCollapsed : ''
-        }`}
-      >
-        <Header
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          title={profile.username}
-        />
+      <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+        <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={profile.username} />
 
         <div className={styles.mainContainer}>
           {/* LEFT COLUMN: Profile Info */}
           <div className={styles.leftColumn}>
             <div className={styles.profileInfoBox}>
               <div className={styles.profilePictureWrapper}>
-                <img
-                  src={profilePictureUrl}
-                  alt="Profile"
-                  className={styles.profilePicture}
-                />
+                <img src={profilePictureUrl} alt="Profile" className={styles.profilePicture} />
               </div>
               <h2 className={styles.username}>@{profile.username}</h2>
               <h1 className={styles.fullName}>
                 {profile.first_name} {profile.last_name}
               </h1>
-
               <div className={styles.infoRow}>
                 {profile.location && (
                   <div className={styles.infoItem}>
@@ -413,19 +415,15 @@ export default function ProfilePage() {
                   <div className={styles.infoItem}>
                     <FaBirthdayCake className={styles.icon} />
                     <span>
-                      {new Date(profile.date_of_birth).toLocaleDateString(
-                        'en-US',
-                        {
-                          month: 'long',
-                          day: '2-digit',
-                          year: 'numeric',
-                        }
-                      )}
+                      {new Date(profile.date_of_birth).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })}
                     </span>
                   </div>
                 )}
               </div>
-
               <div className={styles.statsRowInfo}>
                 <div className={styles.statsItem}>
                   <FaStar className={styles.icon} />
@@ -436,27 +434,18 @@ export default function ProfilePage() {
                   <span>{totalMaps} Maps</span>
                 </div>
               </div>
-
               {profile.description && (
                 <div className={styles.bio}>
                   <p>{profile.description}</p>
                 </div>
               )}
-
               {isMyProfile && (
-                <button
-                  className={styles.editProfileButton}
-                  onClick={() => navigate('/settings')}
-                >
+                <button className={styles.editProfileButton} onClick={() => navigate('/settings')}>
                   Edit Profile
                 </button>
               )}
-
               {!isMyProfile && isUserLoggedIn && (
-                <button
-                  className={styles.reportProfileButton}
-                  onClick={handleReportProfile}
-                >
+                <button className={styles.reportProfileButton} onClick={handleReportProfile}>
                   <svg
                     className={styles.icon}
                     xmlns="http://www.w3.org/2000/svg"
@@ -475,27 +464,21 @@ export default function ProfilePage() {
           <div className={styles.rightColumn}>
             <div className={styles.tabs}>
               <button
-                className={`${styles.tabButton} ${
-                  currentTab === 'maps' ? styles.activeTab : ''
-                }`}
+                className={`${styles.tabButton} ${currentTab === 'maps' ? styles.activeTab : ''}`}
                 onClick={() => handleTabChange('maps')}
               >
                 <FaMap className={styles.tabIcon} />
                 <span>Maps</span>
               </button>
               <button
-                className={`${styles.tabButton} ${
-                  currentTab === 'starred' ? styles.activeTab : ''
-                }`}
+                className={`${styles.tabButton} ${currentTab === 'starred' ? styles.activeTab : ''}`}
                 onClick={() => handleTabChange('starred')}
               >
                 <FaBookmark className={styles.tabIcon} />
                 <span>Starred</span>
               </button>
               <button
-                className={`${styles.tabButton} ${
-                  currentTab === 'activity' ? styles.activeTab : ''
-                }`}
+                className={`${styles.tabButton} ${currentTab === 'activity' ? styles.activeTab : ''}`}
                 onClick={() => handleTabChange('activity')}
               >
                 <FaListUl className={styles.tabIcon} />
@@ -507,9 +490,7 @@ export default function ProfilePage() {
               {/* =========== MAPS TAB =========== */}
               {currentTab === 'maps' && (
                 <>
-                  {/* Single row: LEFT: "Sort by..."    RIGHT: "Page X of Y" */}
                   <div className={styles.topBarRow}>
-                    {/* Left side: sort */}
                     <div className={styles.sortRowLeft}>
                       <label htmlFor="sortMapsSelect">Sort by:</label>
                       <select
@@ -526,22 +507,23 @@ export default function ProfilePage() {
                         <option value="mostStarred">Most Starred</option>
                       </select>
                     </div>
-                    {/* Right side: Page X of Y */}
                     {mapsTotal > 0 && (
                       <div className={styles.pageCountRight}>
-                        {mapsTotal > 0 && (
-                          <span>
-                            Page {mapsPage} of {Math.ceil(mapsTotal / mapsPerPage)}
-                          </span>
-                        )}
+                        <span>
+                          Page {mapsPage} of {Math.ceil(mapsTotal / mapsPerPage)}
+                        </span>
                       </div>
                     )}
                   </div>
-
-                  {/* Loading / No Maps / Maps */}
                   {loadingMaps ? (
-                    <div className={styles.loadingContainer}>
-                      <LoadingSpinner />
+                    <div className={styles.skeletonCardsGrid}>
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className={styles.skeletonCard}>
+                          <div className={styles.skeletonCardThumbnail} />
+                          <div className={styles.skeletonCardText} />
+                          <div className={styles.skeletonCardTextShort} />
+                        </div>
+                      ))}
                     </div>
                   ) : userMaps.length === 0 ? (
                     <p>No maps found.</p>
@@ -550,11 +532,8 @@ export default function ProfilePage() {
                       {userMaps.map((map) => renderMapCard(map))}
                     </div>
                   )}
-
-                  {/* Pagination (‹ 1 2 3 ›) */}
                   {userMaps.length > 0 && (
                     <div className={styles.pagination}>
-                      {/* only show if multiple pages */}
                       {mapsTotalPages > 1 && (
                         <>
                           <button
@@ -563,19 +542,15 @@ export default function ProfilePage() {
                           >
                             ‹
                           </button>
-
-                          {Array.from({ length: mapsTotalPages }, (_, i) => i + 1).map(
-                            (p) => (
-                              <button
-                                key={p}
-                                onClick={() => handleMapsPageChange(p)}
-                                className={p === mapsPage ? styles.activePage : ''}
-                              >
-                                {p}
-                              </button>
-                            )
-                          )}
-
+                          {Array.from({ length: mapsTotalPages }, (_, i) => i + 1).map((p) => (
+                            <button
+                              key={p}
+                              onClick={() => handleMapsPageChange(p)}
+                              className={p === mapsPage ? styles.activePage : ''}
+                            >
+                              {p}
+                            </button>
+                          ))}
                           <button
                             onClick={() => handleMapsPageChange(mapsPage + 1)}
                             disabled={mapsPage >= mapsTotalPages}
@@ -617,10 +592,15 @@ export default function ProfilePage() {
                       </div>
                     )}
                   </div>
-
                   {loadingStarred ? (
-                    <div className={styles.loadingContainer}>
-                      <LoadingSpinner />
+                    <div className={styles.skeletonCardsGrid}>
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className={styles.skeletonCard}>
+                          <div className={styles.skeletonCardThumbnail} />
+                          <div className={styles.skeletonCardText} />
+                          <div className={styles.skeletonCardTextShort} />
+                        </div>
+                      ))}
                     </div>
                   ) : starredMaps.length === 0 ? (
                     <p>No starred maps.</p>
@@ -629,7 +609,6 @@ export default function ProfilePage() {
                       {starredMaps.map((map) => renderMapCard(map))}
                     </div>
                   )}
-
                   {starredMaps.length > 0 && (
                     <div className={styles.pagination}>
                       {starredTotalPages > 1 && (
@@ -640,19 +619,15 @@ export default function ProfilePage() {
                           >
                             ‹
                           </button>
-
-                          {Array.from({ length: starredTotalPages }, (_, i) => i + 1).map(
-                            (p) => (
-                              <button
-                                key={p}
-                                onClick={() => handleStarredPageChange(p)}
-                                className={p === starredPage ? styles.activePage : ''}
-                              >
-                                {p}
-                              </button>
-                            )
-                          )}
-
+                          {Array.from({ length: starredTotalPages }, (_, i) => i + 1).map((p) => (
+                            <button
+                              key={p}
+                              onClick={() => handleStarredPageChange(p)}
+                              className={p === starredPage ? styles.activePage : ''}
+                            >
+                              {p}
+                            </button>
+                          ))}
                           <button
                             onClick={() => handleStarredPageChange(starredPage + 1)}
                             disabled={starredPage >= starredTotalPages}
@@ -704,10 +679,8 @@ export default function ProfilePage() {
               <>
                 <h3>Report Profile</h3>
                 <p>
-                  Please let us know why you are reporting{' '}
-                  <strong>@{profile.username}</strong>:
+                  Please let us know why you are reporting <strong>@{profile.username}</strong>:
                 </p>
-
                 <div className={styles.reportOptions}>
                   <label className={styles.reportOption}>
                     <input
@@ -760,7 +733,6 @@ export default function ProfilePage() {
                     Harassment or bullying
                   </label>
                 </div>
-
                 <div className={styles.reportDetails}>
                   <label>Optional additional details:</label>
                   <textarea
@@ -770,7 +742,6 @@ export default function ProfilePage() {
                     }}
                   />
                 </div>
-
                 <div className={styles.modalActions}>
                   <button onClick={handleSubmitProfileReport}>Submit</button>
                   <button onClick={() => setShowReportModal(false)}>Cancel</button>

@@ -486,6 +486,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
     }
   };
 
+  
+
   if (isLoading || !mapData) {
     return (
       <div className={styles.mapDetailContainer}>

@@ -1,60 +1,76 @@
-/* src/components/Explore.module.css */
+/* Explore.module.css */
 
+/* ----------------------------
+   LAYOUT WRAPPER
+---------------------------- */
 .explorePageContainer {
   display: flex;
   min-height: 100vh;
   color: black;
-  margin-top: 60px;
+  margin-top: 60px; /* If your header is fixed at 60px */
   background-color: #f7f7f7;
-
 }
 
+/* Main wrapper for the content area (beside the sidebar) */
 .mainContentWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 250px; /* expanded sidebar width */
-  padding: 20px; 
-
+  margin-left: 250px; /* width when sidebar is expanded */
+  padding: 15px;      /* smaller padding */
 }
 
 .mainContentWrapper.collapsed {
-  margin-left: 80px;
+  margin-left: 70px; /* collapsed sidebar width */
 }
 
 .exploreContent {
-  padding: 20px;
+  padding: 15px; /* smaller padding */
   box-sizing: border-box;
   width: 100%;
 }
 
-/* Top Bar */
+/* Overlay for small screens if sidebar is open */
+.sidebarOverlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px);
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 998;
+}
+
+/* ----------------------------
+   TOP BAR (SORT + SEARCH)
+---------------------------- */
 .topBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px; 
 }
 
+/* Sort Tabs */
 .sortTabs {
   display: flex;
   align-items: center;
 }
 
 .sortByLabel {
-  font-weight: bold;
-  margin-right: 10px;
-  font-size: 1rem;
+  font-weight: 500;
+  margin-right: 8px;
+  font-size: 0.9rem;
   color: #555;
 }
 
 .tabButton {
   background-color: transparent;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 10px; 
   cursor: pointer;
-  font-size: 1rem;
-  margin-right: 10px;
+  font-size: 0.9rem;
+  margin-right: 6px;
   border-bottom: 2px solid transparent;
   transition: border-color 0.2s ease;
 }
@@ -65,7 +81,7 @@
 
 .activeTab {
   border-bottom-color: #333;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 /* Search Form */
@@ -80,12 +96,12 @@
 }
 
 .searchInputContainer input {
-  padding: 8px;
-  font-size: 1rem;
+  padding: 6px;
+  font-size: 0.9rem;
   border: 1px solid #ccc;
   border-right: none;
   border-radius: 4px 0 0 4px;
-  width: 300px;
+  width: 220px;
   transition: border-color 0.3s ease;
 }
 
@@ -98,10 +114,10 @@
   background-color: #ccc;
   border: 1px solid #ccc;
   border-left: none;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 0 4px 4px 0;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #555;
   display: flex;
   align-items: center;
@@ -112,15 +128,15 @@
   background-color: #bbb;
 }
 
+/* "Clear Search" - smaller label & padding */
 .clearSearchButton {
   background-color: #ccc;
   border: 1px solid #ccc;
   padding: 4px 6px;
   border-radius: 4px 0 0 4px; 
-  /* so it merges nicely with the left side of input */
-  margin-right: 10px; /* spacing between it & the input */
+  margin-right: 8px;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #555;
   transition: background-color 0.3s ease;
 }
@@ -129,30 +145,31 @@
   background-color: #bbb;
 }
 
-
-/* Results Row */
+/* ----------------------------
+   RESULTS ROW
+---------------------------- */
 .resultsRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .totalResults {
-  font-weight: bold;
-  font-size: 1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
   color: #444;
 }
 
 .selectedTagsRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .selectedTagsList {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -162,18 +179,18 @@
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 0.9rem;
+  padding: 3px 6px;
+  font-size: 0.8rem;
 }
 
 .selectedTagText {
-  margin-right: 8px;
+  margin-right: 6px;
 }
 
 .removeTagButton {
   background: none;
   border: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #555;
   cursor: pointer;
   padding: 0;
@@ -184,31 +201,35 @@
   font-weight: bold;
 }
 
-/* Main Content (maps + tag sidebar) */
+/* ----------------------------
+   MAIN CONTENT (MAPS + SIDEBAR)
+---------------------------- */
 .mainContent {
   display: flex;
-  align-items: stretch;
-  gap: 20px;
+  align-items: flex-start;
+  gap: 15px;
 }
 
-/* Maps Section */
 .mapsSection {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
+/* Grid of map cards => min 220px to match skeleton */
 .mapsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
 }
 
-/* Map Card */
+/* ----------------------------
+   MAP CARD
+---------------------------- */
 .mapCard {
   background: #fff;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow 0.2s ease;
@@ -217,12 +238,13 @@
 }
 
 .mapCard:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+/* Match skeleton's 120px height */
 .thumbnail {
   width: 100%;
-  height: 200px;
+  height: 140px; /* was 100% or 200px, now fixed to 120px */
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -235,10 +257,11 @@
   height: 100%;
 }
 
+/* Title + map info => smaller font, margins */
 .mapTitle {
-  font-size: 1.2rem;
-  margin: 10px;
-  margin-bottom: 5px;
+  font-size: 1rem;
+  margin: 8px;
+  margin-bottom: 4px;
   color: #333;
 }
 
@@ -246,41 +269,44 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 10px 10px 10px;
-  font-size: 0.9rem;
+  margin: 0 8px 8px 8px;
+  font-size: 0.8rem;
   color: #555;
 }
 
-/* Tags within Card */
+/* Tag chips in the card => smaller */
 .tags {
-  margin: 0 10px 10px 10px;
+  margin: 0 8px 8px 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
 }
 
 .tag {
   display: inline-block;
   background-color: #e0e0e0;
   color: #333;
-  padding: 2.5px 5px;
+  padding: 2px 5px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
-/* Pagination */
+/* ----------------------------
+   PAGINATION
+---------------------------- */
 .pagination {
   display: flex;
   gap: 5px;
-  margin-top: 20px;
+  margin-top: 15px;
   justify-content: center;
 }
 
 .pagination button {
-  padding: 8px 12px;
+  padding: 5px 8px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.8rem;
   transition: background-color 0.3s ease;
 }
 
@@ -298,24 +324,25 @@
   color: #fff;
 }
 
-/* Tag Sidebar */
+/* ----------------------------
+   TAG SIDEBAR
+---------------------------- */
 .tagsSidebar {
   display: flex;
   flex-direction: column;
-  background-color: #ffffffb9;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 10px;
+  padding: 8px; 
   flex-shrink: 0;
-  width: 250px;
-  min-width: 250px;
+  width: 200px;
+  min-width: 200px;
   height: auto;
   align-self: flex-start;
 }
 
 .tagsSidebar h2 {
-  margin: 0 0 10px 0;
-  font-size: 1.2rem;
+  margin: 0 0 8px 0;
+  font-size: 1rem;
 }
 
 .tagsList {
@@ -323,37 +350,365 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .tagCheckbox {
   display: flex;
   align-items: center;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 
 .tagCheckbox input {
-  margin-right: 8px;
+  margin-right: 6px;
 }
 
-/* The same overlay styles you used in Dashboard.module.css */
-.sidebarOverlay {
-  position: fixed;
-  top: 60px;          /* same top as your fixed header */
+.checkboxTag {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ----------------------------
+   SHIMMER ANIMATION (SKELETON)
+---------------------------- */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeletonShimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: #eee;
+}
+.skeletonShimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
   left: 0;
-  width: 100%;
-  height: calc(100% - 60px);
-  background: rgba(0,0,0,0.4);
-  z-index: 998;       /* just below the sidebar’s z-index */
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
 }
 
+/* ----------------------------
+   SKELETON COMPONENTS
+---------------------------- */
+.skeletonTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
 
-/* Explore.module.css */
+.skeletonSortTabs {
+  display: flex;
+  gap: 8px;
+}
+.skeletonSortTab {
+  width: 50px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonSortTab::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* Skeleton search form */
+.skeletonSearchForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.skeletonSearchInput {
+  width: 150px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonSearchInput::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+.skeletonSearchButton {
+  width: 30px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonSearchButton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* skeleton results row */
+.skeletonResultsRow {
+  margin-bottom: 10px;
+}
+.skeletonResultsText {
+  width: 120px;
+  height: 14px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonResultsText::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* skeleton main content area */
+.skeletonMainContent {
+  display: flex;
+  gap: 15px;
+}
+
+/* skeleton map cards area => 220px min, same as real */
+.skeletonMapsGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+}
+.skeletonMapCard {
+  background-color: #eee;
+  position: relative;
+  border-radius: 6px;
+  padding: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.skeletonMapCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* skeleton card thumbnail => 120px tall */
+.skeletonThumb {
+  width: 100%;
+  height: 140px;
+  border-radius: 4px;
+  background-color: #ddd;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonThumb::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* skeleton lines for text in card => 12px */
+.skeletonLine {
+  width: 100%;
+  height: 12px;
+  background-color: #eee;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* skeleton right sidebar => 200px wide */
+.skeletonTagsSidebar {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.skeletonTagTitle {
+  width: 100px;
+  height: 14px;
+  background-color: #eee;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonTagTitle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+.skeletonTagLine {
+  width: 100%;
+  height: 12px;
+  background-color: #eee;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonTagLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* skeleton pagination */
+.skeletonPagination {
+  margin-top: 15px;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.skeletonPageBtn {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonPageBtn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+/* ----------------------------
+   RESPONSIVE BREAKPOINTS
+---------------------------- */
 @media (max-width: 1000px) {
   .mainContentWrapper {
     margin-left: 0 !important;
-    padding: 5px;
+    padding: 10px;
     width: 100%;
   }
   .mainContentWrapper.collapsed {
@@ -366,22 +721,21 @@
 
   .mapsSection {
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .tagsSidebar {
     width: 100%;
     min-width: auto;
-    /* so it doesn’t force a wide layout */
   }
 
   .sortByLabel {
-    font-size: 12px;
+    font-size: 0.8rem;
   }
 
   .tabButton {
-    padding:10px;
-    font-size: 12px;
+    padding: 6px;
+    font-size: 0.8rem;
   }
 
   .sortTabs {
@@ -389,13 +743,12 @@
   }
 }
 
-
 @media (max-width: 768px) {
   .mainContentWrapper.collapsed {
-    margin-left: 70px;
+    margin-left: 60px;
   }
   .searchInputContainer input {
-    width: 200px;
+    width: 150px;
   }
 
   .topBar {
@@ -407,58 +760,46 @@
     width: 100%;
   }
 
-  /* Make the container fill all available width */
   .searchInputContainer {
     width: 100%;
-    display: flex;      /* Keep them in one line */
-    flex-wrap: nowrap;  /* Don’t wrap if you want the button on the same row */
+    display: flex;
+    flex-wrap: nowrap; 
   }
 
-  /* The input should stretch to fill everything but the button */
   .searchInputContainer input {
     flex: 1;
-    width: auto;  /* let flex:1 handle the stretching */
+    width: auto;
   }
 
-  /* The button can remain a fixed size or you can shrink it with flex if you like */
   .searchButton {
-    /* remains the same, or you can add styles as needed */
-    flex-shrink: 0; 
+    flex-shrink: 0;
   }
 }
+
 @media (max-width: 400px) {
-  /* Smaller search input */
   .searchInputContainer input {
-    width: 150px;
-    font-size: 0.9rem;
-  }
-
-  /* Reduce mapCard size & text */
-  .mapCard {
-    font-size: 0.9rem;
-  }
-
-  .thumbnail {
-    height: 120px; /* smaller map preview area */
-  }
-
-  .mapTitle {
-    font-size: 1rem;
-    margin: 8px;
-  }
-
-  .mapInfoRow {
+    width: 120px;
     font-size: 0.8rem;
-    margin: 0 8px 8px 8px;
   }
 
-  /* Force single column if you want to avoid any overlap on tiny screens */
+  /* Make map cards a single column if you want */
   .mapsGrid {
     grid-template-columns: 1fr;
   }
 
- 
+  /* Even smaller card fonts */
+  .mapCard {
+    font-size: 0.8rem;
+  }
+  .thumbnail {
+    height: 90px;
+  }
+  .mapTitle {
+    font-size: 0.9rem;
+    margin: 6px;
+  }
+  .mapInfoRow {
+    font-size: 0.75rem;
+    margin: 0 6px 6px 6px;
+  }
 }
-
-
-
