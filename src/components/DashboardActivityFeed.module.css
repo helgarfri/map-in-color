@@ -153,6 +153,86 @@
   width: fit-content;
 }
 
+/* The skeleton container that replaces each normal row. */
+.skeletonRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 12px; /* same spacing as normal items */
+  gap: 10px;
+}
+
+/* The skeleton for the map thumbnail (gray box). */
+.skeletonThumb {
+  width: 200px;
+  height: 100px;
+  border-radius: 4px;
+  background: #eee;
+  overflow: hidden;
+  position: relative;
+}
+
+/* The skeleton for the text area */
+.skeletonTextBlock {
+  flex: 1; /* fill remaining space */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Each line of text is a gray rectangle */
+.skeletonLine {
+  height: 14px;
+  background-color: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* The "shimmer" animation – you can tweak speeds, colors, etc. */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeletonShimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* Apply the shimmer to each skeleton line & thumb */
+.skeletonThumb,
+.skeletonLine {
+  background-color: #eee;
+}
+.skeletonThumb::after,
+.skeletonLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+  animation: shimmer 1.2s infinite;
+}
+
+
 /* Responsive layout */
 @media (max-width: 600px) {
   .activityItem {

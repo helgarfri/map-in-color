@@ -1,5 +1,3 @@
-// src/components/Dashboard.js
-
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -17,38 +15,34 @@ import {
   FaStar,
   FaMap,
   FaCalendarAlt,
-  FaComment,
-  FaReply,
-  // FaThumbsUp, // removed since we don't handle "like" in the feed
+  FaEdit
 } from 'react-icons/fa';
 
-// Components
 import Sidebar from './Sidebar';
 import Header from './Header';
-import LoadingSpinner from './LoadingSpinner';
 
-// Map thumbnails
+// We keep your existing Activity Feed (which has its own skeleton logic)
+import DashboardActivityFeed from './DashboardActivityFeed';
+
+// Thumbnails
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 
-import DashboardActivityFeed from './DashboardActivityFeed';
-
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
-
-
-// CSS
 import styles from './Dashboard.module.css';
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
+
   const [maps, setMaps] = useState([]);
-  const [ savedMaps, setSavedMaps ] = useState([]);
+  const [savedMaps, setSavedMaps] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
   // For deleting a map
@@ -57,19 +51,9 @@ export default function Dashboard() {
 
   const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const showOverlay = !isCollapsed && width < 1000;
 
-  const showOverlay = !isCollapsed && width < 1000; 
-
-  useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
-    if (width < 1000 && !isCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [width, isCollapsed, setIsCollapsed]);
-  
-  // ----------------------
   // Basic Stats
-  // ----------------------
   const totalMapsCreated = maps.length;
   const totalStarsReceived = maps.reduce(
     (sum, map) => sum + (map.save_count || 0),
@@ -79,9 +63,14 @@ export default function Dashboard() {
     ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
 
-  // ----------------------
+  useEffect(() => {
+    // Auto-collapse sidebar if < 1000px wide
+    if (width < 1000 && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [width, isCollapsed, setIsCollapsed]);
+
   // Fetch Data on Mount
-  // ----------------------
   useEffect(() => {
     if (!profile) return;
 
@@ -90,8 +79,7 @@ export default function Dashboard() {
         const [mapsRes, notificationsRes, savedMapsRes] = await Promise.all([
           fetchMaps(),
           fetchNotifications(),
-          fetchSavedMaps(),      
-
+          fetchSavedMaps()
         ]);
 
         // Sort maps by updated_at desc
@@ -100,15 +88,14 @@ export default function Dashboard() {
         );
         setMaps(sortedMaps);
 
-        // Sort notifications by created_at desc, limit to 6
+        // notifications sorted desc, only keep first few
         const sortedNotifications = notificationsRes.data
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 6);
-          setNotifications(sortedNotifications);
+        setNotifications(sortedNotifications);
 
-        // Save maps the user has starred
-        const userSavedMaps = savedMapsRes.data; // Should be an array of map objects
-        setSavedMaps(userSavedMaps);
+        // saved (starred) maps
+        setSavedMaps(savedMapsRes.data);
       } catch (err) {
         console.error('Error fetching data:', err);
       } finally {
@@ -119,12 +106,10 @@ export default function Dashboard() {
     getData();
   }, [profile]);
 
-  // Recently modified maps (up to 10)
-  const recentMaps = maps.slice(0, 3);
+  // Recently modified maps
+  const recentMaps = maps.slice(0, 4);
 
-  // ----------------------
-  // Map Deletion Handlers
-  // ----------------------
+  // Handlers
   const handleMapClick = (mapId) => {
     navigate(`/map/${mapId}`);
   };
@@ -143,10 +128,9 @@ export default function Dashboard() {
 
   const confirmDelete = async () => {
     if (!mapToDelete) return;
-
     try {
       await deleteMap(mapToDelete.id);
-      setMaps((prev) => prev.filter((map) => map.id !== mapToDelete.id));
+      setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
     } catch (err) {
       console.error('Error deleting map:', err);
     } finally {
@@ -160,16 +144,12 @@ export default function Dashboard() {
     setMapToDelete(null);
   };
 
-  // ----------------------
-  // Notifications
-  // ----------------------
   const handleNotificationClick = async (notif) => {
     try {
       await markNotificationAsRead(notif.id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
-
       if (notif.map_id) {
         navigate(`/map/${notif.map_id}`);
       }
@@ -178,242 +158,111 @@ export default function Dashboard() {
     }
   };
 
-  const handleViewAllNotifications = () => {
-    navigate('/notifications');
-  };
-
-  // Handler for entire "Activity Item" click → go to map
-  const handleActivityItemClick = (notif) => {
-    if (notif.map_id) {
-      navigate(`/map/${notif.map_id}`);
-    }
-  };
-
-  // Handler for user name / avatar click → go to profile
-  const handleUserClick = (e, username) => {
-    e.stopPropagation(); // Prevent also clicking the map
-    if (username) {
-      navigate(`/profile/${username}`);
-    }
-  };
-
-  // ----------------------
-  // Render Activity Feed (Main Column)
-  // ----------------------
-  const renderActivityItem = (notif) => {
-    const {
-      type,
-      Map: relatedMap,
-      Sender: user,
-      Comment: commentObj,
-      created_at,
-    } = notif || {};
-
-    const senderName = user?.first_name || user?.username || 'Someone';
-    const mapTitle = relatedMap?.title || 'Untitled Map';
-
-// Construct user avatar URL directly from Supabase
-const userAvatarUrl = user?.profile_picture
-  ? user.profile_picture
-  : '/default-profile-pic.jpg';
-
-    // Create a map thumbnail
-    let mapThumbnail = <div className={styles.defaultThumbnail}>Map</div>;
-    if (relatedMap?.selected_map === 'world') {
-      mapThumbnail = (
-        <WorldMapSVG
-          groups={relatedMap.groups || []}
-          mapTitleValue={mapTitle}
-          ocean_color={relatedMap.ocean_color}
-          unassigned_color={relatedMap.unassigned_color}
-          data={relatedMap.data}
-          font_color={relatedMap.font_color}
-          is_title_hidden={relatedMap.is_title_hidden}
-          isThumbnail
-        />
-      );
-    } else if (relatedMap?.selected_map === 'usa') {
-      mapThumbnail = (
-        <UsSVG
-          groups={relatedMap.groups || []}
-          mapTitleValue={mapTitle}
-          ocean_color={relatedMap.ocean_color}
-          unassigned_color={relatedMap.unassigned_color}
-          data={relatedMap.data}
-          font_color={relatedMap.font_color}
-          is_title_hidden={relatedMap.is_title_hidden}
-          isThumbnail
-        />
-      );
-    } else if (relatedMap?.selected_map === 'europe') {
-      mapThumbnail = (
-        <EuropeSVG
-          groups={relatedMap.groups || []}
-          mapTitleValue={mapTitle}
-          ocean_color={relatedMap.ocean_color}
-          unassigned_color={relatedMap.unassigned_color}
-          data={relatedMap.data}
-          font_color={relatedMap.font_color}
-          is_title_hidden={relatedMap.is_title_hidden}
-          isThumbnail
-        />
-      );
-    }
-
-    let mainText;
-    let body = null;
-
-    // Removed "like" from the feed, so no (type === 'like') case
-    if (type === 'star') {
-      // use star icon
-      const totalStars = relatedMap?.save_count || 0;
-      mainText = (
-        <>
-          <strong
-            className={styles.userNameLink}
-            onClick={(e) => handleUserClick(e, user?.username)}
-          >
-            {senderName}
-          </strong>{' '}
-         starred
-          "<em>{mapTitle}</em>"
-        </>
-      );
-      body = (
-        <p className={styles.starCount}>
-           <FaStar
-            style={{ marginLeft: '6px', marginRight: '4px', color: 'black' }}
-          /> {totalStars}
-        </p>
-      );
-    } else if (type === 'comment') {
-      const commentText = commentObj?.content || 'No comment text.';
-      mainText = (
-        <>
-          <strong
-            className={styles.userNameLink}
-            onClick={(e) => handleUserClick(e, user?.username)}
-          >
-            {senderName}
-          </strong>{' '}
-          commented on "<em>{mapTitle}</em>"
-        </>
-      );
-      body = (
-        <div className={styles.commentBox}>
-          <img
-            className={styles.userAvatar}
-            src={userAvatarUrl}
-            alt="User"
-            onClick={(e) => handleUserClick(e, user?.username)}
-          />
-          <div className={styles.commentText}>{commentText}</div>
-        </div>
-      );
-    } else if (type === 'reply') {
-      const replyText = commentObj?.content || 'No reply text.';
-      const parentComment = commentObj?.ParentComment?.content || 'No parent comment.';
-      mainText = (
-        <>
-          <strong
-            className={styles.userNameLink}
-            onClick={(e) => handleUserClick(e, user?.username)}
-          >
-            {senderName}
-          </strong>{' '}
-          replied to your comment on "<em>{mapTitle}</em>"
-        </>
-      );
-      body = (
-        <div className={styles.commentReplyBox}>
-          <div className={styles.originalComment}>
-            <strong>You:</strong> {parentComment}
-          </div>
-          <div className={styles.replyBox}>
-            <img
-              className={styles.userAvatar}
-              src={userAvatarUrl}
-              alt="User"
-              onClick={(e) => handleUserClick(e, user?.username)}
-            />
-            <div className={styles.commentText}>{replyText}</div>
-          </div>
-        </div>
-      );
-    } else if (type === 'like') {
-      // "X liked your comment"
-      // commentObj is the comment that was liked, 
-      // (and might have commentObj.ParentComment if it was a reply, etc.)
-      const likedCommentText = commentObj?.content || "No comment text.";
-    
-      // Here's the owner of the comment
-      const commentOwner = commentObj?.Owner;
-      const commentOwnerAvatar = commentOwner?.profile_picture || '/default-profile-pic.jpg';
-      const commentOwnerUsername = commentOwner?.username || 'Unknown';
-    
-      // This is the user who performed the "like":
-      // const senderName = user?.first_name || user?.username || 'Someone';
-    
-      // If you really want to say “X liked your comment,” you can keep it as is,
-      // but if you want to highlight the actual comment owner’s name or avatar,
-      // here is where you do it.
-    
-      mainText = (
-        <>
-          <strong
-            className={styles.userNameLink}
-            onClick={(e) => handleUserClick(e, user?.username)} // The "liker"
-          >
-            {senderName}
-          </strong>{' '}
-          liked your
-          
-          comment on "<em>{mapTitle}</em>"
-        </>
-      );
-    
-      body = (
-        <div className={styles.commentBox}>
-          <img
-            className={styles.userAvatar}
-            src={commentOwnerAvatar}
-            alt="Comment Owner"
-            onClick={(e) => handleUserClick(e, commentOwnerUsername)}
-          />
-          <div className={styles.commentText}>{likedCommentText}</div>
-        </div>
-      );
-    }
-    
-    
+  // If we are still loading => SKELETON placeholders
+  if (isLoading) {
     return (
-      <div
-        className={styles.activityItem}
-        key={notif.id}
-        onClick={() => handleActivityItemClick(notif)}
-      >
-        <div className={styles.thumbContainer}>{mapThumbnail}</div>
-        <div className={styles.activityDetails}>
-          <p>{mainText}</p>
-          {body}
-          <span className={styles.timestamp}>
-            {formatDistanceToNow(new Date(created_at), { addSuffix: true })}
-          </span>
+      <div className={styles.dashboardContainer}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+        {showOverlay && (
+          <div
+            className={styles.sidebarOverlay}
+            onClick={() => setIsCollapsed(true)}
+          />
+        )}
+
+        <div
+          className={`${styles.dashboardContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
+          {/* Header with skeleton fallback */}
+          <Header
+            title="Dashboard"
+            notifications={[]} // no data yet
+            onNotificationClick={() => {}}
+            onMarkAllAsRead={() => {}}
+            profile_picture={''}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+
+          {/* Now the "skeleton" version of main layout */}
+          <div className={styles.mainWrapper}>
+            {/* LEFT/CENTER: stats + feed placeholders */}
+            <div className={styles.centerColumn}>
+              {/* Stats row skeleton */}
+              <div className={styles.statsContainer}>
+                <div className={styles.skeletonStatItem} />
+                <div className={styles.skeletonStatItem} />
+                <div className={styles.skeletonStatItem} />
+              </div>
+
+              {/* Activity feed skeleton – or let the feed handle it 
+                  but here we can do a top title bar skeleton + rows */}
+              <section className={styles.activityFeedSection}>
+                <div className={styles.skeletonSectionTitle} />
+                {/* If you want the same skeleton rows from the feed: */}
+                <div className={styles.skeletonRow}>
+                  <div className={styles.skeletonThumb} />
+                  <div className={styles.skeletonTextBlock}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                  </div>
+                </div>
+                <div className={styles.skeletonRow}>
+                  <div className={styles.skeletonThumb} />
+                  <div className={styles.skeletonTextBlock}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                  </div>
+                </div>
+                <div className={styles.skeletonRow}>
+                  <div className={styles.skeletonThumb} />
+                  <div className={styles.skeletonTextBlock}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* RIGHT side: recently modified + starred skeleton */}
+            <div className={styles.sideColumn}>
+              <div className={styles.sectionCard}>
+                <div className={styles.skeletonSectionTitle} />
+                <div className={styles.skeletonMapCard} />
+                <div className={styles.skeletonMapCard} />
+              </div>
+              <div className={styles.sectionCard}>
+                <div className={styles.skeletonSectionTitle} />
+                <div className={styles.skeletonMapCard} />
+                <div className={styles.skeletonMapCard} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
-  };
+  } // end if (isLoading)
+
+  // --------------------------------------------------
+  // If *not* loading, render the REAL dashboard
+  // --------------------------------------------------
   return (
     <div className={styles.dashboardContainer}>
-    <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      
-      {/* If off-canvas is open on mobile, show the overlay */}
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
       {showOverlay && (
-        <div 
-          className={styles.sidebarOverlay} 
-          onClick={() => setIsCollapsed(true)} // click outside to close
+        <div
+          className={styles.sidebarOverlay}
+          onClick={() => setIsCollapsed(true)}
         />
-      )}  
+      )}
+
       <div
         className={`${styles.dashboardContent} ${
           isCollapsed ? styles.contentCollapsed : ''
@@ -428,176 +277,219 @@ const userAvatarUrl = user?.profile_picture
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
-  
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            <div className={styles.mainWrapper}>
-              {/* CENTER COLUMN: Stats + Activity Feed */}
-              <div className={styles.centerColumn}>
-                <div className={styles.statsContainer}>
-                  <div className={styles.statItem}>
-                    <FaMap className={styles.statIcon} />
-                    <span className={styles.statLabel}>Maps Created:</span>
-                    <span className={styles.statValue}>{totalMapsCreated}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <FaStar className={styles.statIcon} />
-                    <span className={styles.statLabel}>Stars Received:</span>
-                    <span className={styles.statValue}>{totalStarsReceived}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <FaCalendarAlt className={styles.statIcon} />
-                    <span className={styles.statLabel}>Profile Age:</span>
-                    <span className={styles.statValue}>{profileAgeDays} days</span>
-                  </div>
-                </div>
-  
-                <section className={styles.activityFeedSection}>
-                  <h2>Activity Feed</h2>
 
-                  {/* Instead of notifications.map(renderActivityItem), 
-                      we just use the new DashboardActivityFeed: */}
-                  <DashboardActivityFeed userProfile={profile} />
-                </section>
+        <div className={styles.mainWrapper}>
+          {/* CENTER COLUMN: Stats + Activity Feed */}
+          <div className={styles.centerColumn}>
+            <div className={styles.statsContainer}>
+              <div className={styles.statItem}>
+                <FaMap className={styles.statIcon} />
+                <span className={styles.statLabel}>Maps Created:</span>
+                <span className={styles.statValue}>{totalMapsCreated}</span>
               </div>
-  
-              {/* RIGHT SIDE (sticky sidebar): Recently Modified + Saved Maps */}
-              <div className={styles.leftMapsSidebar}>
-                {/* Recently Modified Maps */}
-                <h2>Recently Modified Maps</h2>
-                {recentMaps.length === 0 ? (
-                  <p>No maps found.</p>
-                ) : (
-                  <ul className={styles.recentMapsList}>
-                    {recentMaps.map((map) => (
-                      <li key={map.id} className={styles.mapListItem}>
-                        <div className={styles.mapActions}>
-                          <button
-                            className={styles.editBtn}
-                            onClick={(e) => handleEdit(e, map.id)}
-                          >
-                            Edit
-                          </button>
-                        </div>
-                        <span
-                          className={styles.mapTitle}
-                          onClick={() => handleMapClick(map.id)}
-                        >
-                          {map.title || 'Untitled Map'}
-                        </span>
-                        <div className={styles.mapModifiedDate}>
-                          {map.updated_at
-                            ? formatDistanceToNow(new Date(map.updated_at), {
-                                addSuffix: true,
-                              })
-                            : 'Unknown'}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-  
-                {/* Saved Maps Section (max 3) */}
-                <div className={styles.savedMapsSection}>
-                  <h2>Starred Maps</h2>
-                  {savedMaps.length === 0 ? (
-                    <p>You haven't saved any maps yet.</p>
-                  ) : (
-                    <div className={styles.savedMapsGrid}>
-                      {savedMaps.slice(0, 2).map((map) => {
-                    // If your route returns map.user (singular):
-                    const userObj = map.user; // <-- use "user" not "users"
-                    
-                    // Build display name
-                    const firstName = userObj?.first_name || '';
-                    const lastName = userObj?.last_name || '';
-                    const creatorUsername = userObj?.username || 'Unknown';
-
-                    // If first/last is present, show that, otherwise fallback to username
-                    const displayName =  creatorUsername;
-
-                    const mapTitle = map.title || 'Untitled Map';
-
-                        // Determine thumbnail
-                        let Thumbnail = (
-                          <div className={styles.defaultThumbnail}>No preview</div>
-                        );
-                        if (map.selected_map === 'world') {
-                          Thumbnail = (
-                            <WorldMapSVG
-                              groups={map.groups}
-                              mapTitleValue={mapTitle}
-                              ocean_color={map.ocean_color}
-                              unassigned_color={map.unassigned_color}
-                              data={map.data}
-                              font_color={map.font_color}
-                              is_title_hidden={map.is_title_hidden}
-                              isThumbnail
-                            />
-                          );
-                        } else if (map.selected_map === 'usa') {
-                          Thumbnail = (
-                            <UsSVG
-                              groups={map.groups}
-                              mapTitleValue={mapTitle}
-                              ocean_color={map.ocean_color}
-                              unassigned_color={map.unassigned_color}
-                              data={map.data}
-                              font_color={map.font_color}
-                              is_title_hidden={map.is_title_hidden}
-                              isThumbnail
-                            />
-                          );
-                        } else if (map.selected_map === 'europe') {
-                          Thumbnail = (
-                            <EuropeSVG
-                              groups={map.groups}
-                              mapTitleValue={mapTitle}
-                              ocean_color={map.ocean_color}
-                              unassigned_color={map.unassigned_color}
-                              data={map.data}
-                              font_color={map.font_color}
-                              is_title_hidden={map.is_title_hidden}
-                              isThumbnail
-                            />
-                          );
-                        }
-  
-                        return (
-                          <div
-                            key={map.id}
-                            className={styles.savedMapCard}
-                            onClick={() => navigate(`/map/${map.id}`)}
-                          >
-                            <div className={styles.savedMapThumbnail}>
-                              {Thumbnail}
-                            </div>
-                            <h3 className={styles.savedMapTitle}>{mapTitle}</h3>
-                            <p className={styles.savedMapCreator}>
-                              by {displayName}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-  
-                  {savedMaps.length > 3 && (
-                    <button
-                      className={styles.viewAllSavedBtn}
-                      onClick={() => navigate('/starred-maps')} 
-                    >
-                      View All Starred Maps
-                    </button>
-                  )}
-                </div>
+              <div className={styles.statItem}>
+                <FaStar className={styles.statIcon} />
+                <span className={styles.statLabel}>Stars Received:</span>
+                <span className={styles.statValue}>{totalStarsReceived}</span>
+              </div>
+              <div className={styles.statItem}>
+                <FaCalendarAlt className={styles.statIcon} />
+                <span className={styles.statLabel}>Profile Age:</span>
+                <span className={styles.statValue}>{profileAgeDays} days</span>
               </div>
             </div>
-          </>
-        )}
-  
+
+            <section className={styles.activityFeedSection}>
+              <DashboardActivityFeed userProfile={profile} />
+            </section>
+          </div>
+
+          {/* RIGHT SIDE: Recently Modified + Starred Maps */}
+          <div className={styles.sideColumn}>
+            {/* Recently Modified */}
+            <div className={styles.sectionCard}>
+              <h2>Recently Modified Maps</h2>
+              {recentMaps.length === 0 ? (
+                <p>No maps found.</p>
+              ) : (
+                <div className={styles.mapCardsList}>
+                  {recentMaps.map((map) => {
+                    let Thumbnail = (
+                      <div className={styles.defaultThumbnail}>No preview</div>
+                    );
+                    if (map.selected_map === 'world') {
+                      Thumbnail = (
+                        <WorldMapSVG
+                          groups={map.groups}
+                          mapTitleValue={map.title}
+                          ocean_color={map.ocean_color}
+                          unassigned_color={map.unassigned_color}
+                          data={map.data}
+                          font_color={map.font_color}
+                          is_title_hidden={map.is_title_hidden}
+                          isThumbnail
+                        />
+                      );
+                    } else if (map.selected_map === 'usa') {
+                      Thumbnail = (
+                        <UsSVG
+                          groups={map.groups}
+                          mapTitleValue={map.title}
+                          ocean_color={map.ocean_color}
+                          unassigned_color={map.unassigned_color}
+                          data={map.data}
+                          font_color={map.font_color}
+                          is_title_hidden={map.is_title_hidden}
+                          isThumbnail
+                        />
+                      );
+                    } else if (map.selected_map === 'europe') {
+                      Thumbnail = (
+                        <EuropeSVG
+                          groups={map.groups}
+                          mapTitleValue={map.title}
+                          ocean_color={map.ocean_color}
+                          unassigned_color={map.unassigned_color}
+                          data={map.data}
+                          font_color={map.font_color}
+                          is_title_hidden={map.is_title_hidden}
+                          isThumbnail
+                        />
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={map.id}
+                        className={styles.mapCard}
+                        onClick={() => handleMapClick(map.id)}
+                      >
+                        <div className={styles.mapCardThumb}>{Thumbnail}</div>
+                        <div className={styles.mapCardDetails}>
+                          <h3 className={styles.mapCardTitle}>
+                            {map.title || 'Untitled Map'}
+                          </h3>
+                          <p className={styles.mapCardTimestamp}>
+                            Last modified{' '}
+                            {map.updated_at
+                              ? formatDistanceToNow(
+                                  new Date(map.updated_at),
+                                  { addSuffix: true }
+                                )
+                              : 'Unknown'}
+                          </p>
+
+                          <div className={styles.editContainer}>
+                            <FaEdit
+                              onClick={(e) => handleEdit(e, map.id)}
+                              className={styles.editIcon}
+                            />
+                            <button
+                              className={styles.editBtn}
+                              onClick={(e) => handleEdit(e, map.id)}
+                            >
+                              Edit Map
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Starred Maps */}
+            <div className={styles.sectionCard}>
+              <h2>Starred Maps</h2>
+              {savedMaps.length === 0 ? (
+                <p>You haven't saved any maps yet.</p>
+              ) : (
+                <div className={styles.mapCardsList}>
+                  {savedMaps.slice(0, 4).map((map) => {
+                    const userObj = map.user;
+                    const displayName = userObj?.username || 'Unknown';
+                    const mapTitle = map.title || 'Untitled Map';
+
+                    let Thumbnail = (
+                      <div className={styles.defaultThumbnail}>No preview</div>
+                    );
+                    if (map.selected_map === 'world') {
+                      Thumbnail = (
+                        <WorldMapSVG
+                          groups={map.groups}
+                          mapTitleValue={mapTitle}
+                          ocean_color={map.ocean_color}
+                          unassigned_color={map.unassigned_color}
+                          data={map.data}
+                          font_color={map.font_color}
+                          is_title_hidden={map.is_title_hidden}
+                          isThumbnail
+                        />
+                      );
+                    } else if (map.selected_map === 'usa') {
+                      Thumbnail = (
+                        <UsSVG
+                          groups={map.groups}
+                          mapTitleValue={mapTitle}
+                          ocean_color={map.ocean_color}
+                          unassigned_color={map.unassigned_color}
+                          data={map.data}
+                          font_color={map.font_color}
+                          is_title_hidden={map.is_title_hidden}
+                          isThumbnail
+                        />
+                      );
+                    } else if (map.selected_map === 'europe') {
+                      Thumbnail = (
+                        <EuropeSVG
+                          groups={map.groups}
+                          mapTitleValue={mapTitle}
+                          ocean_color={map.ocean_color}
+                          unassigned_color={map.unassigned_color}
+                          data={map.data}
+                          font_color={map.font_color}
+                          is_title_hidden={map.is_title_hidden}
+                          isThumbnail
+                        />
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={map.id}
+                        className={styles.mapCard}
+                        onClick={() => navigate(`/map/${map.id}`)}
+                      >
+                        <div className={styles.mapCardThumb}>{Thumbnail}</div>
+                        <div className={styles.mapCardDetails}>
+                          <h3 className={styles.mapCardTitle}>{mapTitle}</h3>
+                          <p className={styles.mapCardTimestamp}>
+                            by {displayName}
+                          </p>
+                          <p className={styles.starCount}>
+                            <FaStar /> {map.save_count || 0}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {savedMaps.length > 4 && (
+                <button
+                  className={styles.viewAllSavedBtn}
+                  onClick={() => navigate('/starred-maps')}
+                >
+                  View All Starred Maps
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* DELETE MAP MODAL */}
         {showDeleteModal && (
           <div className={styles.modalOverlay} onClick={cancelDelete}>
             <div
@@ -623,4 +515,4 @@ const userAvatarUrl = user?.profile_picture
       </div>
     </div>
   );
-}  
+}

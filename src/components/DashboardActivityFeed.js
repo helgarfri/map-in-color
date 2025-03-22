@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import LoadingSpinner from './LoadingSpinner';
 
 import {
   FaStar,
@@ -20,74 +19,132 @@ import {
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
+import SkeletonActivityRow from './SkeletonActivityRow';
 
 import dashFeedStyles from './DashboardActivityFeed.module.css';
 
 export default function DashboardActivityFeed({ userProfile }) {
   const navigate = useNavigate();
+
+  // feed data + pagination
   const [activities, setActivities] = useState([]);
   const [offset, setOffset] = useState(0);
-  const [limit] = useState(20); // always load 20 at a time
+  const limit = 30;
   const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
 
-  
+  // loading states
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+  // We'll place a "sentinel" div at the bottom of the feed
+  const sentinelRef = useRef(null);
+
+  // On mount/userProfile change => reset + load first page
   useEffect(() => {
     if (!userProfile) return;
-    // On first mount (or if userProfile changes), load the first page
-    loadDashboardFeed(0, limit);
-    // Reset offset to 0 in case userProfile changed
     setOffset(0);
+    setActivities([]);
+    setHasMore(true);
+    loadFirstPage();
   }, [userProfile]);
 
-  async function loadDashboardFeed(offsetVal, limitVal) {
+  async function loadFirstPage() {
     try {
-      setIsLoading(true);
-      // pass offset & limit in the query, e.g. /activity/dashboard?offset=...&limit=...
-      const res = await fetchDashboardActivity(offsetVal, limitVal);
-      const newBatch = res.data; // array of up to 20 activities
-
-      // if this is offset=0 => fresh load, else append
-      if (offsetVal === 0) {
-        setActivities(newBatch);
-      } else {
-        setActivities((prev) => [...prev, ...newBatch]);
-      }
-
-      // if we got fewer than 'limit' items => no more to load
-      if (newBatch.length < limitVal) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
-      }
+      setIsInitialLoading(true);
+      const res = await fetchDashboardActivity(0, limit);
+      const newBatch = res.data;
+      setActivities(newBatch);
+      setHasMore(newBatch.length === limit);
     } catch (err) {
-      console.error('Error fetching dashboard activity:', err);
+      console.error('Error loading feed:', err);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
     }
   }
 
-  // triggered by the "Load more" button
-  function handleLoadMore() {
-    const newOffset = offset + limit;
-    setOffset(newOffset);
-    loadDashboardFeed(newOffset, limit);
+  async function loadMore() {
+    try {
+      setIsFetchingMore(true);
+      const newOffset = offset + limit;
+      const res = await fetchDashboardActivity(newOffset, limit);
+      const newBatch = res.data;
+
+      setActivities((prev) => [...prev, ...newBatch]);
+      setOffset(newOffset);
+
+      if (newBatch.length < limit) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more feed:', err);
+    } finally {
+      setIsFetchingMore(false);
+    }
   }
 
-  // Format "X hours ago"
+  /**
+   * IntersectionObserver to watch when the sentinel appears in viewport.
+   */
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    if (!hasMore) return; // no need to observe if there's nothing more to fetch
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const firstEntry = entries[0];
+        if (firstEntry.isIntersecting) {
+          // the sentinel is visible => load next page
+          if (!isFetchingMore && !isInitialLoading && hasMore) {
+            loadMore();
+          }
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1, // when 10% of sentinel is visible
+      }
+    );
+
+    observer.observe(sentinelRef.current);
+
+    // cleanup
+    return () => {
+      // Only unobserve if the current ref is still there
+      if (observer && sentinelRef.current) {
+        observer.unobserve(sentinelRef.current);
+      }
+    };
+  }, [sentinelRef, hasMore, isFetchingMore, isInitialLoading, offset]);
+
+  // -----------
+  // item click
+  // -----------
+  async function handleItemClick(act) {
+    if (act.notificationData) {
+      try {
+        await markNotificationAsRead(act.notificationData.id);
+      } catch (err) {
+        console.error('Error marking notification read:', err);
+      }
+    }
+    if (act.map?.id) {
+      navigate(`/map/${act.map.id}`);
+    }
+  }
+
+  // -----------
+  // utility
+  // -----------
   function timeAgo(dateString) {
     if (!dateString) return '';
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   }
-  /**
-   * The main user avatar in the thumbnail overlay (bottom-right).
-   */
+
   function getOverlayAvatarUrl(act) {
-    // If it's a notification from someone else => show sender's avatar
     if (act.type.startsWith('notification_') && act.notificationData?.sender) {
       return act.notificationData.sender.profile_picture || '/default-profile-picture.png';
     }
-    // Otherwise => the current user
     return userProfile?.profile_picture || '/default-profile-picture.png';
   }
 
@@ -98,27 +155,19 @@ export default function DashboardActivityFeed({ userProfile }) {
     return userProfile?.username || 'unknown';
   }
 
-  // Pick the correct icon
   function getActivityIcon(type) {
     switch (type) {
-      case 'createdMap':
-        return <FaPlus />;
+      case 'createdMap': return <FaPlus />;
       case 'starredMap':
-      case 'notification_star':
-        return <FaStar />;
+      case 'notification_star': return <FaStar />;
       case 'commented':
-      case 'notification_comment':
-        return <FaComment />;
-      case 'notification_reply':
-        return <FaReply />;
-      case 'notification_like':
-        return <FaThumbsUp />;
-      default:
-        return <FaInfoCircle />;
+      case 'notification_comment': return <FaComment />;
+      case 'notification_reply': return <FaReply />;
+      case 'notification_like': return <FaThumbsUp />;
+      default: return <FaInfoCircle />;
     }
   }
 
-  // Map thumbnail + bottom-right overlay
   function renderMapThumbnail(mapObj, act) {
     if (!mapObj) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
@@ -127,10 +176,10 @@ export default function DashboardActivityFeed({ userProfile }) {
     const {
       selected_map,
       title,
-      groups = [],
+      groups,
       ocean_color,
       unassigned_color,
-      data = [],
+      data,
       font_color,
       is_title_hidden,
     } = mapObj;
@@ -151,47 +200,33 @@ export default function DashboardActivityFeed({ userProfile }) {
     if (selected_map === 'usa')     MapComponent = <UsSVG {...sharedProps} />;
     if (selected_map === 'europe')  MapComponent = <EuropeSVG {...sharedProps} />;
 
-    const overlayAvatarUrl = getOverlayAvatarUrl(act);
-    const overlayAvatarUsername = getOverlayAvatarUsername(act);
-    const icon = getActivityIcon(act.type);
+    const overlayUrl = getOverlayAvatarUrl(act);
+    const overlayUsername = getOverlayAvatarUsername(act);
+    const overlayIcon = getActivityIcon(act.type);
 
     return (
       <div className={dashFeedStyles.thumbContainer}>
         {MapComponent}
-        {/* Bottom-right overlay (avatar + icon), clickable => user profile */}
         <div
           className={dashFeedStyles.activityOverlay}
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/profile/${overlayAvatarUsername}`);
+            navigate(`/profile/${overlayUsername}`);
           }}
         >
           <img
             className={dashFeedStyles.activityAvatar}
-            src={overlayAvatarUrl}
+            src={overlayUrl}
             alt="User"
           />
-          <div className={dashFeedStyles.activityIcon}>{icon}</div>
+          <div className={dashFeedStyles.activityIcon}>
+            {overlayIcon}
+          </div>
         </div>
       </div>
     );
   }
 
-  // If it's a notification, mark read on click; if there's a map, go to /map/:id
-  async function handleItemClick(act) {
-    if (act.notificationData) {
-      try {
-        await markNotificationAsRead(act.notificationData.id);
-      } catch (err) {
-        console.error('Error marking notification read:', err);
-      }
-    }
-    if (act.map?.id) {
-      navigate(`/map/${act.map.id}`);
-    }
-  }
-
-  // Display name for the user who triggered the notification
   function renderSenderName(act) {
     if (!act.type.startsWith('notification_')) {
       return <strong>You</strong>;
@@ -207,7 +242,6 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else {
       displayName = 'Someone';
     }
-
     return (
       <strong
         className={dashFeedStyles.senderName}
@@ -221,7 +255,6 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  // Bold, clickable map title => goes to /map/:id
   function renderMapTitle(map) {
     if (!map) return 'Untitled';
     return (
@@ -237,40 +270,27 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  // Who wrote the comment? For "notification_like", "notification_reply", etc.
-  // We'll assume the backend returned act.commentAuthor = { username, profile_picture }
- // We pass userProfile so we can fallback to userProfile.profile_picture
-  function getCommentAuthorAvatar(act, userProfile) {
-    // If the server already gave us commentAuthor, use that
-    if (act.commentAuthor && act.commentAuthor.profile_picture) {
+  function getCommentAuthorAvatar(act) {
+    if (act.commentAuthor?.profile_picture) {
       return act.commentAuthor.profile_picture;
     }
-
-    // If there's no commentAuthor, but the type is "commented", it means "you" commented
-    // => fallback to your own userProfile picture
     if (act.type === 'commented' && userProfile?.profile_picture) {
       return userProfile.profile_picture;
     }
-
-    // Otherwise fallback to default
     return '/default-profile-picture.png';
   }
 
   function getCommentAuthorUsername(act) {
-    if (!act.commentAuthor) return 'unknown';
-    return act.commentAuthor.username || 'unknown';
+    if (act.commentAuthor?.username) return act.commentAuthor.username;
+    if (act.type === 'commented') {
+      return userProfile?.username || 'unknown';
+    }
+    return 'unknown';
   }
 
-  // Renders the "comment box" with the author's avatar + the comment text
   function renderCommentBox(act) {
-    const commentAvatarUrl = getCommentAuthorAvatar(act, userProfile); 
-    // Pass userProfile so we can fallback
-  
-    // If you want a clickable avatar => user sees themselves? Up to you:
-    const commentAuthorUsername = act.commentAuthor?.username 
-      || userProfile?.username 
-      || 'unknown';
-  
+    const commentAvatarUrl = getCommentAuthorAvatar(act);
+    const commentAuthor = getCommentAuthorUsername(act);
     return (
       <div className={dashFeedStyles.commentBox}>
         <img
@@ -279,20 +299,20 @@ export default function DashboardActivityFeed({ userProfile }) {
           alt="Comment Author"
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/profile/${commentAuthorUsername}`);
+            navigate(`/profile/${commentAuthor}`);
           }}
         />
-        <div className={dashFeedStyles.commentBody}>{act.commentContent}</div>
+        <div className={dashFeedStyles.commentBody}>
+          {act.commentContent}
+        </div>
       </div>
     );
   }
-  
 
   function renderActivityItem(act, idx) {
     const { type, map, commentContent, created_at } = act;
     const mapThumb = renderMapThumbnail(map, act);
 
-    // Build the main text, referencing clickable sender name & map title
     let mainText;
     if (type === 'createdMap') {
       mainText = <>You created map {renderMapTitle(map)}</>;
@@ -305,7 +325,6 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else if (type === 'notification_reply') {
       mainText = <>{renderSenderName(act)} replied to your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_like') {
-      // We also show the comment box now
       mainText = <>{renderSenderName(act)} liked your comment </>;
     } else if (type === 'notification_comment') {
       mainText = <>{renderSenderName(act)} commented on your map {renderMapTitle(map)}</>;
@@ -313,14 +332,13 @@ export default function DashboardActivityFeed({ userProfile }) {
       mainText = <>Activity: {type}</>;
     }
 
-    // Show the comment box if we have commentContent and it's a comment-ish event:
-    // That includes notification_like, so the user can see which comment was liked
     const isCommentRelated = [
       'commented',
       'notification_comment',
       'notification_reply',
-      'notification_like'
+      'notification_like',
     ].includes(type);
+
     const shouldShowCommentBox = isCommentRelated && commentContent;
 
     return (
@@ -330,13 +348,9 @@ export default function DashboardActivityFeed({ userProfile }) {
         onClick={() => handleItemClick(act)}
       >
         {mapThumb}
-
         <div className={dashFeedStyles.activityDetails}>
           <p className={dashFeedStyles.mainText}>{mainText}</p>
-
           {shouldShowCommentBox && renderCommentBox(act)}
-
-          {/* The dedicated timestamp box in the bottom-right corner */}
           <div className={dashFeedStyles.timestampBox}>
             {timeAgo(created_at)}
           </div>
@@ -345,30 +359,40 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  if (isLoading) {
-    return <LoadingSpinner />;
+  // If first load => skeleton placeholders
+  if (isInitialLoading && activities.length === 0) {
+    return (
+      <div className={dashFeedStyles.dashActivityFeed}>
+        {/* Show however many skeleton placeholders you want */}
+        <SkeletonActivityRow />
+        <SkeletonActivityRow />
+        <SkeletonActivityRow />
+        
+      </div>
+    );
   }
-  if (activities.length === 0) {
+
+  // If done + no data
+  if (!isInitialLoading && activities.length === 0) {
     return <p>No recent activity.</p>;
   }
 
   return (
     <div className={dashFeedStyles.dashActivityFeed}>
-    {activities.map((act, i) => renderActivityItem(act, i))}
+      {activities.map((act, i) => renderActivityItem(act, i))}
 
-    {isLoading && offset === 0 && <LoadingSpinner />}
+      {/* If fetching more => show skeleton placeholders */}
+      {isFetchingMore && (
+        <>
+          <SkeletonActivityRow />
+          <SkeletonActivityRow />
+        </>
+      )}
 
-    {/* Show "Load More" if we have more data to fetch */}
-    {hasMore && !isLoading && (
-      <button
-        onClick={handleLoadMore}
-        className={dashFeedStyles.loadMoreBtn}
-      >
-        Load More Activities
-      </button>
-    )}
-
-    {isLoading && offset > 0 && <p>Loading more...</p>}
-  </div>
+      {/* The "sentinel" div at the very bottom */}
+      {hasMore && (
+        <div ref={sentinelRef} style={{ height: '1px' }} />
+      )}
+    </div>
   );
 }

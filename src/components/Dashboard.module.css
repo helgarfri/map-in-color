@@ -25,8 +25,7 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  margin: 0 20px 0 20px;
-
+  margin: 0 20px;
 }
 
 /* LEFT SIDEBAR: recently modified maps */
@@ -82,25 +81,6 @@
   margin-right: 10px;
 }
 
-.editBtn,
-.deleteBtn {
-  background-color: #ccc;
-  color: #333;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.editBtn:hover {
-  background-color: #9aa9b1;
-}
-.deleteBtn {
-  background-color: #e57c7c;
-}
-.deleteBtn:hover {
-  background-color: #d65b5b;
-}
 
 .mapModifiedDate {
   margin-left: auto;
@@ -115,6 +95,166 @@
   flex-direction: column;
   gap: 20px;
 }
+
+
+/* The right column that holds Recently Modified + Starred sections */
+.sideColumn {
+  width: 350px;
+  flex-shrink: 0;
+  margin-top: 79px;
+  background: none;
+  padding: 0;
+
+}
+
+/* Each “block” on the side column (Recently Modified, Starred) as a card */
+.sectionCard {
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.sectionCard h2 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+/* List container for multiple "map cards" (each row) */
+.mapCardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Reusable "card" for each map row, similar to your .activityItem */
+.mapCard {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.mapCard:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Left side: thumbnail container */
+.mapCardThumb {
+  width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  margin-right: 10px;
+  flex-shrink: 0;
+  background-color: #ddd; /* fallback if no real thumbnail */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.defaultThumbnail {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Right side: details (title, times, star count, etc.) */
+.mapCardDetails {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.mapCardTitle {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.mapCardTimestamp {
+  margin: 0 0  0 3px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* For star count inside the card */
+.starCount {
+  font-size: 0.75rem;
+  color: #444;
+  margin: 3px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+}
+
+.editContainer {
+  display: flex;
+  align-items: center;
+}
+
+/* The Edit button inside a mapCard */
+.editBtn {
+  all: unset;
+  color: #333;
+  border: none;
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  width: fit-content;
+  align-items: center;
+}
+
+.editBtn:hover {
+  text-decoration: underline;
+}
+
+/* The "View All Starred Maps" button */
+.viewAllSavedBtn {
+  all: unset;
+  font-size: 0.75rem;
+  margin-top: 10px;
+  color: #333;
+  border: none;
+  padding: 8px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.viewAllSavedBtn:hover {
+  text-decoration: underline;
+}
+
+/* Example media query to stack columns on narrower screens */
+@media (max-width: 1050px) {
+  .mainWrapper {
+    flex-direction: column;
+  }
+  .sideColumn {
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .mapCardThumb {
+    width: 60px;
+    height: 40px;
+  }
+  .mapCardTitle {
+    font-size: 0.85rem;
+  }
+  .mapCardTimestamp {
+    font-size: 0.75rem;
+  }
+}
+
 
 /* STATS (top of center column) */
 .statsContainer {
@@ -317,19 +457,7 @@ p {
   margin: 0;
 }
 
-.viewAllSavedBtn {
-  margin-top: 20px;
-  background-color: #ccc;
-  color: #333;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
 
-.viewAllSavedBtn:hover {
-  background-color: #bbb;
-}
 
 .sidebarOverlay {
   position: fixed;
@@ -339,6 +467,119 @@ p {
   height: calc(100% - 60px);
   background: rgba(0,0,0,0.4);
   z-index: 998;       /* just below the sidebar’s 999 */
+}
+
+/* Reuse your shimmer animation from the feed, or define it again */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Generic "placeholder" background + shimmer */
+.skeletonRow,
+.skeletonStatItem,
+.skeletonSectionTitle,
+.skeletonMapCard {
+  background-color: #eee;
+  position: relative;
+  overflow: hidden; /* needed for the .::after shimmer */
+  border-radius: 4px;
+}
+
+/* The shimmer effect across the element */
+.skeletonRow::after,
+.skeletonStatItem::after,
+.skeletonSectionTitle::after,
+.skeletonMapCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* For your "stats row" placeholders: same size as .statItem? */
+.skeletonStatItem {
+  width: 100px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+/* For a skeleton section title */
+.skeletonSectionTitle {
+  width: 120px;
+  height: 18px;
+  margin-bottom: 10px;
+}
+
+/* For skeleton placeholders in place of map cards or “recently modified” items */
+.skeletonMapCard {
+  width: 100%;
+  height: 60px; /* or bigger if you want a bigger placeholder */
+  margin-bottom: 10px;
+}
+
+/* 
+  For the skeleton Row that mimics an activity item:
+  We can copy from your feed’s .skeletonRow, or define 
+  differently if you want. 
+*/
+.skeletonRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px;
+}
+
+/* 
+  A sub-element for the thumbnail portion 
+  if you want to replicate the .skeletonThumb usage 
+*/
+.skeletonThumb {
+  width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+
+/* The text area in an activity item skeleton */
+.skeletonTextBlock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonLine {
+  width: 100%;
+  height: 14px;
+  background-color: #eee;
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* shimmer for the lines too */
+.skeletonLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  animation: shimmer 1.2s infinite;
 }
 
 

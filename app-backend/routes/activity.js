@@ -211,7 +211,7 @@ router.get('/dashboard', auth, async (req, res) => {
     const user_id = req.user.id;
 
     const offset = parseInt(req.query.offset, 10) || 0;
-    const limit  = parseInt(req.query.limit, 10) || 20;
+    const limit  = parseInt(req.query.limit, 10) || 30;
   
     try {
       // ---------------------------------------------
