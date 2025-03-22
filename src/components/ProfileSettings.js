@@ -1,12 +1,10 @@
-// src/components/ProfileSettings.js
-
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import styles from './ProfileSettings.module.css';
 import { fetchUserProfile, updateUserProfile } from '../api';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import LoadingSpinner from './LoadingSpinner'; // import spinner component
+import LoadingSpinner from './LoadingSpinner';
 import countries from '../data/countries';
 import { FaPencilAlt, FaLock, FaHeartBroken } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -31,7 +29,7 @@ export default function ProfileSettings() {
   const [showActivityFeed, setShowActivityFeed] = useState(true);
 
   // ----------------------------
-  // Basic profile form states
+  // Basic form states
   // ----------------------------
   const [formData, setFormData] = useState({
     username: '',
@@ -43,22 +41,18 @@ export default function ProfileSettings() {
     gender: '',
     date_of_birth: '',
   });
-
-  // Profile picture states
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('');
   const [profile_picture, setProfilePicture] = useState(null);
 
-  // UI feedback
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Modal states
+  // For modals
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
 
-  // Which fields are in “edit mode”
   const [editFields, setEditFields] = useState({
     first_name: false,
     last_name: false,
@@ -69,7 +63,7 @@ export default function ProfileSettings() {
   const navigate = useNavigate();
 
   // ----------------------------
-  // Auto-collapse sidebar on narrow screens
+  // Collapse sidebar if needed
   // ----------------------------
   useEffect(() => {
     if (width < 1000 && !isCollapsed) {
@@ -83,43 +77,39 @@ export default function ProfileSettings() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
+        setLoadingProfile(true);
         const res = await fetchUserProfile();
-        const profileData = res.data;
-        setProfile(profileData);
+        const p = res.data;
+        setProfile(p);
 
-        // Fill out form data
+        // Basic form fields
         setFormData({
-          username: profileData.username,
-          email: profileData.email,
-          first_name: profileData.first_name || '',
-          last_name: profileData.last_name || '',
-          location: profileData.location || '',
-          description: profileData.description || '',
-          gender: profileData.gender || '',
-          date_of_birth: profileData.date_of_birth || '',
+          username: p.username,
+          email: p.email,
+          first_name: p.first_name || '',
+          last_name: p.last_name || '',
+          location: p.location || '',
+          description: p.description || '',
+          gender: p.gender || '',
+          date_of_birth: p.date_of_birth || '',
         });
 
-        // Fill out privacy data
-        if (profileData.profile_visibility) {
-          setProfileVisibility(profileData.profile_visibility);
+        // Privacy fields
+        if (p.profile_visibility) {
+          setProfileVisibility(p.profile_visibility);
         }
-        if (typeof profileData.show_saved_maps === 'boolean') {
-          setShowSavedMaps(profileData.show_saved_maps);
-        }
-        if (typeof profileData.show_comments === 'boolean') {
-          setShowComments(profileData.show_comments);
-        }
-        if (typeof profileData.show_activity_feed === 'boolean') {
-          setShowActivityFeed(profileData.show_activity_feed);
-        }
+        if (typeof p.show_saved_maps === 'boolean') setShowSavedMaps(p.show_saved_maps);
+        if (typeof p.show_comments === 'boolean') setShowComments(p.show_comments);
+        if (typeof p.show_activity_feed === 'boolean') setShowActivityFeed(p.show_activity_feed);
 
-        // Profile picture
-        const pictureUrl = profileData.profile_picture
-          ? profileData.profile_picture
-          : '/default-profile-pic.jpg';
-        setLocalProfilePictureUrl(pictureUrl);
-      } catch (error) {
-        console.error('Failed to fetch profile:', error);
+        // Profile pic
+        if (p.profile_picture) {
+          setLocalProfilePictureUrl(p.profile_picture);
+        } else {
+          setLocalProfilePictureUrl('/default-profile-pic.jpg');
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
         setErrorProfile('Failed to load profile.');
       } finally {
         setLoadingProfile(false);
@@ -129,13 +119,13 @@ export default function ProfileSettings() {
   }, []);
 
   // ----------------------------
-  // Crop states and functions
+  // Crop states & logic
   // ----------------------------
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
-  const onCropComplete = useCallback((croppedArea, croppedPixels) => {
+  const onCropComplete = useCallback((_, croppedPixels) => {
     setCroppedAreaPixels(croppedPixels);
   }, []);
 
@@ -143,7 +133,7 @@ export default function ProfileSettings() {
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.addEventListener('load', () => resolve(image));
-      image.addEventListener('error', (error) => reject(error));
+      image.addEventListener('error', reject);
       image.setAttribute('crossOrigin', 'anonymous');
       image.src = url;
     });
@@ -180,14 +170,6 @@ export default function ProfileSettings() {
       }, 'image/jpeg', 1);
     });
   }
-
-  // ----------------------------
-  // Input handlers
-  // ----------------------------
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
@@ -227,50 +209,53 @@ export default function ProfileSettings() {
     setError('');
   };
 
+  // ----------------------------
+  // Form handling
+  // ----------------------------
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSelectCountry = (country) => {
-    setFormData({ ...formData, location: country });
+    setFormData((prev) => ({ ...prev, location: country }));
     setShowCountryModal(false);
   };
 
-  // ----------------------------
-  // Submit all changes at once
-  // ----------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
     try {
-      const formDataToSend = new FormData();
-
+      const payload = new FormData();
       // Basic fields
-      formDataToSend.append('first_name', formData.first_name);
-      formDataToSend.append('last_name', formData.last_name);
-      formDataToSend.append('location', formData.location);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('gender', formData.gender);
+      payload.append('first_name', formData.first_name);
+      payload.append('last_name', formData.last_name);
+      payload.append('location', formData.location);
+      payload.append('description', formData.description);
+      payload.append('gender', formData.gender);
 
-      // New: the privacy settings
-      formDataToSend.append('profile_visibility', profileVisibility);
-      formDataToSend.append('show_saved_maps', showSavedMaps);
-      formDataToSend.append('show_comments', showComments);
-      formDataToSend.append('show_activity_feed', showActivityFeed);
+      // Privacy fields
+      payload.append('profile_visibility', profileVisibility);
+      payload.append('show_saved_maps', showSavedMaps);
+      payload.append('show_comments', showComments);
+      payload.append('show_activity_feed', showActivityFeed);
 
-      // Only send DOB if user never had one before but now set it
-      if (!profile.date_of_birth && formData.date_of_birth) {
-        formDataToSend.append('date_of_birth', formData.date_of_birth);
+      // Date of birth only if user never had one
+      if (!profile?.date_of_birth && formData.date_of_birth) {
+        payload.append('date_of_birth', formData.date_of_birth);
       }
 
-      // If there's a new (cropped) image
+      // Picture if changed
       if (profile_picture) {
-        formDataToSend.append('profile_picture', profile_picture);
+        payload.append('profile_picture', profile_picture);
       }
 
-      // Update the server
-      const res = await updateUserProfile(formDataToSend);
+      const res = await updateUserProfile(payload);
       const updatedProfile = res.data;
 
-      // Update local states
+      // Update local states with what the server actually returned
       setProfile(updatedProfile);
       setFormData({
         username: updatedProfile.username,
@@ -283,8 +268,7 @@ export default function ProfileSettings() {
         date_of_birth: updatedProfile.date_of_birth || '',
       });
 
-      // Also update local privacy states with what the server returned, in case
-      // we want to read it back from server response. (Optional)
+      // Privacy
       if (updatedProfile.profile_visibility) {
         setProfileVisibility(updatedProfile.profile_visibility);
       }
@@ -298,10 +282,12 @@ export default function ProfileSettings() {
         setShowActivityFeed(updatedProfile.show_activity_feed);
       }
 
-      const pictureUrl = updatedProfile.profile_picture
-        ? updatedProfile.profile_picture
-        : '/default-profile-pic.jpg';
-      setLocalProfilePictureUrl(pictureUrl);
+      // Picture
+      if (updatedProfile.profile_picture) {
+        setLocalProfilePictureUrl(updatedProfile.profile_picture);
+      } else {
+        setLocalProfilePictureUrl('/default-profile-pic.jpg');
+      }
 
       setSuccess('Profile updated successfully!');
       setEditFields({
@@ -311,14 +297,12 @@ export default function ProfileSettings() {
         date_of_birth: false,
       });
     } catch (err) {
-      console.error(err);
+      console.error('Update profile error:', err);
       setError('Failed to update profile.');
     }
   };
 
-  // ----------------------------
   // Delete account
-  // ----------------------------
   const handleDeleteAccount = () => {
     setShowDeleteModal(true);
   };
@@ -327,32 +311,24 @@ export default function ProfileSettings() {
     navigate('/delete-account');
   };
 
-  // ----------------------------
   // Change password
-  // ----------------------------
   const handleChangePassword = () => {
     navigate('/change-password');
   };
 
-  // ----------------------------
-  // Format DOB to dd/mm/yyyy
-  // ----------------------------
+  // Format date of birth
   const formattedDOB = formData.date_of_birth
     ? format(new Date(formData.date_of_birth), 'dd/MM/yyyy')
     : 'Not specified';
 
   // ----------------------------
-  // Rendering
+  // Render
   // ----------------------------
   return (
     <div className={styles.profileContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-        <Header
-         isCollapsed={isCollapsed}
-         setIsCollapsed={setIsCollapsed}
-         title="Settings"
-        />
+        <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title="Settings" />
 
         {loadingProfile ? (
           <LoadingSpinner />
@@ -382,13 +358,12 @@ export default function ProfileSettings() {
               </button>
             </div>
 
-            {/* Success / Error messages */}
             {success && <div className={styles.successBox}>{success}</div>}
             {error && <div className={styles.errorBox}>{error}</div>}
 
             <div className={styles.mainContent}>
               <form onSubmit={handleSubmit} className={styles.profileForm}>
-                {/* ACCOUNT TAB */}
+                {/* ---------------- ACCOUNT TAB ---------------- */}
                 {activeTab === 'account' && (
                   <>
                     <div className={styles.formRow}>
@@ -400,7 +375,6 @@ export default function ProfileSettings() {
                         </div>
                       </div>
                     </div>
-
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Username:</label>
                       <div className={styles.formField}>
@@ -410,8 +384,6 @@ export default function ProfileSettings() {
                         </div>
                       </div>
                     </div>
-
-                    {/* Gender - using a modal */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Gender:</label>
                       <div className={styles.formField}>
@@ -428,14 +400,12 @@ export default function ProfileSettings() {
                       <GenderPickerModal
                         selectedGender={formData.gender}
                         onSelectGender={(gender) => {
-                          setFormData({ ...formData, gender });
+                          setFormData((prev) => ({ ...prev, gender }));
                           setShowGenderModal(false);
                         }}
                         onClose={() => setShowGenderModal(false)}
                       />
                     )}
-
-                    {/* Location - using a modal */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Location:</label>
                       <div className={styles.formField}>
@@ -454,12 +424,10 @@ export default function ProfileSettings() {
                         onClose={() => setShowCountryModal(false)}
                       />
                     )}
-
-                    {/* DOB logic */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Date of Birth:</label>
                       <div className={styles.formField}>
-                        {profile.date_of_birth ? (
+                        {profile?.date_of_birth ? (
                           <div className={styles.editableValue}>
                             <span className={styles.staticValue}>{formattedDOB}</span>
                             <div className={styles.emptyIconSpace}></div>
@@ -484,8 +452,6 @@ export default function ProfileSettings() {
                         )}
                       </div>
                     </div>
-
-                    {/* Change password */}
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Password:</label>
                       <div className={styles.formField}>
@@ -502,7 +468,7 @@ export default function ProfileSettings() {
                   </>
                 )}
 
-                {/* PROFILE TAB */}
+                {/* ---------------- PROFILE TAB ---------------- */}
                 {activeTab === 'profile' && (
                   <>
                     <div className={styles.formRow}>
@@ -528,7 +494,6 @@ export default function ProfileSettings() {
                         )}
                       </div>
                     </div>
-
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Last Name:</label>
                       <div className={styles.formField}>
@@ -552,7 +517,6 @@ export default function ProfileSettings() {
                         )}
                       </div>
                     </div>
-
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Profile Picture:</label>
                       <div className={styles.formField}>
@@ -581,7 +545,6 @@ export default function ProfileSettings() {
                         </div>
                       </div>
                     </div>
-
                     <div className={styles.formRow}>
                       <label className={styles.formLabel}>Description:</label>
                       <div className={styles.formField}>
@@ -608,7 +571,7 @@ export default function ProfileSettings() {
                   </>
                 )}
 
-                {/* PRIVACY TAB */}
+                {/* ---------------- PRIVACY TAB ---------------- */}
                 {activeTab === 'privacy' && (
                   <>
                     <div className={styles.privacySection}>
@@ -685,7 +648,7 @@ export default function ProfileSettings() {
         )}
       </div>
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <DeleteConfirmationModal
           onClose={() => setShowDeleteModal(false)}
@@ -763,7 +726,7 @@ function GenderPickerModal({ selectedGender, onSelectGender, onClose }) {
           {genders.map((g) => (
             <div
               key={g}
-              className={`${styles.genderItem} ${g === selectedGender ? styles.selectedItem : ''}`}
+              className={styles.genderItem + ' ' + (g === selectedGender ? styles.selectedItem : '')}
               onClick={() => onSelectGender(g)}
             >
               {g}
@@ -803,7 +766,16 @@ function DeleteConfirmationModal({ onClose, onConfirm }) {
 /* ------------------------------
    Crop Modal
 ------------------------------ */
-function CropModal({ imageSrc, crop, setCrop, zoom, setZoom, onCropComplete, onSave, onCancel }) {
+function CropModal({
+  imageSrc,
+  crop,
+  setCrop,
+  zoom,
+  setZoom,
+  onCropComplete,
+  onSave,
+  onCancel
+}) {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>

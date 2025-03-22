@@ -18,7 +18,8 @@ import {
   FaStar,
   FaMap,
   FaBookmark,
-  FaListUl
+  FaListUl,
+  FaLock
 } from 'react-icons/fa';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
@@ -33,70 +34,80 @@ export default function ProfilePage() {
   const { username } = useParams();
   const navigate = useNavigate();
 
+  // Logged-in user's info
   const { profile: currentUserProfile, authToken } = useContext(UserContext);
+
   const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
-  // Auto-collapse sidebar on narrow screens
+  // ------------------------------
+  // Auto-collapse sidebar
+  // ------------------------------
   useEffect(() => {
     if (width < 1000 && !isCollapsed) {
       setIsCollapsed(true);
     }
   }, [width, isCollapsed, setIsCollapsed]);
 
+  // ------------------------------
   // Basic profile info
+  // ------------------------------
   const [profile, setProfile] = useState(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
 
+  // Are we looking at our own profile?
+  const isMyProfile =
+    currentUserProfile && currentUserProfile.username === profile?.username;
+
+  // Is the user logged in at all?
+  const isUserLoggedIn = !!authToken && !!currentUserProfile;
+
+  // ------------------------------
   // Stats (maps & stars)
+  // ------------------------------
   const [totalMaps, setTotalMaps] = useState(0);
   const [totalStars, setTotalStars] = useState(0);
 
-  // Tab handling: 'maps' | 'starred' | 'activity'
+  // ------------------------------
+  // Tabs: 'maps' | 'starred' | 'activity'
+  // ------------------------------
   const [currentTab, setCurrentTab] = useState('maps');
 
+  // ------------------------------
   // "Report Profile" modal
+  // ------------------------------
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReasons, setReportReasons] = useState('');
   const reportDetailsRef = useRef('');
   const [isReporting, setIsReporting] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
 
+  // ------------------------------
   // Activity feed
+  // ------------------------------
   const [activity, setActivity] = useState([]);
   const [loadingActivity, setLoadingActivity] = useState(false);
 
-  // Are we looking at our own profile?
-  const isMyProfile =
-    currentUserProfile && currentUserProfile.username === profile?.username;
-  const isUserLoggedIn = !!authToken && !!currentUserProfile;
-
-  // -----------------------------------------------
-  //  Pagination + Sorting (Maps)
-  // -----------------------------------------------
+  // ------------------------------
+  // Pagination + Sorting (Maps)
+  // ------------------------------
   const [userMaps, setUserMaps] = useState([]);
   const [loadingMaps, setLoadingMaps] = useState(false);
-
   const [mapsPage, setMapsPage] = useState(1);
   const mapsPerPage = 12;
   const [mapsTotal, setMapsTotal] = useState(0);
-
   const [sortMapsBy, setSortMapsBy] = useState('newest');
 
-  // -----------------------------------------------
-  //  Pagination + Sorting (Starred)
-  // -----------------------------------------------
+  // ------------------------------
+  // Pagination + Sorting (Starred)
+  // ------------------------------
   const [starredMaps, setStarredMaps] = useState([]);
   const [loadingStarred, setLoadingStarred] = useState(false);
-
   const [starredPage, setStarredPage] = useState(1);
   const starredPerPage = 24;
   const [starredTotal, setStarredTotal] = useState(0);
-
   const [sortStarredBy, setSortStarredBy] = useState('newest');
-
-  
 
   // =========================================================================
   // 1) Load user profile by username
@@ -106,14 +117,18 @@ export default function ProfilePage() {
       try {
         setLoadingProfile(true);
         const res = await fetchUserProfileByUsername(username);
-        setProfile(res.data);
-        if (res.data?.profile_picture) {
-          setProfilePictureUrl(res.data.profile_picture);
+        const foundProfile = res.data;
+
+        setProfile(foundProfile);
+
+        if (foundProfile?.profile_picture) {
+          setProfilePictureUrl(foundProfile.profile_picture);
         } else {
           setProfilePictureUrl('/images/default-profile-picture.png');
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
+        // If profile not found, or server error => show 404
         navigate('/404');
       } finally {
         setLoadingProfile(false);
@@ -144,6 +159,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'maps') return;
+
     async function fetchMaps() {
       try {
         setLoadingMaps(true);
@@ -170,6 +186,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'starred') return;
+
     async function fetchStarredMapsFn() {
       try {
         setLoadingStarred(true);
@@ -196,6 +213,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!profile) return;
     if (currentTab !== 'activity') return;
+
     async function fetchActivityData() {
       try {
         setLoadingActivity(true);
@@ -226,6 +244,7 @@ export default function ProfilePage() {
   // 7) Report profile
   // =========================================================================
   function handleReportProfile() {
+    // If not logged in, redirect to login
     if (!isUserLoggedIn) {
       navigate('/login');
       return;
@@ -259,6 +278,7 @@ export default function ProfilePage() {
   // =========================================================================
   function renderMapCard(map) {
     const mapTitle = map.title || 'Untitled Map';
+
     const sharedProps = {
       groups: map.groups,
       mapTitleValue: mapTitle,
@@ -273,9 +293,13 @@ export default function ProfilePage() {
     };
 
     let thumbnail = null;
-    if (map.selected_map === 'world') thumbnail = <WorldMapSVG {...sharedProps} />;
-    else if (map.selected_map === 'usa') thumbnail = <UsSVG {...sharedProps} />;
-    else if (map.selected_map === 'europe') thumbnail = <EuropeSVG {...sharedProps} />;
+    if (map.selected_map === 'world') {
+      thumbnail = <WorldMapSVG {...sharedProps} />;
+    } else if (map.selected_map === 'usa') {
+      thumbnail = <UsSVG {...sharedProps} />;
+    } else if (map.selected_map === 'europe') {
+      thumbnail = <EuropeSVG {...sharedProps} />;
+    }
 
     return (
       <div
@@ -288,7 +312,8 @@ export default function ProfilePage() {
           <h3 className={styles.cardTitle}>{mapTitle}</h3>
           <div className={styles.detailsRow}>
             <span className={styles.modified}>
-              Modified {formatDistanceToNow(new Date(map.updated_at), { addSuffix: true })}
+              Modified{' '}
+              {formatDistanceToNow(new Date(map.updated_at), { addSuffix: true })}
             </span>
             <span className={styles.starDisplay}>
               <FaStar className={styles.starIcon} /> {map.save_count || 0}
@@ -315,7 +340,7 @@ export default function ProfilePage() {
   };
 
   // =========================================================================
-  // SKELETON VIEW for Profile (if loadingProfile is true)
+  // 10) Loading / Not Found
   // =========================================================================
   if (loadingProfile) {
     return (
@@ -323,41 +348,19 @@ export default function ProfilePage() {
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
           <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-          {/* Use the same container as the final layout */}
+          {/* Skeleton screen */}
           <div className={styles.mainContainer}>
-            {/* Left Column: Skeleton Profile Info */}
             <div className={styles.leftColumn}>
               <div className={styles.skeletonProfileInfo}>
-                <div className={styles.skeletonProfilePicture} />
-                <div className={styles.skeletonUsername} />
-                <div className={styles.skeletonFullName} />
-                <div className={styles.skeletonInfoRow}>
-                  <div className={styles.skeletonInfoItem} />
-                  <div className={styles.skeletonInfoItem} />
-                </div>
-                <div className={styles.skeletonStatsRow}>
-                  <div className={styles.skeletonStatsItem} />
-                  <div className={styles.skeletonStatsItem} />
-                </div>
-                <div className={styles.skeletonBio} />
-                <div className={styles.skeletonButton} />
+                {/* ...some skeleton elements... */}
               </div>
             </div>
-            {/* Right Column: Skeleton Tabs and Cards */}
             <div className={styles.rightColumn}>
               <div className={styles.skeletonTabs}>
-                <div className={styles.skeletonTab} />
-                <div className={styles.skeletonTab} />
-                <div className={styles.skeletonTab} />
+                {/* ... */}
               </div>
               <div className={styles.skeletonCardsGrid}>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className={styles.skeletonCard}>
-                    <div className={styles.skeletonCardThumbnail} />
-                    <div className={styles.skeletonCardText} />
-                    <div className={styles.skeletonCardTextShort} />
-                  </div>
-                ))}
+                {/* ... */}
               </div>
             </div>
           </div>
@@ -366,9 +369,6 @@ export default function ProfilePage() {
     );
   }
 
-  // =========================================================================
-  // NO PROFILE FOUND
-  // =========================================================================
   if (!profile) {
     return (
       <div className={styles.profilePageContainer}>
@@ -382,8 +382,29 @@ export default function ProfilePage() {
   }
 
   // =========================================================================
-  // MAIN RENDER
+  // 11) Handle private profile
   // =========================================================================
+  // If user sets "onlyMe" and we are NOT the owner, show “private profile”
+  const isPrivate = profile.profile_visibility === 'onlyMe';
+  if (isPrivate && !isMyProfile) {
+    return (
+      <div className={styles.profilePageContainer}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={profile.username} />
+          <div className={styles.mainContainer} style={{ marginTop: '40px' }}>
+            <div className={styles.privateProfileBox}>
+              <FaLock className={styles.lockIcon} />
+              <h2>This profile is private.</h2>
+              <p>You cannot view this user’s maps or activity.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Otherwise, if it's "everyone" or it's "onlyMe" but **my** profile => show normal
   const mapsTotalPages = Math.ceil(mapsTotal / mapsPerPage);
   const starredTotalPages = Math.ceil(starredTotal / starredPerPage);
 
@@ -391,7 +412,11 @@ export default function ProfilePage() {
     <div className={styles.profilePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-        <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={profile.username} />
+        <Header
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          title={profile.username}
+        />
 
         <div className={styles.mainContainer}>
           {/* LEFT COLUMN: Profile Info */}
@@ -404,6 +429,16 @@ export default function ProfilePage() {
               <h1 className={styles.fullName}>
                 {profile.first_name} {profile.last_name}
               </h1>
+
+              {/* If it's our own private profile, optionally show a small note */}
+              {isPrivate && isMyProfile && (
+                <div className={styles.privateLabel}>
+                  <FaLock className={styles.lockIconSmall} />
+                  <span>Your account is private</span>
+                </div>
+              )}
+
+              {/* Location / DOB */}
               <div className={styles.infoRow}>
                 {profile.location && (
                   <div className={styles.infoItem}>
@@ -424,6 +459,8 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+
+              {/* Stats */}
               <div className={styles.statsRowInfo}>
                 <div className={styles.statsItem}>
                   <FaStar className={styles.icon} />
@@ -434,13 +471,20 @@ export default function ProfilePage() {
                   <span>{totalMaps} Maps</span>
                 </div>
               </div>
+
+              {/* Description / Bio */}
               {profile.description && (
                 <div className={styles.bio}>
                   <p>{profile.description}</p>
                 </div>
               )}
+
+              {/* Edit / Report buttons */}
               {isMyProfile && (
-                <button className={styles.editProfileButton} onClick={() => navigate('/settings')}>
+                <button
+                  className={styles.editProfileButton}
+                  onClick={() => navigate('/settings')}
+                >
                   Edit Profile
                 </button>
               )}
@@ -460,7 +504,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Tabs */}
+          {/* RIGHT COLUMN: Tabs + Content */}
           <div className={styles.rightColumn}>
             <div className={styles.tabs}>
               <button
@@ -487,7 +531,7 @@ export default function ProfilePage() {
             </div>
 
             <div className={styles.tabContent}>
-              {/* =========== MAPS TAB =========== */}
+              {/* MAPS TAB */}
               {currentTab === 'maps' && (
                 <>
                   <div className={styles.topBarRow}>
@@ -515,6 +559,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                   </div>
+
                   {loadingMaps ? (
                     <div className={styles.skeletonCardsGrid}>
                       {Array.from({ length: 6 }).map((_, i) => (
@@ -532,6 +577,8 @@ export default function ProfilePage() {
                       {userMaps.map((map) => renderMapCard(map))}
                     </div>
                   )}
+
+                  {/* Pagination for Maps */}
                   {userMaps.length > 0 && (
                     <div className={styles.pagination}>
                       {mapsTotalPages > 1 && (
@@ -564,7 +611,7 @@ export default function ProfilePage() {
                 </>
               )}
 
-              {/* =========== STARRED TAB =========== */}
+              {/* STARRED TAB */}
               {currentTab === 'starred' && (
                 <>
                   <div className={styles.topBarRow}>
@@ -592,6 +639,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                   </div>
+
                   {loadingStarred ? (
                     <div className={styles.skeletonCardsGrid}>
                       {Array.from({ length: 6 }).map((_, i) => (
@@ -609,6 +657,8 @@ export default function ProfilePage() {
                       {starredMaps.map((map) => renderMapCard(map))}
                     </div>
                   )}
+
+                  {/* Pagination for Starred */}
                   {starredMaps.length > 0 && (
                     <div className={styles.pagination}>
                       {starredTotalPages > 1 && (
@@ -641,7 +691,7 @@ export default function ProfilePage() {
                 </>
               )}
 
-              {/* =========== ACTIVITY TAB =========== */}
+              {/* ACTIVITY TAB */}
               {currentTab === 'activity' && (
                 <>
                   {loadingActivity ? (
