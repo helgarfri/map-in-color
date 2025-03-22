@@ -343,7 +343,7 @@ router.get('/', auth, async (req, res) => {
         profile_picture,
         profile_visibility,
         show_saved_maps,
-        show_comments,
+        star_notifications,
         show_activity_feed,
         created_at,
         updated_at
