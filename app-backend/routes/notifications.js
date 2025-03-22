@@ -48,9 +48,17 @@ router.get('/', auth, async (req, res) => {
     if (senderIds.length > 0) {
       const { data: senders, error: sendErr } = await supabaseAdmin
         .from('users')
-        .select('id, username, first_name, profile_picture, status')
+        .select(`
+          id,
+          username,
+          first_name,
+          profile_picture,
+          status,
+          profile_visibility,
+          star_notifications
+        `)
         .in('id', senderIds);
-
+    
       if (sendErr) {
         console.error('Error fetching senders:', sendErr);
       } else if (senders) {
@@ -182,25 +190,54 @@ router.get('/', auth, async (req, res) => {
 
     // 6) Filter out any notification from a banned sender
     const filtered = enriched.filter((n) => {
-      // If there's no sender (maybe system notification), keep it
+      // If there's no sender (e.g. system notification), we keep it
       if (!n.Sender) return true;
-      // Otherwise, exclude if sender is banned
+      // Exclude if sender is banned
       return n.Sender.status !== 'banned';
     });
 
     // 7) Filter out notifications referencing a hidden or missing comment
-    //    (if n.comment_id is set but n.Comment is null => skip)
-    const final = filtered.filter((n) => {
+    const filtered2 = filtered.filter((n) => {
       if (!n.comment_id) return true; // no comment => keep
-      return n.Comment !== null;     // keep only if comment is visible
+      return n.Comment !== null;     // keep only if comment is actually found & visible
     });
 
+    // 8) **Now** filter out notifications from private accounts or star-disabled senders
+    //    e.g. skip ANY notifications if user is private, or skip only "star" events
+    //    depending on your policy
+
+    const final = filtered2.filter((n) => {
+      const s = n.Sender;
+      // If no sender, keep
+      if (!s) return true;
+
+      // If this user is private => skip ALL notifications from them
+      // (You can choose to skip only star notifications, or skip everything.)
+      if (s.profile_visibility === 'onlyMe') {
+        return false; // skip all
+      }
+
+      // If this is a star-type notification, skip if they disabled star notifications
+      // (depending on your naming convention, check `n.type` or `notification_star` etc.)
+      if (
+        (n.type === 'star' || n.type === 'map_star' || n.type === 'notification_star')
+        && s.star_notifications === false
+      ) {
+        return false;
+      }
+
+      // Otherwise, keep
+      return true;
+    });
+
+    // 9) Return final
     return res.json(final);
-  } catch (err) {
-    console.error('Error fetching notifications:', err);
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
+
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+        return res.status(500).json({ msg: 'Server error' });
+      }
+    });
 
 // PUT /api/notifications/:id/read
 router.put('/:id/read', auth, async (req, res) => {
