@@ -382,7 +382,8 @@ router.get('/dashboard', auth, async (req, res) => {
       if (senderIds.length > 0) {
         const { data: senders } = await supabaseAdmin
           .from('users')
-          .select(`id, username, first_name, last_name, profile_picture, status`)
+          .select(`id, username, first_name, last_name, profile_picture, status, profile_visibility,
+    star_notifications`)
           .in('id', senderIds);
   
         if (senders) {
@@ -438,50 +439,67 @@ router.get('/dashboard', auth, async (req, res) => {
       }
 
   
-      // (D4) Build “notifActivities” array, merging the data we fetched
-      const notifActivities = notifications.map((n) => {
-        const sender = n.sender_id ? sendersById[n.sender_id] || null : null;
-        const mapObj = n.map_id ? mapsById[n.map_id] || null : null;
-        const commentObj = n.comment_id ? commentsById[n.comment_id] || null : null;
-      
-        let commentAuthorData = null;
-        if (commentObj && commentObj.User) {
-          commentAuthorData = {
-            id: commentObj.User.id,
-            username: commentObj.User.username,
-            profile_picture: commentObj.User.profile_picture,
-          };
+        // (D4) Build “notifActivities” array
+        let notifActivities = [];
+
+        for (const n of notifications) {
+          const sender = n.sender_id ? sendersById[n.sender_id] || null : null;
+          const mapObj = n.map_id ? mapsById[n.map_id] || null : null;
+          const commentObj = n.comment_id ? commentsById[n.comment_id] || null : null;
+
+          // If this is a "star" notification (meaning n.type === "star" or "map_star" or something),
+          // then we skip it entirely if the sender is private or has star_notifications off.
+          if (
+            (n.type === 'star' || n.type === 'map_star' /* adjust if needed */)
+            && sender
+            && (
+              sender.profile_visibility === 'onlyMe' ||
+              sender.star_notifications === false
+            )
+          ) {
+            // skip adding this notification
+            continue;
+          }
+
+          // Otherwise, proceed building the normal object
+          let commentAuthorData = null;
+          if (commentObj && commentObj.User) {
+            commentAuthorData = {
+              id: commentObj.User.id,
+              username: commentObj.User.username,
+              profile_picture: commentObj.User.profile_picture,
+            };
+          }
+
+          notifActivities.push({
+            type: `notification_${n.type}`,       // e.g. notification_star
+            created_at: n.created_at,
+            map: mapObj
+              ? {
+                  id: mapObj.id,
+                  title: mapObj.title,
+                  selected_map: mapObj.selected_map,
+                  ocean_color: mapObj.ocean_color,
+                  unassigned_color: mapObj.unassigned_color,
+                  font_color: mapObj.font_color,
+                  is_title_hidden: mapObj.is_title_hidden,
+                  groups: mapObj.groups,
+                  data: mapObj.data,
+                  save_count: mapObj.save_count,
+                  created_at: mapObj.created_at,
+                }
+              : null,
+            commentContent: commentObj ? commentObj.content : null,
+            commentAuthor: commentAuthorData,
+
+            notificationData: {
+              id: n.id,
+              is_read: n.is_read,
+              sender: sender,
+            },
+          });
         }
-      
-        return {
-          type: `notification_${n.type}`,
-          created_at: n.created_at,
-          map: mapObj
-            ? {
-              id: mapObj.id,
-              title: mapObj.title,
-              selected_map: mapObj.selected_map,
-              ocean_color: mapObj.ocean_color,
-              unassigned_color: mapObj.unassigned_color,
-              font_color: mapObj.font_color,
-              is_title_hidden: mapObj.is_title_hidden,
-              groups: mapObj.groups,
-              data: mapObj.data,
-              save_count: mapObj.save_count,
-              created_at: mapObj.created_at,
-            }
-            : null,
-          commentContent: commentObj ? commentObj.content : null,
-          commentAuthor: commentAuthorData, // <-- add this
-      
-          notificationData: {
-            id: n.id,
-            is_read: n.is_read,
-            sender: sender,
-          },
-        };
-      });
-      
+
   
       // (E) Merge all activities + sort descending
       let allActivities = [...userActivity, ...notifActivities];

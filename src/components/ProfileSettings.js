@@ -217,6 +217,23 @@ export default function ProfileSettings() {
     setShowCropModal(false);
     setError('');
   };
+  const handleProfileVisibilityChange = (e) => {
+    const newVal = e.target.value;
+    setProfileVisibility(newVal);
+  
+    if (newVal === 'onlyMe') {
+      // Force toggles off, disable them
+      setShowSavedMaps(false);
+      setShowActivityFeed(false);
+      setStarNotifications(false);
+    } else if (newVal === 'everyone') {
+      // Force toggles on, enable them
+      setShowSavedMaps(true);
+      setShowActivityFeed(true);
+      setStarNotifications(true);
+    }
+  };
+  
 
   // ----------------------------
   // Form handling
@@ -593,7 +610,7 @@ export default function ProfileSettings() {
                         <div className={styles.formField}>
                           <select
                             value={profileVisibility}
-                            onChange={(e) => setProfileVisibility(e.target.value)}
+                            onChange={handleProfileVisibilityChange}
                             className={styles.privacySelect}
                           >
                             <option value="everyone">Everyone</option>
@@ -606,8 +623,21 @@ export default function ProfileSettings() {
                         <label className={styles.formLabel}>Show saved maps on profile:</label>
                         <div className={styles.formField}>
                           <ToggleSwitch
-                            isOn={showSavedMaps}
-                            onToggle={() => setShowSavedMaps((prev) => !prev)}
+                              isOn={showSavedMaps}
+                              onToggle={() => setShowSavedMaps((prev) => !prev)}
+                              disabled={profileVisibility === 'onlyMe'}
+                          />
+                        </div>
+                      </div>
+
+                      
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel}>Show activity feed on profile:</label>
+                        <div className={styles.formField}>
+                          <ToggleSwitch
+                              isOn={showActivityFeed}
+                              onToggle={() => setShowActivityFeed((prev) => !prev)}
+                              disabled={profileVisibility === 'onlyMe'}
                           />
                         </div>
                       </div>
@@ -616,21 +646,13 @@ export default function ProfileSettings() {
                         <label className={styles.formLabel}>Notify others when you star a map:</label>
                         <div className={styles.formField}>
                           <ToggleSwitch
-                            isOn={starNotifications}
-                            onToggle={() => setStarNotifications((prev) => !prev)}
+                                isOn={starNotifications}
+                                onToggle={() => setStarNotifications((prev) => !prev)}
+                                disabled={profileVisibility === 'onlyMe'}
                           />
                         </div>
                       </div>
 
-                      <div className={styles.formRow}>
-                        <label className={styles.formLabel}>Show activity feed on profile:</label>
-                        <div className={styles.formField}>
-                          <ToggleSwitch
-                            isOn={showActivityFeed}
-                            onToggle={() => setShowActivityFeed((prev) => !prev)}
-                          />
-                        </div>
-                      </div>
                     </div>
 
                     <div className={styles.deleteSection}>
@@ -830,14 +852,16 @@ function CropModal({
 /* ------------------------------
    Toggle Switch
 ------------------------------ */
-function ToggleSwitch({ isOn, onToggle }) {
+function ToggleSwitch({ isOn, onToggle, disabled }) {
   return (
     <button
       type="button"
       className={`${styles.toggleButton} ${isOn ? styles.toggleOn : styles.toggleOff}`}
-      onClick={onToggle}
+      onClick={disabled ? undefined : onToggle}  // Only allow toggling if !disabled
+      disabled={disabled}  // Actually disable the button
     >
       {isOn ? 'On' : 'Off'}
     </button>
   );
 }
+

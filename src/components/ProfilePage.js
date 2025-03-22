@@ -404,7 +404,9 @@ export default function ProfilePage() {
     );
   }
 
-  // Otherwise, if it's "everyone" or it's "onlyMe" but **my** profile => show normal
+  // ...
+  // Right before return:
+  // Otherwise, if it's "everyone" or it's "onlyMe" but my profile => show normal
   const mapsTotalPages = Math.ceil(mapsTotal / mapsPerPage);
   const starredTotalPages = Math.ceil(starredTotal / starredPerPage);
 
@@ -531,7 +533,7 @@ export default function ProfilePage() {
             </div>
 
             <div className={styles.tabContent}>
-              {/* MAPS TAB */}
+              {/* =========== MAPS TAB =========== */}
               {currentTab === 'maps' && (
                 <>
                   <div className={styles.topBarRow}>
@@ -611,90 +613,112 @@ export default function ProfilePage() {
                 </>
               )}
 
-              {/* STARRED TAB */}
+              {/* =========== STARRED TAB =========== */}
               {currentTab === 'starred' && (
                 <>
-                  <div className={styles.topBarRow}>
-                    <div className={styles.sortRowLeft}>
-                      <label htmlFor="sortStarredSelect">Sort by:</label>
-                      <select
-                        id="sortStarredSelect"
-                        className={styles.sortSelect}
-                        value={sortStarredBy}
-                        onChange={(e) => {
-                          setStarredPage(1);
-                          setSortStarredBy(e.target.value);
-                        }}
-                      >
-                        <option value="newest">Newest</option>
-                        <option value="oldest">Oldest</option>
-                        <option value="mostStarred">Most Starred</option>
-                      </select>
-                    </div>
-                    {starredTotal > 0 && (
-                      <div className={styles.pageCountRight}>
-                        <span>
-                          Page {starredPage} of {Math.ceil(starredTotal / starredPerPage)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {loadingStarred ? (
-                    <div className={styles.skeletonCardsGrid}>
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className={styles.skeletonCard}>
-                          <div className={styles.skeletonCardThumbnail} />
-                          <div className={styles.skeletonCardText} />
-                          <div className={styles.skeletonCardTextShort} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : starredMaps.length === 0 ? (
-                    <p>No starred maps.</p>
-                  ) : (
-                    <div className={styles.cardsGrid}>
-                      {starredMaps.map((map) => renderMapCard(map))}
-                    </div>
-                  )}
-
-                  {/* Pagination for Starred */}
-                  {starredMaps.length > 0 && (
-                    <div className={styles.pagination}>
-                      {starredTotalPages > 1 && (
-                        <>
-                          <button
-                            onClick={() => handleStarredPageChange(starredPage - 1)}
-                            disabled={starredPage <= 1}
-                          >
-                            ‹
-                          </button>
-                          {Array.from({ length: starredTotalPages }, (_, i) => i + 1).map((p) => (
-                            <button
-                              key={p}
-                              onClick={() => handleStarredPageChange(p)}
-                              className={p === starredPage ? styles.activePage : ''}
-                            >
-                              {p}
-                            </button>
-                          ))}
-                          <button
-                            onClick={() => handleStarredPageChange(starredPage + 1)}
-                            disabled={starredPage >= starredTotalPages}
-                          >
-                            ›
-                          </button>
-                        </>
+                  {profile.show_saved_maps === false ? (
+                    <div className={styles.disabledSection}>
+                      <FaLock className={styles.lockIcon} />
+                      {isMyProfile ? (
+                        <p>You have disabled starred maps.</p>
+                      ) : (
+                        <p>This user has disabled starred maps.</p>
                       )}
                     </div>
+                  ) : (
+                    <>
+                      <div className={styles.topBarRow}>
+                        <div className={styles.sortRowLeft}>
+                          <label htmlFor="sortStarredSelect">Sort by:</label>
+                          <select
+                            id="sortStarredSelect"
+                            className={styles.sortSelect}
+                            value={sortStarredBy}
+                            onChange={(e) => {
+                              setStarredPage(1);
+                              setSortStarredBy(e.target.value);
+                            }}
+                          >
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                            <option value="mostStarred">Most Starred</option>
+                          </select>
+                        </div>
+                        {starredTotal > 0 && (
+                          <div className={styles.pageCountRight}>
+                            <span>
+                              Page {starredPage} of {Math.ceil(starredTotal / starredPerPage)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {loadingStarred ? (
+                        <div className={styles.skeletonCardsGrid}>
+                          {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className={styles.skeletonCard}>
+                              <div className={styles.skeletonCardThumbnail} />
+                              <div className={styles.skeletonCardText} />
+                              <div className={styles.skeletonCardTextShort} />
+                            </div>
+                          ))}
+                        </div>
+                      ) : starredMaps.length === 0 ? (
+                        <p>No starred maps.</p>
+                      ) : (
+                        <div className={styles.cardsGrid}>
+                          {starredMaps.map((map) => renderMapCard(map))}
+                        </div>
+                      )}
+
+                      {/* Pagination for Starred */}
+                      {starredMaps.length > 0 && (
+                        <div className={styles.pagination}>
+                          {starredTotalPages > 1 && (
+                            <>
+                              <button
+                                onClick={() => handleStarredPageChange(starredPage - 1)}
+                                disabled={starredPage <= 1}
+                              >
+                                ‹
+                              </button>
+                              {Array.from({ length: starredTotalPages }, (_, i) => i + 1).map((p) => (
+                                <button
+                                  key={p}
+                                  onClick={() => handleStarredPageChange(p)}
+                                  className={p === starredPage ? styles.activePage : ''}
+                                >
+                                  {p}
+                                </button>
+                              ))}
+                              <button
+                                onClick={() => handleStarredPageChange(starredPage + 1)}
+                                disabled={starredPage >= starredTotalPages}
+                              >
+                                ›
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
-              {/* ACTIVITY TAB */}
+              {/* =========== ACTIVITY TAB =========== */}
               {currentTab === 'activity' && (
                 <>
-                  {loadingActivity ? (
+                  {profile.show_activity_feed === false ? (
+                    <div className={styles.disabledSection}>
+                      <FaLock className={styles.lockIcon} />
+                      {isMyProfile ? (
+                        <p>You have disabled your activity feed.</p>
+                      ) : (
+                        <p>This user has disabled their activity feed.</p>
+                      )}
+                    </div>
+                  ) : loadingActivity ? (
                     <div className={styles.loadingContainer}>
                       <LoadingSpinner />
                     </div>
