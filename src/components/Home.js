@@ -114,7 +114,7 @@ export default function Home() {
   return (
     <div className={styles.homeContainer}>
       <HomeHeader />
-
+      <p>this is for testing the new branch</p>
       <main className={styles.mainContent}>
         <h2 className={styles.betaNotice}>
           Map in Color v2.0 will launch in:
