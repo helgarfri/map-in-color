@@ -143,6 +143,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
       font_color: map.font_color,
       is_title_hidden: map.is_title_hidden,
       isThumbnail: true,
+      showNoDataLegend: map.show_no_data_legend,
     };
 
     let MapComponent = <div className={styles.defaultThumbnail}>No Map</div>;

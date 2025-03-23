@@ -228,6 +228,7 @@ function Explore() {
       is_title_hidden: map.is_title_hidden,
       show_top_high_values: false,
       show_top_low_values: false,
+      showNoDataLegend: map.show_no_data_legend,
     };
     if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
     if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;

@@ -11,7 +11,8 @@ export default function UsSVG({
   font_color = '#000000',
   viewBox="-90 -10 1238 610", 
   data = [],
-  is_title_hidden
+  is_title_hidden,
+  showNoDataLegend,
 
 
 
@@ -172,28 +173,62 @@ export default function UsSVG({
   const maxSpacing = 30;     // Maximum spacing between legend items
 
   const maxGroupsForScaling = 10; // Number of groups after which sizes stop decreasing
+////////////////////////////////////////////////////////////////////////////////
+// 1) Build the "legendItems" array (include "No Data" if showNoDataLegend is true)
+////////////////////////////////////////////////////////////////////////////////
+const legendItems = [];
 
-  // Calculate the number of groups
-  const numberOfGroups = groups.length > 0 ? groups.length : 1;
 
-  // Calculate scaling factor
-  const scalingFactor = numberOfGroups <= maxGroupsForScaling
-    ? (maxGroupsForScaling - numberOfGroups) / (maxGroupsForScaling - 1)
+
+// Now push all the normal group items
+groups.forEach((g) => {
+  // The label can be group.name or the numeric range:
+  const rangeLabel = g.name || `${g.lowerBound} - ${g.upperBound}`;
+
+  legendItems.push({
+    id: g.id || Math.random(), // fallback if no ID
+    color: g.color,
+    label: rangeLabel,
+  });
+});
+
+// If user wants “No Data” at the top of the legend:
+if (showNoDataLegend) {
+  legendItems.push({
+    id: 'no-data',
+    color: unassigned_color,
+    // We'll call the text 'No Data'
+    label: 'No Data',
+  });
+}
+////////////////////////////////////////////////////////////////////////////////
+// 2) Dynamic Sizing + Spacing logic (based on legendItems.length instead of groups.length)
+////////////////////////////////////////////////////////////////////////////////
+
+// If there are no legend items, default to 1 (avoid division by zero):
+const numberOfLegendItems = legendItems.length > 0 ? legendItems.length : 1;
+
+// The rest is your original sizing logic, but using numberOfLegendItems
+const scalingFactor =
+  numberOfLegendItems <= maxGroupsForScaling
+    ? (maxGroupsForScaling - numberOfLegendItems) / (maxGroupsForScaling - 1)
     : 0;
 
-  // Calculate dynamic sizes
-  const fontSizeLegend = minFontSizeLegend + (maxFontSizeLegend - minFontSizeLegend) * scalingFactor;
-  const circleRadius = minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
-  const spacingBetweenItems = minSpacing + (maxSpacing - minSpacing) * scalingFactor;
+const fontSizeLegend =
+  minFontSizeLegend + (maxFontSizeLegend - minFontSizeLegend) * scalingFactor;
+const circleRadius =
+  minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
+const spacingBetweenItems =
+  minSpacing + (maxSpacing - minSpacing) * scalingFactor;
 
-  // Calculate total legend height
-  const totalLegendHeight = (numberOfGroups - 1) * spacingBetweenItems;
+const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetweenItems;
 
-  // Calculate starting Y position for the first legend item
-  const startY = centerY - (totalLegendHeight / 2);
+// “startY” remains the same, but we base it on the new totalLegendHeight
+const startY = centerY - totalLegendHeight / 2;
 
-  // Adjust the title's Y position (above the legend)
-  const titleY = startY - spacingBetweenItems; // Adjust as needed
+// The “titleY” stays as is, just above the first legend item
+const titleY = startY - spacingBetweenItems;
+
 
   // Calculate font size for the map title
   const fontSizeTitle = calculateFontSize(mapTitleValue);
@@ -503,42 +538,44 @@ export default function UsSVG({
 
 
 
+{/* Legend */}
+<g id="legend">
+  {legendItems.map((item, index) => {
+    const circleStyle = {
+      fill: item.color,
+      cx: '860', // Adjust X position if needed
+      cy: startY + index * spacingBetweenItems,
+      r: circleRadius,
+    };
 
-        {/* Legend */}
-        <g id="legend">
-          {groups.map((group, index) => {
-            const circleStyle = {
-              fill: group.color,
-              cx: '860', // Adjust X position as percentage
-              cy: startY + index * spacingBetweenItems,
-              r: circleRadius,
-            };
-            const textStyle = {
-              x: '875', // Adjust X position as percentage
-              y:
-                startY +
-                index * spacingBetweenItems +
-                circleRadius / 2 +
-                2.5, // Adjust for text alignment
-              fontSize: `${fontSizeLegend}px`,
-              fill: font_color,
-            };
-            const rangeLabel =
-              group.name || `${group.lowerBound} - ${group.upperBound}`;
-            const fontSizeLabel = calculateLegendFontSize(rangeLabel);
-            return (
-              <g key={group.id || index}>
-                <circle {...circleStyle}></circle>
-                <text
-                  {...textStyle}
-                  style={{ fontSize: `${fontSizeLabel}px` }}
-                >
-                  {rangeLabel}
-                </text>
-              </g>
-            );
-          })}
-        </g>
+    const textStyle = {
+      x: '875', // Adjust to position text near the circle
+      y:
+        startY +
+        index * spacingBetweenItems +
+        circleRadius / 2 +
+        2.5, // small offset to center text
+      fontSize: `${fontSizeLegend}px`,
+      fill: font_color,
+    };
+
+    // If the user typed in a custom name, or if it's the "No Data" item, item.label has it
+    const finalLabel = item.label;
+    const fontSizeLabel = calculateLegendFontSize(finalLabel);
+
+    return (
+      <g key={item.id}>
+        <circle {...circleStyle} />
+        <text
+          {...textStyle}
+          style={{ fontSize: `${fontSizeLabel}px` }}
+        >
+          {finalLabel}
+        </text>
+      </g>
+    );
+  })}
+</g>
 
 
 

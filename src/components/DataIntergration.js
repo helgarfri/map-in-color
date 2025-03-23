@@ -1317,6 +1317,8 @@ function applyPalette(oldRanges, paletteColors) {
           top_low_values={top_low_values}
           isLargeMap={false}
           is_title_hidden={is_title_hidden}
+          showNoDataLegend={showNoDataLegend}
+
           />
         )}
         {selected_map === 'europe' && (
@@ -1334,6 +1336,8 @@ function applyPalette(oldRanges, paletteColors) {
           top_low_values={top_low_values}
           isLargeMap={false}
           is_title_hidden={is_title_hidden}
+          showNoDataLegend={showNoDataLegend}
+
           />
         )}
       </div>

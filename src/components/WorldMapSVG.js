@@ -200,23 +200,25 @@ const calculateFontSize = (title) => {
 	////////////////////////////////////////////////////////////////////////////////
 	const legendItems = [];
 
+	// Now push all the normal group items
+	groups.forEach((g) => {
+		legendItems.push({
+			id: g.id,
+			color: g.color,
+			rangeLabel: g.rangeLabel,
+		});
+		});
+
 	// If user wants “No Data” at the top of the legend:
 	if (showNoDataLegend) {
 	legendItems.push({
 		id: 'no-data',
 		color: unassigned_color,
-		rangeLabel: 'No Data',
+		rangeLabel: 'No data',
 	});
 	}
 
-	// Now push all the normal group items
-	groups.forEach((g) => {
-	legendItems.push({
-		id: g.id,
-		color: g.color,
-		rangeLabel: g.rangeLabel,
-	});
-	});
+
 
 	////////////////////////////////////////////////////////////////////////////////
 	// 3) Dynamic Sizing + Spacing logic (based on legendItems.length)

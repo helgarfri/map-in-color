@@ -55,7 +55,6 @@ router.post('/', auth, async (req, res) => {
         {
           ...mapData,
           user_id: user_id,
-          show_no_data_legend: showNoDataLegend,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         },
