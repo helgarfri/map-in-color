@@ -17,6 +17,7 @@ export default function WorldMapSVG({
   font_color,
   topHighValues,
   top_low_values,
+  showNoDataLegend,
   isLargeMap,
   viewBox = "0 0 2754 1398",
   is_title_hidden
@@ -154,6 +155,8 @@ useEffect(() => {
   });
 }, [groups, unassigned_color, selected_map]);
 
+
+
 const calculateFontSize = (title) => {
 	const maxFontSize = 46; // Font size for titles up to 40 characters
 	const minFontSize = 12; // Minimum font size
@@ -187,45 +190,76 @@ const calculateFontSize = (title) => {
   };
   
 	
-	// Calculate the font size for the current title
+	////////////////////////////////////////////////////////////////////////////////
+	// 1) Calculate the font size for the map title, same as before
+	////////////////////////////////////////////////////////////////////////////////
 	const fontSize = calculateFontSize(mapTitleValue);
 
-	// Define central Y position
-	const centerY = 800; // Adjust based on your SVG's coordinate system
+	////////////////////////////////////////////////////////////////////////////////
+	// 2) Build the "legendItems" array (include "No Data" if showNoDataLegend is true)
+	////////////////////////////////////////////////////////////////////////////////
+	const legendItems = [];
 
-	// Define minimum and maximum values
-	const minFontSize = 28;     // Minimum font size for legend text
-	const maxFontSize = 38;     // Maximum font size for legend text
+	// If user wants “No Data” at the top of the legend:
+	if (showNoDataLegend) {
+	legendItems.push({
+		id: 'no-data',
+		color: unassigned_color,
+		rangeLabel: 'No Data',
+	});
+	}
 
-	const minCircleSize = 8;    // Minimum circle radius
-	const maxCircleSize = 20;   // Maximum circle radius
+	// Now push all the normal group items
+	groups.forEach((g) => {
+	legendItems.push({
+		id: g.id,
+		color: g.color,
+		rangeLabel: g.rangeLabel,
+	});
+	});
 
-	const minSpacing = 40;      // Minimum spacing between legend items
-	const maxSpacing = 60;      // Maximum spacing between legend items
+	////////////////////////////////////////////////////////////////////////////////
+	// 3) Dynamic Sizing + Spacing logic (based on legendItems.length)
+	////////////////////////////////////////////////////////////////////////////////
 
-	const maxGroupsForScaling = 10; // Number of groups after which sizes stop decreasing
+	// If there are no legend items for some reason, default to 1 (avoid division by zero)
+	const numberOfLegendItems = legendItems.length > 0 ? legendItems.length : 1;
 
-	// Calculate the number of groups
-	const numberOfGroups = groups.length > 0 ? groups.length : 1;
+	// Position where the legend is centered vertically
+	const centerY = 800; // same as your code
 
-	// Calculate scaling factor
-	const scalingFactor = numberOfGroups <= maxGroupsForScaling
-	? (maxGroupsForScaling - numberOfGroups) / (maxGroupsForScaling - 1)
-	: 0;
+	// Your original bounding values (just keep them the same)
+	const minFontSize = 28;
+	const maxFontSize = 38;
+	const minCircleSize = 8;
+	const maxCircleSize = 20;
+	const minSpacing = 40;
+	const maxSpacing = 60;
+	const maxGroupsForScaling = 10;
 
-	// Calculate dynamic sizes
-	const fontSizeLegend = minFontSize + (maxFontSize - minFontSize) * scalingFactor;
-	const circleRadius = minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
-	const spacingBetweenItems = minSpacing + (maxSpacing - minSpacing) * scalingFactor;
+	// Scaling factor (same logic, just uses "numberOfLegendItems")
+	const scalingFactor =
+	numberOfLegendItems <= maxGroupsForScaling
+		? (maxGroupsForScaling - numberOfLegendItems) / (maxGroupsForScaling - 1)
+		: 0;
 
-	// Calculate total legend height
-	const totalLegendHeight = (numberOfGroups - 1) * spacingBetweenItems;
+	// Now compute final values for fontSize, circle radius, spacing
+	const fontSizeLegend =
+	minFontSize + (maxFontSize - minFontSize) * scalingFactor;
+	const circleRadius =
+	minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
+	const spacingBetweenItems =
+	minSpacing + (maxSpacing - minSpacing) * scalingFactor;
 
-	// Calculate starting Y position for the first legend item
-	const startY = centerY - (totalLegendHeight / 2);
+	// Total vertical space taken by all legend items
+	const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetweenItems;
 
-	// Adjust the title's Y position (above the legend)
-	const titleY = startY - spacingBetweenItems; // Adjust as needed
+	// Starting Y for the first legend item, so they’re all centered around centerY
+	const startY = centerY - totalLegendHeight / 2;
+
+	// Title Y = above the first item
+	const titleY = startY - spacingBetweenItems; // same offset you had
+
 	useEffect(() => {
 		const svgElement = svgRef.current;
 		if (!svgElement) return;
@@ -316,6 +350,8 @@ const calculateFontSize = (title) => {
 		  });
 		};
 	  }, [data, selected_map]);
+
+	  
 
 	  useEffect(() => {
 		const svgElement = svgRef.current;
@@ -3454,13 +3490,23 @@ const calculateFontSize = (title) => {
 
 
 
-
 {/* Legend Items */}
-{groups.map((group, index) => {
+{legendItems.map((item, index) => {
 	const itemYPosition = startY + index * spacingBetweenItems;
   
+	// Font size for this label
+	const labelFontSize = calculateLegendFontSize(item.rangeLabel);
+  
+	// Chrome vs Firefox offset:
+	const isChrome =
+	  /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+	const yOffset = isChrome
+	  ? itemYPosition + labelFontSize / 3 - 8
+	  : itemYPosition + labelFontSize / 3 + 2;
+  
+	// Circle style: use item.color
 	const circleStyle = {
-	  fill: group.color,
+	  fill: item.color,
 	  stroke: borderColor,
 	  strokeWidth: borderWidth,
 	  cx: 200,
@@ -3468,16 +3514,7 @@ const calculateFontSize = (title) => {
 	  r: circleRadius,
 	};
   
-	// Calculate font size for this label
-	const labelFontSize = calculateLegendFontSize(group.rangeLabel);
-  
-	// Detect Chrome browser (adjust this regex if needed)
-	const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-	// Use a different offset for Chrome versus Firefox
-	const yOffset = isChrome 
-	  ? itemYPosition + labelFontSize / 3 -8 // remove the extra offset in Chrome
-	  : itemYPosition + labelFontSize / 3 + 2; // add 2 pixels for Firefox (or others)
-  
+	// Text style: use item.rangeLabel
 	const textStyle = {
 	  x: "240",
 	  y: yOffset,
@@ -3487,67 +3524,13 @@ const calculateFontSize = (title) => {
 	};
   
 	return (
-	  <g key={group.id}>
-		<circle {...circleStyle}></circle>
-		<text {...textStyle}>{group.rangeLabel}</text>
+	  <g key={item.id}>
+		<circle {...circleStyle} />
+		<text {...textStyle}>{item.rangeLabel}</text>
 	  </g>
 	);
   })}
   
-
-{/* Render Top 3 Highest Values List */}
-{show_top_high_values && show_top_high_values.length > 0 && (
-	<g id="top-high-values">
-	  {/* Title */}
-	  <text x="970" y="1100" fill={font_color} fontSize="32" fontWeight="bold">
-		Highest:
-	  </text>
-	  {/* Countries displayed horizontally */}
-	  {show_top_high_values.map((item, index) => (
-		<text
-		  key={`high-${index}`}
-		  ref={(el) => (highValuesRefs.current[index] = el)} // Assign ref
-		  x={highValuesXPositions[index] || 1000} // Use calculated x-position
-		  y="1100" // Adjust y-coordinate as needed
-		  fill={font_color}
-		>
-		  <tspan fontStyle="italic" fontSize="36">
-			{item.name} -{' '}
-		  </tspan>
-		  <tspan fontWeight="bold" fontSize="28">
-			{item.value}
-		  </tspan>
-		</text>
-	  ))}
-	</g>
-  )}
-  
-  {/* Render Top 3 Lowest Values List */}
-  {show_top_low_values && top_low_values.length > 0 && (
-	<g id="top-low-values">
-	  {/* Title */}
-	  <text x="970" y="1155" fill={font_color} fontSize="32" fontWeight="bold">
-		Lowest:
-	  </text>
-	  {/* Countries displayed horizontally */}
-	  {top_low_values.map((item, index) => (
-		<text
-		  key={`low-${index}`}
-		  ref={(el) => (lowValuesRefs.current[index] = el)} // Assign ref
-		  x={lowValuesXPositions[index] || 1000} // Use calculated x-position
-		  y="1155" // Adjust y-coordinate as needed
-		  fill={font_color}
-		>
-		  <tspan fontStyle="italic" fontSize="36">
-			{item.name} -{' '}
-		  </tspan>
-		  <tspan fontWeight="bold" fontSize="28">
-			{item.value}
-		  </tspan>
-		</text>
-	  ))}
-	</g>
-  )}
 
   
   

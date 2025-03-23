@@ -182,6 +182,7 @@ export default function DashboardActivityFeed({ userProfile }) {
       data,
       font_color,
       is_title_hidden,
+      show_no_data_legend
     } = mapObj;
 
     const sharedProps = {
@@ -193,6 +194,7 @@ export default function DashboardActivityFeed({ userProfile }) {
       font_color,
       is_title_hidden,
       isThumbnail: true,
+      showNoDataLegend: show_no_data_legend,
     };
 
     let MapComponent = <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;

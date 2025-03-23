@@ -175,6 +175,9 @@ export default function DataIntegration({
   const [data, setData] = useState([]);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
+  const [showNoDataLegend, setShowNoDataLegend] = useState(
+    existingMapData?.show_no_data_legend || false
+  );
   
   useEffect(() => {
     // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
@@ -896,6 +899,7 @@ function applyPalette(oldRanges, paletteColors) {
     } else {
       setShowLoginModal(true);
     }
+    
   };
 
   const saveMapData = async () => {
@@ -915,6 +919,7 @@ function applyPalette(oldRanges, paletteColors) {
       show_top_high_values,
       show_top_low_values,
       show_top_high_values,
+      show_no_data_legend: showNoDataLegend,
       top_low_values,
       selected_palette,
       selected_map_theme,
@@ -922,6 +927,7 @@ function applyPalette(oldRanges, paletteColors) {
       file_stats,
       is_title_hidden,
       sources: references,
+
     };
     try {
       if (isEditing) {
@@ -1291,6 +1297,7 @@ function applyPalette(oldRanges, paletteColors) {
             font_color={font_color}
             topHighValues={topHighValues}
             top_low_values={top_low_values}
+            showNoDataLegend={showNoDataLegend}
             isLargeMap={false}
             is_title_hidden={is_title_hidden}
           />
@@ -1429,6 +1436,17 @@ function applyPalette(oldRanges, paletteColors) {
             onChange={(e) => setUnassignedColor(e.target.value)}
           />
         </div>
+
+        <div className={styles.themeField}>
+          <label htmlFor="showNoDataLegendChk">Show “No Data” on Legend:</label>
+          <input
+            id="showNoDataLegendChk"
+            type="checkbox"
+            checked={showNoDataLegend}
+            onChange={(e) => setShowNoDataLegend(e.target.checked)}
+          />
+        </div>
+
       </div>
     </div>
   </div>

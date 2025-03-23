@@ -48,7 +48,8 @@ router.get('/profile/:username', async (req, res) => {
         groups,
         data,
         save_count,
-        created_at
+        created_at,
+        show_no_data_legend
       `)
       .eq('user_id', user_id)
       .order('created_at', { ascending: false })
@@ -70,6 +71,7 @@ router.get('/profile/:username', async (req, res) => {
         data: m.data,
         save_count: m.save_count,
         created_at: m.created_at,
+        show_no_data_legend: m.show_no_data_legend,
       },
       commentContent: null,
     }));
@@ -104,6 +106,7 @@ router.get('/profile/:username', async (req, res) => {
               data: map.data,
               save_count: map.save_count,
               created_at: map.created_at,
+              show_no_data_legend: map.show_no_data_legend,
             }
           : null,
         commentContent: null,
@@ -130,7 +133,8 @@ router.get('/profile/:username', async (req, res) => {
           groups,
           data,
           save_count,
-          created_at
+          created_at,
+          show_no_data_legend
         ),
         User:users(
           id,
@@ -174,6 +178,7 @@ router.get('/profile/:username', async (req, res) => {
                 data: map.data,
                 save_count: map.save_count,
                 created_at: map.created_at,
+                show_no_data_legend: map.show_no_data_legend,
               }
             : null,
         };
@@ -223,7 +228,7 @@ router.get('/dashboard', auth, async (req, res) => {
           id, title, selected_map,
           ocean_color, unassigned_color, font_color,
           is_title_hidden, groups, data,
-          save_count, created_at
+          save_count, created_at, show_no_data_legend
         `)
         .eq('user_id', user_id);
   
@@ -242,6 +247,7 @@ router.get('/dashboard', auth, async (req, res) => {
           data: m.data,
           save_count: m.save_count,
           created_at: m.created_at,
+          show_no_data_legend: m.show_no_data_legend,
         },
         commentContent: null,
       }));
@@ -272,6 +278,8 @@ router.get('/dashboard', auth, async (req, res) => {
                 data: m.data,
                 save_count: m.save_count,
                 created_at: m.created_at,
+                show_no_data_legend: m.show_no_data_legend,
+
               }
             : null,
           commentContent: null,
@@ -293,7 +301,7 @@ router.get('/dashboard', auth, async (req, res) => {
           id, title, selected_map,
           ocean_color, unassigned_color, font_color,
           is_title_hidden, groups, data,
-          save_count, created_at
+          save_count, created_at, show_no_data_legend
         ),
         User:users(
           id,
@@ -322,6 +330,7 @@ router.get('/dashboard', auth, async (req, res) => {
               data: c.Map.data,
               save_count: c.Map.save_count,
               created_at: c.Map.created_at,
+              show_no_data_legend: c.Map.show_no_data_legend
             }
           : null,
       }));
@@ -401,7 +410,7 @@ router.get('/dashboard', auth, async (req, res) => {
           .select(`
             id, title, selected_map,
             ocean_color, unassigned_color, font_color,
-            is_title_hidden, groups, data, save_count, created_at
+            is_title_hidden, groups, data, save_count, created_at, show_no_data_legend
           `)
           .in('id', mapIds);
         if (fetchedMaps) {
@@ -486,6 +495,7 @@ router.get('/dashboard', auth, async (req, res) => {
                   data: mapObj.data,
                   save_count: mapObj.save_count,
                   created_at: mapObj.created_at,
+                  show_no_data_legend: mapObj.show_no_data_legend,
                 }
               : null,
             commentContent: commentObj ? commentObj.content : null,

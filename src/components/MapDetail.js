@@ -92,15 +92,13 @@ export default function MapDetail() {
   // near the top:
 const [fetchError, setFetchError] = useState(false);
 
-// In the same useEffect that fetches the map:
 useEffect(() => {
   let timer;
   async function getMapData() {
+    setIsLoading(true);
     try {
-      // Start timer: if isLoading is still true after 10s => consider it a "fetch error"
       timer = setTimeout(() => {
         if (isLoading) {
-          console.warn('Timed out fetching the map data...');
           setFetchError(true);
           setIsLoading(false);
         }
@@ -113,18 +111,18 @@ useEffect(() => {
       setIsOwner(res.data.isOwner || false);
       setIsPublic(res.data.is_public);
     } catch (err) {
-      console.error('Fetch error:', err);
       setFetchError(true);
     } finally {
       setIsLoading(false);
-      clearTimeout(timer); // we finished in time, so clear the timer
+      clearTimeout(timer);
     }
   }
   getMapData();
 
-  // Cleanup if the component unmounts
+  // Cleanup
   return () => clearTimeout(timer);
 }, [id]);
+
 
 
   useEffect(() => {
@@ -170,23 +168,6 @@ useEffect(() => {
     getComments();
   }, [id]);
   
-  useEffect(() => {
-    const getMapData = async () => {
-      try {
-        const res = await fetchMapById(id);
-        setMapData(res.data);
-        setSaveCount(res.data.save_count || 0);
-        setIsSaved(res.data.isSavedByCurrentUser || false);
-        setIsOwner(res.data.isOwner || false);
-        setIsPublic(res.data.is_public);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    getMapData();
-  }, [id]);
 
   useEffect(() => {
     // Once mapData is loaded, set the local state for download_count
@@ -553,14 +534,16 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
     return num.toFixed(2);
   }
 
-  const timeAgo = formatDistanceToNow(new Date(mapData.created_at), { addSuffix: true });
+  const timeAgo = mapData?.created_at
+  ? formatDistanceToNow(new Date(mapData.created_at), { addSuffix: true })
+  : null;
 
   const countryCodeToName = countries.reduce((acc, country) => {
     acc[country.code] = country.name;
     return acc;
   }, {});
 
-  const entries = (mapData.data || [])
+  const entries = (mapData?.data || [])
     .map(({ code, name, value }) => ({
       countryCode: code,
       countryName: name || countryCodeToName[code] || code,
@@ -880,7 +863,6 @@ if (isLoading) {
           onMarkAllAsRead={handleMarkAllAsRead}
           profile_picture={profile?.profile_picture}
         />
-        <LoadingSpinner />
       </div>
     </div>
   );
@@ -1030,8 +1012,10 @@ if (mapData.is_public === false && !mapData.isOwner) {
                 )}
               </div>
   
-              <p className={styles.created_at}>Created {timeAgo}</p>
-  
+              {timeAgo && (
+                <p className={styles.created_at}>Created {timeAgo}</p>
+              )}
+                
               {/* Creator Info */}
               <div className={styles.creatorInfo}>
                 <Link
@@ -1629,6 +1613,7 @@ function mapDataProps() {
     unassigned_color: mapData.unassigned_color,
     show_top_high_values: mapData.show_top_high_values,
     show_top_low_values: mapData.show_top_low_values,
+    showNoDataLegend: mapData.show_no_data_legend,
     data: mapData.data,
     selected_map: mapData.selected_map,
     font_color: mapData.font_color,
