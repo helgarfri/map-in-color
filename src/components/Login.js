@@ -36,7 +36,6 @@ export default function Login() {
         // Check status
         if (err.response.status === 403) {
           // The server says "banned"
-          alert(`Your account is banned: ${err.response.data.msg}`);
           // Possibly navigate to a special route
           navigate('/banned');
         } else {

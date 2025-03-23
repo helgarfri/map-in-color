@@ -482,7 +482,7 @@ function Explore() {
                           <h3 className={styles.mapTitle}>{mapTitle}</h3>
                           <div className={styles.mapInfoRow}>
                             <span>{displayName}</span>
-                            <span>
+                            <span className={styles.starCountContainer}>
                               <FaStar /> {map.save_count || 0}
                             </span>
                           </div>

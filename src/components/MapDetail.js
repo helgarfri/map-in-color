@@ -145,7 +145,7 @@ useEffect(() => {
     if (mapData.selected_map === 'usa') {
       setViewBox('-90 -10 1238 610');   // after editing the raw US SVG
     } else if (mapData.selected_map === 'europe') {
-      setViewBox('-50 0 760 510');    // after editing the raw Europe SVG
+      setViewBox('-50 0 700 520');    // after editing the raw Europe SVG
     } else {
       setViewBox('0 0 2754 1398');  // world
     }
@@ -580,7 +580,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
       // (Optional) Override viewBox if you want a custom bounding box
       if (mapData?.selected_map === 'europe') {
-        svgClone.setAttribute('viewBox', '-50 0 780 530');
+        svgClone.setAttribute('viewBox', '-50 0 700 520');
       } else if (mapData?.selected_map === 'usa') {
         svgClone.setAttribute('viewBox', '-90 -10 1238 610');
       } else {

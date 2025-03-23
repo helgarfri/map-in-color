@@ -28,19 +28,19 @@ function MapSelectionModal({ show, onClose, onCreateMap }) {
             className={`${styles.mapOption} ${selected_map === 'world' ? styles.selected : ''}`}
             onClick={() => setSelectedMap('world')}
           >
-            World Map
+            World
           </div>
           <div
             className={`${styles.mapOption} ${selected_map === 'usa' ? styles.selected : ''}`}
             onClick={() => setSelectedMap('usa')}
           >
-            USA Map
+            United States
           </div>
           <div
             className={`${styles.mapOption} ${selected_map === 'europe' ? styles.selected : ''}`}
             onClick={() => setSelectedMap('europe')}
           >
-            Europe Map
+            Europe
           </div>
         </div>
         <button className={styles.viewButton} onClick={handleCreateMap}>Create</button>

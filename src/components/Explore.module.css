@@ -274,6 +274,12 @@
   color: #555;
 }
 
+.starCountContainer {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 /* Tag chips in the card => smaller */
 .tags {
   margin: 0 8px 8px 8px;

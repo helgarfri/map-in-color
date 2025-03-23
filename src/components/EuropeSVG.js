@@ -164,7 +164,7 @@ export default function EuropeSVG({
     
      
     const calculateFontSize = (title) => {
-      const maxFontSize =  24; // Adjust max font size based on map size
+      const maxFontSize =  32; // Adjust max font size based on map size
       const minFontSize = 12; // Minimum font size
       const maxLength = 10;   // Character limit before font size decreases
     

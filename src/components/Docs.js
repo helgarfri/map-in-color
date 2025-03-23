@@ -232,10 +232,9 @@ export default function Docs() {
            Example: 
         </p>
         <pre className={styles.codeBlock}>
-{`Country/State Name,Value
-State1,Value1
-State2,Value2
-...`}
+{`  State1,Value1
+  State2,Value2
+  ...`}
         </pre>
 <p>
   The state or country name must be written in uppercase and must match the exact spelling in the provided template. To ensure accuracy, you can download the corresponding starter template below:
