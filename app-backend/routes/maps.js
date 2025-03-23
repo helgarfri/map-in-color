@@ -390,13 +390,18 @@ router.get('/:id', authOptional, async (req, res) => {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
-    // If map is private and user is NOT the owner => Return partial data instead of error
+    // If map is private and user is NOT the owner => Return partial data
     if (!mapRow.is_public && mapRow.user_id !== user_id) {
       return res.json({
         id: mapRow.id,
         user_id: mapRow.user_id,
         is_public: false,
         isOwner: false,
+
+        // Add created_at so the front end won't break:
+        created_at: mapRow.created_at,
+
+        // Minimizing or hiding the real data is optional; do as you wish:
         title: mapRow.title || 'Private Map',
         description: '',
         data: [],
@@ -406,7 +411,6 @@ router.get('/:id', authOptional, async (req, res) => {
           last_name: mapRow.user?.last_name || '',
           profile_picture: mapRow.user?.profile_picture || null,
         },
-        // Add any other minimal fields you want...
       });
     }
 
