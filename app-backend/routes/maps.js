@@ -769,27 +769,38 @@ router.get('/user/:user_id/stats', async (req, res) => {
   try {
     const { user_id } = req.params;
 
-    // fetch all maps from that user
-    // if user is banned or not => up to you if you want to return stats
+    // Fetch is_public and save_count
     const { data: userMaps, error } = await supabaseAdmin
       .from('maps')
-      .select('save_count')
+      .select('save_count, is_public')
       .eq('user_id', user_id);
 
     if (error) {
-      console.error(error);
+      console.error('Supabase error:', error);
       return res.status(500).json({ message: 'Server error' });
     }
 
+    // totalMaps = all maps (public or private)
     const totalMaps = userMaps.length;
+
+    // totalPublicMaps = only is_public === true
+    const totalPublicMaps = userMaps.filter(m => m.is_public).length;
+
+    // totalStars = sum of save_count
     const totalStars = userMaps.reduce((sum, m) => sum + (m.save_count || 0), 0);
 
-    res.json({ totalMaps, totalStars });
+    // Return all three
+    res.json({
+      totalMaps,
+      totalPublicMaps,
+      totalStars
+    });
   } catch (err) {
     console.error('Error fetching user stats:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    GET /api/maps/user/:user_id/most-starred

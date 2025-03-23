@@ -1,10 +1,8 @@
-/* src/components/ProfileSettings.module.css */
-
 .profileContainer {
   display: flex;
   min-height: 100vh;
   color: black;
-  margin-top:60px;
+  margin-top: 60px;
   background-color: #f7f7f7;
 
 }
@@ -16,16 +14,18 @@
   transition: margin-left 0.3s ease;
   font-family: "Roboto", sans-serif;
   color: #333;
+
+
 }
 
+/* When sidebar is collapsed */
 .profileContent.contentCollapsed {
   margin-left: 70px; /* Adjust based on your collapsed sidebar width */
 }
 
 .mainContent {
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+
 }
 
 .profileForm {
@@ -34,33 +34,24 @@
   flex-direction: column;
 }
 
-/* Navigation Tabs */
-.navigationTabs {
-  display: flex;
-  justify-content: center;
+/* Individual sections to visually group them */
+.settingsSection {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 800px;
+  width: 800px;
+  margin: 20px auto;
+  
 }
 
-.navTab {
-  margin: 0 15px;
-  padding: 10px 0;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  font-size: 1rem;
-  color: #333;
-  transition: border-color 0.3s ease;
-}
-
-.navTab:hover {
-  color: #0078bf;
-}
-
-.activeTab {
-  border-bottom-color: #0078bf;
-  font-weight: bold;
-  color: #0078bf;
+.sectionTitle {
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  font-size: 1.2rem;
 }
 
 /* Form Rows */
@@ -90,11 +81,11 @@
 .formField textarea,
 .formField select {
   width: 100%;
-  padding: 10px;
+  padding: 6px;
   margin-top: 0;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
 }
 
 .formField textarea {
@@ -109,7 +100,6 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease;
   margin-top: 30px;
   align-self: center;
 }
@@ -335,26 +325,18 @@
 /* Privacy Section */
 .privacySection {
   margin-bottom: 30px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.privacyHeading {
-  margin-top: 0;
-  color: #333;
-  font-size: 1.3rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  padding: 10px 0;
 }
 
 .privacySelect {
-  padding: 8px 12px;
+  padding: 4px 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
-  width: 200px;
+  max-width: fit-content;
+  
+
+
 }
 
 /* Toggle Switch */
@@ -364,7 +346,6 @@
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
   min-width: 70px;
 }
 
@@ -377,21 +358,52 @@
   background-color: #e0e0e0;
   color: #666;
 }
-
-/* Delete Account Section */
-.deleteSection {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #fff8f8;
-  border-radius: 8px;
-  border: 1px solid #ffe0e0;
-}
-
-.deleteHeading {
-  color: #d9534f;
-  margin-top: 0;
-  font-size: 1.2rem;
-}
+/* Make the entire row a flex container so heading, warning text,
+   and the button can share the same line. */
+   .deleteSection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fff8f8;
+    border-radius: 8px;
+    border: 1px solid #ffe0e0;
+  }
+  
+  /* You can group heading + warning in a small container */
+  .deleteInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .deleteHeading {
+    margin: 0;
+  }
+  
+  .deleteWarning {
+    margin: 5px 0 0 0;
+    color: #721c24; /* Red-ish text color if desired */
+    font-size: 0.9rem;
+  }
+  
+  .deleteButton {
+    background-color: #c4564d; /* Softer red */
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .deleteButton:hover {
+    background-color: #e66a6a; /* Slightly darker on hover */
+  }
+  
 
 .deleteWarning {
   color: #721c24;
@@ -428,7 +440,7 @@
   background-color: #bbb;
 }
 
-/* 1) Remove margin-left below 1000px */
+/* Responsive Adjustments */
 @media (max-width: 1000px) {
   .profileContent {
     margin-left: 0 !important; 
@@ -439,7 +451,6 @@
   }
 }
 
-/* 2) Possibly shrink things further under 400px for very small phones */
 @media (max-width: 400px) {
   .formRow {
     padding: 10px 0; /* smaller vertical spacing */
@@ -457,9 +468,7 @@
     width: 80px;
     height: 80px;
   }
-  .navTab {
-    font-size: 0.8rem;
-    padding: 8px 0;
+  .sectionTitle {
+    font-size: 1rem;
   }
 }
-

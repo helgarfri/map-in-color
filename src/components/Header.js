@@ -1,3 +1,4 @@
+// src/components/Header.js
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -23,7 +24,11 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
   const profileMenuRef = useRef(null);
 
   const navigate = useNavigate();
+
+  // Pull `profile` and `setAuthToken` from context
   const { profile, setAuthToken } = useContext(UserContext);
+
+  // On mount, fetch notifications
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,6 +41,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     fetchData();
   }, []);
 
+  // Mark a single notification as read
   const handleNotificationClick = async (notification) => {
     try {
       await markNotificationAsRead(notification.id);
@@ -50,6 +56,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     }
   };
 
+  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
@@ -59,6 +66,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     }
   };
 
+  // Close notifications/profile menu if user clicks outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -81,10 +89,12 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
+  // "Create Map" button handler
   const handleCreateMap = () => {
     setShowMapModal(true);
   };
 
+  // When user selects a map type in the modal
   const handleMapSelection = (selected_map) => {
     if (selected_map) {
       setShowMapModal(false);
@@ -92,12 +102,14 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     }
   };
 
+  // Logout handler
   const handleLogout = () => {
     localStorage.removeItem('token');
     if (setAuthToken) setAuthToken(null);
     navigate('/login');
   };
 
+  // Read the profile picture from context
   const profile_pictureUrl = profile?.profile_picture
     ? profile.profile_picture
     : '/default-profile-pic.jpg';
@@ -106,26 +118,26 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     <header className={styles.header}>
       {/* LEFT: Hamburger + Logo + Title */}
       <div className={styles.headerLeft}>
-      {/* Always show the hamburger */}
-      <button
-        className={styles.hamburgerButton}
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        <span className={styles.iconWrapper}>
-          <FaBars />
-        </span>
-      </button>
-        <div className={styles.logoWrapper}>
-  <Link to="/dashboard" className={styles.logoLink}>
-    <img
-      src="/assets/map-in-color-logo.png"
-      alt="App Logo"
-      className={styles.logo}
-    />
-  </Link>
-  {title && <span className={styles.headerTitle}>{title}</span>}
-</div>
+        {/* Hamburger */}
+        <button
+          className={styles.hamburgerButton}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          <span className={styles.iconWrapper}>
+            <FaBars />
+          </span>
+        </button>
 
+        <div className={styles.logoWrapper}>
+          <Link to="/dashboard" className={styles.logoLink}>
+            <img
+              src="/assets/map-in-color-logo.png"
+              alt="App Logo"
+              className={styles.logo}
+            />
+          </Link>
+          {title && <span className={styles.headerTitle}>{title}</span>}
+        </div>
       </div>
 
       {/* RIGHT: Create map, notifications, profile */}
@@ -134,6 +146,8 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
           <FaPlus className={styles.plusIcon} />
           <span>Create</span>
         </button>
+
+        {/* Notifications */}
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button
             className={styles.notificationBell}
@@ -221,6 +235,8 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
             </div>
           )}
         </div>
+
+        {/* Profile Menu */}
         <div className={styles.profileWrapper} ref={profileMenuRef}>
           <img
             src={profile_pictureUrl}
@@ -269,25 +285,25 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                   </Link>
                 </li>
                 <li>
-            <Link
-              to="#"
-              className={styles.profileMenuItem}
-              onClick={(e) => {
-                e.preventDefault();
-                handleLogout();
-              }}
-            >
-              <FaSignOutAlt className={styles.profileMenuIcon} />
-              <span>Logout</span>
-            </Link>
-          </li>
-
+                  <Link
+                    to="#"
+                    className={styles.profileMenuItem}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleLogout();
+                    }}
+                  >
+                    <FaSignOutAlt className={styles.profileMenuIcon} />
+                    <span>Logout</span>
+                  </Link>
+                </li>
               </ul>
             </div>
           )}
         </div>
       </div>
 
+      {/* Map Selection Modal */}
       {showMapModal && (
         <MapSelectionModal
           show={showMapModal}
@@ -299,6 +315,9 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
   );
 }
 
+/**
+ * Helper to format the notification message
+ */
 function getNotificationMessage(notification) {
   const mapTitle = notification.Map?.title || 'Untitled Map';
   const mapId = notification.Map?.id;

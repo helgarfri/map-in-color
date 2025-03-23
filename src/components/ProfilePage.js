@@ -25,7 +25,6 @@ import WorldMapSVG from './WorldMapSVG';
 import UsSVG from './UsSVG';
 import EuropeSVG from './EuropeSVG';
 import { formatDistanceToNow } from 'date-fns';
-import LoadingSpinner from './LoadingSpinner';
 import styles from './ProfilePage.module.css';
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
@@ -66,9 +65,9 @@ export default function ProfilePage() {
   // ------------------------------
   // Stats (maps & stars)
   // ------------------------------
-  const [totalMaps, setTotalMaps] = useState(0);
+  const [totalPublicMaps, setTotalPublicMaps] = useState(0);
   const [totalStars, setTotalStars] = useState(0);
-
+  
   // ------------------------------
   // Tabs: 'maps' | 'starred' | 'activity'
   // ------------------------------
@@ -140,12 +139,14 @@ export default function ProfilePage() {
   // =========================================================================
   // 2) Once profile is loaded, fetch stats
   // =========================================================================
+
   useEffect(() => {
     if (!profile) return;
     (async function loadStats() {
       try {
         const res = await fetchUserMapStats(profile.id);
-        setTotalMaps(res.data.totalMaps);
+        // Now returns { totalMaps, totalPublicMaps, totalStars }
+        setTotalPublicMaps(res.data.totalPublicMaps);
         setTotalStars(res.data.totalStars);
       } catch (err) {
         console.error('Error fetching user stats:', err);
@@ -343,24 +344,69 @@ export default function ProfilePage() {
   // 10) Loading / Not Found
   // =========================================================================
   if (loadingProfile) {
+    // --------------------
+    // FULL-PAGE SKELETON
+    // --------------------
     return (
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+        <div
+          className={`${styles.profileContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
           <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-          {/* Skeleton screen */}
-          <div className={styles.mainContainer}>
-            <div className={styles.leftColumn}>
-              <div className={styles.skeletonProfileInfo}>
-                {/* ...some skeleton elements... */}
-              </div>
+          <div className={styles.skeletonProfileContainer}>
+            {/* Left column skeleton */}
+            <div className={styles.skeletonProfileLeftColumn}>
+              <div className={`${styles.skeletonProfilePic} ${styles.skeletonShimmer}`} />
+              <div
+                className={`${styles.skeletonLine} ${styles.skeletonShimmer}`}
+                style={{ width: '60%', height: '22px', margin: '0 auto' }}
+              />
+              <div
+                className={`${styles.skeletonLine} ${styles.skeletonShimmer}`}
+                style={{ width: '40%', height: '18px', margin: '10px auto' }}
+              />
+              <div
+                className={`${styles.skeletonLine} ${styles.skeletonShimmer}`}
+                style={{ width: '80%', height: '14px', margin: '10px auto' }}
+              />
             </div>
-            <div className={styles.rightColumn}>
+
+            {/* Right column skeleton */}
+            <div className={styles.skeletonProfileRightColumn}>
+              {/* Skeleton tabs */}
               <div className={styles.skeletonTabs}>
-                {/* ... */}
+                <div
+                  className={`${styles.skeletonTab} ${styles.skeletonShimmer}`}
+                  style={{ width: '80px', height: '30px' }}
+                />
+                <div
+                  className={`${styles.skeletonTab} ${styles.skeletonShimmer}`}
+                  style={{ width: '90px', height: '30px' }}
+                />
+                <div
+                  className={`${styles.skeletonTab} ${styles.skeletonShimmer}`}
+                  style={{ width: '100px', height: '30px' }}
+                />
               </div>
+
+              {/* Skeleton cards grid for maps or starred */}
               <div className={styles.skeletonCardsGrid}>
-                {/* ... */}
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className={styles.skeletonCard}>
+                    <div
+                      className={`${styles.skeletonCardThumbnail} ${styles.skeletonShimmer}`}
+                    />
+                    <div
+                      className={`${styles.skeletonCardText} ${styles.skeletonShimmer}`}
+                    />
+                    <div
+                      className={`${styles.skeletonCardTextShort} ${styles.skeletonShimmer}`}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -373,8 +419,16 @@ export default function ProfilePage() {
     return (
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title="User Not Found" />
+        <div
+          className={`${styles.profileContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
+          <Header
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            title="User Not Found"
+          />
           <div className={styles.error}>Profile not found.</div>
         </div>
       </div>
@@ -384,14 +438,21 @@ export default function ProfilePage() {
   // =========================================================================
   // 11) Handle private profile
   // =========================================================================
-  // If user sets "onlyMe" and we are NOT the owner, show “private profile”
   const isPrivate = profile.profile_visibility === 'onlyMe';
   if (isPrivate && !isMyProfile) {
     return (
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={profile.username} />
+        <div
+          className={`${styles.profileContent} ${
+            isCollapsed ? styles.contentCollapsed : ''
+          }`}
+        >
+          <Header
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            title={profile.username}
+          />
           <div className={styles.mainContainer} style={{ marginTop: '40px' }}>
             <div className={styles.privateProfileBox}>
               <FaLock className={styles.lockIcon} />
@@ -404,8 +465,6 @@ export default function ProfilePage() {
     );
   }
 
-  // ...
-  // Right before return:
   // Otherwise, if it's "everyone" or it's "onlyMe" but my profile => show normal
   const mapsTotalPages = Math.ceil(mapsTotal / mapsPerPage);
   const starredTotalPages = Math.ceil(starredTotal / starredPerPage);
@@ -413,7 +472,11 @@ export default function ProfilePage() {
   return (
     <div className={styles.profilePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={`${styles.profileContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+      <div
+        className={`${styles.profileContent} ${
+          isCollapsed ? styles.contentCollapsed : ''
+        }`}
+      >
         <Header
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
@@ -425,20 +488,16 @@ export default function ProfilePage() {
           <div className={styles.leftColumn}>
             <div className={styles.profileInfoBox}>
               <div className={styles.profilePictureWrapper}>
-                <img src={profilePictureUrl} alt="Profile" className={styles.profilePicture} />
+                <img
+                  src={profilePictureUrl}
+                  alt="Profile"
+                  className={styles.profilePicture}
+                />
               </div>
               <h2 className={styles.username}>@{profile.username}</h2>
               <h1 className={styles.fullName}>
                 {profile.first_name} {profile.last_name}
               </h1>
-
-              {/* If it's our own private profile, optionally show a small note */}
-              {isPrivate && isMyProfile && (
-                <div className={styles.privateLabel}>
-                  <FaLock className={styles.lockIconSmall} />
-                  <span>Your account is private</span>
-                </div>
-              )}
 
               {/* Location / DOB */}
               <div className={styles.infoRow}>
@@ -452,11 +511,14 @@ export default function ProfilePage() {
                   <div className={styles.infoItem}>
                     <FaBirthdayCake className={styles.icon} />
                     <span>
-                      {new Date(profile.date_of_birth).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })}
+                      {new Date(profile.date_of_birth).toLocaleDateString(
+                        'en-US',
+                        {
+                          month: 'long',
+                          day: '2-digit',
+                          year: 'numeric',
+                        }
+                      )}
                     </span>
                   </div>
                 )}
@@ -464,15 +526,16 @@ export default function ProfilePage() {
 
               {/* Stats */}
               <div className={styles.statsRowInfo}>
-                <div className={styles.statsItem}>
-                  <FaStar className={styles.icon} />
-                  <span>{totalStars} Stars</span>
-                </div>
-                <div className={styles.statsItem}>
-                  <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
-                  <span>{totalMaps} Maps</span>
-                </div>
+              <div className={styles.statsItem}>
+                <FaStar className={styles.icon} />
+                <span>{totalStars} Stars</span>
               </div>
+              <div className={styles.statsItem}>
+                <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
+                <span>{totalPublicMaps} Public Maps</span> 
+              </div>
+            </div>
+
 
               {/* Description / Bio */}
               {profile.description && (
@@ -490,8 +553,27 @@ export default function ProfilePage() {
                   Edit Profile
                 </button>
               )}
+
+              {/* If it's our own private profile, optionally show a small note */}
+              {isPrivate && isMyProfile && (
+                <div className={styles.privateLabelContainer}>
+                  <div className={styles.privateLabel}>
+                    <FaLock className={styles.lockIconSmall} />
+                    <span>Your account is private</span>
+                  </div>
+                  <div>
+                    <small className={styles.privateNote}>
+                      Users won't be able to see your profile
+                    </small>
+                  </div>
+                </div>
+              )}
+
               {!isMyProfile && isUserLoggedIn && (
-                <button className={styles.reportProfileButton} onClick={handleReportProfile}>
+                <button
+                  className={styles.reportProfileButton}
+                  onClick={handleReportProfile}
+                >
                   <svg
                     className={styles.icon}
                     xmlns="http://www.w3.org/2000/svg"
@@ -510,21 +592,27 @@ export default function ProfilePage() {
           <div className={styles.rightColumn}>
             <div className={styles.tabs}>
               <button
-                className={`${styles.tabButton} ${currentTab === 'maps' ? styles.activeTab : ''}`}
+                className={`${styles.tabButton} ${
+                  currentTab === 'maps' ? styles.activeTab : ''
+                }`}
                 onClick={() => handleTabChange('maps')}
               >
                 <FaMap className={styles.tabIcon} />
                 <span>Maps</span>
               </button>
               <button
-                className={`${styles.tabButton} ${currentTab === 'starred' ? styles.activeTab : ''}`}
+                className={`${styles.tabButton} ${
+                  currentTab === 'starred' ? styles.activeTab : ''
+                }`}
                 onClick={() => handleTabChange('starred')}
               >
                 <FaBookmark className={styles.tabIcon} />
                 <span>Starred</span>
               </button>
               <button
-                className={`${styles.tabButton} ${currentTab === 'activity' ? styles.activeTab : ''}`}
+                className={`${styles.tabButton} ${
+                  currentTab === 'activity' ? styles.activeTab : ''
+                }`}
                 onClick={() => handleTabChange('activity')}
               >
                 <FaListUl className={styles.tabIcon} />
@@ -566,9 +654,15 @@ export default function ProfilePage() {
                     <div className={styles.skeletonCardsGrid}>
                       {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className={styles.skeletonCard}>
-                          <div className={styles.skeletonCardThumbnail} />
-                          <div className={styles.skeletonCardText} />
-                          <div className={styles.skeletonCardTextShort} />
+                          <div
+                            className={`${styles.skeletonCardThumbnail} ${styles.skeletonShimmer}`}
+                          />
+                          <div
+                            className={`${styles.skeletonCardText} ${styles.skeletonShimmer}`}
+                          />
+                          <div
+                            className={`${styles.skeletonCardTextShort} ${styles.skeletonShimmer}`}
+                          />
                         </div>
                       ))}
                     </div>
@@ -591,7 +685,10 @@ export default function ProfilePage() {
                           >
                             ‹
                           </button>
-                          {Array.from({ length: mapsTotalPages }, (_, i) => i + 1).map((p) => (
+                          {Array.from(
+                            { length: mapsTotalPages },
+                            (_, i) => i + 1
+                          ).map((p) => (
                             <button
                               key={p}
                               onClick={() => handleMapsPageChange(p)}
@@ -647,7 +744,8 @@ export default function ProfilePage() {
                         {starredTotal > 0 && (
                           <div className={styles.pageCountRight}>
                             <span>
-                              Page {starredPage} of {Math.ceil(starredTotal / starredPerPage)}
+                              Page {starredPage} of{' '}
+                              {Math.ceil(starredTotal / starredPerPage)}
                             </span>
                           </div>
                         )}
@@ -657,9 +755,15 @@ export default function ProfilePage() {
                         <div className={styles.skeletonCardsGrid}>
                           {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className={styles.skeletonCard}>
-                              <div className={styles.skeletonCardThumbnail} />
-                              <div className={styles.skeletonCardText} />
-                              <div className={styles.skeletonCardTextShort} />
+                              <div
+                                className={`${styles.skeletonCardThumbnail} ${styles.skeletonShimmer}`}
+                              />
+                              <div
+                                className={`${styles.skeletonCardText} ${styles.skeletonShimmer}`}
+                              />
+                              <div
+                                className={`${styles.skeletonCardTextShort} ${styles.skeletonShimmer}`}
+                              />
                             </div>
                           ))}
                         </div>
@@ -677,22 +781,31 @@ export default function ProfilePage() {
                           {starredTotalPages > 1 && (
                             <>
                               <button
-                                onClick={() => handleStarredPageChange(starredPage - 1)}
+                                onClick={() =>
+                                  handleStarredPageChange(starredPage - 1)
+                                }
                                 disabled={starredPage <= 1}
                               >
                                 ‹
                               </button>
-                              {Array.from({ length: starredTotalPages }, (_, i) => i + 1).map((p) => (
+                              {Array.from(
+                                { length: starredTotalPages },
+                                (_, i) => i + 1
+                              ).map((p) => (
                                 <button
                                   key={p}
                                   onClick={() => handleStarredPageChange(p)}
-                                  className={p === starredPage ? styles.activePage : ''}
+                                  className={
+                                    p === starredPage ? styles.activePage : ''
+                                  }
                                 >
                                   {p}
                                 </button>
                               ))}
                               <button
-                                onClick={() => handleStarredPageChange(starredPage + 1)}
+                                onClick={() =>
+                                  handleStarredPageChange(starredPage + 1)
+                                }
                                 disabled={starredPage >= starredTotalPages}
                               >
                                 ›
@@ -720,7 +833,6 @@ export default function ProfilePage() {
                     </div>
                   ) : loadingActivity ? (
                     <div className={styles.loadingContainer}>
-                      <LoadingSpinner />
                     </div>
                   ) : (
                     <div className={styles.activityTabContent}>
@@ -753,7 +865,8 @@ export default function ProfilePage() {
               <>
                 <h3>Report Profile</h3>
                 <p>
-                  Please let us know why you are reporting <strong>@{profile.username}</strong>:
+                  Please let us know why you are reporting{' '}
+                  <strong>@{profile.username}</strong>:
                 </p>
                 <div className={styles.reportOptions}>
                   <label className={styles.reportOption}>
