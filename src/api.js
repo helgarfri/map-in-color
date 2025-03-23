@@ -96,7 +96,7 @@ export const deleteComment = (comment_id) => API.delete(`/comments/${comment_id}
 // Delete a notification
 export const deleteNotification = (id) => API.delete(`/notifications/${id}`);
 
-export const fetchDashboardActivity = (offset = 0, limit = 30) => {
+export const fetchDashboardActivity = (offset = 0, limit = 15) => {
   return API.get(`/activity/dashboard?offset=${offset}&limit=${limit}`);
 };
 

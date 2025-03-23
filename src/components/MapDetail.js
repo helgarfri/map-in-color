@@ -32,6 +32,7 @@ import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
 import { reportComment } from '../api'; // import at top
+import { FaLock } from 'react-icons/fa';
 
 
 export default function MapDetail() {
@@ -87,6 +88,44 @@ export default function MapDetail() {
   
   // Ref for the map display container
   const mapDisplayRef = useRef(null);
+
+  // near the top:
+const [fetchError, setFetchError] = useState(false);
+
+// In the same useEffect that fetches the map:
+useEffect(() => {
+  let timer;
+  async function getMapData() {
+    try {
+      // Start timer: if isLoading is still true after 10s => consider it a "fetch error"
+      timer = setTimeout(() => {
+        if (isLoading) {
+          console.warn('Timed out fetching the map data...');
+          setFetchError(true);
+          setIsLoading(false);
+        }
+      }, 10000);
+
+      const res = await fetchMapById(id);
+      setMapData(res.data);
+      setSaveCount(res.data.save_count || 0);
+      setIsSaved(res.data.isSavedByCurrentUser || false);
+      setIsOwner(res.data.isOwner || false);
+      setIsPublic(res.data.is_public);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setFetchError(true);
+    } finally {
+      setIsLoading(false);
+      clearTimeout(timer); // we finished in time, so clear the timer
+    }
+  }
+  getMapData();
+
+  // Cleanup if the component unmounts
+  return () => clearTimeout(timer);
+}, [id]);
+
 
   useEffect(() => {
     const updateCountryListHeight = () => {
@@ -488,26 +527,9 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 
   
 
-  if (isLoading || !mapData) {
-    return (
-      <div className={styles.mapDetailContainer}>
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div
-          className={`${styles.mapDetailContent} ${
-            isCollapsed ? styles.contentCollapsed : ''
-          }`}
-        >
-          <Header
-            notifications={notifications.slice(0, 6)}
-            onNotificationClick={handleNotificationClick}
-            onMarkAllAsRead={handleMarkAllAsRead}
-            profile_picture={profile?.profile_picture}
-          />
-          <LoadingSpinner />
-        </div>
-      </div>
-    );
-  }
+
+
+
 
   function formatValue(num) {
     if (typeof num !== 'number' || isNaN(num)) {
@@ -800,10 +822,101 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   };
   
   
-  
-  
-  
-  
+  // Right before the return, handle the special cases:
+
+// 1) If we had a real fetchError (server error, 404, or timed out)
+if (fetchError) {
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <Header
+          notifications={notifications.slice(0, 6)}
+          onNotificationClick={handleNotificationClick}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          profile_picture={profile?.profile_picture}
+        />
+        <div className={styles.errorBox}>
+          <h2>Map not available</h2>
+          <p>We couldn’t load this map right now. Please try again later.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2) If we’re still “loading”...
+if (isLoading) {
+  // If it's private & not the owner => show lock message
+  if (is_public === false && !isOwner) {
+    return (
+      <div className={styles.mapDetailContainer}>
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <div className={styles.mapDetailContent}>
+          <Header
+            notifications={notifications.slice(0, 6)}
+            onNotificationClick={handleNotificationClick}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            profile_picture={profile?.profile_picture}
+          />
+          <div className={styles.privateMapBox}>
+            <FaLock className={styles.lockIcon} />
+            <h2>This map is private</h2>
+            <p>You do not have permission to view this map.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Otherwise if it's loading, show spinner
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <Header
+          notifications={notifications.slice(0, 6)}
+          onNotificationClick={handleNotificationClick}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          profile_picture={profile?.profile_picture}
+        />
+        <LoadingSpinner />
+      </div>
+    </div>
+  );
+}
+
+// 3) If loaded, but no mapData?
+if (!mapData) {
+  // Just a safety check
+  return null;
+}
+
+// 4) If the map is private & user not owner => locked
+if (mapData.is_public === false && !mapData.isOwner) {
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <Header
+          notifications={notifications.slice(0, 6)}
+          onNotificationClick={handleNotificationClick}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          profile_picture={profile?.profile_picture}
+        />
+        <div className={styles.privateMapBox}>
+          <FaLock className={styles.lockIcon} />
+          <h2>This map is private</h2>
+          <p>You do not have permission to view this map.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 5) Otherwise, show the normal map UI...
+
+
   return (
     <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />

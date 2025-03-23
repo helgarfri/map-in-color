@@ -700,6 +700,28 @@ a {
   padding: 2rem;
 }
 
+/* In MapDetail.module.css */
+.privateMapBox {
+  margin: 60px auto;
+  text-align: center;
+  padding: 40px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+.privateMapBox h2 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+.privateMapBox p {
+  font-size: 1rem;
+  color: #666;
+}
+.lockIcon {
+  font-size: 3rem;
+  color: #444;
+  margin-bottom: 16px;
+}
+
 
 
 

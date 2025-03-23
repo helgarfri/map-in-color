@@ -29,7 +29,7 @@ export default function DashboardActivityFeed({ userProfile }) {
   // feed data + pagination
   const [activities, setActivities] = useState([]);
   const [offset, setOffset] = useState(0);
-  const limit = 30;
+  const limit = 15;
   const [hasMore, setHasMore] = useState(true);
 
   // loading states

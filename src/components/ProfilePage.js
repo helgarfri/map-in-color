@@ -527,13 +527,14 @@ export default function ProfilePage() {
               {/* Stats */}
               <div className={styles.statsRowInfo}>
               <div className={styles.statsItem}>
+                <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
+                <span>{totalPublicMaps} Maps</span> 
+              </div>
+              <div className={styles.statsItem}>
                 <FaStar className={styles.icon} />
                 <span>{totalStars} Stars</span>
               </div>
-              <div className={styles.statsItem}>
-                <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
-                <span>{totalPublicMaps} Public Maps</span> 
-              </div>
+             
             </div>
 
 
