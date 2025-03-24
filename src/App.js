@@ -126,10 +126,10 @@ function App() {
           element={<Login  />}
         />
 
-        {/* <Route
+        <Route
           path="/signup"
           element={<Signup  />}
-        />  */}
+        /> 
 
         <Route
           path="/edit/:mapId"

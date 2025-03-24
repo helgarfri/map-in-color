@@ -167,7 +167,7 @@ const calculateFontSize = (title) => {
 	} else {
 	  const excessLength = title.length - maxLength;
 	  // Adjust the shrink factor as needed (smaller value reduces font size more gradually)
-	  const shrinkFactor = 1;
+	  const shrinkFactor = 1.3;
 	  const fontSize = maxFontSize - (excessLength * shrinkFactor);
 	  // Ensure font size doesn't go below minFontSize
 	  return fontSize > minFontSize ? fontSize : minFontSize;

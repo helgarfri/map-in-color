@@ -150,7 +150,7 @@
 
 	{
 		"code": "CD",
-		"name": "Congo (Democratic Republic of the)"
+		"name": "DR Congo"
 	},
 	{
 		"code": "CF",
@@ -166,7 +166,7 @@
 	},
 	{
 		"code": "CI",
-		"name": "Côte d'Ivoire"
+		"name": "Cote d'Ivoire"
 	},
 	{
 		"code": "CK",
@@ -826,11 +826,11 @@
 	},
 	{
 		"code": "SY",
-		"name": "Syrian Arab Republic"
+		"name": "Syria"
 	},
 	{
 		"code": "SZ",
-		"name": "Eswatini (Kingdom of)"
+		"name": "Eswatini"
 	},
 	{
 		"code": "TC",
@@ -894,7 +894,7 @@
 	},
 	{
 		"code": "TZ",
-		"name": "Tanzania (United Republic of)"
+		"name": "Tanzania"
 	},
 	{
 		"code": "UA",
@@ -942,7 +942,7 @@
 	},
 	{
 		"code": "VN",
-		"name": "Viet Nam"
+		"name": "Vietnam"
 	},
 	{
 		"code": "VU",

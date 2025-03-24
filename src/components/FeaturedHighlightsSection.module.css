@@ -1,0 +1,92 @@
+.featuredContainer {
+    width: 100%;
+    height: 100vh;
+    padding: 60px 20px;
+    box-sizing: border-box;
+    background-color: #fafafa; /* light background to distinguish the section */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center the content horizontally */
+    text-align: center;
+  }
+  
+  /* Title & subtitle block at the top */
+  .titleBlock {
+    max-width: 800px;
+    margin: 0 auto 40px auto; /* some space below subtitle before the cards */
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .subtitle {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.4;
+    margin: 0;
+  }
+  
+  /* Grid of highlights */
+  .highlightGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on large screens */
+    gap: 30px;
+    max-width: 1200px;
+    width: 100%;
+  }
+  
+  /* Individual highlight card */
+  .highlightCard {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 30px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .icon {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  .cardTitle {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .cardDescription {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.4;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 992px) {
+    /* Move to 2 columns if screen is between 768px - 992px */
+    .highlightGrid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 600px) {
+    /* On small screens, 1 column layout */
+    .highlightGrid {
+      grid-template-columns: 1fr;
+    }
+  
+    .title {
+      font-size: 1.8rem;
+    }
+  
+    .subtitle {
+      font-size: 0.95rem;
+    }
+  }
+  

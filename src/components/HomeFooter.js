@@ -29,9 +29,7 @@ export default function HomeFooter() {
         </a>
       </div>
       <div className={styles.infoSection}>
-        <p className={styles.tagline}>
-          A platform to create, share, and explore data through maps — launching on March 28th
-        </p>
+        
         <p className={styles.contact}>
           Contact: <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>
         </p>

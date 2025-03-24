@@ -1,0 +1,70 @@
+.ctaSection {
+    background-color: #80a0b0;
+    width: 100%;
+    /* If you want it full-height, use: height: 100vh; */
+    /* Otherwise, a comfortable height can be used, e.g.: */
+    min-height: 40vh;
+  
+    /* Center content horizontally & vertically */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  
+    /* Spacing & text styling */
+    padding: 60px 20px 0px 20px;
+    box-sizing: border-box;
+    text-align: center;
+    color: #ffffff; /* White text on darker background */
+  }
+  
+  /* Title styling */
+  .ctaTitle {
+    font-size: 3rem;
+    margin: 0 0 20px;
+    font-weight: bold;
+  }
+  
+  /* Subtitle styling */
+  .ctaSubtitle {
+    font-size: 1.2rem;
+    margin: 0 0 30px;
+    max-width: 700px;
+    line-height: 1.4;
+  }
+  
+  /* CTA button styling */
+  .ctaButton {
+    display: inline-block;
+    padding: 14px 28px;
+    background-color: #c4564d; /* Contrasting button color */
+    color: #ffffff;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 15px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .ctaButton:hover {
+    background-color: #a8463e;
+  }
+  
+  /* Note under the button */
+  .ctaNote {
+    font-size: 0.95rem;
+    margin: 0;
+    color: #eee; /* Slightly lighter text to contrast subtitle */
+  }
+  
+  /* Optional: Adjust for smaller screens if needed */
+  @media (max-width: 600px) {
+    .ctaTitle {
+      font-size: 2rem;
+    }
+  
+    .ctaSubtitle {
+      font-size: 1rem;
+    }
+  }
+  
