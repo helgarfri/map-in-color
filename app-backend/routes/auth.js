@@ -115,7 +115,7 @@ router.post(
       );
 
       // This would be your verification endpoint
-      const verifyLink = `https://YOUR_DOMAIN/api/auth/verify/${verifyToken}`;
+      const verifyLink = `https://mapincolor.com/api/auth/verify/${verifyToken}`;
 
       // 6) Send a verification email with the link
       try {
