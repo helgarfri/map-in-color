@@ -845,6 +845,33 @@ a {
     font-size: 13px;     /* optionally decrease font-size */
   }
  
+  .titleSection {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .editButton {
+    font-size: 0.8rem;
+    padding: 4px 6px;
+    margin: 10px 0;
+   
+  }
+
+  .discussionSection {
+    padding: 10px;
+  }
+
+  .mapDetails {
+    padding: 10px;
+  }
+
+  .saveButton {
+    margin-left: 0;
+  }
+
+  .mapDetailContent {
+    padding: 5px;
+  }
   
 }
 

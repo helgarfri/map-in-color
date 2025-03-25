@@ -37,6 +37,8 @@ import { SidebarProvider } from './context/SidebarContext';
 
 import ScrollToTop from './components/ScrollToTop'; // <-- import the helper
 
+import PrivacyPolicy from './components/PrivacyPolicy';
+import Terms from './components/Terms';
 
 library.add(fas);
 
@@ -190,6 +192,10 @@ function App() {
 <Route path="/adminPanel" element={<AdminPanel />} />
 
 <Route path="/banned" element={<BannedUser />} />
+
+<Route path="/privacy" element={<PrivacyPolicy />} />
+
+<Route path="/terms" element={<Terms/>} />
 
       </Routes>
 

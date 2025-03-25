@@ -774,12 +774,20 @@
   .searchButton {
     flex-shrink: 0;
   }
+  .thumbnail {
+    height: 100%;
+  }
 }
 
 @media (max-width: 400px) {
   .searchInputContainer input {
     width: 120px;
     font-size: 0.8rem;
+    height: 20px;
+  }
+
+  .searchButton {
+    height: 34px;
   }
 
   /* Make map cards a single column if you want */
@@ -791,9 +799,7 @@
   .mapCard {
     font-size: 0.8rem;
   }
-  .thumbnail {
-    height: 90px;
-  }
+  
   .mapTitle {
     font-size: 0.9rem;
     margin: 6px;
@@ -801,5 +807,9 @@
   .mapInfoRow {
     font-size: 0.75rem;
     margin: 0 6px 6px 6px;
+  }
+
+  .tagsList {
+    gap: 0px;
   }
 }

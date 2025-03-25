@@ -4,6 +4,8 @@
   color: black;
   margin-top: 60px;
   background-color: #f7f7f7;
+  width: 100%;
+  overflow-x: hidden;   /* in case any child tries to overflow */
 
 }
 
@@ -14,6 +16,7 @@
   transition: margin-left 0.3s ease;
   font-family: "Roboto", sans-serif;
   color: #333;
+  max-width: 100%;
 
 
 }
@@ -44,6 +47,7 @@
   max-width: 800px;
   width: 800px;
   margin: 20px auto;
+  
   
 }
 
@@ -440,6 +444,139 @@
   background-color: #bbb;
 }
 
+/* ...existing styles from your snippet above... */
+
+/* ------------------------------
+   Skeleton Styles
+------------------------------ */
+
+/* Container for the entire skeleton */
+.skeletonContainer {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+/* Each "section" box in the skeleton */
+.skeletonSection {
+  background-color: #fff;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* A skeleton row with label + field placeholders */
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Label placeholder */
+.skeletonLabel {
+  width: 30%;
+  height: 16px;
+  border-radius: 4px;
+  background-color: #eee;
+  margin-right: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.skeletonField {
+  width: 70%;
+  height: 16px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+
+/* We want a bigger circle for the profile pic row */
+.skeletonPic {
+  width: 70%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.skeletonPic::before {
+  content: "";
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+
+/* For the section title line at top */
+.skeletonSectionTitle {
+  width: 180px;
+  height: 18px;
+  margin-bottom: 15px;
+}
+
+/* The Save button skeleton at bottom */
+.skeletonSaveButton {
+  width: 160px;
+  height: 35px;
+  border-radius: 4px;
+  background-color: #eee;
+  margin: 20px auto 0 auto;
+}
+
+/* Shimmer animation for all placeholders */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Make all skeleton blocks shimmer */
+.skeletonContainer .skeletonLabel::after,
+.skeletonContainer .skeletonField::after,
+.skeletonContainer .skeletonPic::before,
+.skeletonContainer .skeletonSectionTitle::after,
+.skeletonContainer .skeletonSaveButton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s infinite;
+}
+
+/* For the circle, we absolutely position relative to .skeletonPic::before */
+.skeletonContainer .skeletonPic::before {
+  content: "";
+  animation: shimmer 1.2s infinite;
+}
+
+.skeletonContainer .skeletonSectionTitle {
+  position: relative;
+}
+.skeletonContainer .skeletonLabel,
+.skeletonContainer .skeletonField,
+.skeletonContainer .skeletonSaveButton {
+  position: relative;
+}
+.skeletonContainer .skeletonPic::before {
+  position: relative; /* to hold the circle shape */
+  overflow: hidden;
+  display: inline-block;
+}
+
+
+
 /* Responsive Adjustments */
 @media (max-width: 1000px) {
   .profileContent {
@@ -451,24 +588,97 @@
   }
 }
 
-@media (max-width: 400px) {
+/* -----------------------------------
+   Mobile-Friendly Adjustments
+   ----------------------------------- */
+
+/* On screens under 800px wide, let each .settingsSection take full width */
+@media (max-width: 800px) {
+  .settingsSection {
+    width: 100%;
+    max-width: 100%;
+    margin: 10px auto; /* smaller outer margins */
+    padding: 15px;     /* a bit less padding */
+  }
+}
+
+/* On screens under 600px wide, stack label + field in each row */
+@media (max-width: 600px) {
   .formRow {
-    padding: 10px 0; /* smaller vertical spacing */
+    flex-direction: column;
+    align-items: flex-start; /* so label and input both left-aligned */
+    padding: 10px 0;         /* tighten vertical spacing */
   }
+
+  .formLabel {
+    width: 100%;
+    margin-bottom: 6px;
+    text-align: left;  /* place the label text on the left side */
+    font-size: 0.9rem; /* reduce font size a bit if needed */
+  }
+
+  .formField {
+    width: 100%;
+    text-align: left;  /* align input text to the left as well */
+  }
+
+  /* Tweak input & button sizes for smaller screens */
   .formField input,
-  .formField textarea {
+  .formField textarea,
+  .formField select {
     font-size: 0.9rem;
-    padding: 8px; 
+    padding: 8px;
   }
+
   .saveButton {
     font-size: 0.9rem;
-    padding: 8px 16px;
+    padding: 10px 18px;
+    margin-top: 20px;
   }
+
+  /* Profile picture can be smaller */
   .profile_picturePreview {
     width: 80px;
     height: 80px;
   }
-  .sectionTitle {
-    font-size: 1rem;
+
+  .settingsSection {
+    max-width: 90%;
   }
+
+  .profileContent {
+    padding-top: 0px;
+  }
+
+  .deleteSection {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .deleteWarning {
+    font-size: 9px;
+  }
+
+  .deleteButton {
+    padding: 8px 16px;
+    font-size: 12px;
+    width: fit-content;
+    justify-content: center;
+  }
+
+  input {
+    max-width: 95%;
+  };
+
+  textarea {
+    max-width: 95%;
+  };
+
+
+
+
+
+
+
+ 
 }

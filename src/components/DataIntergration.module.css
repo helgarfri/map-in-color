@@ -775,6 +775,12 @@
   }
 }
 
+@media (max-width: 600px) {
+  .contentInner {
+    padding: 0px 10px;
+  }
+}
+
 @media (max-width: 400px) {
   .settingItemRow {
     flex-direction: column;

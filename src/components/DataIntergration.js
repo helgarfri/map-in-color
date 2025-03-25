@@ -180,11 +180,9 @@ export default function DataIntegration({
   );
   
   useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
-    if (width < 1000 && !isCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [width, isCollapsed, setIsCollapsed]);
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
 
   const [file_stats, setFileStats] = useState({

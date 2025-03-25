@@ -25,7 +25,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom right, #80a0b0, #6d8e9f);
+  background: linear-gradient(to bottom right, #80a0b0, #80a0b0);
 }
 
 /* Container to hold the logo and brand text side by side */
@@ -94,6 +94,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 16px;
+  line-height: 1.5; /* Adjust line-height to prevent text overlap */
 }
 
 /* Button styling */
@@ -201,4 +202,42 @@
   .logo {
     width: 80px;
   }
+}
+
+@media (max-width: 450px) {
+  .brandText {
+    font-size: 28px;
+  }
+  .logo {
+    width: 50px;
+  }
+
+  .brandContainer {
+    height: 30px;
+  }
+
+  .loginTitle {
+    font-size: 1.2rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+  }
+
+  input {
+    font-size: 0.9rem;
+    height: 35px
+  };
+
+  .formGroup select {
+    font-size: 0.9rem;
+    height: 35px;
+    align-items: center;
+    padding: 0px 10px;
+
+  }
+ 
+
+
+
 }

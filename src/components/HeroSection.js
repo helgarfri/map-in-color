@@ -1,5 +1,5 @@
-import React from 'react';
-import styles from './HeroSection.module.css';
+import React from "react";
+import styles from "./HeroSection.module.css";
 
 function HeroSection() {
   return (
@@ -10,16 +10,23 @@ function HeroSection() {
           Turn data into beautiful, interactive maps — no code required.
         </p>
         <a href="/signup" className={styles.signupButton}>
-          Join the Mapmakers
+          Join the Mappers
         </a>
       </div>
 
       <div className={styles.heroImages}>
         {/* Replace .imagePlaceholder with actual images later */}
-          <img className={`${styles.imagePlaceholder} ${styles.imageOne}`} src="assets/preview4.png" alt="Map Preview" />
-       
-        <img className={`${styles.imagePlaceholder} ${styles.imageTwo}`} src="assets/preview2.png" alt="Map Preview" />
+        <img
+          className={`${styles.imagePlaceholder} ${styles.imageOne}`}
+          src="assets/preview4.png"
+          alt="Map Preview"
+        />
 
+        <img
+          className={`${styles.imagePlaceholder} ${styles.imageTwo}`}
+          src="assets/preview2.png"
+          alt="Map Preview"
+        />
       </div>
     </div>
   );

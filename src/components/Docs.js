@@ -138,7 +138,7 @@ export default function Docs() {
         <h2 id="introduction">Introduction</h2>
         <p>
           This is a MVP release of a brand new version of Map in Color
-          (MIC) v2.0.0-beta, a tool for creating  choropleth
+          (MIC) v2.0.0, a tool for creating  choropleth
           maps  to visualize data—whether for scientific purposes or
           simply to see the world from a new perspective through data.
         </p>

@@ -658,6 +658,7 @@ p {
 @media (max-width: 600px) {
   .statsContainer {
     gap: 5px;  /* smaller gap */
+    margin-top: 0px;
   }
 
   .statItem {
@@ -688,6 +689,10 @@ p {
 
   .mapModifiedDate {
     display: none;
+  }
+
+  .centerColumn {
+    gap:0px;
   }
 
 }
