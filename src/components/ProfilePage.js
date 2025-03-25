@@ -501,29 +501,28 @@ export default function ProfilePage() {
               </h1>
 
               {/* Location / DOB */}
-              <div className={styles.infoRow}>
-                {profile.location && (
-                  <div className={styles.infoItem}>
-                    <FaMapMarkerAlt className={styles.icon} />
-                    <span>{profile.location}</span>
-                  </div>
-                )}
-                {profile.date_of_birth && (
-                  <div className={styles.infoItem}>
-                    <FaBirthdayCake className={styles.icon} />
-                    <span>
-                      {new Date(profile.date_of_birth).toLocaleDateString(
-                        'en-US',
-                        {
+                <div className={styles.infoRow}>
+                  {profile.location && profile.show_location && (
+                    <div className={styles.infoItem}>
+                      <FaMapMarkerAlt className={styles.icon} />
+                      <span>{profile.location}</span>
+                    </div>
+                  )}
+
+                  {profile.date_of_birth && profile.show_date_of_birth && (
+                    <div className={styles.infoItem}>
+                      <FaBirthdayCake className={styles.icon} />
+                      <span>
+                        {new Date(profile.date_of_birth).toLocaleDateString('en-US', {
                           month: 'long',
                           day: '2-digit',
                           year: 'numeric',
-                        }
-                      )}
-                    </span>
-                  </div>
-                )}
-              </div>
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
 
               {/* Stats */}
               <div className={styles.statsRowInfo}>
