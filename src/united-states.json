@@ -1,0 +1,410 @@
+[
+    {
+      "name": "Alabama",
+      "code": "AL",
+      "aliases": [
+        "State of Alabama",
+        "Ala."
+      ]
+    },
+    {
+      "name": "Alaska",
+      "code": "AK",
+      "aliases": [
+        "State of Alaska",
+        "Alas."
+      ]
+    },
+    {
+      "name": "Arizona",
+      "code": "AZ",
+      "aliases": [
+        "State of Arizona",
+        "Ariz."
+      ]
+    },
+    {
+      "name": "Arkansas",
+      "code": "AR",
+      "aliases": [
+        "State of Arkansas",
+        "Ark."
+      ]
+    },
+    {
+      "name": "California",
+      "code": "CA",
+      "aliases": [
+        "State of California",
+        "Calif."
+      ]
+    },
+    {
+      "name": "Colorado",
+      "code": "CO",
+      "aliases": [
+        "State of Colorado",
+        "Colo."
+      ]
+    },
+    {
+      "name": "Connecticut",
+      "code": "CT",
+      "aliases": [
+        "State of Connecticut",
+        "Conn."
+      ]
+    },
+    {
+      "name": "Delaware",
+      "code": "DE",
+      "aliases": [
+        "State of Delaware",
+        "Del."
+      ]
+    },
+    {
+      "name": "District Of Columbia",
+      "code": "DC",
+      "aliases": [
+        "Washington D.C.",
+        "DC",
+        "D.C."
+      ]
+    },
+    {
+      "name": "Florida",
+      "code": "FL",
+      "aliases": [
+        "State of Florida",
+        "Fla."
+      ]
+    },
+    {
+      "name": "Georgia",
+      "code": "GA",
+      "aliases": [
+        "State of Georgia",
+        "Ga."
+      ]
+    },
+    {
+      "name": "Hawaii",
+      "code": "HI",
+      "aliases": [
+        "State of Hawaii",
+        "Haw."
+      ]
+    },
+    {
+      "name": "Idaho",
+      "code": "ID",
+      "aliases": [
+        "State of Idaho",
+        "Id."
+      ]
+    },
+    {
+      "name": "Illinois",
+      "code": "IL",
+      "aliases": [
+        "State of Illinois",
+        "Ill."
+      ]
+    },
+    {
+      "name": "Indiana",
+      "code": "IN",
+      "aliases": [
+        "State of Indiana",
+        "Ind."
+      ]
+    },
+    {
+      "name": "Iowa",
+      "code": "IA",
+      "aliases": [
+        "State of Iowa",
+        "Ia."
+      ]
+    },
+    {
+      "name": "Kansas",
+      "code": "KS",
+      "aliases": [
+        "State of Kansas",
+        "Kan."
+      ]
+    },
+    {
+      "name": "Kentucky",
+      "code": "KY",
+      "aliases": [
+        "Commonwealth of Kentucky",
+        "Ky."
+      ]
+    },
+    {
+      "name": "Louisiana",
+      "code": "LA",
+      "aliases": [
+        "State of Louisiana",
+        "La."
+      ]
+    },
+    {
+      "name": "Maine",
+      "code": "ME",
+      "aliases": [
+        "State of Maine",
+        "Me."
+      ]
+    },
+    {
+      "name": "Maryland",
+      "code": "MD",
+      "aliases": [
+        "State of Maryland",
+        "Md."
+      ]
+    },
+    {
+      "name": "Massachusetts",
+      "code": "MA",
+      "aliases": [
+        "Commonwealth of Massachusetts",
+        "Mass."
+      ]
+    },
+    {
+      "name": "Michigan",
+      "code": "MI",
+      "aliases": [
+        "State of Michigan",
+        "Mich."
+      ]
+    },
+    {
+      "name": "Minnesota",
+      "code": "MN",
+      "aliases": [
+        "State of Minnesota",
+        "Minn."
+      ]
+    },
+    {
+      "name": "Mississippi",
+      "code": "MS",
+      "aliases": [
+        "State of Mississippi",
+        "Miss."
+      ]
+    },
+    {
+      "name": "Missouri",
+      "code": "MO",
+      "aliases": [
+        "State of Missouri",
+        "Mo."
+      ]
+    },
+    {
+      "name": "Montana",
+      "code": "MT",
+      "aliases": [
+        "State of Montana",
+        "Mont."
+      ]
+    },
+    {
+      "name": "Nebraska",
+      "code": "NE",
+      "aliases": [
+        "State of Nebraska",
+        "Nebr."
+      ]
+    },
+    {
+      "name": "Nevada",
+      "code": "NV",
+      "aliases": [
+        "State of Nevada",
+        "Nev."
+      ]
+    },
+    {
+      "name": "New Hampshire",
+      "code": "NH",
+      "aliases": [
+        "State of New Hampshire",
+        "N.H."
+      ]
+    },
+    {
+      "name": "New Jersey",
+      "code": "NJ",
+      "aliases": [
+        "State of New Jersey",
+        "N.J."
+      ]
+    },
+    {
+      "name": "New Mexico",
+      "code": "NM",
+      "aliases": [
+        "State of New Mexico",
+        "N.M."
+      ]
+    },
+    {
+      "name": "New York",
+      "code": "NY",
+      "aliases": [
+        "State of New York",
+        "N.Y."
+      ]
+    },
+    {
+      "name": "North Carolina",
+      "code": "NC",
+      "aliases": [
+        "State of North Carolina",
+        "N.C."
+      ]
+    },
+    {
+      "name": "North Dakota",
+      "code": "ND",
+      "aliases": [
+        "State of North Dakota",
+        "N.D."
+      ]
+    },
+    {
+      "name": "Ohio",
+      "code": "OH",
+      "aliases": [
+        "State of Ohio"
+      ]
+    },
+    {
+      "name": "Oklahoma",
+      "code": "OK",
+      "aliases": [
+        "State of Oklahoma",
+        "Okla."
+      ]
+    },
+    {
+      "name": "Oregon",
+      "code": "OR",
+      "aliases": [
+        "State of Oregon",
+        "Ore."
+      ]
+    },
+    {
+      "name": "Pennsylvania",
+      "code": "PA",
+      "aliases": [
+        "Commonwealth of Pennsylvania",
+        "Pa."
+      ]
+    },
+    {
+      "name": "Rhode Island",
+      "code": "RI",
+      "aliases": [
+        "State of Rhode Island",
+        "R.I."
+      ]
+    },
+    {
+      "name": "South Carolina",
+      "code": "SC",
+      "aliases": [
+        "State of South Carolina",
+        "S.C."
+      ]
+    },
+    {
+      "name": "South Dakota",
+      "code": "SD",
+      "aliases": [
+        "State of South Dakota",
+        "S.D."
+      ]
+    },
+    {
+      "name": "Tennessee",
+      "code": "TN",
+      "aliases": [
+        "State of Tennessee",
+        "Tenn."
+      ]
+    },
+    {
+      "name": "Texas",
+      "code": "TX",
+      "aliases": [
+        "State of Texas",
+        "Tex."
+      ]
+    },
+    {
+      "name": "Utah",
+      "code": "UT",
+      "aliases": [
+        "State of Utah"
+      ]
+    },
+    {
+      "name": "Vermont",
+      "code": "VT",
+      "aliases": [
+        "State of Vermont",
+        "Vt."
+      ]
+    },
+    {
+      "name": "Virginia",
+      "code": "VA",
+      "aliases": [
+        "Commonwealth of Virginia",
+        "Va."
+      ]
+    },
+    {
+      "name": "Washington",
+      "code": "WA",
+      "aliases": [
+        "State of Washington",
+        "Wash."
+      ]
+    },
+    {
+      "name": "West Virginia",
+      "code": "WV",
+      "aliases": [
+        "State of West Virginia",
+        "W.Va."
+      ]
+    },
+    {
+      "name": "Wisconsin",
+      "code": "WI",
+      "aliases": [
+        "State of Wisconsin",
+        "Wis."
+      ]
+    },
+    {
+      "name": "Wyoming",
+      "code": "WY",
+      "aliases": [
+        "State of Wyoming",
+        "Wyo."
+      ]
+    }
+  ]
+  

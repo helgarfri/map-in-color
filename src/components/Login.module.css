@@ -224,9 +224,11 @@
     font-size: 0.9rem;
   }
 
-  input {
+  .formGroup input {
     font-size: 0.9rem;
-    height: 35px
+    height: 35px;
+    padding: 0 10px;
+  
   };
 
   .formGroup select {

@@ -24,7 +24,7 @@ import {
   incrementMapDownloadCount,
   deleteComment
 } from '../api';
-import countries from '../countries.json';
+import countries from '../world-countries.json';
 import Header from './Header'; 
 import LoadingSpinner from './LoadingSpinner'; 
 import { FaDownload } from 'react-icons/fa'; // icon for download
@@ -585,7 +585,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
       // (Optional) Override viewBox if you want a custom bounding box
       if (mapData?.selected_map === 'europe') {
-        svgClone.setAttribute('viewBox', '-50 0 780 530');
+        svgClone.setAttribute('viewBox', '-50 0 740 520');
       } else if (mapData?.selected_map === 'usa') {
         svgClone.setAttribute('viewBox', '-90 -10 1238 610');
       } else {

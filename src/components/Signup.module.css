@@ -385,14 +385,16 @@
     font-size: 0.9rem;
   }
 
-  input {
+  .formGroup input {
     font-size: 0.9rem;
-    height: 35px
+    height: 35px;
+    padding: 0 10px;
+  
   };
 
   .formGroup select {
     font-size: 0.9rem;
-    height: 35px;
+    height: 40px;
     align-items: center;
     padding: 0px 10px;
 

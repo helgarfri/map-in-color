@@ -166,7 +166,7 @@
   margin-bottom: 8px;
 }
 .errorList {
-  margin-left: 20px;
+  padding-left: 0px;
   font-size: 14px;
 }
 .downloadErrorButton {
