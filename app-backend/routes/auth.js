@@ -235,7 +235,6 @@ router.post('/login', [check('password').exists()], async (req, res) => {
   }
 });
 
-
 //VERIFY TOKEN
 router.get('/verify/:token', async (req, res) => {
   const { token } = req.params;
@@ -263,13 +262,21 @@ router.get('/verify/:token', async (req, res) => {
       return res.status(404).json({ msg: 'No user found to verify' });
     }
 
-    // 3) Return success or redirect to a “verified” page
-    return res.json({ msg: 'Your account has been verified! You can now log in.' });
+    // 3) Return success as HTML or redirect
+    // Option A: Send a simple HTML response:
+    return res.send(`
+      <h1>Your account has been verified!</h1>
+      <p>You can now <a href="https://mapincolor.com/login">log in</a>.</p>
+    `);
+
+    // Option B: redirect to a "verified" route on the front-end
+    // return res.redirect('https://mapincolor.com/verify-success');
   } catch (err) {
     console.error('Verification error:', err);
     return res.status(400).json({ msg: 'Invalid or expired token' });
   }
 });
+
 
 
 module.exports = router;
