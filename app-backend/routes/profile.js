@@ -28,7 +28,7 @@ router.get('/:username/activity', async (req, res) => {
     // 1) Find the user by username in "users"
     const { data: foundUser, error: userErr } = await supabaseAdmin
       .from('users')
-      .select('id, username, first_name, profile_/picture')
+      .select('id, username, first_name, profile_picture')
       .eq('username', username)
       .maybeSingle();
 
@@ -348,7 +348,7 @@ router.get('/', auth, async (req, res) => {
         show_location,
         show_date_of_birth,
         created_at,
-        updated_at,
+        updated_at
       `)
       .eq('id', req.user.id)
       .maybeSingle();
@@ -396,7 +396,7 @@ router.get('/:username', async (req, res) => {
       show_location,
       show_date_of_birth,
       created_at,
-      updated_at,
+      updated_at
       `)
       
       .eq('username', username)
