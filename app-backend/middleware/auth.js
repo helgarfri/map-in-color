@@ -1,24 +1,29 @@
 // middleware/auth.js
 const jwt = require('jsonwebtoken');
-const { supabaseAdmin } = require('../config/supabase'); // Make sure you import your supabaseAdmin client
+const { supabaseAdmin } = require('../config/supabase');
 
 async function auth(req, res, next) {
-  const authHeader = req.header('Authorization');
+  // If the request is for verification route, skip token check
+  // e.g. if your verify route is /api/auth/verify/:token
+  if (req.path.startsWith('/api/auth/verify')) {
+    return next();
+  }
 
+  const authHeader = req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     console.log('No token provided');
     return res.status(401).json({ msg: 'No token, authorization denied' });
   }
 
-  const token = authHeader.split(' ')[1]; // Extract token after 'Bearer '
+  const token = authHeader.split(' ')[1];
   try {
-    // 1) Verify the JWT
+    // Verify the JWT from the header
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 2) Fetch the user from DB to see if they're banned
+    // Check the user from DB
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
-      .select('id, status') // Make sure we fetch 'status'
+      .select('id, status')
       .eq('id', decoded.id)
       .maybeSingle();
 
@@ -26,17 +31,17 @@ async function auth(req, res, next) {
       console.error('Error fetching user in auth middleware:', error);
       return res.status(500).json({ msg: 'Server error fetching user' });
     }
+
     if (!userRow) {
       return res.status(401).json({ msg: 'User not found' });
     }
 
-    // 3) If user is banned, block them
     if (userRow.status === 'banned') {
       console.log(`Banned user attempted to access: ID ${userRow.id}`);
       return res.status(403).json({ msg: 'Your account is banned.' });
     }
 
-    // 4) Attach user to req & continue
+    // Attach user to req & continue
     req.user = { id: userRow.id };
     next();
   } catch (err) {
