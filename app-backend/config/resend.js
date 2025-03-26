@@ -1,4 +1,3 @@
-// resend.js (CommonJS version)
 require('dotenv').config();
 const { Resend } = require('resend');
 
