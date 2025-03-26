@@ -5,6 +5,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+app.set('trust proxy', 1); // Trust first proxy
+
 // Import your routes
 const authRoutes = require('./routes/auth');
 const mapRoutes = require('./routes/maps');
@@ -32,6 +34,8 @@ app.use(
     credentials: true,
   })
 );
+
+
 
 
 // Configure Helmet to allow cross-origin resources
