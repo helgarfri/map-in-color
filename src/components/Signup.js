@@ -163,7 +163,7 @@ export default function Signup() {
       // Display success modal
       setSignupSuccess(true);
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/verify-account');
       }, 3000);
     } catch (err) {
       if (err.response && err.response.data) {
@@ -261,9 +261,7 @@ export default function Signup() {
       <div className={styles.rightSide}>
         <div className={styles.signupBox}>
           <h2 className={styles.signupTitle}>Sign Up</h2>
-          {errors.general && (
-            <div className={styles.errorMessage}>{errors.general}</div>
-          )}
+          
 
           <form onSubmit={handleSubmit} className={styles.signupForm}>
             <div className={styles.formColumns}>
@@ -477,6 +475,10 @@ export default function Signup() {
               </div>
             </div>
 
+            {errors.general && (
+            <p className={styles.errorMessageGeneral}>{errors.general}</p>
+          )}
+
             <div className={styles.formGroupCheckbox}>
               <label className={styles.checkboxLabel}>
                 <input
@@ -518,6 +520,7 @@ export default function Signup() {
             </button>
           </form>
 
+         
           <p>
             Already have an account? <Link to="/login">Login here</Link>.
           </p>

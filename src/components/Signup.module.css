@@ -80,6 +80,8 @@
 .formRow {
   display: flex;
   gap: 10px;
+
+
 }
 
 /* Individual form groups (label + input or select) */
@@ -218,7 +220,13 @@
 .errorMessage {
   color: red;
   font-size: 0.85rem;
-  margin-top: 3px;
+  margin: 3px 0;
+}
+
+.errorMessageGeneral {
+  color: red !important;
+
+  ;
 }
 
 /* Paragraph and link style under the form */
@@ -321,7 +329,8 @@
 .successIcon {
   font-size: 50px;
   color: #48b17d;
-  margin-bottom: 15px;
+  margin-top: 10px;
+  margin-bottom: 5px;
 }
 
 

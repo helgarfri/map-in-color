@@ -39,6 +39,8 @@ import ScrollToTop from './components/ScrollToTop'; // <-- import the helper
 
 import PrivacyPolicy from './components/PrivacyPolicy';
 import Terms from './components/Terms';
+import VerifyAccount from './components/VerifyAccount';
+import Verified from './components/Verified';
 
 library.add(fas);
 
@@ -196,6 +198,11 @@ function App() {
 <Route path="/privacy" element={<PrivacyPolicy />} />
 
 <Route path="/terms" element={<Terms/>} />
+
+<Route path="/verify-account" element={<VerifyAccount/>} />
+
+<Route path="/verified" element={<Verified/> } />
+
 
       </Routes>
 
