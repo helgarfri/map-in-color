@@ -163,11 +163,13 @@ export default function Signup() {
       });
       localStorage.setItem('token', res.data.token);
 
-      // Display success modal
+      // After receiving success from signUp:
       setSignupSuccess(true);
       setTimeout(() => {
-        navigate('/verify-account');
+        // Pass the email to the next page
+        navigate('/verify-account', { state: { email } });
       }, 3000);
+
     } catch (err) {
       if (err.response && err.response.data) {
         setErrors({ general: err.response.data.msg || 'Sign up error' });
