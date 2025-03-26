@@ -306,6 +306,76 @@ router.get('/verify/:token', async (req, res) => {
   }
 });
 
+// RESEND VERIFICATION LINK
+router.post('/resend-verification', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ msg: 'Email is required' });
+  }
+
+  try {
+    // Look up the user by email
+    const { data: foundUser, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, first_name, status')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error) {
+      console.error('resend-verification error:', error);
+      return res.status(500).json({ msg: 'Error looking up user.' });
+    }
+
+    if (!foundUser) {
+      // Optionally, return 404 or a generic success to avoid exposing that a user doesn't exist
+      return res.status(404).json({ msg: 'No user found with that email.' });
+    }
+
+    // Check if user is still pending
+    if (foundUser.status !== 'pending') {
+      return res.status(400).json({
+        msg: 'This account is already verified or is not eligible for resend.',
+      });
+    }
+
+    // Generate a fresh verification token
+    const newVerifyToken = jwt.sign(
+      { id: foundUser.id, email: foundUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    const newVerifyLink = `https://mapincolor.com/api/auth/verify/${newVerifyToken}`;
+
+    // Send the email
+    try {
+      await resend.emails.send({
+        from: 'no-reply@mapincolor.com',
+        to: foundUser.email,
+        subject: 'Please verify your account (Resend) - Map in Color',
+        html: `
+          <p>Hello ${foundUser.first_name || ''},</p>
+          <p>We noticed you haven't verified your account yet. Here's a new link:</p>
+          <p><a href="${newVerifyLink}">Verify Your Account</a></p>
+          <p>If you didn't request this email, you can ignore it.</p>
+          <p>Cheers,<br/>Helgi</p>
+        `,
+      });
+
+      console.log(`Verification email re-sent to: ${foundUser.email}`);
+      return res.json({ msg: 'Verification email resent successfully.' });
+    } catch (sendError) {
+      console.error('Error re-sending verification email:', sendError);
+      return res.status(500).json({ msg: 'Unable to resend verification email.' });
+    }
+
+  } catch (err) {
+    console.error('Resend verification server error:', err);
+    return res.status(500).json({ msg: 'Server error.' });
+  }
+});
+
+
 
 
 module.exports = router;
