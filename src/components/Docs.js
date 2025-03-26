@@ -178,17 +178,10 @@ export default function Docs() {
           {/* Introduction */}
           <h2 id="introduction">Introduction</h2>
           <p>
-            This is a MVP release of a brand new version of Map in Color
-            (MIC) v2.0.0, a tool for creating choropleth maps to visualize
-            data—whether for scientific purposes or simply to see the world
-            from a new perspective through data.
+          Map in Color (MIC) is an open-source platform designed to transform your geographical data into dynamic choropleth maps. Whether you’re a researcher, a data journalist, or simply curious about geographical patterns, MIC enables you to upload CSV files, define ranges, and create color-coded maps of the World, the United States, or Europe in just a few steps.
           </p>
           <p>
-            With the new version, the application includes more complexity and a
-            sharing platform where data can be shared between users. Instead of
-            manually selecting and defining states from select inputs (as seen
-            in v1), you prepare a CSV file locally with all the data for the
-            map, ensuring simplicity.
+          Beyond visualization, MIC offers a built-in sharing platform that encourages collaboration and community engagement. By setting your map to public, you can showcase it on our Explore page for others to discover, star, and comment on—fostering new insights and conversations around the data. If you prefer to work privately, you can keep your maps hidden from the public eye and still enjoy all the core features.
           </p>
           <p>This MVP release features:</p>
           <ul>

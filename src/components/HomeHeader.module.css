@@ -60,34 +60,21 @@
   }
 
   @media (max-width: 1200px) {
-    .brandTitle {
-      font-size: 32px;
-  }
 
-  .logo {
-    width: 70px;
-    height: 70px;
-}
+
 .loginButton {
-  padding: 8px 14px;
-  font-size: 1.5rem;
+  padding: 6px 10px;
+  font-size: 1.2rem;
 }
 
 .navLink {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 
   }
 
   @media (max-width: 800px) {
-    .brandTitle {
-      font-size: 32px;
-  }
 
-  .logo {
-      width: 70px;
-      height: 70px;
-  }
 
   .header {
     padding: 10px;
@@ -97,14 +84,6 @@
     gap: 20px;
   }
 
-  .loginButton {
-    padding: 8px 14px;
-    font-size: 1.5rem;
-  }
-
-  .navLink {
-      font-size: 1.5rem;
-  }
 
   }
 
