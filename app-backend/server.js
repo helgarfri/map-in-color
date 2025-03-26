@@ -5,7 +5,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-app.set('trust proxy', 1); // Trust first proxy
 
 // Import your routes
 const authRoutes = require('./routes/auth');
@@ -25,6 +24,9 @@ const supabase = require('./config/supabase');
 
 // Initialize Express app
 const app = express();
+
+app.set('trust proxy', 1); // Trust first proxy
+
 
 // Middleware
 app.use(express.json());
