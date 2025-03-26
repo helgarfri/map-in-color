@@ -17,3 +17,15 @@
     margin: 80px;
   }
   
+  .resendButton {
+   all: unset; 
+    cursor: pointer;
+    color: #55957b;
+    font-weight: bold;
+    margin-top: 7px;
+    
+  }
+
+  .resendButton:hover {
+    text-decoration: underline;
+  }

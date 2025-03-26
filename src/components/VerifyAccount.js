@@ -27,7 +27,7 @@ export default function VerifyAccount() {
     } catch (err) {
       console.error('Error resending verification:', err);
       if (err.response && err.response.data) {
-        setResendMessage(err.response.data.msg || 'Error resending verification email.');
+        setResendMessage(err.response.data.msg || 'Error resending verification email. Please contact support.');
       } else {
         setResendMessage('Unable to resend verification email.');
       }
@@ -49,9 +49,11 @@ export default function VerifyAccount() {
         </p>
 
         {/* Resend Email button */}
-        <button onClick={handleResendClick} disabled={!email || loading}>
+
+       <button className={styles.resendButton} onClick={handleResendClick} disabled={!email || loading}>
           {loading ? 'Resending...' : 'Resend Verification Email'}
-        </button>
+        </button> 
+        
 
         {/* Display any message returned from the server */}
         {resendMessage && <p>{resendMessage}</p>}
