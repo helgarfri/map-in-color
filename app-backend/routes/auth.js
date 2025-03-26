@@ -281,7 +281,7 @@ router.get('/verify/:token', async (req, res) => {
       .update({ status: 'active' })
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error(error);
