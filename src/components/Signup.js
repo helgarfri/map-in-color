@@ -484,6 +484,21 @@ export default function Signup() {
             <p className={styles.errorMessageGeneral}>{errors.general}</p>
           )}
 
+          <div className={styles.checkboxContainer}>
+
+          <div className={styles.formGroupCheckbox}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={subscribePromos}
+                  onChange={(e) => setSubscribePromos(e.target.checked)}
+                />
+                <span className={styles.termsText}>
+                  I want to receive promotional emails about Map in Color
+                </span>
+              </label>
+            </div>
+          
             <div className={styles.formGroupCheckbox}>
               <label className={styles.checkboxLabel}>
                 <input
@@ -518,17 +533,7 @@ export default function Signup() {
               )}
             </div>
 
-            <div className={styles.formGroupCheckbox}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={subscribePromos}
-                  onChange={(e) => setSubscribePromos(e.target.checked)}
-                />
-                <span className={styles.subscribeLabel}>
-                  I want to receive promotional emails about Map in Color
-                </span>
-              </label>
+            
             </div>
 
             {/* Submit Button */}

@@ -103,7 +103,11 @@
   margin-top: 10px;
   font-size: 1.05rem;
   color: #444;
+  width: fit-content;
+  margin: 10px auto;
   text-align: left;
+
+
 }
 
 .editProfileButton {

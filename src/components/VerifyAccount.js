@@ -27,7 +27,7 @@ export default function VerifyAccount() {
     } catch (err) {
       console.error('Error resending verification:', err);
       if (err.response && err.response.data) {
-        setResendMessage(err.response.data.msg || 'Error resending verification email. Please contact support.');
+        setResendMessage(err.response.data.msg || 'Error resending verification email. Please contact support@mapincolor.com.');
       } else {
         setResendMessage('Unable to resend verification email.');
       }

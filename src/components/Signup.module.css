@@ -84,6 +84,8 @@
 
 }
 
+
+
 /* Individual form groups (label + input or select) */
 .formGroup {
   margin-bottom: 15px;
@@ -122,6 +124,16 @@
 .rightColumn {
   flex: 1;
 }
+
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  text-align: left;
+  align-items: flex-start;
+  width: fit-content;
+  margin: 0 auto;
+}
 /* The outer label with the checkbox + text container side by side */
 .checkboxLabel {
   display: flex;
@@ -129,6 +141,7 @@
   cursor: pointer;
   justify-content: center;
   /* no gap here so the checkbox doesn't get huge spacing */
+  color: #666;
 }
 
 /* Minimal right margin to separate checkbox from the text container */
