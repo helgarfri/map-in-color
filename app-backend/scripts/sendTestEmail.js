@@ -6,7 +6,8 @@ const { resend } = require('../config/resend');
 // Read in the template
 const filePath = path.join(__dirname, '..', 'emails', 'launch.html');
 const template = fs.readFileSync(filePath, 'utf-8');
-const unsubscribeLink = 'https://your-server.com/unsubscribe/test-user';
+const unsubscribeLink = `https://mapincolor.com/api/unsubscribe/${subscriber.id}
+`;
 
 const finalHtml = template.replace('{{unsubscribeLink}}', unsubscribeLink);
 
