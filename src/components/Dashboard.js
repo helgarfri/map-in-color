@@ -340,6 +340,8 @@ export default function Dashboard() {
                           font_color={map.font_color}
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
+                          showNoDataLegend={map.show_no_data_legend}
+
                           
                         />
                       );
@@ -354,6 +356,8 @@ export default function Dashboard() {
                           font_color={map.font_color}
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
+                          showNoDataLegend={map.show_no_data_legend}
+
                         />
                       );
                     }
@@ -439,6 +443,8 @@ export default function Dashboard() {
                           font_color={map.font_color}
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
+                          showNoDataLegend={map.show_no_data_legend}
+
                         />
                       );
                     } else if (map.selected_map === 'europe') {
@@ -452,6 +458,8 @@ export default function Dashboard() {
                           font_color={map.font_color}
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
+                          showNoDataLegend={map.show_no_data_legend}
+
                         />
                       );
                     }

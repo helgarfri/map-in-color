@@ -64,6 +64,24 @@ const themes = [
     name: 'PuBu',
     colors: ['#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#7a4ea0', '#65348b', '#50216e', '#3b0f52', '#260036'],
   },
+  {
+    name: 'MIC colors',
+    colors: [
+      '#f8b489',  // Lighter Orange start
+      '#f69b62',
+      '#f3823a',
+      '#f16913',  // Orange control point
+      '#ed5515',
+      '#ea4218',
+      '#e62e1a',  // Red control point
+      '#be2f32',
+      '#953149',
+      '#6d3261'   // Purple end
+    ],
+  }
+  
+  
+  
 ];
 
 /** Map Themes **/
@@ -93,12 +111,6 @@ const map_themes = [
     unassigned_color: '#ffffff',
   },
   {
-    name: 'Vintage Sepia',
-    ocean_color: '#704214',
-    font_color: 'white',
-    unassigned_color: '#D2B48C',
-  },
-  {
     name: 'Midnight Blue',
     ocean_color: '#191970',
     font_color: 'white',
@@ -115,12 +127,6 @@ const map_themes = [
     ocean_color: '#EDC9AF',
     font_color: 'black',
     unassigned_color: '#C2B280',
-  },
-  {
-    name: 'Fire and Ice',
-    ocean_color: '#1E90FF',
-    font_color: 'white',
-    unassigned_color: '#FF4500',
   },
   {
     name: 'Deep Space',
@@ -141,16 +147,10 @@ const map_themes = [
     unassigned_color: '#FF6347',
   },
   {
-    name: 'Forest Green',
-    ocean_color: '#228B22',
-    font_color: 'white',
-    unassigned_color: '#6B8E23',
-  },
-  {
-    name: 'Map in Color theme',
+    name: 'MIC theme',
     ocean_color: '#80a0b0',
-    font_color: 'black',
-    unassigned_color: '#55957b',
+    font_color: 'white',
+    unassigned_color: '#c0c0c0',
   }
 ];
 
@@ -1463,7 +1463,7 @@ function applyPalette(oldRanges, paletteColors) {
         </div>
 
         <div className={styles.themeField}>
-          <label htmlFor="showNoDataLegendChk">Show “No Data” on Legend:</label>
+          <label htmlFor="showNoDataLegendChk">Display No data on legend:</label>
           <input
             id="showNoDataLegendChk"
             type="checkbox"

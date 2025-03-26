@@ -28,7 +28,7 @@ router.get('/:username/activity', async (req, res) => {
     // 1) Find the user by username in "users"
     const { data: foundUser, error: userErr } = await supabaseAdmin
       .from('users')
-      .select('id, username, first_name, profile_/picture')
+      .select('id, username, first_name, profile_picture')
       .eq('username', username)
       .maybeSingle();
 
@@ -345,6 +345,8 @@ router.get('/', auth, async (req, res) => {
         show_saved_maps,
         star_notifications,
         show_activity_feed,
+        show_location,
+        show_date_of_birth,
         created_at,
         updated_at
       `)
@@ -377,22 +379,24 @@ router.get('/:username', async (req, res) => {
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
       .select(`
-        id,
-        username,
-        first_name,
-        last_name,
-        date_of_birth,
-        location,
-        description,
-        gender,
-        profile_picture,
-        created_at,
-        updated_at,
-        status,
-        profile_visibility,
-        show_saved_maps,
-        star_notifications,
-        show_activity_feed
+       id,
+      username,
+      email,
+      first_name,
+      last_name,
+      date_of_birth,
+      location,
+      description,
+      gender,
+      profile_picture,
+      profile_visibility,
+      show_saved_maps,
+      star_notifications,
+      show_activity_feed,
+      show_location,
+      show_date_of_birth,
+      created_at,
+      updated_at
       `)
       
       .eq('username', username)
@@ -440,6 +444,10 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     show_saved_maps,
     star_notifications,
     show_activity_feed,
+  
+    // NEW FIELDS
+    show_location,
+    show_date_of_birth
   } = req.body;
   try {
     // 1) fetch user from "users"
@@ -487,7 +495,12 @@ router.put('/', profileUpdateMiddleware, async (req, res) => {
     if (show_saved_maps !== undefined)   updateData.show_saved_maps = show_saved_maps;
     if (star_notifications !== undefined)     updateData.star_notifications = star_notifications;
     if (show_activity_feed !== undefined) updateData.show_activity_feed = show_activity_feed;
-
+    if (show_location !== undefined) {
+      updateData.show_location = show_location === 'true' || show_location === true;
+    }
+    if (show_date_of_birth !== undefined) {
+      updateData.show_date_of_birth = show_date_of_birth === 'true' || show_date_of_birth === true;
+    }
 
     // Only set date_of_birth if userRow.date_of_birth is null
     if (!userRow.date_of_birth && date_of_birth) {

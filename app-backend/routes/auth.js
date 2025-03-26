@@ -28,13 +28,8 @@ router.post(
       .withMessage('Password must contain at least one number (0-9).')
       .matches(/[!?.#]/)
       .withMessage('Password must contain at least one special character (!?.#).'),
-    // You can add more checks here for username, etc.
   ],
   async (req, res) => {
-    // Expecting snake_case from the frontend
-    // If your frontend is still sending camelCase, do:
-    //   const { email, password, username, first_name, last_name, date_of_birth, location, gender } = req.body;
-    //   and then map them to .first_name, .last_name, etc. when inserting
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -54,7 +49,7 @@ router.post(
     try {
       // 1) Check if user with the same email already exists
       const { data: existingUser, error: userCheckError } = await supabaseAdmin
-        .from('users') // table name is already lowercase
+        .from('users')
         .select('id, email')
         .eq('email', email)
         .maybeSingle();
@@ -83,7 +78,7 @@ router.post(
       // 3) Hash the password
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // 4) Insert the new user with snake_case columns
+      // 4) Insert the new user => status = 'pending'
       const { data: insertedUsers, error: insertError } = await supabaseAdmin
         .from('users')
         .insert([
@@ -97,11 +92,12 @@ router.post(
             location,
             gender,
             profile_picture: DEFAULT_PROFILE_PIC,
-            created_at: new Date().toISOString(), // change here
-            updated_at: new Date().toISOString(), // and here
+            status: 'pending', // <--- set user as pending
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           },
         ])
-        .select()       // <--- force row to be returned
+        .select()
         .single();
 
       if (insertError) {
@@ -109,52 +105,48 @@ router.post(
         return res.status(500).json({ msg: 'Error creating user' });
       }
 
-      // Inserted user is in insertedUsers
       const newUser = insertedUsers;
 
-       // 5) Send a welcome email via Resend
-       try {
-        // Build your HTML string. Note the links can be simple <a> tags.
+      // 5) Create a verification token that expires in e.g. 1 day
+      const verifyToken = jwt.sign(
+        { id: newUser.id, email: newUser.email }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '1d' }
+      );
+
+      // This would be your verification endpoint
+      const verifyLink = `https://mapincolor.com/api/auth/verify/${verifyToken}`;
+
+      // 6) Send a verification email with the link
+      try {
         const welcomeEmailHTML = `
           <p>Hello ${newUser.first_name},</p>
-          <p>Welcome to Map in Color! I’m really glad to have you on board. 🎉</p>
-          <p>You’ve successfully signed up, and you’re now ready to start <strong>creating and exploring data through maps</strong>. To get started, head over to your <a href="https://mapincolor.com/dashboard">dashboard</a>. You can create your first map today – all you need is a CSV file, and you’re good to go!</p>
-          <p>Need help? Check out our <a href="https://mapincolor.com/docs">docs</a> or feel free to reach out anytime at <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>.</p>
+          <p>Welcome to Map in Color! Please verify your account by clicking the link below:</p>
+          <p><a href="${verifyLink}">Verify Your Account</a></p>
+          <p>Once verified, you can log in and start creating and exploring data through maps!</p>
           <p>Cheers,<br/>Helgi</p>
         `;
 
         await resend.emails.send({
           from: 'no-reply@mapincolor.com',
           to: newUser.email,
-          subject: 'Welcome to Map in Color!',
+          subject: 'Please verify your account - Map in Color',
           html: welcomeEmailHTML,
         });
 
-        console.log(`Welcome email sent to: ${newUser.email}`);
+        console.log(`Verification email sent to: ${newUser.email}`);
       } catch (emailError) {
-        // Log it but don't block user creation if the email fails
-        console.error('Failed to send welcome email:', emailError);
+        // Log the error but don't block user creation if the email fails
+        console.error('Failed to send verification email:', emailError);
       }
 
-      // Sign JWT
-      const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      });
+      // OPTIONAL: You can choose whether to send a JWT for immediate "partial" login
+      // or wait until the user is verified. If you want to disallow ANY usage,
+      // you could simply not sign a token yet. For demonstration, I'll skip it:
+      // const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      // Send back snake_case fields (or map them back to camelCase if you prefer)
       return res.json({
-        token,
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          username: newUser.username,
-          first_name: newUser.first_name,
-          last_name: newUser.last_name,
-          date_of_birth: newUser.date_of_birth,
-          location: newUser.location,
-          gender: newUser.gender,
-          profile_picture: newUser.profile_picture,
-        },
+        msg: 'User created successfully. Please check your email to verify your account.',
       });
     } catch (err) {
       console.error('Error during signup:', err);
@@ -163,9 +155,9 @@ router.post(
   }
 );
 
+
 // LOGIN
 router.post('/login', [check('password').exists()], async (req, res) => {
-  // We'll read "identifier" from the body, not "email"
   const { identifier, password } = req.body;
 
   if (!identifier) {
@@ -174,15 +166,14 @@ router.post('/login', [check('password').exists()], async (req, res) => {
 
   try {
     let foundUser;
-    // Decide if identifier is an email or username
+
+    // 1) Lookup by email or username
     if (identifier.includes('@')) {
-      // Possibly an email
       const { data, error } = await supabaseAdmin
         .from('users')
-        .select('id, email, username, password, first_name, last_name, status') // IMPORTANT: select "status"
+        .select('id, email, username, password, first_name, last_name, status')
         .eq('email', identifier)
         .maybeSingle();
-
       if (error) {
         console.error(error);
         return res.status(500).json({ msg: 'Error fetching user by email' });
@@ -192,10 +183,9 @@ router.post('/login', [check('password').exists()], async (req, res) => {
       // Probably a username
       const { data, error } = await supabaseAdmin
         .from('users')
-        .select('id, email, username, password, first_name, last_name, status') // include status
+        .select('id, email, username, password, first_name, last_name, status')
         .eq('username', identifier)
         .maybeSingle();
-
       if (error) {
         console.error(error);
         return res.status(500).json({ msg: 'Error fetching user by username' });
@@ -207,23 +197,27 @@ router.post('/login', [check('password').exists()], async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials (no user)' });
     }
 
-    // Compare passwords
+    // 2) Compare passwords
     const isMatch = await bcrypt.compare(password, foundUser.password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials (bad password)' });
     }
 
-    //  ***** Check if user is banned *****
+    // 3) Check status
+    if (foundUser.status === 'pending') {
+      return res.status(403).json({ msg: 'Please verify your account before logging in.' });
+    }
+
     if (foundUser.status === 'banned') {
-      // Return 403 => user is not allowed to log in
       return res.status(403).json({ msg: 'Your account is banned.' });
     }
 
-    // If not banned => proceed as normal
+    // 4) Sign JWT if all is good
     const token = jwt.sign({ id: foundUser.id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
 
+    // 5) Return user & token
     return res.json({
       token,
       user: {
@@ -240,5 +234,47 @@ router.post('/login', [check('password').exists()], async (req, res) => {
     return res.status(500).json({ msg: 'Server error' });
   }
 });
+
+//VERIFY TOKEN
+router.get('/verify/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    // 1) Decode token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+
+    // 2) Update user’s status => 'active'
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update({ status: 'active' })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ msg: 'Error verifying user' });
+    }
+
+    if (!data) {
+      // means no user found
+      return res.status(404).json({ msg: 'No user found to verify' });
+    }
+
+    // 3) Return success as HTML or redirect
+    // Option A: Send a simple HTML response:
+    return res.redirect('https://mapincolor.com/verified');
+
+
+    
+  } catch (err) {
+    console.error('Verification error:', err);
+    // Token is invalid or expired
+    return res.redirect('https://mapincolor.com/verification-error');
+  }
+});
+
+
 
 module.exports = router;

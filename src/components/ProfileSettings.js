@@ -45,6 +45,8 @@ export default function ProfileSettings() {
   const [showSavedMaps, setShowSavedMaps] = useState(true);
   const [starNotifications, setStarNotifications] = useState(true);
   const [showActivityFeed, setShowActivityFeed] = useState(true);
+  const [showLocation, setShowLocation] = useState(true);
+  const [showDateOfBirth, setShowDateOfBirth] = useState(true);
 
   // Profile pic states
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('/default-profile-pic.jpg');
@@ -132,6 +134,12 @@ export default function ProfileSettings() {
     }
     if (typeof profile.star_notifications === 'boolean') {
       setStarNotifications(profile.star_notifications);
+    }
+    if (typeof profile.show_location === 'boolean') {
+      setShowLocation(profile.show_location);
+    }
+    if (typeof profile.show_date_of_birth === 'boolean') {
+      setShowDateOfBirth(profile.show_date_of_birth);
     }
 
     // Profile pic
@@ -240,9 +248,14 @@ export default function ProfileSettings() {
     if (newVal === 'onlyMe') {
       setShowSavedMaps(false);
       setShowActivityFeed(false);
+      setShowLocation(false);
+      setShowDateOfBirth(false);
+
     } else if (newVal === 'everyone') {
       setShowSavedMaps(true);
       setShowActivityFeed(true);
+      setShowLocation(true)
+      setShowDateOfBirth(true)
     }
   };
 
@@ -279,6 +292,8 @@ export default function ProfileSettings() {
       payload.append('show_saved_maps', showSavedMaps);
       payload.append('show_activity_feed', showActivityFeed);
       payload.append('star_notifications', starNotifications);
+      payload.append('show_location', showLocation);
+      payload.append('show_date_of_birth', showDateOfBirth);
 
       // date_of_birth only if user had none
       if (!profile?.date_of_birth && formData.date_of_birth) {
@@ -589,6 +604,30 @@ export default function ProfileSettings() {
                       <ToggleSwitch
                         isOn={showActivityFeed}
                         onToggle={() => setShowActivityFeed((prev) => !prev)}
+                        disabled={profileVisibility === 'onlyMe'}
+                      />
+                    </div>
+                  </div>
+
+                      {/* New Toggle #1: Show Location on Profile */}
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>Show location on profile:</label>
+                    <div className={styles.formField}>
+                      <ToggleSwitch
+                        isOn={showLocation}
+                        onToggle={() => setShowLocation((prev) => !prev)}
+                        disabled={profileVisibility === 'onlyMe'}
+                      />
+                    </div>
+                  </div>
+
+                  {/* New Toggle #2: Show Date of Birth on Profile */}
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>Show date of birth on profile:</label>
+                    <div className={styles.formField}>
+                      <ToggleSwitch
+                        isOn={showDateOfBirth}
+                        onToggle={() => setShowDateOfBirth((prev) => !prev)}
                         disabled={profileVisibility === 'onlyMe'}
                       />
                     </div>
