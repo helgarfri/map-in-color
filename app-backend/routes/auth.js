@@ -270,7 +270,8 @@ router.get('/verify/:token', async (req, res) => {
     
   } catch (err) {
     console.error('Verification error:', err);
-    return res.status(400).json({ msg: 'Invalid or expired token' });
+    // Token is invalid or expired
+    return res.redirect('https://mapincolor.com/verification-error');
   }
 });
 
