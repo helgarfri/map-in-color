@@ -12,6 +12,7 @@ const saltRounds = 10;
 // Full public URL from Supabase
 const DEFAULT_PROFILE_PIC = 'https://cuijtjpwlzmamegajljz.supabase.co/storage/v1/object/public/profile-pictures/default-pic.jpg';
 
+
 // SIGNUP
 router.post(
   '/signup',
@@ -30,11 +31,13 @@ router.post(
       .withMessage('Password must contain at least one special character (!?.#).'),
   ],
   async (req, res) => {
+    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Destructure from body, including the new field "subscribe_promos"
     const {
       email,
       password,
@@ -44,6 +47,7 @@ router.post(
       date_of_birth,
       location,
       gender,
+      subscribe_promos  // <-- this should come from your frontend checkbox
     } = req.body;
 
     try {
@@ -92,7 +96,7 @@ router.post(
             location,
             gender,
             profile_picture: DEFAULT_PROFILE_PIC,
-            status: 'pending', // <--- set user as pending
+            status: 'pending', // <--- user is initially pending
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -107,17 +111,47 @@ router.post(
 
       const newUser = insertedUsers;
 
-      // 5) Create a verification token that expires in e.g. 1 day
+      // 5) If user chose to subscribe to promos => add to email_subscriptions
+      if (subscribe_promos) {
+        try {
+          const { data: existingSub, error: subCheckErr } = await supabaseAdmin
+            .from('email_subscriptions')
+            .select('id, email')
+            .ilike('email', email)  // case-insensitive check
+            .maybeSingle();
+
+          if (subCheckErr) {
+            console.error('Error checking email_subscriptions:', subCheckErr);
+          } else if (!existingSub) {
+            // Insert the email
+            const { error: insertSubErr } = await supabaseAdmin
+              .from('email_subscriptions')
+              .insert([{ email }]);
+
+            if (insertSubErr) {
+              console.error('Error inserting into email_subscriptions:', insertSubErr);
+            } else {
+              console.log(`Subscribed ${email} to promotional emails.`);
+            }
+          } else {
+            console.log(`${email} is already subscribed to promos.`);
+          }
+        } catch (subErr) {
+          console.error('Unhandled error creating subscription:', subErr);
+        }
+      }
+
+      // 6) Create a verification token that expires in 1 day
       const verifyToken = jwt.sign(
         { id: newUser.id, email: newUser.email }, 
         process.env.JWT_SECRET, 
         { expiresIn: '1d' }
       );
 
-      // This would be your verification endpoint
+      // Construct the verify link
       const verifyLink = `https://mapincolor.com/api/auth/verify/${verifyToken}`;
 
-      // 6) Send a verification email with the link
+      // 7) Send a verification email with the link
       try {
         const welcomeEmailHTML = `
           <p>Hello ${newUser.first_name},</p>
@@ -136,25 +170,22 @@ router.post(
 
         console.log(`Verification email sent to: ${newUser.email}`);
       } catch (emailError) {
-        // Log the error but don't block user creation if the email fails
+        // Log it, but don't block user creation
         console.error('Failed to send verification email:', emailError);
       }
 
-      // OPTIONAL: You can choose whether to send a JWT for immediate "partial" login
-      // or wait until the user is verified. If you want to disallow ANY usage,
-      // you could simply not sign a token yet. For demonstration, I'll skip it:
-      // const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
+      // You could optionally return a token for partial login,
+      // but if you're blocking usage until verified, skip it:
       return res.json({
         msg: 'User created successfully. Please check your email to verify your account.',
       });
+
     } catch (err) {
       console.error('Error during signup:', err);
       return res.status(500).json({ msg: 'Server error' });
     }
   }
 );
-
 
 // LOGIN
 router.post('/login', [check('password').exists()], async (req, res) => {
