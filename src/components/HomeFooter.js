@@ -1,11 +1,13 @@
 import React from 'react';
-import { FaGithub, FaInstagram, FaTwitter } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaTwitter, FaEnvelope } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import styles from './HomeFooter.module.css';
 
 export default function HomeFooter() {
   return (
     <footer className={styles.footer}>
-      <div className={styles.footerLinks}>
+      {/* First row: social links */}
+      <div className={styles.topRow}>
         <a
           href="https://github.com/helgarfri/map-in-color"
           target="_blank"
@@ -28,17 +30,24 @@ export default function HomeFooter() {
           <FaTwitter size={24} />
         </a>
       </div>
-      <div className={styles.infoSection}>
-        <p className={styles.tagline}>
-          A platform to create, share, and explore data through maps — launching on March 28th
-        </p>
-        <p className={styles.contact}>
-          Contact: <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>
-        </p>
+
+      {/* Second row: email, terms, privacy, copyright */}
+      <div className={styles.bottomRow}>
+        {/* Contact (email icon + address) */}
+        <div className={styles.contactInfo}>
+          <FaEnvelope size={18} />
+          <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>
+        </div>
+
+        {/* Terms and Privacy Links */}
+        <div className={styles.linkGroup}>
+          <Link to="/terms">Terms of Use</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+        </div>
+
+        {/* Copyright */}
+        <p>&copy; {new Date().getFullYear()} Map in Color</p>
       </div>
-      <p className={styles.copyright}>
-        &copy; {new Date().getFullYear()} Map in Color
-      </p>
     </footer>
   );
 }

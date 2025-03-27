@@ -3,24 +3,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 15px 40px;
   }
   
   .logoSection {
     display: flex;
     align-items: center;
     gap: 10px;
+    cursor: pointer;
   }
   
   .logo {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     object-fit: cover;
   }
   
   .brandTitle {
     color: #ffffff;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     margin: 0;
   }
   
@@ -34,6 +35,7 @@
     color: #ffffff;
     text-decoration: none;
     font-weight: bold;
+    font-size: 18px;
     transition: opacity 0.2s ease;
   }
   
@@ -48,6 +50,7 @@
     border-radius: 4px;
     padding: 8px 14px;
     font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
     transition: background-color 0.2s ease;
   }
@@ -57,38 +60,61 @@
   }
 
   @media (max-width: 1200px) {
-    .header {
-      padding: 10px;
-    }
-  
-    .nav {
-      gap: 10px;
-    }
-  
-    .loginButton {
-      padding: 8px 12px;
-    }
 
-    .navLink {
-        font-size: 0.9rem;
-    }
 
-    .brandTitle {
-        font-size: 16px;
-    }
+.loginButton {
+  padding: 6px 10px;
+  font-size: 1.2rem;
+}
 
-    .logo {
-        width: 30px;
-        height: 30px;
-    }
+.navLink {
+    font-size: 1.2rem;
+}
 
-    .navLink {
-        font-size: 0.8rem;
-    }
-
-    .loginButton {
-        padding: 6px 10px;
-    }
-    
   }
-  
+
+  @media (max-width: 800px) {
+
+
+  .header {
+    padding: 10px;
+  }
+
+  .nav {
+    gap: 20px;
+  }
+
+
+  }
+
+  @media (max-width: 700px) {
+    .brandTitle {
+      display: none;
+  }
+}
+
+  @media (max-width: 450px) {
+    .brandTitle {
+      display: none;
+  }
+
+  .logo {
+      width: 60px;
+      height: 60px;
+  }
+
+  .navLink {
+      font-size: 1.1rem;
+  }
+
+  .loginButton {
+    padding: 5px 15px;
+    font-size: 1rem;
+  }
+
+  .nav {
+    gap: 10px;
+  }
+
+
+}

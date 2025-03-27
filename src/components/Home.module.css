@@ -12,10 +12,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 0px;
   text-align: center;
 }
-
+ 
 .betaNotice {
   font-size: 2rem;
   color: #55957b;

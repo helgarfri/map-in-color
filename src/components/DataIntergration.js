@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import styles from "./DataIntergration.module.css";
-import countryCodes from '../countries.json';
-import usStatesCodes from '../usStates.json';
-import euCodes from '../europeanCountries.json';
+import countryCodes from '../world-countries.json';
+import usStatesCodes from '../united-states.json';
+import euCodes from '../european-countries.json';
 import WorldMapSVG from './WorldMapSVG';
 import UsSVG from "./UsSVG";
 import EuropeSVG from "./EuropeSVG";
@@ -180,11 +180,9 @@ export default function DataIntegration({
   );
   
   useEffect(() => {
-    // Only auto-collapse if width < 1000, but do NOT auto-expand on wide screens
-    if (width < 1000 && !isCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [width, isCollapsed, setIsCollapsed]);
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
 
   const [file_stats, setFileStats] = useState({
@@ -323,153 +321,176 @@ export default function DataIntegration({
     reader.readAsText(file);
   };
 
-  // Parse CSV
-  const processCsv = (csvText) => {
-    const lines = csvText
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith('#'));
+// Parse CSV
+const processCsv = (csvText) => {
+  const lines = csvText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'));
 
-    setErrors([]);
+  setErrors([]);
 
-    // Decide dataSource
-    let dataSourceLocal;
-    if (selected_map === 'usa') dataSourceLocal = usStatesCodes;
-    else if (selected_map === 'europe') dataSourceLocal = euCodes;
-    else dataSourceLocal = countryCodes;
+  // Decide dataSource
+  let dataSourceLocal;
+  if (selected_map === 'usa') {
+    dataSourceLocal = usStatesCodes;
+  } else if (selected_map === 'europe') {
+    dataSourceLocal = euCodes;
+  } else {
+    dataSourceLocal = countryCodes; // now this has 'aliases' property
+  }
 
-    const parsedData = [];
-    const errorList = [];
+  const parsedData = [];
+  const errorList = [];
 
-    lines.forEach((line, index) => {
-      const lineNumber = index + 1;
-      const parts = line.split(',').map((p) => p.trim().replace(/""/g, '"'));
-      if (parts.length < 2) {
-        errorList.push({
-          line: lineNumber,
-          type: 'Missing Separator',
-          message: `Missing comma separator after "${parts[0]}"`,
-        });
-        return;
-      }
-      const name = parts[0];
-      const valueRaw = parts[1];
-      const value = valueRaw !== '' ? parseFloat(valueRaw) : null;
+  lines.forEach((line, index) => {
+    const lineNumber = index + 1;
+    const parts = line.split(',').map((p) => p.trim().replace(/""/g, '"'));
+    if (parts.length < 2) {
+      errorList.push({
+        line: lineNumber,
+        type: 'Missing Separator',
+        message: `Missing comma separator after "${parts[0]}"`,
+      });
+      return;
+    }
 
-      // Validate name
-      const dataItem = dataSourceLocal.find(
-        (item) => item.name.toLowerCase() === name.toLowerCase()
+    const name = parts[0];
+    const valueRaw = parts[1].trim();
+    // If there's truly no value, skip this line entirely:
+    if (valueRaw === '') {
+      // Just ignore this line: no error, no push
+      return;
+    }
+
+    // Convert to float
+    const value = parseFloat(valueRaw);
+
+    // Find matching country/state by code or name/alias
+    const dataItem = dataSourceLocal.find((item) => {
+      // Case-insensitive compare for code
+      const codeMatches = item.code.toLowerCase() === name.toLowerCase();
+
+      // Combine primary name + aliases into lowercased array
+      const allNames = [item.name, ...(item.aliases || [])].map((s) =>
+        s.toLowerCase()
       );
-      if (!dataItem) {
-        errorList.push({
-          line: lineNumber,
-          type: 'Invalid Name',
-          message: `Country/State "${name}" is invalid.`,
-        });
+
+      // Check if the CSV name matches any known name/alias
+      const nameMatches = allNames.includes(name.toLowerCase());
+
+      return codeMatches || nameMatches;
+    });
+
+    // If invalid name/code, log error
+    if (!dataItem) {
+      errorList.push({
+        line: lineNumber,
+        type: 'Invalid Name',
+        message: `Country/State/Code "${name}" is invalid.`,
+      });
+      return; // skip this row
+    }
+
+    // If valueRaw is non-empty but not numeric, error
+    if (isNaN(value)) {
+      errorList.push({
+        line: lineNumber,
+        type: 'Invalid Numeric Value',
+        message: `Value "${valueRaw}" is not a valid number.`,
+      });
+      return; // skip this row
+    }
+
+    // Otherwise, we have a valid data row
+    parsedData.push({ name, code: dataItem.code, value });
+  });
+
+  if (errorList.length > 0) {
+    setErrors(errorList);
+    setFileIsValid(false);
+  } else {
+    setErrors([]);
+    setFileIsValid(true);
+  }
+
+  setData(parsedData);
+  setDataSource(dataSourceLocal);
+  setValidData(parsedData);
+
+  // Post-process
+  if (parsedData.length > 0 && errorList.length === 0) {
+    // Sort descending
+    const sortedDesc = [...parsedData].sort((a, b) => b.value - a.value);
+    sortedDesc.forEach((item, i) => (item.rankDesc = i + 1));
+
+    // Sort ascending
+    const sortedAsc = [...parsedData].sort((a, b) => a.value - b.value);
+    sortedAsc.forEach((item, i) => (item.rankAsc = i + 1));
+
+    // Top values
+    setTopHighValues(sortedDesc.slice(0, Math.min(3, sortedDesc.length)));
+    setTopLowValues(sortedAsc.slice(0, Math.min(3, sortedAsc.length)));
+
+    // Stats
+    const values = parsedData.map((d) => d.value);
+    const totalVals = values.length;
+    const sumVals = values.reduce((sum, val) => sum + val, 0);
+    const avg = sumVals / totalVals;
+    const sortedVals = [...values].sort((a, b) => a - b);
+    const midIndex = Math.floor(totalVals / 2);
+    const median =
+      totalVals % 2 !== 0
+        ? sortedVals[midIndex]
+        : (sortedVals[midIndex - 1] + sortedVals[midIndex]) / 2;
+    const variance =
+      values.reduce((sum, val) => sum + (val - avg) ** 2, 0) / totalVals;
+    const stdDev = Math.sqrt(variance);
+
+    // Find extremes
+    let lowestValue = values[0];
+    let highestValue = values[0];
+    let lowestCountry = parsedData[0].name;
+    let highestCountry = parsedData[0].name;
+    parsedData.forEach((item) => {
+      if (item.value < lowestValue) {
+        lowestValue = item.value;
+        lowestCountry = item.name;
       }
-      // Validate value
-      if (valueRaw === '') {
-        errorList.push({
-          line: lineNumber,
-          type: 'Empty Value',
-          message: `Value is empty.`,
-        });
-      } else if (isNaN(value)) {
-        errorList.push({
-          line: lineNumber,
-          type: 'Invalid Numeric Value',
-          message: `Value "${valueRaw}" is not a valid number.`,
-        });
-      }
-      if (dataItem && valueRaw !== '' && !isNaN(value)) {
-        parsedData.push({ name, code: dataItem.code, value });
+      if (item.value > highestValue) {
+        highestValue = item.value;
+        highestCountry = item.name;
       }
     });
 
-    if (errorList.length > 0) {
-      setErrors(errorList);
-      setFileIsValid(false);
-    } else {
-      setErrors([]);
-      setFileIsValid(true);
-    }
+    setFileStats({
+      lowestValue,
+      lowestCountry,
+      highestValue,
+      highestCountry,
+      averageValue: parseFloat(avg.toFixed(2)),
+      medianValue: parseFloat(median.toFixed(2)),
+      standardDeviation: parseFloat(stdDev.toFixed(2)),
+      numberOfValues: totalVals,
+      totalCountries: dataSourceLocal.length,
+    });
+  } else {
+    setFileStats({
+      lowestValue: null,
+      lowestCountry: '',
+      highestValue: null,
+      highestCountry: '',
+      averageValue: null,
+      medianValue: null,
+      standardDeviation: null,
+      numberOfValues: 0,
+      totalCountries: dataSourceLocal.length,
+    });
+    setTopHighValues([]);
+    setTopLowValues([]);
+  }
+};
 
-    setData(parsedData);
-    setDataSource(dataSourceLocal);
-    setValidData(parsedData);
-
-    // Post-process
-    if (parsedData.length > 0 && errorList.length === 0) {
-      // Sort descending
-      const sortedDesc = [...parsedData].sort((a, b) => b.value - a.value);
-      sortedDesc.forEach((item, i) => (item.rankDesc = i + 1));
-
-      // Sort ascending
-      const sortedAsc = [...parsedData].sort((a, b) => a.value - b.value);
-      sortedAsc.forEach((item, i) => (item.rankAsc = i + 1));
-
-      // Top values
-      setTopHighValues(sortedDesc.slice(0, Math.min(3, sortedDesc.length)));
-      setTopLowValues(sortedAsc.slice(0, Math.min(3, sortedAsc.length)));
-
-      // Stats
-      const values = parsedData.map((d) => d.value);
-      const totalVals = values.length;
-      const sumVals = values.reduce((sum, val) => sum + val, 0);
-      const avg = sumVals / totalVals;
-      const sortedVals = [...values].sort((a, b) => a - b);
-      const midIndex = Math.floor(totalVals / 2);
-      const median =
-        totalVals % 2 !== 0
-          ? sortedVals[midIndex]
-          : (sortedVals[midIndex - 1] + sortedVals[midIndex]) / 2;
-      const variance =
-        values.reduce((sum, val) => sum + (val - avg) ** 2, 0) / totalVals;
-      const stdDev = Math.sqrt(variance);
-
-      // Find extremes
-      let lowestValue = values[0];
-      let highestValue = values[0];
-      let lowestCountry = parsedData[0].name;
-      let highestCountry = parsedData[0].name;
-      parsedData.forEach((item) => {
-        if (item.value < lowestValue) {
-          lowestValue = item.value;
-          lowestCountry = item.name;
-        }
-        if (item.value > highestValue) {
-          highestValue = item.value;
-          highestCountry = item.name;
-        }
-      });
-
-      setFileStats({
-        lowestValue,
-        lowestCountry,
-        highestValue,
-        highestCountry,
-        averageValue: parseFloat(avg.toFixed(2)),
-        medianValue: parseFloat(median.toFixed(2)),
-        standardDeviation: parseFloat(stdDev.toFixed(2)),
-        numberOfValues: totalVals,
-        totalCountries: dataSourceLocal.length,
-      });
-    } else {
-      setFileStats({
-        lowestValue: null,
-        lowestCountry: '',
-        highestValue: null,
-        highestCountry: '',
-        averageValue: null,
-        medianValue: null,
-        standardDeviation: null,
-        numberOfValues: 0,
-        totalCountries: dataSourceLocal.length,
-      });
-      setTopHighValues([]);
-      setTopLowValues([]);
-    }
-  };
 
   // Download template
   const downloadTemplate = () => {
@@ -983,11 +1004,11 @@ function applyPalette(oldRanges, paletteColors) {
               <p className={styles.instructionText}>
                 Please ensure your CSV file has exactly 2 columns:
                 <br />
-                1) <em>Country/State Name</em>
+                1) <em>State Name or Code</em>
                 <br />
                 2) <em>Value</em>
                 <br />
-                No value can be left empty.
+                Empty values will be ignored.
               </p>
               <p className={styles.instructionText}>
                 Example:
@@ -1024,7 +1045,7 @@ function applyPalette(oldRanges, paletteColors) {
                 {file_name ? (
                   <p className={styles.file_nameLabel}>{file_name}</p>
                 ) : (
-                  <p className={styles.noFileSelected}>No file selected</p>
+                  <p className={styles.noFileSelected}></p>
                 )}
 
                 {file_name && fileIsValid === true && (

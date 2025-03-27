@@ -1,0 +1,3 @@
+This is a MVP release of a brand new version of Map in Color (MIC) v2.0.0, a tool for creating choropleth maps to visualize data, whether for scientific purposes or simply to see the world from a new perspective through data.
+
+With the new version, the application includes more complexity and a sharing platform where data can be shared between users. Instead of manually selecting and defining states from select inputs (as seen in v1), you prepare a CSV file locally with all the data for the map, ensuring simplicity.

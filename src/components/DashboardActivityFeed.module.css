@@ -238,12 +238,12 @@
   .activityItem {
     flex-direction: column;
     align-items: flex-start;
-    padding-bottom: 32px; /* space for the absolute-positioned timestampBox */
+    padding: 10px 10px; /* space for the absolute-positioned timestampBox */
   }
 
   .thumbContainer {
     width: 100%;
-    height: 120px;
+    height: 100%;
     margin-right: 0;
     margin-bottom: 8px;
   }
@@ -252,4 +252,5 @@
     bottom: 8px;
     left: 8px; /* shift to the left on mobile if you want */
   }
+
 }

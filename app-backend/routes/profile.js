@@ -67,7 +67,7 @@ router.get('/:username/activity', async (req, res) => {
         font_color,
         is_title_hidden,
         save_count,
-        created_at
+        created_at,
       `)
       .eq('user_id', user_id)
       .order('created_at', { ascending: false })

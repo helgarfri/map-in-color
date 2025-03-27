@@ -5,13 +5,12 @@ import { fetchUserProfile, updateUserProfile } from '../api';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import LoadingSpinner from './LoadingSpinner';
 import countries from '../data/countries';
 import { FaPencilAlt, FaLock, FaHeartBroken } from 'react-icons/fa';
 import { format } from 'date-fns';
 import Cropper from 'react-easy-crop';
 import { SidebarContext } from '../context/SidebarContext';
-import { UserContext } from '../context/UserContext'; // <-- IMPORTANT: import
+import { UserContext } from '../context/UserContext';
 import useWindowSize from '../hooks/useWindowSize';
 
 export default function ProfileSettings() {
@@ -19,9 +18,8 @@ export default function ProfileSettings() {
   // Contexts for sidebar & user
   // ----------------------------
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const { profile, setProfile } = useContext(UserContext); // <-- Use global context
+  const { profile, setProfile } = useContext(UserContext);
   const { width } = useWindowSize();
-
   const navigate = useNavigate();
 
   // ----------------------------
@@ -30,8 +28,7 @@ export default function ProfileSettings() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState('');
 
-  // We still keep local form data,
-  // but we do NOT overshadow `profile` from context.
+  // We keep local form data, but do not overshadow the global context
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -55,10 +52,11 @@ export default function ProfileSettings() {
   const [localProfilePictureUrl, setLocalProfilePictureUrl] = useState('/default-profile-pic.jpg');
   const [profile_picture, setProfilePicture] = useState(null);
 
+  // For status messages
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // For in-line editing fields
+  // For in-line editing
   const [editFields, setEditFields] = useState({
     first_name: false,
     last_name: false,
@@ -66,7 +64,7 @@ export default function ProfileSettings() {
     date_of_birth: false,
   });
 
-  // For modals
+  // Modals
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -81,25 +79,21 @@ export default function ProfileSettings() {
   // Auto-collapse sidebar on small screens
   // ----------------------------
   useEffect(() => {
-    if (width < 1000 && !isCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [width, isCollapsed, setIsCollapsed]);
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
   // ----------------------------
-  // 1) Load profile from server (or from context if it's null)
-  // 2) Populate local states (formData)
+  // Fetch profile from server (or context)
   // ----------------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoadingProfile(true);
-        // If we already have profile in context, no need to re-fetch
-        // But you can do so if you want always-latest data:
+        // If we have no user info in context, fetch from server
         if (!profile) {
-          // fetch from server if needed
           const res = await fetchUserProfile();
-          setProfile(res.data); // <-- update global context with fresh data
+          setProfile(res.data);
         }
       } catch (err) {
         console.error('Failed to fetch profile:', err);
@@ -111,12 +105,11 @@ export default function ProfileSettings() {
     fetchData();
   }, [profile, setProfile]);
 
-  // Whenever the `profile` from context changes,
-  // sync it into our local form states:
+  // ----------------------------
+  // Sync context profile -> local form states
+  // ----------------------------
   useEffect(() => {
     if (!profile) return;
-
-    // Basic form fields
     setFormData((prev) => ({
       ...prev,
       username: profile.username || '',
@@ -129,7 +122,7 @@ export default function ProfileSettings() {
       date_of_birth: profile.date_of_birth || '',
     }));
 
-    // Privacy fields
+    // Privacy
     if (profile.profile_visibility) {
       setProfileVisibility(profile.profile_visibility);
     }
@@ -155,8 +148,6 @@ export default function ProfileSettings() {
     } else {
       setLocalProfilePictureUrl('/default-profile-pic.jpg');
     }
-
-    setLoadingProfile(false);
   }, [profile]);
 
   // ----------------------------
@@ -281,7 +272,7 @@ export default function ProfileSettings() {
     setShowCountryModal(false);
   };
 
-  // Submit => call updateUserProfile => then setProfile(updatedProfile) in context
+  // Submit => call updateUserProfile => then setProfile(updatedProfile)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -296,7 +287,7 @@ export default function ProfileSettings() {
       payload.append('description', formData.description);
       payload.append('gender', formData.gender);
 
-      // Privacy fields
+      // Privacy
       payload.append('profile_visibility', profileVisibility);
       payload.append('show_saved_maps', showSavedMaps);
       payload.append('show_activity_feed', showActivityFeed);
@@ -304,7 +295,7 @@ export default function ProfileSettings() {
       payload.append('show_location', showLocation);
       payload.append('show_date_of_birth', showDateOfBirth);
 
-      // Only if the user never had a DOB
+      // date_of_birth only if user had none
       if (!profile?.date_of_birth && formData.date_of_birth) {
         payload.append('date_of_birth', formData.date_of_birth);
       }
@@ -316,11 +307,9 @@ export default function ProfileSettings() {
 
       const res = await updateUserProfile(payload);
       const updatedProfile = res.data;
-
-      // <-- IMPORTANT PART: update the global context with new data
       setProfile(updatedProfile);
 
-      // Show success, reset local editing states
+      // Success
       setSuccess('Profile updated successfully!');
       setEditFields({
         first_name: false,
@@ -337,18 +326,14 @@ export default function ProfileSettings() {
   // ----------------------------
   // Delete & Password
   // ----------------------------
-  const handleDeleteAccount = () => {
-    setShowDeleteModal(true);
-  };
+  const handleDeleteAccount = () => setShowDeleteModal(true);
   const confirmDelete = () => {
     setShowDeleteModal(false);
     navigate('/delete-account');
   };
-  const handleChangePassword = () => {
-    navigate('/change-password');
-  };
+  const handleChangePassword = () => navigate('/change-password');
 
-  // Format the date of birth
+  // Format date of birth
   const formatDOB = (rawDOB) => {
     if (!rawDOB) return 'Not specified';
     try {
@@ -373,10 +358,11 @@ export default function ProfileSettings() {
       >
         <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title="Settings" />
 
-        {loadingProfile ? (
-          <LoadingSpinner />
-        ) : errorProfile ? (
-          <div className={styles.error}>{errorProfile}</div>
+        {errorProfile ? (
+          <div className={styles.errorBox}>{errorProfile}</div>
+        ) : loadingProfile ? (
+          // RENDER THE SKELETON HERE:
+          <ProfileSettingsSkeleton />
         ) : (
           <>
             {success && <div className={styles.successBox}>{success}</div>}
@@ -729,6 +715,66 @@ export default function ProfileSettings() {
           onCancel={handleCropCancel}
         />
       )}
+    </div>
+  );
+}
+
+/* ------------------------------
+   SKELETON COMPONENT
+------------------------------ */
+function ProfileSettingsSkeleton() {
+  return (
+    <div className={styles.skeletonContainer}>
+      {/* We can mimic the "sections" shape here */}
+      {/* Section 1 (Account Settings) */}
+      <div className={styles.skeletonSection}>
+        <div className={`${styles.skeletonLine} ${styles.skeletonSectionTitle}`} />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className={styles.skeletonRow}>
+            <div className={styles.skeletonLabel} />
+            <div className={styles.skeletonField} />
+          </div>
+        ))}
+      </div>
+
+      {/* Section 2 (Profile Settings) */}
+      <div className={styles.skeletonSection}>
+        <div className={`${styles.skeletonLine} ${styles.skeletonSectionTitle}`} />
+        {/* first_name row */}
+        <div className={styles.skeletonRow}>
+          <div className={styles.skeletonLabel} />
+          <div className={styles.skeletonField} />
+        </div>
+        {/* last_name row */}
+        <div className={styles.skeletonRow}>
+          <div className={styles.skeletonLabel} />
+          <div className={styles.skeletonField} />
+        </div>
+        {/* profile picture row */}
+        <div className={styles.skeletonRow}>
+          <div className={styles.skeletonLabel} />
+          <div className={styles.skeletonPic} />
+        </div>
+        {/* description row */}
+        <div className={styles.skeletonRow}>
+          <div className={styles.skeletonLabel} />
+          <div className={styles.skeletonField} style={{ height: '40px' }} />
+        </div>
+      </div>
+
+      {/* Section 3 (Privacy Settings) */}
+      <div className={styles.skeletonSection}>
+        <div className={`${styles.skeletonLine} ${styles.skeletonSectionTitle}`} />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className={styles.skeletonRow}>
+            <div className={styles.skeletonLabel} />
+            <div className={styles.skeletonField} />
+          </div>
+        ))}
+      </div>
+
+      {/* Save Button */}
+      <div className={styles.skeletonSaveButton} />
     </div>
   );
 }

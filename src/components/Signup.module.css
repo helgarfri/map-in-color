@@ -25,7 +25,7 @@
   flex-direction: column;
   justify-content: center; 
   align-items: center;
-  background: linear-gradient(to bottom right, #79c99e, #48b17d);
+  background: linear-gradient(to bottom right, #79c99e, #55957b);
 }
 
 .brandContainer {
@@ -80,7 +80,11 @@
 .formRow {
   display: flex;
   gap: 10px;
+
+
 }
+
+
 
 /* Individual form groups (label + input or select) */
 .formGroup {
@@ -103,6 +107,8 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
+  line-height: 1.5; /* Adjust line-height to prevent text overlap */
+
 }
 
 /* Container for the two columns in the form */
@@ -110,6 +116,7 @@
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
+
 }
 
 /* Left and right columns each take roughly half the width */
@@ -117,6 +124,80 @@
 .rightColumn {
   flex: 1;
 }
+
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  text-align: left;
+  align-items: flex-start;
+  width: fit-content;
+  margin: 0 auto;
+}
+/* The outer label with the checkbox + text container side by side */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  justify-content: center;
+  /* no gap here so the checkbox doesn't get huge spacing */
+  color: #666;
+}
+
+/* Minimal right margin to separate checkbox from the text container */
+.checkboxLabel input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  margin-right: 6px; /* Adjust to taste */
+}
+
+/* The inner container that holds the text, links, and final dot */
+.termsText {
+  /* Use inline-flex so items line up on a single row */
+  display: inline-flex;
+  align-items: center;
+  gap: 5px; /* Gap between each child (span/button) except we'll handle the dot specially */
+  font-size: 0.9rem;
+}
+
+/* Make the "Terms of Use" & "Privacy Policy" look link-like */
+.privacyLink {
+  background: none;
+  border: none;
+  color: #55957b;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.privacyLink:hover {
+  text-decoration: none;
+}
+
+/* .dot can override margin if you want zero space before it.
+   Right now, the container’s gap property will create a space 
+   before the dot, so you can either leave the tiny gap or 
+   pull it flush if you prefer: */
+.dot {
+  margin-left: -4px; /* remove or adjust if you want it snug */
+}
+
+.privacyIframe {
+  width: 800px;
+  height: 700px;
+}
+
+
+@media (max-width: 800px) {
+  .privacyIframe {
+    width: 100%;
+    height: 60vh;
+  }
+}
+
+
 
 /* Optional: Make the layout stack on smaller screens */
 @media (max-width: 1678px) {
@@ -141,7 +222,7 @@
   font-size: 14px;
   margin-top: 15px;
   width: 100px;
-  margin: 0 auto;
+  margin: 20px auto 0;
 }
 
 .signupButton:hover {
@@ -152,7 +233,13 @@
 .errorMessage {
   color: red;
   font-size: 0.85rem;
-  margin-top: 3px;
+  margin: 3px 0;
+}
+
+.errorMessageGeneral {
+  color: red !important;
+
+  ;
 }
 
 /* Paragraph and link style under the form */
@@ -230,11 +317,12 @@
 
 .modalContent {
   background-color: #fff;
-  padding: 20px 40px;
+  padding: 10px 20px;
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
+
 
 .spinner {
   border: 8px solid #f3f3f3;
@@ -254,7 +342,8 @@
 .successIcon {
   font-size: 50px;
   color: #48b17d;
-  margin-bottom: 15px;
+  margin-top: 10px;
+  margin-bottom: 5px;
 }
 
 
@@ -296,4 +385,44 @@
   .logo {
     width: 80px;
   }
+}
+
+@media (max-width: 450px) {
+  .brandText {
+    font-size: 28px;
+  }
+  .logo {
+    width: 50px;
+  }
+
+  .brandContainer {
+    height: 30px;
+  }
+
+  .signupTitle {
+    font-size: 1.2rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+  }
+
+  .formGroup input {
+    font-size: 0.9rem;
+    height: 35px;
+    padding: 0 10px;
+  
+  };
+
+  .formGroup select {
+    font-size: 0.9rem;
+    height: 40px;
+    align-items: center;
+    padding: 0px 10px;
+
+  }
+ 
+
+
+
 }

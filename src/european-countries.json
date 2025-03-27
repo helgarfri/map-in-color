@@ -1,0 +1,498 @@
+[
+  {
+    "name": "Andorra",
+    "code": "AD",
+    "aliases": [
+      "Principality of Andorra"
+    ]
+  },
+  {
+    "name": "Albania",
+    "code": "AL",
+    "aliases": [
+      "Shqipëria",
+      "Republic of Albania"
+    ]
+  },
+  {
+    "name": "Austria",
+    "code": "AT",
+    "aliases": [
+      "Österreich",
+      "Republic of Austria"
+    ]
+  },
+  {
+    "name": "Åland Islands",
+    "code": "AX",
+    "aliases": [
+      "Aaland Islands"
+    ]
+  },
+  {
+    "name": "Bosnia and Herzegovina",
+    "code": "BA",
+    "aliases": [
+      "Bosnia & Herzegovina",
+      "BiH"
+    ]
+  },
+  {
+    "name": "Belgium",
+    "code": "BE",
+    "aliases": [
+      "België",
+      "Belgique",
+      "Belgien"
+    ]
+  },
+  {
+    "name": "Bulgaria",
+    "code": "BG",
+    "aliases": [
+      "България"
+    ]
+  },
+  {
+    "name": "Belarus",
+    "code": "BY",
+    "aliases": [
+      "Republic of Belarus"
+    ]
+  },
+  {
+    "name": "Switzerland",
+    "code": "CH",
+    "aliases": [
+      "Swiss Confederation",
+      "Schweiz",
+      "Suisse",
+      "Svizzera"
+    ]
+  },
+  {
+    "name": "Cyprus",
+    "code": "CY",
+    "aliases": [
+      "Republic of Cyprus"
+    ]
+  },
+  {
+    "name": "Czech Republic",
+    "code": "CZ",
+    "aliases": [
+      "Czechia"
+    ]
+  },
+  {
+    "name": "Germany",
+    "code": "DE",
+    "aliases": [
+      "Deutschland",
+      "Federal Republic of Germany"
+    ]
+  },
+  {
+    "name": "Denmark",
+    "code": "DK",
+    "aliases": [
+      "Danmark"
+    ]
+  },
+  {
+    "name": "Estonia",
+    "code": "EE",
+    "aliases": [
+      "Eesti",
+      "Republic of Estonia"
+    ]
+  },
+  {
+    "name": "Spain",
+    "code": "ES",
+    "aliases": [
+      "España",
+      "Kingdom of Spain"
+    ]
+  },
+  {
+    "name": "Finland",
+    "code": "FI",
+    "aliases": [
+      "Suomi",
+      "Republic of Finland"
+    ]
+  },
+  {
+    "name": "Faroe Islands",
+    "code": "FO",
+    "aliases": [
+      "Føroyar"
+    ]
+  },
+  {
+    "name": "France",
+    "code": "FR",
+    "aliases": [
+      "French Republic",
+      "République française"
+    ]
+  },
+  {
+    "name": "United Kingdom",
+    "code": "GB",
+    "aliases": [
+      "UK",
+      "Great Britain",
+      "Britain"
+    ]
+  },
+  {
+    "name": "Greece",
+    "code": "GR",
+    "aliases": [
+      "Hellenic Republic",
+      "Elláda"
+    ]
+  },
+  {
+    "name": "Croatia",
+    "code": "HR",
+    "aliases": [
+      "Hrvatska",
+      "Republic of Croatia"
+    ]
+  },
+  {
+    "name": "Hungary",
+    "code": "HU",
+    "aliases": [
+      "Magyarország",
+      "Republic of Hungary"
+    ]
+  },
+  {
+    "name": "Ireland",
+    "code": "IE",
+    "aliases": [
+      "Éire",
+      "Republic of Ireland"
+    ]
+  },
+  {
+    "name": "Iceland",
+    "code": "IS",
+    "aliases": [
+      "Island",
+      "Republic of Iceland"
+    ]
+  },
+  {
+    "name": "Italy",
+    "code": "IT",
+    "aliases": [
+      "Italia",
+      "Italian Republic"
+    ]
+  },
+  {
+    "name": "Liechtenstein",
+    "code": "LI",
+    "aliases": [
+      "Principality of Liechtenstein"
+    ]
+  },
+  {
+    "name": "Lithuania",
+    "code": "LT",
+    "aliases": [
+      "Lietuva",
+      "Republic of Lithuania"
+    ]
+  },
+  {
+    "name": "Luxembourg",
+    "code": "LU",
+    "aliases": [
+      "Grand Duchy of Luxembourg",
+      "Lëtzebuerg"
+    ]
+  },
+  {
+    "name": "Latvia",
+    "code": "LV",
+    "aliases": [
+      "Latvija",
+      "Republic of Latvia"
+    ]
+  },
+  {
+    "name": "Monaco",
+    "code": "MC",
+    "aliases": [
+      "Principality of Monaco"
+    ]
+  },
+  {
+    "name": "Moldova",
+    "code": "MD",
+    "aliases": [
+      "Republic of Moldova"
+    ]
+  },
+  {
+    "name": "North Macedonia",
+    "code": "MK",
+    "aliases": [
+      "Republic of North Macedonia",
+      "Macedonia"
+    ]
+  },
+  {
+    "name": "Malta",
+    "code": "MT",
+    "aliases": [
+      "Republic of Malta"
+    ]
+  },
+  {
+    "name": "Netherlands",
+    "code": "NL",
+    "aliases": [
+      "Holland",
+      "The Netherlands",
+      "Nederland"
+    ]
+  },
+  {
+    "name": "Norway",
+    "code": "NO",
+    "aliases": [
+      "Norge",
+      "Kingdom of Norway"
+    ]
+  },
+  {
+    "name": "Poland",
+    "code": "PL",
+    "aliases": [
+      "Polska",
+      "Republic of Poland"
+    ]
+  },
+  {
+    "name": "Portugal",
+    "code": "PT",
+    "aliases": [
+      "Portuguese Republic"
+    ]
+  },
+  {
+    "name": "Romania",
+    "code": "RO",
+    "aliases": [
+      "România",
+      "Republic of Romania"
+    ]
+  },
+  {
+    "name": "Russia",
+    "code": "RU",
+    "aliases": [
+      "Russian Federation"
+    ]
+  },
+  {
+    "name": "Sweden",
+    "code": "SE",
+    "aliases": [
+      "Sverige",
+      "Kingdom of Sweden"
+    ]
+  },
+  {
+    "name": "Slovenia",
+    "code": "SI",
+    "aliases": [
+      "Slovenija",
+      "Republic of Slovenia"
+    ]
+  },
+  {
+    "name": "Slovakia",
+    "code": "SK",
+    "aliases": [
+      "Slovak Republic",
+      "Slovensko"
+    ]
+  },
+  {
+    "name": "San Marino",
+    "code": "SM",
+    "aliases": [
+      "Republic of San Marino"
+    ]
+  },
+  {
+    "name": "Ukraine",
+    "code": "UA",
+    "aliases": [
+      "Ukrayina",
+      "Republic of Ukraine"
+    ]
+  },
+  {
+    "name": "Vatican City",
+    "code": "VA",
+    "aliases": [
+      "Holy See"
+    ]
+  },
+  {
+    "name": "Kosovo",
+    "code": "XK",
+    "aliases": [
+      "Republic of Kosovo"
+    ]
+  },
+  {
+    "name": "Montenegro",
+    "code": "ME",
+    "aliases": [
+      "Crna Gora",
+      "Republic of Montenegro"
+    ]
+  },
+  {
+    "name": "Serbia",
+    "code": "RS",
+    "aliases": [
+      "Republic of Serbia",
+      "Srbija"
+    ]
+  },
+  {
+    "name": "Turkey",
+    "code": "TR",
+    "aliases": [
+      "Türkiye",
+      "Republic of Türkiye"
+    ]
+  },
+  {
+    "name": "Greenland",
+    "code": "GL",
+    "aliases": [
+      "Kalaallit Nunaat"
+    ]
+  },
+
+
+  {
+    "name": "Armenia",
+    "code": "AM",
+    "aliases": [
+      "Republic of Armenia"
+    ]
+  },
+  {
+    "name": "Azerbaijan",
+    "code": "AZ",
+    "aliases": [
+      "Republic of Azerbaijan"
+    ]
+  },
+  {
+    "name": "Algeria",
+    "code": "DZ",
+    "aliases": [
+      "People's Democratic Republic of Algeria"
+    ]
+  },
+  {
+    "name": "Georgia",
+    "code": "GE",
+    "aliases": [
+      "Sakartvelo"
+    ]
+  },
+  {
+    "name": "Israel",
+    "code": "IL",
+    "aliases": [
+      "State of Israel"
+    ]
+  },
+  {
+    "name": "Iraq",
+    "code": "IQ",
+    "aliases": [
+      "Republic of Iraq"
+    ]
+  },
+  {
+    "name": "Iran",
+    "code": "IR",
+    "aliases": [
+      "Islamic Republic of Iran"
+    ]
+  },
+  {
+    "name": "Jordan",
+    "code": "JO",
+    "aliases": [
+      "Hashemite Kingdom of Jordan"
+    ]
+  },
+  {
+    "name": "Kazakhstan",
+    "code": "KZ",
+    "aliases": [
+      "Republic of Kazakhstan"
+    ]
+  },
+  {
+    "name": "Lebanon",
+    "code": "LB",
+    "aliases": [
+      "Republic of Lebanon"
+    ]
+  },
+  {
+    "name": "Morocco",
+    "code": "MA",
+    "aliases": [
+      "Kingdom of Morocco"
+    ]
+  },
+  {
+    "name": "Palestine",
+    "code": "PS",
+    "aliases": [
+      "State of Palestine",
+      "Palestinian Territories"
+    ]
+  },
+  {
+    "name": "Saudi Arabia",
+    "code": "SA",
+    "aliases": [
+      "KSA",
+      "Kingdom of Saudi Arabia"
+    ]
+  },
+  {
+    "name": "Syria",
+    "code": "SY",
+    "aliases": [
+      "Syrian Arab Republic"
+    ]
+  },
+  {
+    "name": "Tunisia",
+    "code": "TN",
+    "aliases": [
+      "Republic of Tunisia"
+    ]
+  }
+]

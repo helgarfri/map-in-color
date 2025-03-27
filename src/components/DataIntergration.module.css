@@ -166,7 +166,7 @@
   margin-bottom: 8px;
 }
 .errorList {
-  margin-left: 5px;
+  padding-left: 0px;
   font-size: 14px;
   padding: 0px;
 }
@@ -817,6 +817,12 @@
   .rangeTable td input[type="number"],
   .rangeTable td input[type="text"] {
     width: 60%; /* or 100%, as you prefer */
+  }
+}
+
+@media (max-width: 600px) {
+  .contentInner {
+    padding: 0px 10px;
   }
 }
 

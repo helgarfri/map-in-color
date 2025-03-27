@@ -217,6 +217,9 @@
 
 /* Under 600px: two columns */
 @media (max-width: 600px) {
+  .starredMapsContent {
+    padding-top: 0;
+  }
   .mapsGrid {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -235,7 +238,7 @@
     grid-template-columns: 1fr;
   }
   .thumbnail {
-    height: 120px;
+    height: 100%;
   }
   .mapTitle {
     font-size: 0.9rem;

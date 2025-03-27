@@ -1,0 +1,35 @@
+.container {
+    background-color: #80a0b0; /* your theme color behind the box */
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .box {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .checkmark {
+    font-size: 3rem;
+    color: #55957b;
+    margin-bottom: 1rem;
+  }
+  
+  .loginLink {
+    display: inline-block;
+    margin-top: 1.5rem;
+    text-decoration: none;
+    font-weight: bold;
+    color: #55957b;
+  }
+  
+  .loginLink:hover {
+    text-decoration: underline;
+  }
+  

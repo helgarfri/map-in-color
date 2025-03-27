@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import usStatesCodes from '../usStates.json'; // Make sure this is the correct path
+import usStatesCodes from '../united-states.json'; // Make sure this is the correct path
 import './UsMap.css'
 export default function UsSVG({
   mapTitleValue, 

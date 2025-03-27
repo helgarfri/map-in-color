@@ -24,7 +24,7 @@ import {
   incrementMapDownloadCount,
   deleteComment
 } from '../api';
-import countries from '../countries.json';
+import countries from '../world-countries.json';
 import Header from './Header'; 
 import LoadingSpinner from './LoadingSpinner'; 
 import { FaDownload } from 'react-icons/fa'; // icon for download
@@ -61,10 +61,15 @@ export default function MapDetail() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+// In both MapDetail and Dashboard (or better yet, in a top-level layout)
+useEffect(() => {
+  // If user resizes from small → large, force the sidebar open
+  if (width >= 1000 && isCollapsed) {
+    setIsCollapsed(false);
+  }
+  // If user is on small screen, do *nothing* automatically
+}, [width, isCollapsed, setIsCollapsed]);
+
 
     // For reporting a comment
   const [reportTargetComment, setReportTargetComment] = useState(null);

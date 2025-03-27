@@ -115,7 +115,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     : '/default-profile-pic.jpg';
 
   return (
-    <header className={styles.header}>
+    <header className={styles.header} >
       {/* LEFT: Hamburger + Logo + Title */}
       <div className={styles.headerLeft}>
         {/* Hamburger */}

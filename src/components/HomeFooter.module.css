@@ -1,49 +1,78 @@
 .footer {
   background-color: #80a0b0;
+  /* We want two distinct rows stacked. */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 15px 20px;
   gap: 10px;
+  padding: 15px 20px;
+  color: #ffffff;
 }
 
-.footerLinks {
+/* First row: social links */
+.topRow {
   display: flex;
-  gap: 20px;
+  justify-content: center;  /* center horizontally */
+  align-items: center;
+  gap: 20px;                /* spacing between icons */
 }
 
-.footerLinks a {
+/* Change icon hover effects if you want */
+.topRow a {
   color: #ffffff;
   text-decoration: none;
   transition: opacity 0.2s ease;
 }
 
-.footerLinks a:hover {
+.topRow a:hover {
   opacity: 0.8;
 }
 
-.infoSection {
-  text-align: center;
-  color: #ffffff;
-  font-size: 0.9rem;
-  line-height: 1.4;
+/* Second row: one row containing contact, terms, privacy, copyright */
+.bottomRow {
+  display: flex;
+  justify-content: center; /* or space-between, or whatever you prefer */
+  align-items: center;
+  gap: 30px;               /* spacing between these groups */
+  flex-wrap: wrap;         /* allow wrapping if smaller screens */
 }
 
-.tagline {
-  margin: 0;
-  font-style: italic;
+/* Contact info (icon + email) */
+.contactInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;  /* space between icon and email text */
 }
 
-.contact {
-  margin: 5px 0 0 0;
-}
-
-.contact a {
+.contactInfo a {
   color: #ffffff;
   text-decoration: underline;
 }
 
-footer p {
-  margin: 0;
+/* Terms & Privacy links container */
+.linkGroup {
+  display: flex;
+  gap: 15px; /* space between the two links */
+}
+
+.linkGroup a {
   color: #ffffff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: opacity 0.2s ease;
+}
+
+.linkGroup a:hover {
+  opacity: 0.8;
+}
+
+/* If you want to style the copyright text, do so here */
+.bottomRow p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .bottomRow {
+    gap:10px
+  }
 }

@@ -1,0 +1,31 @@
+.container {
+    background-color: #80a0b0; /* same or similar theme color */
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+  }
+  
+  .box {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 80px;
+  }
+  
+  .resendButton {
+   all: unset; 
+    cursor: pointer;
+    color: #55957b;
+    font-weight: bold;
+    margin-top: 7px;
+    
+  }
+
+  .resendButton:hover {
+    text-decoration: underline;
+  }

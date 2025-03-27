@@ -327,7 +327,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else if (type === 'notification_reply') {
       mainText = <>{renderSenderName(act)} replied to your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_like') {
-      mainText = <>{renderSenderName(act)} liked your comment </>;
+      mainText = <>{renderSenderName(act)} liked your comment on {renderMapTitle(map)} </>;
     } else if (type === 'notification_comment') {
       mainText = <>{renderSenderName(act)} commented on your map {renderMapTitle(map)}</>;
     } else {

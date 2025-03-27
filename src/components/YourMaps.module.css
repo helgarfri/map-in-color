@@ -407,10 +407,15 @@
 
 /* Tablet/Small screens: stats 2x2 grid */
 @media (max-width: 600px) {
+
+  .myMapsContent {
+    padding-top: 0;
+  }
   .statsBar {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+    margin-top: 0;
   }
   .statBox {
     width: auto;
@@ -433,13 +438,45 @@
     grid-template-columns: 1fr;
   }
   .thumbnail {
-    height: 40px;
+    height: 100%;
   }
   .mapTitle {
     font-size: 0.9rem;
   }
   .actionsRow button {
-    font-size: 0.7rem;
-    padding: 4px;
+    font-size: 1rem;
+    padding: 8px;
+  }
+}
+
+/* ------------------------------------------------
+   Match the Stats Bar skeleton to normal Stats Bar
+   on smaller screens
+---------------------------------------------------*/
+@media (max-width: 600px) {
+  /* The real statsBar becomes a 2x2 grid, so do the same skeletonStatsBar */
+  .skeletonStatsBar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 0;
+  }
+  .skeletonStatBox {
+    width: auto;  /* Don’t force a fixed width on small screens */
+    margin: 0;
+  }
+}
+
+/* ------------------------------------------------
+   Match the skeletonMapsGrid to .mapsGrid 
+   for narrower breakpoints
+---------------------------------------------------*/
+@media (max-width: 400px) {
+  .skeletonMapsGrid {
+    grid-template-columns: 1fr; /* Single column, same as .mapsGrid */
+  }
+
+  .skeletonThumbnail {
+    height: 100%; /* Let it stretch if you want a taller placeholder */
   }
 }

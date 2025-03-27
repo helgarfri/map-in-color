@@ -34,10 +34,9 @@ export default function NotificationList() {
   const { width } = useWindowSize();
 
   useEffect(() => {
-    if (width < 1000 && !isCollapsed) {
-      setIsCollapsed(true);
-    }
-  }, [width, isCollapsed, setIsCollapsed]);
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
   useEffect(() => {
     const getNotifications = async () => {

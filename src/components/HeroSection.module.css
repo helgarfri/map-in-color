@@ -1,0 +1,277 @@
+/* 
+  Full-width hero container. 
+  The text and images are in two "columns" (flex items).
+*/
+.heroContainer {
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Add some vertical spacing as needed */
+    padding: 60px 200px;
+    box-sizing: border-box;
+    background-color: #80a0b0;
+    overflow: hidden;
+  }
+  
+  /* Left "column": the main text content */
+  .heroContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 600px; /* limit the text column width if you like */
+  }
+  
+  .heroTitle {
+    font-size: 4rem;
+    font-weight: bold;
+    margin: 0;
+    color: #fff;
+    text-align: left;
+  }
+  
+  .heroSubtitle {
+    font-size: 1.2rem;
+    color: #fff;
+    line-height: 1.4;
+    text-align: left;
+  }
+  
+  .signupButton {
+    display: inline-block;
+    padding: 14px 24px;
+    background-color: #c4564d;
+    color: #ffffff;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    width: fit-content;
+  }
+  
+  .signupButton:hover {
+    background-color: #a8463e;
+  }
+  
+  /* Right "column": the images. 
+     Using position: relative so we can overlap two images. 
+  */
+  .heroImages {
+    position: relative;
+    width: 700px; /* adjust to fit your design */
+    height: 580px; /* adjust to fit your design */
+    flex-shrink: 0; /* ensures it won't shrink smaller than the set width */
+    margin-bottom: 100px;
+  }
+  
+  /* Base styles for the placeholders (replace with real images later) */
+  .imagePlaceholder {
+    position: absolute;
+    width: 750px;      /* make them 20% bigger */
+    height: auto;
+    background-color: #eaeaea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    /* Default tilt (no hover effect) */
+    transform: rotate(3deg);
+    /* Remove pointer cursor if not needed */
+    cursor: default;
+  }
+  
+  /* First image in front */
+  .imageOne {
+    top: 0;
+    left: 0;
+    z-index: 2;
+  }
+  
+  /* Second image partially behind and shifted */
+  .imageTwo {
+    top: 130px;   /* shift it down a bit */
+    left: 200px;  /* shift it to the right a bit */
+    z-index: 1;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1600px) {
+    .heroContainer {
+      padding: 60px 100px;
+    }
+
+    .heroImages {
+      width: 600px;
+      height: 500px;
+      margin-bottom: 200px;
+    }
+  }
+  
+  @media (max-width: 1269px) {
+    .heroContainer {
+      padding: 60px 80px;
+    }
+
+    .heroImages {
+      width: 600px;
+      height: 500px;
+      margin-bottom: 200px;
+    }
+
+    .imagePlaceholder {
+      width: 700px;
+    }
+  
+  }
+
+  @media (max-width: 1120px) {
+    .heroContainer {
+      padding: 60px 40px;
+    }
+
+    .heroImages {
+      width: 500px;
+      height: 420px;
+    }
+
+    .imagePlaceholder {
+      width: 650px;
+    }
+  }
+
+  @media (max-width: 960px) {
+  
+
+    .heroImages {
+      width: 500px;
+      height: 420px;
+    }
+
+    .imagePlaceholder {
+      width: 600px;
+    }
+
+    .heroTitle {
+      font-size: 3rem;
+    }
+
+    .heroSubtitle {
+      font-size: 1rem;
+    }
+
+   
+  }
+
+  @media (max-width: 820px) {
+    .heroContainer {
+      padding: 60px 20px;
+    }
+
+    .heroImages {
+      height: 0px;
+      margin-bottom: 600px;
+      width: 400px;
+    }
+
+    .heroTitle {
+      font-size: 2.5rem;
+    }
+
+    .heroSubtitle {
+      font-size: 1rem;
+    }
+
+    .signupButton {
+      padding: 12px 20px;
+    }
+  }
+
+  @media (max-width: 650px) {
+
+    .heroContainer {
+      flex-direction: column;
+    }
+
+    .heroTitle {
+      font-size: 3rem;
+      margin-top: 60px;
+    }
+
+    .heroSubtitle {
+      font-size: 1.5rem;
+    }
+
+    .signupButton {
+      padding: 14px 24px;
+      font-size: 1.6rem;
+    }
+
+    .heroImages {
+      height: 100px;
+      margin-bottom: 400px;
+      width: 550px;
+
+    }
+
+    .imagePlaceholder {
+      width: 400px;
+    }
+
+    .heroContainer {
+      height: 100vh;
+    }
+  }
+
+  @media (max-width: 450px) {
+
+    .heroContainer {
+      height: auto;
+    }
+
+    .heroContent {
+      gap: 5px;
+    }
+
+    .signupButton {
+      margin-bottom: 30px;
+    }
+    .heroTitle {
+      font-size: 2.5rem;
+      margin-top: 0px;
+    }
+
+    .heroSubtitle {
+      font-size: 1rem;
+    }
+
+    .signupButton {
+      padding: 8px 12px;
+      font-size: 1rem;
+    }
+
+    .heroImages {
+      margin-bottom: 350px;
+      width: 550px;
+
+    }
+
+    .imagePlaceholder {
+      width: 300px;
+    }
+
+    .imageOne {
+      top: 0;
+      left: 100px;
+      z-index: 2;
+    }
+
+    .imageTwo {
+      top: 130px;   /* shift it down a bit */
+      left: 200px;  /* shift it to the right a bit */
+      z-index: 1;
+    }
+  
+  }

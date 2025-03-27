@@ -37,6 +37,11 @@ import { SidebarProvider } from './context/SidebarContext';
 
 import ScrollToTop from './components/ScrollToTop'; // <-- import the helper
 
+import PrivacyPolicy from './components/PrivacyPolicy';
+import Terms from './components/Terms';
+import VerifyAccount from './components/VerifyAccount';
+import Verified from './components/Verified';
+import VerificationError from './components/VerificationError';
 
 library.add(fas);
 
@@ -126,10 +131,10 @@ function App() {
           element={<Login  />}
         />
 
-        {/* <Route
+        <Route
           path="/signup"
           element={<Signup  />}
-        />  */}
+        /> 
 
         <Route
           path="/edit/:mapId"
@@ -190,6 +195,17 @@ function App() {
 <Route path="/adminPanel" element={<AdminPanel />} />
 
 <Route path="/banned" element={<BannedUser />} />
+
+<Route path="/privacy" element={<PrivacyPolicy />} />
+
+<Route path="/terms" element={<Terms/>} />
+
+<Route path="/verify-account" element={<VerifyAccount/>} />
+
+<Route path="/verified" element={<Verified/> } />
+
+<Route path="verification-error" element={<VerificationError/>} />
+
 
       </Routes>
 

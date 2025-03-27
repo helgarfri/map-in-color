@@ -3,7 +3,8 @@
   display: flex;
   margin-top: 60px;
   background-color: #f7f7f7;
-  min-height: 1000px;
+  min-height: auto; /* or comment out if you need 1000px */
+  overflow-x: hidden; 
 }
 
 /* Main content (beside sidebar) */
@@ -11,7 +12,7 @@
   flex: 1;
   padding: 20px 40px;
   margin-left: 250px; /* Default expanded sidebar width */
-  
+  min-height: 100rem;
 }
 
 .contentCollapsed {
@@ -102,7 +103,11 @@
   margin-top: 10px;
   font-size: 1.05rem;
   color: #444;
+  width: fit-content;
+  margin: 10px auto;
   text-align: left;
+
+
 }
 
 .editProfileButton {
@@ -484,6 +489,18 @@
   .profileContent {
     padding: 0px;
   }
+
+  .activityTabContent {
+    padding: 0px;
+  }
+
+  .tabContent {
+    padding: 10px;
+  }
+
+  .cardThumbnail {
+    height: 100%; /* smaller */
+  }
 }
 
 /* 3) Further shrink for very small ~400px screens */
@@ -497,9 +514,7 @@
   .cardsGrid {
     grid-template-columns: 1fr; /* single column */
   }
-  .cardThumbnail {
-    height: 150px; /* smaller */
-  }
+  
   .tabButton {
     font-size: 0.9rem;
     padding: 6px 8px;
@@ -568,6 +583,14 @@
   flex-direction: column;
   align-items: center;
 }
+
+
+/* 2) Apply box-sizing to skeleton columns so padding doesn't make them exceed 100% */
+.skeletonProfileLeftColumn,
+.skeletonProfileRightColumn {
+  box-sizing: border-box;
+}
+
 
 .skeletonProfilePic {
   width: 150px;
@@ -660,4 +683,61 @@
 /* For the private profile box in skeleton if needed (not used here) */
 .privateProfileBox {
   text-align: center;
+}
+
+/* ------------------------------------------
+   SKELETON RESPONSIVE STYLES
+   Matches .mainContainer breakpoints
+------------------------------------------- */
+/* 3) On smaller screens, reduce default widths/padding for skeleton columns */
+@media (max-width: 768px) {
+  .skeletonProfileContainer {
+    flex-direction: column;       /* already present, ensure it's applied */
+    width: 95%;                   /* narrower container so it fits more snugly */
+    margin: 10px auto;           /* reduce margin */
+  }
+  
+  .skeletonProfileLeftColumn {
+    width: 100% !important;      /* override the 320px for mobile */
+    margin-bottom: 20px;
+    padding: 20px;               /* reduce from 30px if needed */
+  }
+  
+  .skeletonProfilePic {
+    width: 120px;                /* scale down the skeleton pic */
+    height: 120px;
+  }
+  
+  .skeletonProfileRightColumn {
+    width: 100% !important;
+    padding: 0 10px;             /* optional padding if you want some space */
+  }
+}
+
+/* 4) On very small screens (under 400px), shrink things further */
+@media (max-width: 400px) {
+  /* Force the skeleton container narrower if needed */
+  .skeletonProfileContainer {
+    width: 90%;
+    margin: 10px auto;
+  }
+
+  .skeletonProfileLeftColumn {
+    padding: 15px;       /* even smaller padding if needed */
+  }
+  
+  .skeletonProfilePic {
+    width: 90px;         /* scale the circle down more */
+    height: 90px;
+  }
+
+  /* Also ensure the skeleton grid on the right side remains single column */
+  .skeletonCardsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* If your "thumbnail" is too tall, reduce again */
+  .skeletonCardThumbnail {
+    height: 140px;
+  }
 }

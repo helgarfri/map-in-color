@@ -17,40 +17,57 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoggingIn(true);
-
+  
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 10000)
     );
-
+  
     try {
       const res = await Promise.race([logIn({ identifier, password }), timeout]);
       const token = res.data.token;
       localStorage.setItem('token', token);
       setAuthToken(token);
+  
     } catch (err) {
       console.error('Login Error:', err);
-
+  
       if (err.message === 'timeout') {
         alert('Server timed out after 10 seconds. Please try again later.');
       } else if (err.response) {
-        // Check status
-        if (err.response.status === 403) {
-          // The server says "banned"
-          // Possibly navigate to a special route
-          navigate('/banned');
+        // We have a server response with a status code
+        const serverStatus = err.response.status;
+        const serverMsg = err.response.data.msg || 'Unknown error';
+  
+        if (serverStatus === 403) {
+          // The server uses 403 for "banned" OR "pending"
+          if (serverMsg === 'Your account is banned.') {
+            // Banned user
+            alert('Your account is banned. You cannot log in.');
+            navigate('/banned');
+          } else if (serverMsg.includes('verify')) {
+            // Pending / unverified user
+            alert('Please verify your account before logging in.');
+            navigate('/verify-account');
+          } else {
+            // Any other 403 scenario
+            alert(`Forbidden: ${serverMsg}`);
+          }
         } else {
-          // Some other error, e.g. 400, 500
-          alert(`Server Error: ${err.response.data.msg || 'Unknown error'}`);
+          // Some other error, e.g. 400 or 500
+          alert(`Server Error: ${serverMsg}`);
         }
       } else if (err.request) {
+        // Request was made but no response was received
         alert('No response from server.');
       } else {
+        // Anything else (setup errors, etc.)
         alert(`An unexpected error occurred: ${err.message}`);
       }
     } finally {
       setIsLoggingIn(false);
     }
   };
+  
 
   useEffect(() => {
     if (authToken && !loadingProfile) {

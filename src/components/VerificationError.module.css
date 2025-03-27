@@ -1,0 +1,17 @@
+.container {
+    background-color: #80a0b0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .box {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  

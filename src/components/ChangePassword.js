@@ -1,5 +1,5 @@
 // src/components/ChangePassword.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ChangePassword.module.css';
 import { changeUserPassword } from '../api';
@@ -7,6 +7,9 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { SidebarContext } from '../context/SidebarContext';
+
+
 
 const PasswordRequirement = ({ text, isValid }) => {
   return (
@@ -21,7 +24,9 @@ const PasswordRequirement = ({ text, isValid }) => {
   );
 };
 
-export default function ChangePassword({ isCollapsed, setIsCollapsed }) {
+
+
+export default function ChangePassword() {
   const navigate = useNavigate();
 
   // Local states
@@ -34,6 +39,9 @@ export default function ChangePassword({ isCollapsed, setIsCollapsed }) {
   const [generalError, setGeneralError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+
 
   // Password validation checks
   const isLongEnough = newPassword.length >= 6;
@@ -92,10 +100,9 @@ export default function ChangePassword({ isCollapsed, setIsCollapsed }) {
     <div className={styles.changePasswordContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`${styles.changePasswordContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
-        <Header title="Change Password" />
+        <Header title="Change Password" isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={styles.centerContainer}>
           <div className={styles.formContainer}>
-            <h2>Change Password</h2>
             {generalError && <div className={styles.errorMessage}>{generalError}</div>}
             {successMessage && (
               <div className={styles.successMessage}>

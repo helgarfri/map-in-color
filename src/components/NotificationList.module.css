@@ -308,14 +308,11 @@
 }
 
 @media (max-width: 600px) {
-  .notificationItem {
-    flex-direction: column;
-    align-items: flex-start;
+
+  .mainContent {
+    padding-top: 0;
   }
-  .mainInfo {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+ 
   .actions {
     align-self: flex-end;
     margin-top: 5px;
@@ -325,6 +322,10 @@
   }
   .notificationTime {
     margin-top: 5px;
+  }
+
+  .statsBar {
+    margin: 0 20px;
   }
 }
 
@@ -349,5 +350,8 @@
   .actionButton {
     font-size: 14px;
     padding: 3px;
+  }
+  .statsBar {
+    margin: 0 10px 10px 10px;
   }
 }

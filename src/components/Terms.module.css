@@ -1,0 +1,20 @@
+.logoSection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    justify-content: center;
+    height: 50px;
+  }
+
+  .logo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+  }
+  
+  .brandTitle {
+    color: #000;
+    font-size: 1.3rem;
+    margin: 0;
+  }
