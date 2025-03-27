@@ -30,12 +30,12 @@ return (
             <a href="/docs" className={styles.navLink}>
                 Documentation
             </a>
-            <button
+            {/* <button
                 className={styles.loginButton}
                 onClick={() => window.location.href = '/login'}
             >
                 Login
-            </button>
+            </button> */}
         </nav>
     </header>
 );
