@@ -28,7 +28,7 @@ export default function AdminPanel() {
   // Check if current user is admin => if not, redirect or show error
   useEffect(() => {
     if (!profile) return;
-    if (profile.id !== 28) {
+    if (profile.id !== 2) {
       navigate('/'); // or show a 403 message
     }
   }, [profile, navigate]);

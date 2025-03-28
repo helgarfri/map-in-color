@@ -12,7 +12,7 @@ function CTASection() {
         maps.
       </p>
       <a href="/signup" className={styles.ctaButton}>
-        Join the Mappers
+        Join the mappers for free
       </a>
       <p className={styles.ctaNote}>
         You’re early — help shape Mic from day one.

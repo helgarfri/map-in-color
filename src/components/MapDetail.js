@@ -63,12 +63,10 @@ export default function MapDetail() {
 
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
 useEffect(() => {
-  // If user resizes from small → large, force the sidebar open
-  if (width >= 1000 && isCollapsed) {
-    setIsCollapsed(false);
-  }
-  // If user is on small screen, do *nothing* automatically
-}, [width, isCollapsed, setIsCollapsed]);
+  if (width < 1000) setIsCollapsed(true);
+  else setIsCollapsed(false);
+}, [width, setIsCollapsed]);
+
 
 
     // For reporting a comment

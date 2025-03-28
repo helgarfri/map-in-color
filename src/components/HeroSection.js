@@ -10,7 +10,7 @@ function HeroSection() {
           Turn data into beautiful, interactive maps — no code required.
         </p>
         <a href="/signup" className={styles.signupButton}>
-          Join the Mappers
+          Join the mappers for free
         </a>
       </div>
 

@@ -172,7 +172,7 @@ export default function EuropeSVG({
         return maxFontSize;
       } else {
         const excessLength = title.length - maxLength;
-        const shrinkFactor = 1; // Adjust as needed
+        const shrinkFactor = 1.25; // Adjust as needed
         const fontSize = maxFontSize - (excessLength * shrinkFactor);
         return fontSize > minFontSize ? fontSize : minFontSize;
       }

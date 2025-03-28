@@ -90,6 +90,7 @@
 .formGroup {
   margin-bottom: 15px;
   text-align: left;
+  width: 100%;
 }
 
 .formGroup label {
@@ -409,7 +410,7 @@
 
   .formGroup input {
     font-size: 0.9rem;
-    height: 35px;
+    height: 40px;
     padding: 0 10px;
   
   };

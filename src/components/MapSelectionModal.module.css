@@ -1,5 +1,6 @@
 /* src/components/MapSelectionModal.module.css */
 
+/* -- Overlay behind the modal -- */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -10,69 +11,110 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Add this line */
+  z-index: 1000;
 }
-  
-  .modalContent {
-    background-color: #fff;
-    padding: 30px;
-    width: 450px;
-    position: relative;
-    text-align: center;
-    border-radius: 8px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  .mapOptions {
-    display: flex;
-    justify-content: space-around;
-    margin: 20px 0;
-  }
-  
-  .mapOption {
-    width: 120px;
-    height: 100px;
-    background-color: #eaeaea;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    border-radius: 8px;
-  }
-  
-  .mapOption:hover {
-    background-color: #ddd;
-  }
-  
-  .selected {
-    border: 2px solid #0078bf;
-  }
-  
-  .viewButton {
-    background-color: #55957b;
-    color: #fff;
-    padding: 8px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    margin-right: 10px;
-  }
-  
-  .cancelButton {
-    background-color: #cccccc;
-    color: #333;
-    padding: 8px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-  }
-  
-  .viewButton:hover,
-  .cancelButton:hover {
-    filter: brightness(0.9);
-  }
-  
+
+.modalContent {
+  background-color: #fff;
+  padding: 30px;
+  width: 450px;
+  position: relative;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mapOptions {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+/* -- Each option container -- */
+.mapOption {
+  position: relative; /* So we can absolutely position .mapOverlay */
+  width: 120px;
+  height: 100px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden; /* hide any overflowing bits of the map */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* -- Inner container for the actual map component -- */
+.mapPreview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 
+   If your map components produce large SVGs, 
+   forcing them to scale down:
+*/
+.mapPreview svg {
+  width: 100%;
+  height: auto;
+  pointer-events: none; /* DISABLE interactivity on the SVG */
+}
+
+/* -- Hover effect (optional) -- */
+.mapOption:hover {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+/* -- A partially transparent overlay on top of the map -- */
+.mapOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(47, 47, 47, 0.3); /* tinted overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* let clicks pass through to mapOption */
+}
+
+.mapLabel {
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+  /* You can add more styling as desired */
+}
+
+/* -- Highlight border when selected -- */
+.selected {
+  border: 2px solid #55957b;
+}
+
+/* -- Buttons -- */
+.viewButton {
+  background-color: #55957b;
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.cancelButton {
+  background-color: #cccccc;
+  color: #333;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+}
+
+.viewButton:hover,
+.cancelButton:hover {
+  filter: brightness(0.9);
+}
