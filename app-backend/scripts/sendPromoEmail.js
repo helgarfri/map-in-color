@@ -27,6 +27,7 @@ function sleep(ms) {
 
     // 3. Loop through each subscriber, create their unsubscribe link, and send
     for (const subscriber of subscribers) {
+      // Fix: use a valid string or template literal
       const unsubscribeLink = `https://mapincolor.com/api/unsubscribe/${subscriber.id}`;
       const finalHtml = template.replace('{{unsubscribeLink}}', unsubscribeLink);
 

@@ -202,8 +202,8 @@ export default function ProfileSettings() {
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 1024 * 1024) {
-      setError('Please upload an image less than 1 MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Please upload an image less than 5 MB.');
       return;
     }
     setError('');
