@@ -251,6 +251,8 @@ router.get('/dashboard', auth, async (req, res) => {
           save_count: m.save_count,
           created_at: m.created_at,
           show_no_data_legend: m.show_no_data_legend,
+          titleFontSize: m.title_font_size,   
+          legendFontSize: m.legend_font_size  
         },
         commentContent: null,
       }));
