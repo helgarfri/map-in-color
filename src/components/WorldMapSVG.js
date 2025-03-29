@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
+import React, { useRef, useEffect, useState, useLayoutEffect } from "react";
 import countryCodes from '../world-countries.json';
 import usStatesCodes from '../united-states.json';
 import euCodes from '../european-countries.json';
-
-import './WorldMap.css'
+import './WorldMap.css';
 
 export default function WorldMapSVG({
   groups,
@@ -20,351 +19,164 @@ export default function WorldMapSVG({
   showNoDataLegend,
   isLargeMap,
   viewBox = "0 0 2754 1398",
-  is_title_hidden
+  is_title_hidden,
+  titleFontSize,
+  legendFontSize
 }) {
+  const svgRef = useRef(null);
+  const [tooltipContent, setTooltipContent] = useState({ countryName: '', value: '' });
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
+ // We'll use this ref to measure the *inside* of the foreignObject
+ const titleDivRef = useRef(null);
 
+ // State for measuring the actual rendered height of the title
+ const [titleBoxHeight, setTitleBoxHeight] = useState(0);
 
-// State to store x positions
-const [highValuesXPositions, setHighValuesXPositions] = useState([]);
-const [lowValuesXPositions, setLowValuesXPositions] = useState([]);
+ // We also store the final Y for the <foreignObject> 
+ // (initially 0, or any guess)
+ const [finalTitleY, setFinalTitleY] = useState(0);
 
-// Refs for each text element
-const highValuesRefs = useRef([]);
-const lowValuesRefs = useRef([]);
+ // Build your legend items
+ const legendItems = groups.map((g) => ({
+   id: g.id,
+   color: g.color,
+   label: g.rangeLabel,
+ }));
+ if (showNoDataLegend) {
+   legendItems.push({
+	 id: "no-data",
+	 color: unassigned_color,
+	 label: "No data",
+   });
+ }
 
-const borderColor = '#333'
-const borderWidth = 2;
+ // Example: default or user override
+ const finalTitleFontSize = titleFontSize ?? 30;
+ const finalLegendFontSize = legendFontSize ?? calculateLegendFontByCount(legendItems.length);
 
-const [tooltipContent, setTooltipContent] = useState({ countryName: '', value: '' });
-const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+ // Some made-up logic for your legend positions
+ const numberOfLegendItems = legendItems.length || 1;
+ const spacingBetween = 45 + (50 - 30) * scaleByGroupCount(numberOfLegendItems);
+ const legendCenterY = 800;
+ const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetween;
+ const legendStartY = legendCenterY - totalLegendHeight / 2;
 
-// Create a ref for the SVG element
-const svgRef = useRef(null);
+ // The bottom of the title is going to be "some spacing" above legendStartY
+ // e.g. 20px above the first legend circle. 
+ const TITLE_SPACING_ABOVE_LEGEND = 20;
 
+ // 1) Fill unassigned and assigned colors
+ useEffect(() => {
+   let dataSource;
+   switch (selected_map) {
+	 case "usa":
+	   dataSource = usStatesCodes;
+	   break;
+	 case "europe":
+	   dataSource = euCodes;
+	   break;
+	 default:
+	   dataSource = countryCodes;
+	   break;
+   }
 
-// ...
+   if (!svgRef.current) return;
+   const svgElement = svgRef.current;
 
-// Reset refs when data changes
-useEffect(() => {
-	highValuesRefs.current = [];
-	lowValuesRefs.current = [];
-  }, [show_top_high_values, top_low_values]);
-  
-  useLayoutEffect(() => {
-	// Calculate x positions for high values
-	let xPositions = [];
-	let cumulativeWidth = 1110; // Starting x-coordinate
-	const spacing = 30; // Space between text elements
-  
-	highValuesRefs.current.forEach((textElement, index) => {
-	  if (textElement) {
-		const textWidth = textElement.getBBox().width;
-		xPositions[index] = cumulativeWidth;
-		cumulativeWidth += textWidth + spacing;
-	  }
-	});
-	setHighValuesXPositions(xPositions);
-  
-	// Calculate x positions for low values
-	xPositions = [];
-	cumulativeWidth = 1110; // Starting x-coordinate
-	lowValuesRefs.current.forEach((textElement, index) => {
-	  if (textElement) {
-		const textWidth = textElement.getBBox().width;
-		xPositions[index] = cumulativeWidth;
-		cumulativeWidth += textWidth + spacing;
-	  }
-	});
-	setLowValuesXPositions(xPositions);
-	const timer = setTimeout(() => {
-		// Calculate x positions for high values
-		let xPositions = [];
-		let cumulativeWidth = 1110; // Starting x-coordinate
-		const spacing = 30; // Space between text elements
-	
-		highValuesRefs.current.forEach((textElement, index) => {
-		  if (textElement) {
-			const textWidth = textElement.getBBox().width;
-			xPositions[index] = cumulativeWidth;
-			cumulativeWidth += textWidth + spacing;
-		  }
-		});
-		setHighValuesXPositions(xPositions);
-	
-		// Calculate x positions for low values
-		xPositions = [];
-		cumulativeWidth = 1110; // Starting x-coordinate
-		lowValuesRefs.current.forEach((textElement, index) => {
-		  if (textElement) {
-			const textWidth = textElement.getBBox().width;
-			xPositions[index] = cumulativeWidth;
-			cumulativeWidth += textWidth + spacing;
-		  }
-		});
-		setLowValuesXPositions(xPositions);
-	  }, 0);
-	
-	  return () => clearTimeout(timer);
-	}, [show_top_high_values, top_low_values, font_color, show_top_high_values, show_top_low_values]);
-	
- 
-  
-  
+   // Fill everything with unassigned
+   const allCodes = dataSource.map((c) => c.code.toLowerCase());
+   allCodes.forEach((code) => {
+	 const path = svgElement.getElementById(code);
+	 if (path) path.style.fill = unassigned_color;
+   });
 
-useEffect(() => {
-  // Determine the data source based on the selected map
-  let dataSource;
-  switch (selected_map) {
-	case 'usa':
-	  dataSource = usStatesCodes;
-	  break;
-	case 'europe':
-	  dataSource = euCodes;
-	  break;
-	default:
-	  dataSource = countryCodes;
-	  break;
-  }
+   // Then fill assigned
+   groups.forEach(({ countries, color }) => {
+	 countries.forEach((country) => {
+	   const path = svgElement.getElementById(country.code.toLowerCase());
+	   if (path) path.style.fill = color;
+	 });
+   });
+ }, [groups, unassigned_color, selected_map]);
 
-  // Get a reference to the SVG element
-  const svgElement = svgRef.current;
+ // 2) Measure the actual height of the <div> text
+ //    Then compute final Y so that the bottom of the text 
+ //    is TITLE_SPACING_ABOVE_LEGEND above the first legend item.
+ useLayoutEffect(() => {
+   if (!titleDivRef.current) return;
 
-  if (!svgElement) return;
+   // The <div> inside <foreignObject>
+   const height = titleDivRef.current.offsetHeight;
+   setTitleBoxHeight(height);
 
-  // Get all country codes from the data source
-  const allCodes = dataSource.map((country) => country.code.toLowerCase());
+   // So the bottom of the foreignObject is at (legendStartY - TITLE_SPACING_ABOVE_LEGEND).
+   // => finalTitleY = (legendStartY - TITLE_SPACING_ABOVE_LEGEND) - titleBoxHeight
+   const y = (legendStartY - 20 - TITLE_SPACING_ABOVE_LEGEND) - height;
 
-  // Set all countries to unassigned_color within this SVG
-  allCodes.forEach((code) => {
-	const svgPath = svgElement.getElementById(code);
-	if (svgPath) {
-	  svgPath.style.fill = unassigned_color;
-	}
-  });
+   setFinalTitleY(y);
+ }, [
+   mapTitleValue,
+   finalTitleFontSize,
+   legendStartY,
+   TITLE_SPACING_ABOVE_LEGEND,
+ ]);
+  // 9) Tooltip logic
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svgElement = svgRef.current;
 
-  // Now, set the fill color for assigned countries within this SVG
-  groups.forEach(({ countries, color }) => {
-	countries.forEach((country) => {
-	  const svgPath = svgElement.getElementById(country.code.toLowerCase());
-	  if (svgPath) {
-		svgPath.style.fill = color;
-	  }
-	});
-  });
-}, [groups, unassigned_color, selected_map]);
+    const handleMouseEnter = (e) => {
+      const code = e.currentTarget.id;
+      let dataSource;
+      switch (selected_map) {
+        case 'usa':
+          dataSource = usStatesCodes;
+          break;
+        case 'europe':
+          dataSource = euCodes;
+          break;
+        default:
+          dataSource = countryCodes;
+          break;
+      }
+      const info = dataSource.find((c) => c.code.toLowerCase() === code);
+      const countryName = info ? info.name : 'Unknown';
 
+      const datum = data.find((d) => d.code.toLowerCase() === code);
+      const value = datum ? formatValue(datum.value) : 'No data';
 
+      const rect = svgElement.getBoundingClientRect();
+      setTooltipContent({ countryName, value });
+      setTooltipPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      setIsTooltipVisible(true);
+    };
 
-const calculateFontSize = (title) => {
-	const maxFontSize = 46; // Font size for titles up to 40 characters
-	const minFontSize = 12; // Minimum font size
-	const maxLength = 10;   // Character limit before font size decreases
-  
-	if (title.length <= maxLength) {
-	  return maxFontSize;
-	} else {
-	  const excessLength = title.length - maxLength;
-	  // Adjust the shrink factor as needed (smaller value reduces font size more gradually)
-	  const shrinkFactor = 1.3;
-	  const fontSize = maxFontSize - (excessLength * shrinkFactor);
-	  // Ensure font size doesn't go below minFontSize
-	  return fontSize > minFontSize ? fontSize : minFontSize;
-	}
-  };
+    const handleMouseMove = (e) => {
+      const rect = svgElement.getBoundingClientRect();
+      setTooltipPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    };
 
-  const calculateLegendFontSize = (label) => {
-	const maxFontSize = 38; // Maximum font size for legend text
-	const minFontSize = 12; // Minimum font size
-	const maxLength = 10;   // Character limit before font size decreases
-  
-	if (label.length <= maxLength) {
-	  return maxFontSize;
-	} else {
-	  const excessLength = label.length - maxLength;
-	  const shrinkFactor = 0.5; // Adjust as needed
-	  const fontSize = maxFontSize - (excessLength * shrinkFactor);
-	  return fontSize > minFontSize ? fontSize : minFontSize;
-	}
-  };
-  
-	
-	////////////////////////////////////////////////////////////////////////////////
-	// 1) Calculate the font size for the map title, same as before
-	////////////////////////////////////////////////////////////////////////////////
-	const fontSize = calculateFontSize(mapTitleValue);
+    const handleMouseLeave = () => {
+      setIsTooltipVisible(false);
+    };
 
-	////////////////////////////////////////////////////////////////////////////////
-	// 2) Build the "legendItems" array (include "No Data" if showNoDataLegend is true)
-	////////////////////////////////////////////////////////////////////////////////
-	const legendItems = [];
-
-	// Now push all the normal group items
-	groups.forEach((g) => {
-		legendItems.push({
-			id: g.id,
-			color: g.color,
-			rangeLabel: g.rangeLabel,
-		});
-		});
-
-	// If user wants “No Data” at the top of the legend:
-	if (showNoDataLegend) {
-	legendItems.push({
-		id: 'no-data',
-		color: unassigned_color,
-		rangeLabel: 'No data',
-	});
-	}
-
-
-
-	////////////////////////////////////////////////////////////////////////////////
-	// 3) Dynamic Sizing + Spacing logic (based on legendItems.length)
-	////////////////////////////////////////////////////////////////////////////////
-
-	// If there are no legend items for some reason, default to 1 (avoid division by zero)
-	const numberOfLegendItems = legendItems.length > 0 ? legendItems.length : 1;
-
-	// Position where the legend is centered vertically
-	const centerY = 800; // same as your code
-
-	// Your original bounding values (just keep them the same)
-	const minFontSize = 28;
-	const maxFontSize = 38;
-	const minCircleSize = 8;
-	const maxCircleSize = 20;
-	const minSpacing = 40;
-	const maxSpacing = 60;
-	const maxGroupsForScaling = 10;
-
-	// Scaling factor (same logic, just uses "numberOfLegendItems")
-	const scalingFactor =
-	numberOfLegendItems <= maxGroupsForScaling
-		? (maxGroupsForScaling - numberOfLegendItems) / (maxGroupsForScaling - 1)
-		: 0;
-
-	// Now compute final values for fontSize, circle radius, spacing
-	const fontSizeLegend =
-	minFontSize + (maxFontSize - minFontSize) * scalingFactor;
-	const circleRadius =
-	minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
-	const spacingBetweenItems =
-	minSpacing + (maxSpacing - minSpacing) * scalingFactor;
-
-	// Total vertical space taken by all legend items
-	const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetweenItems;
-
-	// Starting Y for the first legend item, so they’re all centered around centerY
-	const startY = centerY - totalLegendHeight / 2;
-
-	// Title Y = above the first item
-	const titleY = startY - spacingBetweenItems; // same offset you had
-
-	useEffect(() => {
-		const svgElement = svgRef.current;
-		if (!svgElement) return;
-	  
-		// Function to handle mouse enter
-		const handleMouseEnter = (e) => {
-		  // Use e.currentTarget to get the element the listener is attached to
-		  const countryCode = e.currentTarget.id;
-	  
-		  // Get country name based on selected map
-		  let countryName;
-		  switch (selected_map) {
-			case 'usa':
-			  countryName = usStatesCodes.find(c => c.code.toLowerCase() === countryCode)?.name;
-			  break;
-			case 'europe':
-			  countryName = euCodes.find(c => c.code.toLowerCase() === countryCode)?.name;
-			  break;
-			default:
-			  countryName = countryCodes.find(c => c.code.toLowerCase() === countryCode)?.name;
-			  break;
-		  }
-	  // Define the helper function above your component or import it if defined elsewhere
-			function formatValue(num) {
-				if (num >= 1e24) return (num / 1e24).toFixed(1) + 'y';  // yotta
-				if (num >= 1e21) return (num / 1e21).toFixed(1) + 'z';  // zetta
-				if (num >= 1e18) return (num / 1e18).toFixed(1) + 'e';  // exa
-				if (num >= 1e15) return (num / 1e15).toFixed(1) + 'p';  // peta
-				if (num >= 1e12) return (num / 1e12).toFixed(1) + 't';  // tera
-				if (num >= 1e9) return (num / 1e9).toFixed(1) + 'b';    // billion
-				if (num >= 1e6) return (num / 1e6).toFixed(1) + 'm';    // million
-				if (num >= 1e3) return (num / 1e3).toFixed(1) + 'k';    // thousand
-				return num.toString();
-			}
-		  // Get country value from data
-		  const countryData = data.find(d => d.code.toLowerCase() === countryCode);
-		  const value = countryData ? formatValue(countryData.value) : 'No data';
-			setTooltipContent({
-			countryName: countryName || 'Unknown',
-			value,
-			});
-		// Adjust mouse position calculations
-		const svgRect = svgElement.getBoundingClientRect();
-		const x = e.clientX - svgRect.left;
-		const y = e.clientY - svgRect.top;
-
-		  
-	  
-		  setTooltipContent({
-			countryName: countryName || 'Unknown',
-			value,
-		  });
-	  
-		  setTooltipPosition({ x, y });
-		  setIsTooltipVisible(true);
-		};
-	  
-		// Function to handle mouse move (to update tooltip position)
-		const handleMouseMove = (e) => {
-		  const rect = svgElement.getBoundingClientRect();
-		  const x = e.clientX - rect.left;
-		  const y = e.clientY - rect.top;
-	  
-		  setTooltipPosition({ x, y });
-		};
-	  
-		// Function to handle mouse leave
-		const handleMouseLeave = () => {
-		  setIsTooltipVisible(false);
-		};
-	  
-		// Get all elements with class 'landxx' (both paths and groups)
-		const elements = svgElement.querySelectorAll('.landxx');
-	  
-		// Add event listeners
-		elements.forEach((el) => {
-		  el.addEventListener('mouseenter', handleMouseEnter);
-		  el.addEventListener('mousemove', handleMouseMove);
-		  el.addEventListener('mouseleave', handleMouseLeave);
-		});
-	  
-		// Cleanup function to remove event listeners
-		return () => {
-		  elements.forEach((el) => {
-			el.removeEventListener('mouseenter', handleMouseEnter);
-			el.removeEventListener('mousemove', handleMouseMove);
-			el.removeEventListener('mouseleave', handleMouseLeave);
-		  });
-		};
-	  }, [data, selected_map]);
-
-	  
-
-	  useEffect(() => {
-		const svgElement = svgRef.current;
-		if (svgElement) {
-		  // Remove all <title> elements to prevent default browser tooltips
-		  const titleElements = svgElement.querySelectorAll('title');
-		  titleElements.forEach((title) => title.parentNode.removeChild(title));
-		}
-	  }, []);
-	  
-	  console.log(isLargeMap)
+    // Attach to .landxx
+    const elements = svgElement.querySelectorAll('.landxx');
+    elements.forEach((el) => {
+      el.addEventListener('mouseenter', handleMouseEnter);
+      el.addEventListener('mousemove', handleMouseMove);
+      el.addEventListener('mouseleave', handleMouseLeave);
+    });
+    return () => {
+      elements.forEach((el) => {
+        el.removeEventListener('mouseenter', handleMouseEnter);
+        el.removeEventListener('mousemove', handleMouseMove);
+        el.removeEventListener('mouseleave', handleMouseLeave);
+      });
+    };
+  }, [data, selected_map]);
 
     return(
         
@@ -3470,70 +3282,67 @@ const calculateFontSize = (title) => {
 	</g>
 
 	
+  {/* 
+          Title in a foreignObject 
+          We'll place it so its bottom is 20px above the legend's first circle 
+          by using finalTitleY
+        */}
+        {!is_title_hidden && (
+          <foreignObject
+            x={170}
+            y={finalTitleY}
+            // set the width big enough for your text
+            width={320}
+            // For the height of the foreignObject, we can just 
+            // use the measured titleBoxHeight. A bit more in case we want to 
+            // avoid any scroll / bounding issues:
+            height={titleBoxHeight + 2}
+            style={{
+              // If we want to hide it until we have measured, you could do:
+              // visibility: titleBoxHeight ? 'visible' : 'hidden'
+            }}
+          >
+            <div
+              ref={titleDivRef}
+              xmlns="http://www.w3.org/1999/xhtml"
+              style={{
+                fontSize: finalTitleFontSize,
+                fontWeight: "bold",
+                color: font_color,
+                wordWrap: "break-word",
+                // or overflowWrap: "break-word"
+              }}
+            >
+              {mapTitleValue}
+            </div>
+          </foreignObject>
+        )}
 
-  {/* Title */}
-  {!is_title_hidden && (
-  <g>
-  <text
-	className="title-map"
-	x="170" // Adjust as needed
-	y={titleY}
-	width="500"
-	height="150"
-	fill={font_color}
-	style={{
-        fontSize: `${fontSize}px`,
-        fontWeight: 'bold' // Add this line
-      }}
-  >
-	{mapTitleValue}
-  </text>
-</g>
-  )}
-
-
-
-{/* Legend Items */}
-{legendItems.map((item, index) => {
-	const itemYPosition = startY + index * spacingBetweenItems;
-  
-	// Font size for this label
-	const labelFontSize = calculateLegendFontSize(item.rangeLabel);
-  
-	// Chrome vs Firefox offset:
-	const isChrome =
-	  /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-	const yOffset = isChrome
-	  ? itemYPosition + labelFontSize / 3 - 8
-	  : itemYPosition + labelFontSize / 3 + 2;
-  
-	// Circle style: use item.color
-	const circleStyle = {
-	  fill: item.color,
-	  stroke: borderColor,
-	  strokeWidth: borderWidth,
-	  cx: 200,
-	  cy: itemYPosition,
-	  r: circleRadius,
-	};
-  
-	// Text style: use item.rangeLabel
-	const textStyle = {
-	  x: "240",
-	  y: yOffset,
-	  fontSize: labelFontSize,
-	  fill: font_color,
-	  alignmentBaseline: "middle",
-	};
-  
-	return (
-	  <g key={item.id}>
-		<circle {...circleStyle} />
-		<text {...textStyle}>{item.rangeLabel}</text>
-	  </g>
-	);
-  })}
-  
+        {/* Legend items */}
+        {legendItems.map((item, i) => {
+          const yPos = legendStartY + i * spacingBetween;
+          return (
+            <g key={item.id}>
+              <circle
+                cx={200}
+                cy={yPos}
+                r={10}
+                fill={item.color}
+                stroke="#333"
+                strokeWidth={1}
+              />
+              <text
+                x={240}
+                y={yPos + finalLegendFontSize * 0.35}
+                fill={font_color}
+                style={{ fontSize: finalLegendFontSize }}
+              >
+                {item.label}
+              </text>
+            </g>
+          );
+        })}
+   
 
   
   
@@ -3568,4 +3377,31 @@ const calculateFontSize = (title) => {
 
 
     )
+
+	/** A helper that returns a 0..1 factor for # of items. 
+ *  If we want a bigger scale for fewer items, or smaller scale for more items
+**/
+function scaleByGroupCount(count) {
+	// Example: at 1 item => scale=1. At 10+ items => scale=0
+	const maxItems = 10;
+	if (count >= maxItems) return 0;  // minimal size
+	// else produce fraction from 1..0
+	return (maxItems - count) / (maxItems - 1);
+  }
+  
+  function calculateLegendFontByCount(count) {
+	// For instance, let’s define min=12, max=28
+	const minF = 35;
+	const maxF = 64;
+	const scale = scaleByGroupCount(count);
+	return minF + (maxF - minF) * scale;
+  }
+  
+  // Example big number shortener
+  function formatValue(num) {
+	if (num >= 1e9)  return (num / 1e9).toFixed(1) + 'b';
+	if (num >= 1e6)  return (num / 1e6).toFixed(1) + 'm';
+	if (num >= 1e3)  return (num / 1e3).toFixed(1) + 'k';
+	return String(num);
+  }
 }

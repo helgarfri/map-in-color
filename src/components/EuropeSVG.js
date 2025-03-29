@@ -1,270 +1,235 @@
-import { useEffect, useRef, useState } from "react";
-import './EuropeMap.css'
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
+import "./EuropeMap.css";
+
+// If you need to reference a list of countries or codes, import them.
+// For instance, if you have a “european-countries.json” or similar:
+import euCodes from "../european-countries.json";
+
 export default function EuropeSVG({
-   mapTitleValue,
-   groups,
-   ocean_color = '#ffffff',
-   unassigned_color = '#c0c0c0',
-   font_color = 'black',
-   isLargeMap = false,
-   isThumbnail = false,
-   viewBox="-50 0 760 510",
-   data = [],
-   is_title_hidden,
-   showNoDataLegend,
-
+  mapTitleValue,
+  groups,
+  ocean_color = "#ffffff",
+  unassigned_color = "#c0c0c0",
+  font_color = "black",
+  isLargeMap = false,
+  viewBox = "-50 0 760 510",
+  data = [],
+  is_title_hidden,
+  showNoDataLegend,
+  titleFontSize,
+  legendFontSize,
 }) {
+  const svgRef = useRef(null);
 
-   const svgRef = useRef(null);
+  // -----------------------------
+  // 1) Title measurement logic
+  // -----------------------------
+  const titleDivRef = useRef(null);
+  const [titleBoxHeight, setTitleBoxHeight] = useState(0);
+  const [blockStartY, setBlockStartY] = useState(0);
 
-
-  // Tooltip state (if you are adding tooltips)
-  const [tooltipContent, setTooltipContent] = useState({ countryName: '', value: '' });
+  // -----------------------------
+  // 2) Tooltip State
+  // -----------------------------
+  const [tooltipContent, setTooltipContent] = useState({ countryName: "", value: "" });
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
-  
-
+  // -----------------------------
+  // 3) Fill countries with group colors
+  // -----------------------------
   useEffect(() => {
     if (!svgRef.current) return;
-
     const svgElement = svgRef.current;
 
+    // Fill everything with unassigned
+    const allPaths = svgElement.querySelectorAll("path[id]");
+    allPaths.forEach((p) => {
+      p.style.fill = unassigned_color;
+    });
 
+    // Now color each country's path from your groups
+    groups.forEach((group) => {
+      group.countries.forEach((c) => {
+        const codeLower = c.code.toLowerCase();
+        const pathEl = svgElement.getElementById(codeLower);
+        if (pathEl) {
+          pathEl.style.fill = group.color;
+        }
+        // Example: if RU => also color ru-kgd (Kaliningrad):
+        if (codeLower === "ru") {
+          const kaliningrad = svgElement.getElementById("ru-kgd");
+          if (kaliningrad) {
+            kaliningrad.style.fill = group.color;
+          }
+        }
+      });
+    });
+  }, [groups, unassigned_color]);
 
-    // Format function (optional, if needed)
+  // -----------------------------
+  // 4) Tooltip Logic
+  // -----------------------------
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svgElement = svgRef.current;
+
     function formatValue(num) {
-      if (num >= 1e9) return (num / 1e9).toFixed(1) + 'b';
-      if (num >= 1e6) return (num / 1e6).toFixed(1) + 'm';
-      if (num >= 1e3) return (num / 1e3).toFixed(1) + 'k';
-      return num.toString();
+      if (num >= 1e9) return (num / 1e9).toFixed(1) + "b";
+      if (num >= 1e6) return (num / 1e6).toFixed(1) + "m";
+      if (num >= 1e3) return (num / 1e3).toFixed(1) + "k";
+      return String(num);
     }
 
     const handleMouseEnter = (e) => {
-      let countryCode = e.currentTarget.id;
-      let countryName = e.currentTarget.getAttribute('data-name') || 'Unknown';
+      let code = e.currentTarget.id;
+      let countryName = e.currentTarget.getAttribute("data-name") || "Unknown";
 
-
-      
-    
-      // If the ID is 'ru-kgd', treat it as 'ru'
-      if (countryCode === 'ru-kgd' && countryName === 'Unknown') {
-        countryCode = 'ru';
-        countryName = 'Russia'
-         
+      // If RU-KGD => treat as RU
+      if (code === "ru-kgd" && countryName === "Unknown") {
+        code = "ru";
+        countryName = "Russia (Kaliningrad)";
       }
-    
-      // If you have data associated with each country code
-      const countryData = data.find(d => d.code.toLowerCase() === countryCode);
-      const value = countryData ? formatValue(countryData.value) : 'No data';
-    
+
+      // Find data
+      const datum = data.find((d) => d.code.toLowerCase() === code);
+      const value = datum ? formatValue(datum.value) : "No data";
+
       const rect = svgElement.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-    
       setTooltipContent({ countryName, value });
-      setTooltipPosition({ x, y });
+      setTooltipPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
       setIsTooltipVisible(true);
     };
-    
 
     const handleMouseMove = (e) => {
       const rect = svgElement.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      setTooltipPosition({ x, y });
+      setTooltipPosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
     };
 
     const handleMouseLeave = () => {
       setIsTooltipVisible(false);
     };
 
-    const elements = svgElement.querySelectorAll('.landxx');
-    elements.forEach((el) => {
-      el.addEventListener('mouseenter', handleMouseEnter);
-      el.addEventListener('mousemove', handleMouseMove);
-      el.addEventListener('mouseleave', handleMouseLeave);
+    const landElems = svgElement.querySelectorAll(".landxx");
+    landElems.forEach((el) => {
+      el.addEventListener("mouseenter", handleMouseEnter);
+      el.addEventListener("mousemove", handleMouseMove);
+      el.addEventListener("mouseleave", handleMouseLeave);
     });
 
     return () => {
-      elements.forEach((el) => {
-        el.removeEventListener('mouseenter', handleMouseEnter);
-        el.removeEventListener('mousemove', handleMouseMove);
-        el.removeEventListener('mouseleave', handleMouseLeave);
+      landElems.forEach((el) => {
+        el.removeEventListener("mouseenter", handleMouseEnter);
+        el.removeEventListener("mousemove", handleMouseMove);
+        el.removeEventListener("mouseleave", handleMouseLeave);
       });
     };
-    
   }, [data]);
 
-  useEffect(() => {
-    // This effect sets colors of ocean and countries as you had
-    if (svgRef.current) {
-      const oceanElement = svgRef.current.getElementById("ocean");
-      if (oceanElement) {
-        oceanElement.style.fill = ocean_color;
-      }
-
-      const countryPaths = svgRef.current.querySelectorAll("path[id]");
-      countryPaths.forEach((country) => {
-        country.style.fill = unassigned_color;
-      });
-
-      groups.forEach((group) => {
-        group.countries.forEach((country) => {
-          const countryCode = country.code.toLowerCase();
-          const svgPath = svgRef.current.getElementById(countryCode);
-          if (svgPath) {
-            svgPath.style.fill = group.color;
-          }
-          if (countryCode === "ru") {
-            const kaliningrad = svgRef.current.getElementById("ru-kgd");
-            if (kaliningrad) {
-              kaliningrad.style.fill = group.color;
-            }
-          }
-        });
-      });
-    }
-  }, [groups, ocean_color, unassigned_color, font_color, mapTitleValue]);
-
-
-   useEffect(() => {
-      if (svgRef.current) {
-        // Set the ocean color
-        const oceanElement = svgRef.current.getElementById("ocean");
-        if (oceanElement) {
-          oceanElement.style.fill = ocean_color;
-        }
-    
-        // Set the default color for unassigned countries
-        const countryPaths = svgRef.current.querySelectorAll("path[id]");
-        countryPaths.forEach((country) => {
-          country.style.fill = unassigned_color;
-        });
-    
-        // Apply colors to countries based on groups
-        groups.forEach((group) => {
-          group.countries.forEach((country) => {
-            const countryCode = country.code.toLowerCase();
-            const svgPath = svgRef.current.getElementById(countryCode);
-            if (svgPath) {
-              svgPath.style.fill = group.color;
-            }
-            if (countryCode === "ru") {
-              const kaliningrad = svgRef.current.getElementById("ru-kgd");
-              if (kaliningrad) {
-                kaliningrad.style.fill = group.color;
-              }
-            }
-          });
-        });
-      }
-    }, [groups, ocean_color, unassigned_color, font_color, mapTitleValue]);
-
-    
-     
-    const calculateFontSize = (title) => {
-      const maxFontSize =  32; // Adjust max font size based on map size
-      const minFontSize = 12; // Minimum font size
-      const maxLength = 10;   // Character limit before font size decreases
-    
-      if (title.length <= maxLength) {
-        return maxFontSize;
-      } else {
-        const excessLength = title.length - maxLength;
-        const shrinkFactor = 1.25; // Adjust as needed
-        const fontSize = maxFontSize - (excessLength * shrinkFactor);
-        return fontSize > minFontSize ? fontSize : minFontSize;
-      }
-    };
-    
-    const calculateLegendFontSize = (label) => {
-      const maxFontSize =  16; // Adjust max font size based on map size
-      const minFontSize = 10; // Minimum font size
-      const maxLength = 10;   // Character limit before font size decreases
-    
-      if (label.length <= maxLength) {
-        return maxFontSize;
-      } else {
-        const excessLength = label.length - maxLength;
-        const shrinkFactor = 0.5; // Adjust as needed
-        const fontSize = maxFontSize - (excessLength * shrinkFactor);
-        return fontSize > minFontSize ? fontSize : minFontSize;
-      }
-    };
-
-    // Define central Y position based on map size
-   const centerY =  300; // Adjust based on your SVG's coordinate system
-
-   // Define minimum and maximum values
-   const minFontSizeLegend =  10; // Minimum font size for legend text
-   const maxFontSizeLegend =  14; // Maximum font size for legend text
-
-   const minCircleSize =  4;    // Minimum circle radius
-   const maxCircleSize =  6;   // Maximum circle radius
-
-   const minSpacing =  20;     // Minimum spacing between legend items
-   const maxSpacing =  30;     // Maximum spacing between legend items
-
-   const maxGroupsForScaling = 10; // Number of groups after which sizes stop decreasing
-////////////////////////////////////////////////////////////////////////////////
-// 1) Build the "legendItems" array (include "No Data" if showNoDataLegend is true)
-////////////////////////////////////////////////////////////////////////////////
-const legendItems = [];
-
-
-// Now push all the normal group items
-groups.forEach((g) => {
-  // The label can be group.name or the numeric range
-  const rangeLabel = g.name || `${g.lowerBound} - ${g.upperBound}`;
-
-  legendItems.push({
-    id: g.id || Math.random(), // fallback if no ID
+  // -----------------------------
+  // 5) Build legend items array
+  // -----------------------------
+  const legendItems = groups.map((g) => ({
+    id: g.id ?? Math.random(),
     color: g.color,
-    label: rangeLabel,
-  });
-});
+    label: g.rangeLabel || g.name || "Unknown",
+  }));
+  if (showNoDataLegend) {
+    legendItems.push({
+      id: "no-data",
+      color: unassigned_color,
+      label: "No data",
+    });
+  }
 
-// If user wants “No Data” at the top of the legend:
-if (showNoDataLegend) {
-   legendItems.push({
-     id: 'no-data',
-     color: unassigned_color,
-     // We'll call the text 'No Data'
-     label: 'No Data',
-   });
- }
- 
+  const numberOfLegendItems = legendItems.length || 1;
 
-////////////////////////////////////////////////////////////////////////////////
-// 2) Dynamic Sizing + Spacing logic (based on legendItems.length, not groups.length)
-////////////////////////////////////////////////////////////////////////////////
+  // Example scaling approach for circle radius & auto legend font
+  const scalingFactor = calcScalingFactor(numberOfLegendItems);
+  const circleRadius = 3.5 + (10 - 5) * scalingFactor;
+  const autoLegendFontSize = 12 + (24 - 14) * scalingFactor;
+  const finalLegendFontSize =
+    legendFontSize !== undefined && legendFontSize !== null
+      ? legendFontSize
+      : autoLegendFontSize;
 
-// If there are no legend items, default to 1 (avoid division by zero):
-const numberOfLegendItems = legendItems.length > 0 ? legendItems.length : 1;
+  // Spacing between each legend item
+  const spacingBetween = 24 + (36 - 24) * scalingFactor;
+  const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetween;
 
-// The rest is your original bounding values and logic:
-const scalingFactor =
-  numberOfLegendItems <= maxGroupsForScaling
-    ? (maxGroupsForScaling - numberOfLegendItems) / (maxGroupsForScaling - 1)
-    : 0;
+  // The user’s override or a default for the title
+  const finalTitleFontSize = titleFontSize ?? 28;
 
-const fontSizeLegend =
-  minFontSizeLegend + (maxFontSizeLegend - minFontSizeLegend) * scalingFactor;
-const circleRadius =
-  minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
-const spacingBetweenItems =
-  minSpacing + (maxSpacing - minSpacing) * scalingFactor;
+  // We want to center the entire block (title+legend) around some centerY
+  const centerY = 250; // pick a vertical center for your Europe map
 
-const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetweenItems;
-const startY = centerY - totalLegendHeight / 2;
-const titleY = startY - spacingBetweenItems; // same as your old offset
+  // The spacing between the bottom of the title and the top of the legend
+  const LEGEND_SPACING_ABOVE_TITLE = 20;
+
+  // 6) After the title is rendered, measure its height in a `useLayoutEffect`
+  useLayoutEffect(() => {
+    if (!titleDivRef.current) return;
+    const h = titleDivRef.current.offsetHeight || 0;
+    setTitleBoxHeight(h);
+
+    // blockHeight = titleBoxHeight + totalLegendHeight + spacing between them
+    const blockHeight = h + LEGEND_SPACING_ABOVE_TITLE + totalLegendHeight;
+
+    // The top of the entire block
+    const blockTop = centerY - blockHeight / 2;
+
+    setBlockStartY(blockTop);
+  }, [
+    mapTitleValue,
+    finalTitleFontSize,
+    numberOfLegendItems,
+    totalLegendHeight,
+    LEGEND_SPACING_ABOVE_TITLE,
+    centerY,
+  ]);
+
+  // So the legend starts after the title’s box + spacing
+  const legendStartY = blockStartY + titleBoxHeight + LEGEND_SPACING_ABOVE_TITLE + 40;
+
+  // We can pick some X positions for the title & legend
+  const titleX = -10;
+  const legendX = 0;
+
+  useEffect(() => {
+   // This effect sets colors of ocean and countries as you had
+   if (svgRef.current) {
+     const oceanElement = svgRef.current.getElementById("ocean");
+     if (oceanElement) {
+       oceanElement.style.fill = ocean_color;
+     }
+
+     const countryPaths = svgRef.current.querySelectorAll("path[id]");
+     countryPaths.forEach((country) => {
+       country.style.fill = unassigned_color;
+     });
+
+     groups.forEach((group) => {
+       group.countries.forEach((country) => {
+         const countryCode = country.code.toLowerCase();
+         const svgPath = svgRef.current.getElementById(countryCode);
+         if (svgPath) {
+           svgPath.style.fill = group.color;
+         }
+         if (countryCode === "ru") {
+           const kaliningrad = svgRef.current.getElementById("ru-kgd");
+           if (kaliningrad) {
+             kaliningrad.style.fill = group.color;
+           }
+         }
+       });
+     });
+   }
+ }, [groups, ocean_color, unassigned_color, font_color, mapTitleValue]);
 
 
-   // Calculate font size for the map title
-   const fontSizeTitle = calculateFontSize(mapTitleValue);
-
-    
     
     return(
       <div id='euMap' style={{ position: 'relative' }}>
@@ -328,20 +293,28 @@ const titleY = startY - spacingBetweenItems; // same as your old offset
                height="519.34296"
                width="810.51758" />
 
-              {!is_title_hidden && (
-               <>
-         {/* Map Title */}
-         <text
-         x="-8"
-         y={titleY}
-         style={{ fill: font_color, fontSize: `${fontSizeTitle}px` }}
-      >
-         {mapTitleValue}
-      </text>
-      </>
-
-              )}
-         
+      {/* Title in a foreignObject (so we can measure multiline HTML) */}
+      {!is_title_hidden && (
+          <foreignObject
+            x={titleX}
+            y={blockStartY + 40}
+            width={170}
+            height={titleBoxHeight + 5}
+          >
+            <div
+              ref={titleDivRef}
+              xmlns="http://www.w3.org/1999/xhtml"
+              style={{
+                fontSize: finalTitleFontSize,
+                fontWeight: "bold",
+                color: font_color,
+                wordWrap: "break-word",
+              }}
+            >
+              {mapTitleValue}
+            </div>
+          </foreignObject>
+        )}
               <path
                  d="m 616.02808,426.77048 c 0.18755,-0.1876 0.46885,-0.469 0.65647,-0.75041 0.37508,-0.37518 0.75023,-0.56278 0.93778,-1.03178 0.18761,-0.46901 0.0939,-2.90782 0.65653,-3.00163 0.65647,-0.18759 1.31294,0.2814 1.87564,0 0.56269,-0.2814 0.75023,-1.3132 1.4067,-1.59461 1.40678,-0.75041 6.09589,0.1876 7.40882,-1.50081 1.40677,-1.7822 -0.75023,-1.40699 1.40677,-2.0636 2.81348,-0.84421 1.21917,2.0636 2.81348,3.18921 0.65648,0.3752 1.40671,-3.28301 2.34456,-4.03342 0.46893,-0.2814 1.87563,-0.0938 1.59432,-0.5628 -2.06324,-3.18923 -0.46892,-0.2814 -3.09486,-2.06361 -1.40671,-0.93801 -1.12539,-3.00162 -1.21916,-3.28302 -0.18755,-0.2814 -2.90726,-0.6566 -3.18857,-0.6566 -0.37516,0 -1.1254,0.8442 -1.21924,0.3752 -0.2813,-1.21941 0.0939,-3.09543 0.18762,-4.40863 0,-0.469 0.18754,-1.0318 0.0938,-1.5008 -0.84401,-2.25121 -1.40671,1.0318 -2.25079,-0.469 0,-0.18761 -2.25078,-4.78384 -2.25078,-4.78384 -1.12539,-0.46901 -0.46893,1.59461 -1.68809,-1.0318 -0.18755,-0.469 0,-1.2194 -0.18755,-1.68841 -0.46892,-0.93801 -2.25077,-1.0318 -2.81348,-2.06362 -0.56269,-0.938 2.81348,-0.6566 3.00103,-2.25121 0.18754,-2.4388 -3.56372,-5.53422 2.06324,-4.12722 l 0.18755,-0.1876 c -1.1254,-0.56281 -2.90726,-1.31321 -3.75133,-1.59461 -3.37618,-1.1256 -4.59535,1.50081 -8.44045,1.59461 -0.28131,0 0.46893,-0.6566 0.28138,-0.84421 -0.37515,-0.65659 -1.21916,-0.84421 -1.78185,-1.407 -1.03162,-1.1256 -0.18755,-3.28302 -0.46893,-4.59622 -0.56269,-2.43883 -3.46995,-2.25121 -4.22019,-2.90782 -0.28138,-0.2814 -0.18761,-0.8442 -0.46892,-1.1256 -0.28139,-0.2814 -0.65648,-0.37521 -0.93785,-0.2814 -0.46893,0.1876 -0.75024,0.7504 -1.21917,0.8442 -0.28137,0 -0.28137,-0.5628 -0.56269,-0.6566 -0.28138,0 -0.5627,0.6566 -0.65647,0.3752 -0.18761,-0.2814 0.37509,-0.5628 0.37509,-0.93801 0.0939,-0.6566 -1.31294,-0.2814 -1.96941,-0.469 -0.56269,-0.0938 -1.03162,-0.46901 -1.59431,-0.46901 -0.18754,0 0,0.46901 -0.0938,0.56281 -1.59433,0.3752 -0.28139,-0.93801 -0.75025,-1.3132 -0.28137,-0.18762 -0.56269,0.28139 -0.84408,0.46899 -0.37514,0.1876 -1.03162,0.1876 -1.21915,0.56281 -0.28139,0.5628 0.2813,1.31321 0,1.87601 -0.28139,0.37519 -0.84408,0.2814 -1.21917,0.37519 -1.21916,0.3752 -2.7197,0.28141 -3.75133,1.12561 -0.37515,0.2814 -0.0938,1.03181 -0.5627,1.40701 -0.37509,0.2814 -0.93778,0.0938 -1.40671,0.0938 -0.46892,0 -0.93784,0.0938 -1.50054,0.0938 l -0.18754,0 c -0.56269,2.25122 -1.21917,4.03343 -3.18863,5.90943 -0.28132,0.2814 -0.75025,0.1876 -0.93785,0.469 -1.21917,1.40702 -2.62588,5.06523 -4.5015,5.90944 -0.46893,0.1876 -1.1254,-0.3752 -1.59433,-0.28141 -0.37515,0.0938 -0.46892,0.75041 -0.84407,0.84421 -0.37515,0.0938 -0.75024,-0.1876 -1.12539,-0.1876 -0.37516,0.0938 -0.65647,0.56281 -1.12539,0.469 -0.0938,0 -1.87563,-0.938 -2.43833,-0.469 -0.46892,0.37521 -0.46892,1.0318 -0.84408,1.31322 -0.37509,0.18759 -0.84401,-0.18762 -1.21917,0 -0.37509,0.2814 -0.37509,0.75039 -0.75023,1.03179 -0.5627,0.46901 -1.40677,0.56281 -1.96948,1.03181 -0.93778,0.84421 -1.03155,1.50081 -2.06317,2.25121 -1.21916,0.93801 -4.22026,1.40701 -5.62696,1.40701 -3.37618,0 0.37509,-0.37521 -1.59432,-1.12561 -1.12538,-0.37521 -1.4067,1.68841 -1.78186,1.87601 -0.65646,0.2814 -1.50054,-0.0938 -2.25079,-0.1876 -0.0938,-0.0938 -0.0938,-0.3752 -0.28134,-0.3752 -0.75027,0.0938 -1.40674,0.75041 -2.25079,0.6566 -0.28135,0 -0.18756,-0.7504 -0.46891,-0.938 -0.46891,-0.28141 -1.12539,-0.56281 -1.78188,-0.56281 -3.65751,0.0938 -1.87564,3.75202 -5.53316,2.15742 -1.1254,-0.5628 -1.6881,-3.47061 -2.90727,-3.28302 -0.4689,0 -0.4689,1.1256 -0.93782,0.938 -0.37513,-0.0938 0.37513,-1.21939 -0.0938,-1.21939 -0.93783,0.0938 -2.43835,3.56441 -5.72074,2.345 -3.46995,-1.3132 -1.50053,-3.09541 -1.68808,-3.28301 -0.46892,-0.56281 -1.31296,-0.1876 -1.96943,-0.1876 -0.28136,0 -0.56271,-0.1876 -0.65649,0 -0.28134,0.469 -0.0938,1.21941 -0.46892,1.68839 -1.0316,1.87602 -10.78499,3.18923 -13.22334,4.22104 -1.12539,0.37519 -2.06322,1.87601 -2.90727,2.62641 -0.75025,0.7504 -2.06321,1.0318 -2.90726,1.5946 -2.34457,1.87602 -3.93886,4.78384 -6.09587,7.12885 -0.56269,0.65661 -1.50052,1.6884 -2.15699,2.15741 -0.0938,0.0938 -0.5627,0 -0.5627,0.1876 -0.37513,1.87602 1.03161,1.87602 -0.75026,3.18921 -0.18756,0.1876 -0.65648,0 -0.93783,0.0938 -2.25078,0.8442 -0.46891,1.1256 -3.37617,1.21941 -1.03161,0 -3.65753,-0.75041 -4.59536,-0.37521 -0.28134,0.0938 -0.18755,0.56281 -0.46891,0.75041 -1.0316,0.938 -2.90726,1.31321 -4.22022,1.40701 -1.5943,0.18759 -5.42856,0.90012 -5.52234,1.08772 -0.37513,0.8442 -0.5627,1.78221 -0.75027,2.72021 -0.28135,1.21941 2.01903,1.66136 2.30039,1.75515 0.18756,0 0.46891,0 0.56268,0.1876 0.0938,0.2814 -0.37512,0.6566 -0.18755,0.75041 0.28134,0.0938 0.46891,-0.46901 0.75025,-0.46901 0.18756,0.0938 0.0938,0.56281 0.28135,0.56281 1.78187,0.1876 3.37618,-1.59462 5.25183,-1.40702 1.5943,0.0938 -2.81348,1.87602 -3.18861,1.96982 -0.28135,0 -0.28135,-0.6566 -0.46891,-0.5628 -0.18756,0.0938 -4.5665,1.92924 -5.86954,3.3209 -1.31295,1.78221 4.42943,-0.85503 2.64756,1.77138 -0.37514,0.46901 -3.99387,0.68411 -5.30683,0.87172 -2.53214,0.37519 -4.7775,1.57206 -4.87128,1.47826 -0.37514,-0.469 1.3134,-0.96507 0.84448,-1.34027 -0.56269,-0.469 -0.81563,-0.37565 -1.5659,-0.28185 -0.0938,0.0938 -1.03836,0.19301 -1.13215,0.19301 -0.18756,0 -0.86658,0.45909 -0.77279,0.64668 0.36971,0.97723 1.77149,0.57362 1.6777,1.23023 -0.28134,0.93801 -1.1858,0.61693 -2.12363,0.89833 -2.87523,0.57364 -2.34998,-0.76078 -2.81889,-0.85458 -1.21918,-0.1876 -1.87024,0.94839 -2.80807,1.13599 -0.37514,0.0938 -1.87565,0 -2.43835,0.6566 -0.5627,0.6566 -0.65648,1.6884 -1.21917,2.34501 -0.28135,0.2814 -0.75026,0.0938 -0.93782,0.3752 -0.18758,0.3752 0.0938,0.75041 0.0938,1.0318 -0.0938,0.469 -0.0938,1.03181 -0.37512,1.40701 -0.5627,0.56281 -1.59431,0.0938 -1.59431,1.12561 0.0938,1.5008 0.84404,2.25121 0.84404,3.37682 0.0938,0.3752 -1.12539,2.53261 0.28136,2.72022 0.18756,0 6.00208,-2.81403 6.65856,-3.00163 0.18756,-0.0938 0.5627,-0.2814 0.46892,-0.0938 -0.28136,1.03181 -1.1254,3.00162 -1.78188,3.93963 -0.0938,0.1876 -0.93783,-0.0938 -0.37514,0.2814 0.5627,0.469 2.71971,0.469 3.00105,1.876 0,0.46901 -0.93783,1.12562 -0.56269,1.59462 0.28135,0.18759 3.18861,-0.8442 2.7197,0.3752 -0.46892,1.40701 -3.2824,2.53261 -2.7197,3.37682 0.56269,0.84421 2.157,2.15741 2.34456,1.9698 0.37514,-0.2814 0.84405,-0.469 1.21918,-0.5628 0.37513,-0.0938 1.21917,-0.3752 1.21917,0 -0.0938,0.18761 -2.90725,1.96983 -3.28239,1.96983 -0.46891,0.0938 -0.75025,-1.03182 -1.12539,-0.75042 -0.46892,0.37522 0.65648,1.78222 0.18756,1.59462 -0.18756,0 -1.78186,-3.56442 -2.34457,-3.84583 -0.28134,-0.18759 -0.93783,-0.2814 -1.12538,0.0938 -0.28135,0.56279 0.18755,1.3132 0.28135,1.9698 0,0.28141 -0.28135,0.56282 -0.0938,0.65662 0.46893,0.1876 1.50054,-0.2814 1.40675,0.0938 -0.18757,0.75041 -1.03161,1.12561 -1.68809,1.50081 -0.18756,0 -0.37512,-0.5628 -0.4689,-0.3752 -0.0938,0.1876 0.37513,0.3752 0.28134,0.56281 0,0.2814 -0.75026,0.5628 -0.46891,0.7504 0.5627,0.37521 1.31295,0 1.96943,0.1876 0.18756,0 1.68809,1.21941 1.87566,1.03181 0.5627,-0.469 0.65647,-1.40701 1.31295,-1.78221 0.75026,-0.37521 0.65648,1.68841 1.40674,1.96981 0.37513,0.0938 0.65648,-0.6566 1.03161,-0.6566 0.46891,0 3.00104,0.75041 3.00104,0.75041 0.0938,0.18759 0.65648,2.4388 0.28134,2.9078 -0.56269,0.5628 -2.81347,1.0318 -2.06321,1.3132 0.75027,0.1877 1.5943,-0.094 2.25079,0.2814 0.75025,0.5629 -0.56269,2.7203 0.37513,2.8141 0.84404,0.094 1.21916,-1.3132 1.96944,-1.3132 0.75025,0.094 1.0316,1.1256 1.68808,1.5008 0.18757,0.094 0.56269,-0.3752 0.56269,-0.1876 1.40673,4.5962 -6.65856,-0.1876 -3.09482,3.752 0.46891,0.469 1.21917,-0.469 1.78187,-0.469 0.93783,0 0.5627,1.0318 1.5943,0.469 0.18757,-0.094 -0.18756,-0.3752 -0.0938,-0.3752 0.65648,-0.3752 1.40675,0 2.06321,-0.2814 0.75027,-0.3752 2.53214,-1.2194 3.00105,-1.407 0.75027,-0.2814 1.78187,-1.2194 2.25079,-0.5628 1.78186,2.2512 -2.7197,1.407 -2.7197,2.1574 0,0.5628 0.93783,1.1256 0.5627,1.5008 -0.5627,0.5628 -1.50052,0 -2.25079,0.1876 -1.50051,0.3752 -2.81348,1.5946 -4.03266,2.4388 -0.46891,0.3752 1.21918,-0.1876 1.78188,-0.2814 0.46891,0 0.93782,0.3752 1.21917,0.1876 0.37514,-0.2814 -0.0938,-1.0318 0.28134,-1.3132 0.56271,-0.3752 1.31297,-0.1876 1.96945,-0.2814 1.96943,-0.5628 1.68809,-1.5008 1.78186,-1.3132 1.21918,2.7202 -0.0938,1.876 -0.93782,2.7202 -0.18756,0.1876 0.5627,0.469 0.75026,0.2814 0.18756,-0.2814 2.90726,-3.3768 2.90726,-3.4706 0.28136,-0.469 0,-1.2194 0.37514,-1.407 2.43834,-1.1256 1.31295,1.3132 1.96943,1.876 0.56269,0.3752 1.50052,0.1876 2.157,0.469 0.18757,0 0.18757,0.469 0.28135,0.3752 0.93783,-0.8442 -0.84405,-2.0636 0.4689,-2.2512 2.62593,-0.469 2.43836,3.752 2.62593,3.9396 1.96943,1.407 3.46995,0.6566 5.53316,0.8442 0.28135,0 0.37514,0.8442 0.84405,0.7504 0.84405,-0.094 3.93887,-3.0954 4.12644,-3.1892 0.46891,-0.5628 1.87565,-0.7504 2.43835,-0.469 0.18755,0.094 0,0.938 0.18755,0.7504 0.46893,-0.469 0.75027,-1.2194 0.75027,-1.876 0,-0.3752 -0.65648,-0.3752 -0.65648,-0.6566 -0.0938,-0.5628 0.37514,-1.1256 0.5627,-1.6884 0.37512,-1.1256 -1.50053,-2.6264 -0.46891,-4.0335 0.37512,-0.469 4.87669,-1.3132 5.62695,-1.407 0.28135,0 8.44044,0.8443 8.62801,0.938 3.65752,1.0319 3.00104,3.7521 7.87773,4.1273 2.43835,0.1876 0.37514,-0.469 2.34456,-1.5946 0.46893,-0.2814 1.1254,0.1876 1.59432,-0.094 0.28134,-0.1876 0,-0.7504 0.18756,-0.938 0.65648,-0.469 3.56374,-0.8443 3.93887,-1.0319 0.37513,-0.2813 0.46891,-0.938 0.84405,-1.2194 0.28135,-0.094 0.28135,0.5628 0.56269,0.469 0.0938,0 1.0316,-2.814 1.21918,-2.7202 0.46891,0 0.65647,1.0318 1.12538,0.8442 1.87565,-0.5628 0.37514,-1.6884 0.46892,-2.53262 0.28135,-1.7822 2.34456,-4.40863 3.28239,-5.81563 1.87566,-2.53262 7.40883,0.65659 8.06531,0.18759 0.56269,-0.469 0.75027,-1.2194 1.31296,-1.5946 0.18754,-0.1876 2.81348,0.3752 1.50055,-1.68841 -0.18761,-0.2814 -0.84408,1.3132 -0.75031,0.93801 0.18761,-0.46901 1.12539,-0.75041 0.84408,-1.12562 -0.18761,-0.37519 -0.7503,0.56281 -1.21916,0.46901 -0.28139,-0.0938 0.28131,-0.46901 0.56269,-0.65661 0.37509,-0.3752 1.03155,-0.5628 1.40671,-0.93801 0.56269,-0.7504 0.37515,-2.25121 1.31293,-2.4388 1.313,-0.3752 2.62594,1.5946 2.90732,2.62641 0.0938,0.469 -3.09486,4.69002 -2.81354,5.34662 0.56269,1.21942 2.81354,1.50082 3.00108,3.00164 0.0938,0.2814 -0.0938,0.6566 -0.37515,1.03181 l 0,0 c 0.65647,-0.2814 2.43833,0.93799 2.81348,0.469 0.46893,-0.469 -0.28131,-1.31321 -0.0938,-1.96982 0.18754,-0.469 1.03162,-0.5628 1.21917,-1.03181 l -0.5627,-2.43882 c 0,-0.18759 2.71971,-1.1256 2.90725,-1.3132 0.18761,-0.2814 -1.50048,-1.3132 -1.68809,-1.50081 -0.75024,-0.93801 -1.50047,-4.31482 -0.93778,-5.34663 0.18754,-0.2814 3.6575,-0.3752 4.03264,0 0.0938,0.0938 -0.46892,1.68841 0.65647,1.03181 0.28131,-0.1876 0.0938,-0.65661 0.28131,-0.7504 0.93785,-0.56281 2.15702,-0.28141 3.09487,-0.84421 2.62587,-1.31321 4.12642,-6.28463 7.59636,-6.56603 1.31301,-0.0938 2.62594,1.0318 4.03264,1.0318 2.71972,0 5.81458,-2.34502 8.06536,-3.75203 3.6575,-2.34501 5.34559,-6.65983 8.81553,-9.19245 2.15701,-1.5008 5.25188,-1.7822 7.5026,-3.28301 1.03162,-0.6566 3.00109,-1.78221 3.65755,-3.00162 0.37515,-0.65661 0.65647,-3.18921 2.34456,-1.5008 0.37515,0.28139 0.65647,0.75039 0.84408,1.21939 z m -146.67606,-10.13045 -0.18756,0 c -0.5627,0.0938 -1.1254,0 -1.68809,0.18761 -0.75025,0.2814 -1.31295,0.93801 -1.96943,1.40701 -0.18757,0.0938 0,0.46899 -0.0938,0.37521 -2.15701,-0.46902 -2.81347,-2.15743 -4.97048,-1.03182 l -1.59431,1.7822 c -0.65646,0.2814 -1.50051,-0.1876 -1.96943,0.2814 -0.56269,0.46901 0,1.40702 -0.37513,1.96981 -0.5627,0.65661 -2.69241,0.57408 -1.84836,1.98109 1.27374,0.25794 2.08387,0.88043 2.49247,0.99226 0.39297,0.92432 0.97025,1.89266 0.81756,3.1939 -0.60172,-0.0427 -0.76627,0.0943 -0.76627,0.0943 0,0 -0.96118,1.40265 -1.5471,1.34456 -0.0743,0.10731 0.19956,1.94606 0.95072,2.81855 -0.23503,0.411 -0.10214,0.53636 0.0886,0.64385 -0.23047,0.372 -0.66415,0.60212 -1.08617,1.27045 -0.42201,0.66833 -0.25044,1.70773 -0.97705,1.91877 l -0.0938,1.0318 c 0.32816,0.65636 0.57831,0.50015 1.04723,0.68776 1.40674,0.469 5.84638,-2.72057 6.25235,-1.67269 0.10925,1.25071 -4.4861,3.14235 -4.67367,4.64315 0,0.28141 0.5627,0.37521 0.65648,0.65661 0.0938,0.2814 0.0938,0.5628 0,0.84421 -0.0938,0.5628 -0.75027,2.1574 -0.28135,1.78221 1.78188,-1.50081 2.15701,-3.93963 3.65752,-5.90943 1.31297,-1.87602 3.75131,-2.25123 4.97049,-4.31484 0.37512,-0.6566 0.75026,-1.407 1.03161,-2.1574 0.0938,-0.56281 -0.45809,-0.60069 -0.083,-1.06969 1.5943,-2.06362 2.25078,-0.18761 4.12644,-0.84421 0.28135,-0.0938 0.0938,-0.6566 0.37512,-0.93801 0.56269,-0.469 1.12539,-0.8442 1.87566,-1.03181 2.15699,-0.7504 3.1886,1.59462 2.71969,-0.7504 -0.18757,-0.46901 0.37512,1.31321 0.84404,1.21941 0.75027,-0.0938 3.09483,-0.5628 3.37617,-1.31321 0.28135,-0.5628 -0.0938,-1.2194 0.0938,-1.87601 0,-0.3752 0.75025,-1.0318 0.28134,-1.2194 -1.96943,-0.6566 -6.29426,-0.52492 -8.73261,-2.02574 -3.65753,-2.25121 -2.157,-3.47061 -2.7197,-4.97142 z"
                  class="landxx"
@@ -1231,56 +1204,45 @@ data-name="Austria"
  >
  </path>
           </g>
-{/* Legend */}
-<g id="legend">
-  {legendItems.map((item, index) => {
-    const circleStyle = {
-      fill: item.color,
-      cx: 5,  // Adjust if needed for your layout
-      cy: startY + index * spacingBetweenItems,
-      r: circleRadius,
-    };
+    {/* Legend Items */}
+    {legendItems.map((item, i) => {
+          const cy = legendStartY + i * spacingBetween;
+          return (
+            <g key={item.id}>
+              <circle
+                cx={legendX}
+                cy={cy}
+                r={circleRadius}
+                fill={item.color}
+                stroke="#333"
+                strokeWidth={0.7}
+              />
+              <text
+                x={legendX + circleRadius + 6}
+                y={cy + finalLegendFontSize * 0.35}
+                style={{ fontSize: finalLegendFontSize, fill: font_color }}
+              >
+                {item.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
 
-    const textStyle = {
-      x: 20,
-      y: startY + index * spacingBetweenItems + circleRadius / 2 + 2.5,
-      fontSize: `${fontSizeLegend}px`,
-      fill: font_color,
-    };
-
-    // The final label is either “No Data” or the group’s label:
-    const finalLabel = item.label;
-    const fontSizeLabel = calculateLegendFontSize(finalLabel);
-
-    return (
-      <g key={item.id}>
-        <circle {...circleStyle} />
-        <text
-          {...textStyle}
-          style={{ fontSize: `${fontSizeLabel}px` }}
-        >
-          {finalLabel}
-        </text>
-      </g>
-    );
-  })}
-</g>
-
-        </svg>
-
-        {isTooltipVisible && (
+      {/* Tooltip */}
+      {isTooltipVisible && (
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             left: tooltipPosition.x + 10,
             top: tooltipPosition.y,
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '5px',
-            pointerEvents: 'none',
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            padding: "5px",
+            pointerEvents: "none",
             zIndex: 10,
-            fontSize: '12px',
+            fontSize: "12px",
           }}
         >
           <strong>{tooltipContent.countryName}</strong>
@@ -1292,7 +1254,16 @@ data-name="Austria"
   );
 }
 
-//-20 0 665 500
+// Simple scale factor from 0..1
+function calcScalingFactor(num) {
+  const maxItems = 10;
+  if (num >= maxItems) return 0;
+  return (maxItems - num) / (maxItems - 1);
+}
 
-//-400 -6.5 1370 695
-
+function formatValue(num) {
+  if (num >= 1e9) return (num / 1e9).toFixed(1) + "b";
+  if (num >= 1e6) return (num / 1e6).toFixed(1) + "m";
+  if (num >= 1e3) return (num / 1e3).toFixed(1) + "k";
+  return String(num);
+}

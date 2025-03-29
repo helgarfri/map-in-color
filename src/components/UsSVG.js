@@ -1,237 +1,201 @@
-import { useEffect, useRef, useState } from "react";
-import usStatesCodes from '../united-states.json'; // Make sure this is the correct path
-import './UsMap.css'
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
+import usStatesCodes from "../united-states.json";
+import "./UsMap.css";
+
 export default function UsSVG({
-  mapTitleValue, 
+  mapTitleValue,
   groups,
   isLargeMap = false,
-  isThumbnail = false,
-  ocean_color = '#AADAFF',
-  unassigned_color = '#D3D3D3',
-  font_color = '#000000',
-  viewBox="-90 -10 1238 610", 
+  ocean_color = "#AADAFF",
+  unassigned_color = "#D3D3D3",
+  font_color = "#000000",
+  viewBox = "-90 -10 1238 610",
   data = [],
   is_title_hidden,
   showNoDataLegend,
-
-
-
+  titleFontSize,      // optional user override
+  legendFontSize,     // optional user override
 }) {
+  const svgRef = useRef(null);
 
+  // -----------------------------
+  // 1) Title measurement logic
+  // -----------------------------
+  const titleDivRef = useRef(null);
+  const [titleBoxHeight, setTitleBoxHeight] = useState(0);
 
+  // We'll store the "start" of the entire block (title+legend)
+  const [blockStartY, setBlockStartY] = useState(0);
 
-  const svgRef = useRef(null)
-
-  // Tooltip state
-  const [tooltipContent, setTooltipContent] = useState({ countryName: '', value: '' });
+  // -----------------------------
+  // 2) Tooltip state
+  // -----------------------------
+  const [tooltipContent, setTooltipContent] = useState({ countryName: "", value: "" });
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-    
+
+  // -----------------------------
+  // 3) Fill states with group colors
+  // -----------------------------
   useEffect(() => {
     if (!svgRef.current) return;
+    const svgEl = svgRef.current;
 
-    const svgElement = svgRef.current;
+    // Fill all states with unassigned_color
+    const paths = svgEl.querySelectorAll("path[id]");
+    paths.forEach((st) => {
+      st.style.fill = unassigned_color;
+    });
 
-    // Helper function to format values (same as you used in WorldMap)
-    function formatValue(num) {
-      if (num >= 1e24) return (num / 1e24).toFixed(1) + 'y';  
-      if (num >= 1e21) return (num / 1e21).toFixed(1) + 'z';  
-      if (num >= 1e18) return (num / 1e18).toFixed(1) + 'e';  
-      if (num >= 1e15) return (num / 1e15).toFixed(1) + 'p';  
-      if (num >= 1e12) return (num / 1e12).toFixed(1) + 't';  
-      if (num >= 1e9)  return (num / 1e9).toFixed(1) + 'b';   
-      if (num >= 1e6)  return (num / 1e6).toFixed(1) + 'm';   
-      if (num >= 1e3)  return (num / 1e3).toFixed(1) + 'k';   
-      return num.toString();
-    }
+    // Then color states that belong to each group
+    groups.forEach((group) => {
+      group.countries.forEach((st) => {
+        const stCode = st.code.toLowerCase();
+        const path = svgEl.getElementById(stCode);
+        if (path) {
+          path.style.fill = group.color;
+        }
+      });
+    });
+  }, [groups, unassigned_color]);
+
+  // -----------------------------
+  // 4) Tooltip hover logic
+  // -----------------------------
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svgEl = svgRef.current;
 
     const handleMouseEnter = (e) => {
-      const stateCode = e.currentTarget.id;
-      const stateInfo = usStatesCodes.find(s => s.code.toLowerCase() === stateCode);
-      const countryName = stateInfo ? stateInfo.name : 'Unknown';
+      const code = e.currentTarget.id;
+      const stateInfo = usStatesCodes.find((s) => s.code.toLowerCase() === code);
+      const countryName = stateInfo ? stateInfo.name : "Unknown";
 
-      // Get value from data
-      const stateData = data.find(d => d.code.toLowerCase() === stateCode);
-      const value = stateData ? formatValue(stateData.value) : 'No data';
+      // Find data
+      const datum = data.find((d) => d.code.toLowerCase() === code);
+      const val = datum ? formatValue(datum.value) : "No data";
 
-      const rect = svgElement.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      setTooltipContent({ countryName, value });
-      setTooltipPosition({ x, y });
+      const rect = svgEl.getBoundingClientRect();
+      setTooltipContent({ countryName, value: val });
+      setTooltipPosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
       setIsTooltipVisible(true);
     };
 
     const handleMouseMove = (e) => {
-      const rect = svgElement.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      setTooltipPosition({ x, y });
+      const rect = svgEl.getBoundingClientRect();
+      setTooltipPosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
     };
 
     const handleMouseLeave = () => {
       setIsTooltipVisible(false);
     };
 
-    const elements = svgElement.querySelectorAll('.landxx');
-    elements.forEach((el) => {
-      el.addEventListener('mouseenter', handleMouseEnter);
-      el.addEventListener('mousemove', handleMouseMove);
-      el.addEventListener('mouseleave', handleMouseLeave);
+    const landElements = svgEl.querySelectorAll(".landxx");
+    landElements.forEach((el) => {
+      el.addEventListener("mouseenter", handleMouseEnter);
+      el.addEventListener("mousemove", handleMouseMove);
+      el.addEventListener("mouseleave", handleMouseLeave);
     });
 
     return () => {
-      elements.forEach((el) => {
-        el.removeEventListener('mouseenter', handleMouseEnter);
-        el.removeEventListener('mousemove', handleMouseMove);
-        el.removeEventListener('mouseleave', handleMouseLeave);
+      landElements.forEach((el) => {
+        el.removeEventListener("mouseenter", handleMouseEnter);
+        el.removeEventListener("mousemove", handleMouseMove);
+        el.removeEventListener("mouseleave", handleMouseLeave);
       });
     };
   }, [data]);
 
-
+  // Remove default <title> elements (browser tooltips)
   useEffect(() => {
-    // Remove default browser tooltips
-    const svgElement = svgRef.current;
-    if (svgElement) {
-      const titleElements = svgElement.querySelectorAll('title');
-      titleElements.forEach((title) => title.parentNode.removeChild(title));
-    }
+    if (!svgRef.current) return;
+    const svgEl = svgRef.current;
+    const titles = svgEl.querySelectorAll("title");
+    titles.forEach((t) => t.parentNode.removeChild(t));
   }, []);
 
-
-  useEffect(() => {
-    if (svgRef.current) {
-      // Set the ocean color
-      const oceanElement = svgRef.current.getElementById("ocean");
-      if (oceanElement) {
-        oceanElement.style.fill = ocean_color;
-      }
-
-      // Set the default color for unassigned states
-      const statePaths = svgRef.current.querySelectorAll("path[id]");
-      statePaths.forEach((state) => {
-        state.style.fill = unassigned_color;
-      });
-
-      // Apply colors to states based on groups
-      groups.forEach((group) => {
-        group.countries.forEach((state) => {
-          const stateCode = state.code.toLowerCase();
-          const svgPath = svgRef.current.getElementById(stateCode);
-          if (svgPath) {
-            svgPath.style.fill = group.color;
-          }
-        });
-      });
-    }
-  }, [groups, ocean_color, unassigned_color, font_color, mapTitleValue]);
-
-  // Functions to calculate font sizes for the title and legend
-  const calculateFontSize = (title) => {
-    const maxFontSize = 36; // Adjust max font size based on map size
-    const minFontSize = 12; // Minimum font size
-    const maxLength = 10;   // Character limit before font size decreases
-
-    if (title.length <= maxLength) {
-      return maxFontSize;
-    } else {
-      const excessLength = title.length - maxLength;
-      const shrinkFactor = 1; // Adjust as needed
-      const fontSize = maxFontSize - (excessLength * shrinkFactor);
-      return fontSize > minFontSize ? fontSize : minFontSize;
-    }
-  };
-
-  const calculateLegendFontSize = (label) => {
-    const maxFontSize = 18; // Adjust max font size based on map size
-    const minFontSize = 10; // Minimum font size
-    const maxLength = 10;   // Character limit before font size decreases
-
-    if (label.length <= maxLength) {
-      return maxFontSize;
-    } else {
-      const excessLength = label.length - maxLength;
-      const shrinkFactor = 0.5; // Adjust as needed
-      const fontSize = maxFontSize - (excessLength * shrinkFactor);
-      return fontSize > minFontSize ? fontSize : minFontSize;
-    }
-  };
-
-  // Define central Y position based on map size
-  const centerY = 450; // Adjust based on your SVG's coordinate system
-
-  // Define minimum and maximum values
-  const minFontSizeLegend = 10; // Minimum font size for legend text
-  const maxFontSizeLegend = 14; // Maximum font size for legend text
-
-  const minCircleSize = 4;    // Minimum circle radius
-  const maxCircleSize = 6;   // Maximum circle radius
-
-  const minSpacing = 20;     // Minimum spacing between legend items
-  const maxSpacing = 30;     // Maximum spacing between legend items
-
-  const maxGroupsForScaling = 10; // Number of groups after which sizes stop decreasing
-////////////////////////////////////////////////////////////////////////////////
-// 1) Build the "legendItems" array (include "No Data" if showNoDataLegend is true)
-////////////////////////////////////////////////////////////////////////////////
-const legendItems = [];
-
-
-
-// Now push all the normal group items
-groups.forEach((g) => {
-  // The label can be group.name or the numeric range:
-  const rangeLabel = g.name || `${g.lowerBound} - ${g.upperBound}`;
-
-  legendItems.push({
-    id: g.id || Math.random(), // fallback if no ID
-    color: g.color,
-    label: rangeLabel,
+  // -----------------------------
+  // 5) Build the legend items
+  // -----------------------------
+  const legendItems = [];
+  groups.forEach((g) => {
+    legendItems.push({
+      id: g.id ?? Math.random(),
+      color: g.color,
+      label: g.rangeLabel || g.name || "Unknown Range",
+    });
   });
-});
+  if (showNoDataLegend) {
+    legendItems.push({
+      id: "no-data",
+      color: unassigned_color,
+      label: "No data",
+    });
+  }
 
-// If user wants “No Data” at the top of the legend:
-if (showNoDataLegend) {
-  legendItems.push({
-    id: 'no-data',
-    color: unassigned_color,
-    // We'll call the text 'No Data'
-    label: 'No Data',
-  });
-}
-////////////////////////////////////////////////////////////////////////////////
-// 2) Dynamic Sizing + Spacing logic (based on legendItems.length instead of groups.length)
-////////////////////////////////////////////////////////////////////////////////
+  const numberOfLegendItems = legendItems.length || 1;
 
-// If there are no legend items, default to 1 (avoid division by zero):
-const numberOfLegendItems = legendItems.length > 0 ? legendItems.length : 1;
+  // We'll do a simple scale approach for circle radius & default legend font
+  const scalingFactor = calcScalingFactor(numberOfLegendItems);
+  const circleRadius = 5 + (10 - 5) * scalingFactor;
 
-// The rest is your original sizing logic, but using numberOfLegendItems
-const scalingFactor =
-  numberOfLegendItems <= maxGroupsForScaling
-    ? (maxGroupsForScaling - numberOfLegendItems) / (maxGroupsForScaling - 1)
-    : 0;
+  // If user has a legendFontSize, we use it; otherwise we pick 14..24
+  const autoLegendSize = 14 + (24 - 14) * scalingFactor;
+  const finalLegendFontSize =
+    legendFontSize !== undefined && legendFontSize !== null
+      ? legendFontSize
+      : autoLegendSize;
 
-const fontSizeLegend =
-  minFontSizeLegend + (maxFontSizeLegend - minFontSizeLegend) * scalingFactor;
-const circleRadius =
-  minCircleSize + (maxCircleSize - minCircleSize) * scalingFactor;
-const spacingBetweenItems =
-  minSpacing + (maxSpacing - minSpacing) * scalingFactor;
+  // We'll define spacing between each legend item
+  const spacingBetween = 24 + (36 - 24) * scalingFactor;
+  const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetween;
 
-const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetweenItems;
+  // We'll measure the title in useLayoutEffect
+  const finalTitleFontSize = titleFontSize ?? 28; // default 28 if none
 
-// “startY” remains the same, but we base it on the new totalLegendHeight
-const startY = centerY - totalLegendHeight / 2;
+  // If we want to place the ENTIRE "title + legend" block around a certain centerY:
+  const centerY = 350; // choose the center of your US map area
 
-// The “titleY” stays as is, just above the first legend item
-const titleY = startY - spacingBetweenItems;
+  // Some spacing between the title and the first legend item
+  const LEGEND_SPACING_ABOVE_TITLE = 20;
 
+  // On mount (and when the title changes), measure the title’s height
+  useLayoutEffect(() => {
+    if (!titleDivRef.current) return;
 
-  // Calculate font size for the map title
-  const fontSizeTitle = calculateFontSize(mapTitleValue);
+    // 1) measure
+    const divHeight = titleDivRef.current.offsetHeight || 0;
+    setTitleBoxHeight(divHeight);
+
+    // 2) total block height = titleBoxHeight + spacing + totalLegendHeight
+    const blockHeight = divHeight + LEGEND_SPACING_ABOVE_TITLE + totalLegendHeight;
+
+    // 3) The top of the entire block = centerY - blockHeight/2
+    const blockStart = centerY - blockHeight / 2;
+
+    setBlockStartY(blockStart);
+  }, [
+    mapTitleValue,
+    finalTitleFontSize,
+    numberOfLegendItems,
+    totalLegendHeight,
+    LEGEND_SPACING_ABOVE_TITLE,
+    centerY,
+  ]);
+
+  // The legend's first item Y = blockStartY + titleBoxHeight + LEGEND_SPACING_ABOVE_TITLE
+  const legendStartY = blockStartY + titleBoxHeight + LEGEND_SPACING_ABOVE_TITLE + 40;
+
+  // We'll pick an X for them
+  const titleX = 870;
+  const legendX = 885;
+
     return(
         <div id="usMap" >
 <svg 
@@ -521,86 +485,89 @@ const titleY = startY - spacingBetweenItems;
 <path className="va-wv" d="m 722.7,296.9 .7,.6 -.8,1.2 1.5,.7 .1,1.5 4.4,2.3 2.3,-.1 1.9,-1.8 .8,-1.7 3,1.8 5.5,-2.4 .5,-.9 -.8,-.5 .6,-1.4 1.5,1 4.3,-3.1 .7,1.1 2.3,-2 -.1,-1.4 1.5,-1.9 -1.5,-1.2 1,-3.3 3.7,-6.3 -.4,-1.9 2.1,-2.2 -.4,-1.5 1.4,-1.7 .1,-4.7 2.3,.7 1.3,1.9 2.8,.5 1.3,-1.6 2.3,-8.5 2.4,1.1 1,-2.5 .9,-.8 1.4,-1.8 .9,-.8 .5,-2.1 1.2,-.8 -.1,-2.9 .8,-2.3 -.9,-1.6 .2,-.9 10,5.2 .5,-2.3 .4,-1.6 .4,-.7"/>
 </g>
 
-
-
-{!is_title_hidden && (
-  <>
-    {/* Map title */}
-    <text
-      x="850"
-      y={titleY}
-      style={{ fill: font_color, fontSize: `${fontSizeTitle}px` }}
+ {/* Title in a foreignObject, if not hidden */}
+ {!is_title_hidden && (
+  <foreignObject
+    x={titleX}
+    y={blockStartY + 40}
+    width={250}
+    height={titleBoxHeight + 5}
+  >
+    <div
+      ref={titleDivRef}
+      xmlns="http://www.w3.org/1999/xhtml"
+      style={{
+        fontSize: finalTitleFontSize,
+        fontWeight: "bold",
+        color: font_color,
+        wordWrap: "break-word",
+      }}
     >
       {mapTitleValue}
-    </text>
-  </>
+    </div>
+  </foreignObject>
 )}
 
-
-
-{/* Legend */}
-<g id="legend">
-  {legendItems.map((item, index) => {
-    const circleStyle = {
-      fill: item.color,
-      cx: '860', // Adjust X position if needed
-      cy: startY + index * spacingBetweenItems,
-      r: circleRadius,
-    };
-
-    const textStyle = {
-      x: '875', // Adjust to position text near the circle
-      y:
-        startY +
-        index * spacingBetweenItems +
-        circleRadius / 2 +
-        2.5, // small offset to center text
-      fontSize: `${fontSizeLegend}px`,
-      fill: font_color,
-    };
-
-    // If the user typed in a custom name, or if it's the "No Data" item, item.label has it
-    const finalLabel = item.label;
-    const fontSizeLabel = calculateLegendFontSize(finalLabel);
-
-    return (
-      <g key={item.id}>
-        <circle {...circleStyle} />
-        <text
-          {...textStyle}
-          style={{ fontSize: `${fontSizeLabel}px` }}
-        >
-          {finalLabel}
-        </text>
-      </g>
-    );
-  })}
-</g>
-
-
-
+{/* Legend: place items starting at legendStartY */}
+{legendItems.map((item, i) => {
+  const cy = legendStartY + i * spacingBetween;
+  return (
+    <g key={item.id}>
+      <circle
+        cx={legendX}
+        cy={cy}
+        r={circleRadius}
+        fill={item.color}
+        stroke="#333"
+        strokeWidth={1}
+      />
+      <text
+        x={legendX + circleRadius + 6}
+        y={cy + finalLegendFontSize * 0.35}
+        style={{ fontSize: finalLegendFontSize, fill: font_color }}
+      >
+        {item.label}
+      </text>
+    </g>
+  );
+})}
 </svg>
 
+{/* Tooltip */}
 {isTooltipVisible && (
-  <div
-    style={{
-      position: 'absolute',
-      left: tooltipPosition.x + 15,
-      top: tooltipPosition.y - 20,
-      backgroundColor: 'rgba(255,255,255,0.9)',
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-      padding: '5px',
-      pointerEvents: 'none',
-      zIndex: 9999,
-      fontSize: '14px',
-    }}
-  >
-    <strong>{tooltipContent.countryName}</strong>
-    <br />
-    {tooltipContent.value}
-  </div>
+<div
+  style={{
+    position: "absolute",
+    left: tooltipPosition.x + 10,
+    top: tooltipPosition.y - 20,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    padding: "5px",
+    pointerEvents: "none",
+    zIndex: 9999,
+  }}
+>
+  <strong>{tooltipContent.countryName}</strong>
+  <br />
+  {tooltipContent.value}
+</div>
 )}
 </div>
 );
+}
+
+// Example helper that returns 0..1 scale factor for # of legend items
+function calcScalingFactor(num) {
+const maxItems = 10;
+if (num >= maxItems) return 0;
+return (maxItems - num) / (maxItems - 1);
+}
+
+// Example big number shortener
+function formatValue(num) {
+if (num >= 1e9)  return (num / 1e9).toFixed(1) + "b";
+if (num >= 1e6)  return (num / 1e6).toFixed(1) + "m";
+if (num >= 1e3)  return (num / 1e3).toFixed(1) + "k";
+return String(num);
 }

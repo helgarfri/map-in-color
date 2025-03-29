@@ -735,6 +735,147 @@
   text-align: left;
 }
 
+.fontSizeInputContainer {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+
+
+.minusButton, .plusButton {
+  /* Example styling for the + or – buttons */
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  margin: 0 4px;
+}
+
+.fontSizeInput {
+  width: 60px; /* Enough space to type a few digits or "Auto" */
+  text-align: center;
+  border: 1px solid #ccc;
+  margin: 0;
+}
+
+
+
+.fontSizeLabel {
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.fontSizeInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* space between minus/input/plus */
+}
+
+.minusButton,
+.plusButton {
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  
+}
+
+.minusButton:hover,
+.plusButton:hover {
+  background-color: #e8e8e8;
+}
+
+.fontSizeInput {
+  width: 60px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 28px;
+}
+
+.fontSizeField {
+  position: relative; /* so the dropdown can be absolutely positioned */
+}
+
+.fontSizeLabel {
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.fontSizeInputContainer {
+  display: inline-flex;
+  align-items: center;
+  position: relative; /* anchor for the dropdown */
+  gap: 4px;
+}
+
+.minusButton,
+.plusButton {
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.minusButton:hover,
+.plusButton:hover {
+  background-color: #e2e2e2;
+}
+
+.fontSizeInput {
+  width: 60px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 28px;
+}
+
+/* The custom dropdown container */
+.customDropdown {
+  position: absolute;
+  top: -355px;
+  left: 37px;
+
+  margin-top: 2px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 70px;     /* or any width you like */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  z-index: 9999;
+  /* so it floats on top of everything */
+  text-align: center;
+
+
+}
+
+/* Each item in the dropdown */
+.dropdownItem {
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap; /* So text doesn’t wrap */
+
+
+}
+
+.dropdownItem:hover {
+  background-color: #f2f2f2;
+}
+
+
 /* The SVG or preview area can keep same styling as before */
 .mapPreviewWrapper {
   /* your existing styles, e.g. */

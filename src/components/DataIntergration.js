@@ -10,6 +10,7 @@ import { useNavigate, useLocation } from "react-router";
 import { updateMap, createMap } from "../api";
 import Footer from "./Footer";
 import Sidebar from "./Sidebar";
+import TitleFontSizeField from "./TitleFontSizeField"; // example path
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLock, faCaretDown, faFileCsv } from '@fortawesome/free-solid-svg-icons';
@@ -17,6 +18,7 @@ import Header from "./Header";
 
 import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
+import LegendFontSizeField from "./LegendFontSizeField";
 
 /** Color Palettes **/
 const themes = [
@@ -154,6 +156,11 @@ const map_themes = [
   }
 ];
 
+
+
+
+
+
 export default function DataIntegration({
   existingMapData = null,
   isEditing = false,
@@ -249,6 +256,14 @@ export default function DataIntegration({
   const [tempNotes, setTempNotes] = useState('');
   const [tempPublicator, setTempPublicator] = useState('');
 
+  const [titleFontSize, setTitleFontSize] = useState(
+    existingMapData?.titleFontSize ?? null
+  );
+  const [legendFontSize, setLegendFontSize] = useState(
+    existingMapData?.legendFontSize ?? null
+  );
+
+  
   // If existingMapData is provided (editing)
   useEffect(() => {
     if (existingMapData) {
@@ -948,6 +963,8 @@ function applyPalette(oldRanges, paletteColors) {
       file_stats,
       is_title_hidden,
       sources: references,
+      titleFontSize,
+      legendFontSize,
 
     };
     try {
@@ -1321,6 +1338,8 @@ function applyPalette(oldRanges, paletteColors) {
             showNoDataLegend={showNoDataLegend}
             isLargeMap={false}
             is_title_hidden={is_title_hidden}
+            titleFontSize={titleFontSize}
+            legendFontSize={legendFontSize}
           />
         )}
         {selected_map === 'usa' && (
@@ -1339,6 +1358,8 @@ function applyPalette(oldRanges, paletteColors) {
           isLargeMap={false}
           is_title_hidden={is_title_hidden}
           showNoDataLegend={showNoDataLegend}
+          titleFontSize={titleFontSize}
+          legendFontSize={legendFontSize}
 
           />
         )}
@@ -1358,6 +1379,8 @@ function applyPalette(oldRanges, paletteColors) {
           isLargeMap={false}
           is_title_hidden={is_title_hidden}
           showNoDataLegend={showNoDataLegend}
+          titleFontSize={titleFontSize}
+          legendFontSize={legendFontSize}
 
           />
         )}
@@ -1413,30 +1436,9 @@ function applyPalette(oldRanges, paletteColors) {
           </select>
         </div>
 
-        {/* 3) Font Color */}
-        <div className={styles.themeField}>
-          <label>Font Color:</label>
-          <div className={styles.radioGroup}>
-            <label>
-              <input
-                type="radio"
-                value="black"
-                checked={font_color === 'black'}
-                onChange={(e) => setFontColor(e.target.value)}
-              />
-              Black
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="white"
-                checked={font_color === 'white'}
-                onChange={(e) => setFontColor(e.target.value)}
-              />
-              White
-            </label>
-          </div>
-        </div>
+
+
+
 
         {/* 4) Ocean Color */}
         <div className={styles.themeField}>
@@ -1462,6 +1464,48 @@ function applyPalette(oldRanges, paletteColors) {
           />
         </div>
 
+  
+
+        <div className={styles.themeField}>
+<TitleFontSizeField 
+        titleFontSize={titleFontSize}
+        setTitleFontSize={setTitleFontSize}
+      />
+</div>
+
+
+<div className={styles.themeField}>
+  <LegendFontSizeField 
+        legendFontSize={legendFontSize}
+        setLegendFontSize={setLegendFontSize}
+      />
+</div>
+
+
+        {/* 3) Font Color */}
+        <div className={styles.themeField}>
+          <label>Font Color:</label>
+          <div className={styles.radioGroup}>
+            <label>
+              <input
+                type="radio"
+                value="black"
+                checked={font_color === 'black'}
+                onChange={(e) => setFontColor(e.target.value)}
+              />
+              Black
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="white"
+                checked={font_color === 'white'}
+                onChange={(e) => setFontColor(e.target.value)}
+              />
+              White
+            </label>
+          </div>
+        </div>
         <div className={styles.themeField}>
           <label htmlFor="showNoDataLegendChk">Display No data on legend:</label>
           <input
@@ -1471,7 +1515,6 @@ function applyPalette(oldRanges, paletteColors) {
             onChange={(e) => setShowNoDataLegend(e.target.checked)}
           />
         </div>
-
       </div>
     </div>
   </div>
@@ -1492,7 +1535,7 @@ function applyPalette(oldRanges, paletteColors) {
           value={mapTitle}
           onChange={(e) => setMapTitle(e.target.value)}
           placeholder="Enter map title"
-          maxLength="40"
+          maxLength="100"
         />
         <label className={styles.hideTitleLabel}>
           <input

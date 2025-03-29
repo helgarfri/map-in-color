@@ -54,6 +54,8 @@ router.post('/', auth, async (req, res) => {
       .insert([
         {
           ...mapData,
+          title_font_size: titleFontSize,
+          legend_font_size: legendFontSize,
           user_id: user_id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -239,6 +241,8 @@ router.put('/:id', auth, async (req, res) => {
       .from('maps')
       .update({
         ...updateData,
+        title_font_size: titleFontSize,
+        legend_font_size: legendFontSize,
         updated_at: new Date().toISOString()
       })
       .eq('id', mapId)
