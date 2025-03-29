@@ -578,102 +578,91 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       const originalSvg = document.querySelector(`.${styles.mapDisplay} svg`);
       if (!originalSvg) return;
   
-      // Clone the SVG so we can manipulate it without affecting what's on screen
+      // 1) Clone the SVG
       const svgClone = originalSvg.cloneNode(true);
   
-      /* --------------------------------------------
-       * NEW STEP: Replace <foreignObject> with <text>
-       * -------------------------------------------- */
-      // Find the <foreignObject> (assuming there's only one for the title)
+      // 2) Find and remove <foreignObject>, replace with <text>
       const foreignObject = svgClone.querySelector('foreignObject');
       if (foreignObject) {
-        // 1) Extract info
         const div = foreignObject.querySelector('div');
         const titleText = div ? div.textContent.trim() : '';
   
-        // Use FO's position & size (falling back to your known defaults)
         const x = parseFloat(foreignObject.getAttribute('x') || '170');
         const y = parseFloat(foreignObject.getAttribute('y') || '100');
-        const width = parseFloat(foreignObject.getAttribute('width') || '320');
-        // (You can choose a default or read from your mapData.titleFontSize)
-        const finalTitleFontSize = mapData?.titleFontSize ?? 30;
+        const width = parseFloat(foreignObject.getAttribute('width') || '250');
+        // If the DB has no size, fallback to 28
+        const dbFontSize = mapData.title_font_size || 28;
   
-        // 2) Remove the <foreignObject> entirely
         foreignObject.remove();
   
-        // 3) Wrap text lines
+        // **Use the new robust wrap function that breaks long words if needed.**
         const lines = wrapTextIntoLines(
           titleText,
-          finalTitleFontSize,
-          width, // the same as <foreignObject> width
+          dbFontSize,
+          width,
           'bold',
           mapData.font_color || '#333'
         );
   
-        // 4) Create a new <text> element
-        const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        // Create <text>
+        const textElement = document.createElementNS('http://www.w3.org/2000/svg','text');
         textElement.setAttribute('x', x.toString());
-        // We'll set the y on each <tspan>, so the parent can start at the top line
         textElement.setAttribute('y', y.toString());
-        textElement.setAttribute('dominant-baseline', 'hanging'); // <== add this
+        textElement.setAttribute('dominant-baseline','hanging');
         textElement.setAttribute('fill', mapData.font_color || '#333');
-        textElement.setAttribute('font-weight', 'bold');
-        textElement.setAttribute('font-size', String(finalTitleFontSize));
+        textElement.setAttribute('font-weight','bold');
+        textElement.setAttribute('font-size', dbFontSize.toString());
         textElement.setAttribute(
           'font-family',
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans','Helvetica Neue', sans-serif"
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', " +
+            "'Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans','Helvetica Neue', sans-serif"
         );
   
-        // 5) Append a <tspan> for each line
+        // lines => array of wrapped lines
         lines.forEach((line, index) => {
-          const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-          // each line starts at the same X
+          const tspan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
           tspan.setAttribute('x', x.toString());
-          // offset each line downward by lineHeight
-          const lineHeight = finalTitleFontSize * 1.2;
-          const tspanY = y + index * lineHeight ;
+          const lineHeight = dbFontSize * 1.2;
+          const tspanY = y + index * lineHeight;
           tspan.setAttribute('y', tspanY.toString());
           tspan.textContent = line;
           textElement.appendChild(tspan);
         });
   
-        // 6) Put <text> into the SVG
         svgClone.appendChild(textElement);
       }
-      /* ---- END NEW STEP ---- */
   
-      // (Optional) Override viewBox if you want a custom bounding box
+      // 3) (Optional) Override viewBox for US/EU/World
       if (mapData?.selected_map === 'europe') {
         svgClone.setAttribute('viewBox', '-50 0 700 520');
       } else if (mapData?.selected_map === 'usa') {
         svgClone.setAttribute('viewBox', '-90 -10 1238 610');
       } else {
-        svgClone.setAttribute('viewBox', '0 0 2754 1398');
+        svgClone.setAttribute('viewBox','0 0 2754 1398');
       }
   
-      // Remove certain elements from the cloned SVG
+      // 4) Remove certain elements
       const circles = svgClone.querySelectorAll('.circlexx, .subxx, .noxx, .unxx');
       circles.forEach((el) => el.remove());
   
-      // Inline all relevant styles
+      // 5) Inline styles
       const allElements = svgClone.querySelectorAll('*');
       allElements.forEach((el) => {
         const computed = window.getComputedStyle(el);
-        if (['path', 'polygon', 'circle'].includes(el.tagName.toLowerCase())) {
+        if (['path','polygon','circle'].includes(el.tagName.toLowerCase())) {
           el.setAttribute('stroke', computed.stroke || '#4b4b4b');
           el.setAttribute('stroke-width', computed.strokeWidth || '0.5');
           if (computed.fill && computed.fill !== 'none') {
             el.setAttribute('fill', computed.fill);
           }
         }
-        // For text elements, update the font family and font weight
         if (el.tagName.toLowerCase() === 'text') {
           el.setAttribute(
             'font-family',
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', " +
-              "'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif"
+            "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto','Oxygen'," + 
+              "'Ubuntu','Cantarell','Fira Sans','Droid Sans','Helvetica Neue',sans-serif"
           );
-          // If the text is inside a group with id "legend", set normal weight
+          // Example logic to set normal/bold on legend items
           if (el.closest('#legend')) {
             el.setAttribute('font-weight', 'normal');
           } else if (
@@ -688,15 +677,14 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
         }
       });
   
-      // Convert cloned SVG to a data URL
+      // 6) Serialize the cloned SVG & create an <img>
       const svgData = new XMLSerializer().serializeToString(svgClone);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
   
-      // Create an <img> to draw onto a <canvas>
       const img = new Image();
       img.onload = async function () {
-        // Read the forced (cloned) viewBox
+        // 7) Prepare canvas with your scaleFactor
         const forcedViewBox = svgClone.getAttribute('viewBox');
         const scaleFactor = 3;
         let width, height;
@@ -706,7 +694,6 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           width = vbWidth * scaleFactor;
           height = vbHeight * scaleFactor;
         } else {
-          // fallback if no viewBox is set
           const rect = originalSvg.getBoundingClientRect();
           width = rect.width * scaleFactor;
           height = rect.height * scaleFactor;
@@ -719,19 +706,18 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
   
-        // Draw the main map image
+        // Draw cloned <img> to canvas
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         URL.revokeObjectURL(url);
   
-        // We'll use the smaller side for consistent scaling (same approach as the logo)
+        // 8) (Optional) Add your logo
         const smallerSide = Math.min(width, height);
         const padding = 20;
   
-        // 1) Create the Image for the logo
         const logoImg = new Image();
         logoImg.onload = async function () {
-          // Draw the logo in bottom-left
-          const logoRatio = 0.1; // scale to 10% of smaller dimension
+          // a) Draw logo with alpha
+          const logoRatio = 0.1;
           const logoWidth = smallerSide * logoRatio;
           const logoHeight = logoImg.height * (logoWidth / logoImg.width);
   
@@ -746,7 +732,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           );
           ctx.restore();
   
-          // 2) Draw references in bottom-right
+          // b) Draw references in bottom-right
           const textRatio = 0.025;
           const fontSize = smallerSide * textRatio;
           const lineHeight = fontSize * 1.3;
@@ -759,7 +745,6 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
           const sources = mapData.sources || [];
           if (sources.length > 0) {
-            // Build each reference line
             const refStrings = sources.map((ref) => {
               let line = ref.sourceName || 'Unknown';
               if (ref.publicationYear) line += ` (${ref.publicationYear})`;
@@ -770,16 +755,14 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             let textX = canvas.width - padding;
             let textY = canvas.height - padding;
   
-            // Draw from bottom to top
             for (let i = refStrings.length - 1; i >= 0; i--) {
               ctx.fillText(refStrings[i], textX, textY);
               textY -= lineHeight;
             }
           }
   
-          // Convert canvas to Blob and trigger download
+          // c) Convert canvas to Blob and prompt download
           canvas.toBlob(async (blob) => {
-            // Immediately increment server-side download_count
             try {
               const res = await incrementMapDownloadCount(mapData.id);
               if (res.data.download_count != null) {
@@ -789,7 +772,6 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
               console.error('Error incrementing download:', err);
             }
   
-            // Trigger browser download
             const link = document.createElement('a');
             link.download = `${mapData.title || 'map'}.png`;
             link.href = URL.createObjectURL(blob);
@@ -799,10 +781,9 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           }, 'image/png');
         };
   
-        // If the logo fails to load
+        // If logo fails
         logoImg.onerror = async function () {
           console.error('Logo failed to load. Proceeding without logo.');
-          // Still increment downloads on server
           try {
             const res = await incrementMapDownloadCount(mapData.id);
             if (res.data.download_count != null) {
@@ -812,7 +793,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             console.error('Error incrementing download:', err);
           }
   
-          // Draw references anyway
+          // (Optional) draw references anyway
           const textRatio = 0.025;
           const fontSize = smallerSide * textRatio;
           const lineHeight = fontSize * 1.3;
@@ -828,20 +809,20 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             const refStrings = sources.map((ref) => {
               let line = ref.sourceName || 'Unknown';
               if (ref.publicationYear) line += ` (${ref.publicationYear})`;
-              if (ref.publicator) line += `. ${ref.publicator}`;
-              if (ref.url) line += ` - ${ref.url}`;
+              if (ref.publicator) line += `. ${ref.publicator}.`;
               return line;
             });
   
             let textX = canvas.width - padding;
             let textY = canvas.height - padding;
+  
             for (let i = refStrings.length - 1; i >= 0; i--) {
               ctx.fillText(refStrings[i], textX, textY);
               textY -= lineHeight;
             }
           }
   
-          // Trigger browser download
+          // Trigger download
           canvas.toBlob((blob) => {
             const link = document.createElement('a');
             link.download = `${mapData.title || 'map'}.png`;
@@ -1741,36 +1722,87 @@ function findCommentById(commentsArray, targetId) {
 }
 
 /**
- * Split a long string into multiple lines according to maxWidth (in pixels).
- * We measure the text width via a hidden canvas context.
+ * Enhanced wrapping that also breaks up super-long words 
+ * if they exceed maxWidth.
  */
-function wrapTextIntoLines(str, fontSize, maxWidth, fontWeight = 'normal', fontColor = '#333') {
+function wrapTextIntoLines(
+  str,
+  fontSize,
+  maxWidth,
+  fontWeight = 'normal',
+  fontColor = '#333'
+) {
   const words = str.trim().split(/\s+/);
   const lines = [];
-  let currentLine = words[0] || '';
 
-  // Temporary <canvas> to measure text widths
+  // 1) Prepare a hidden canvas to measure text widths
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  ctx.font = `${fontWeight} ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-              'Oxygen','Ubuntu','Cantarell','Fira Sans','Droid Sans','Helvetica Neue', sans-serif`;
+  ctx.font = `${fontWeight} ${fontSize}px -apple-system, BlinkMacSystemFont, 
+              'Segoe UI', 'Roboto','Oxygen','Ubuntu','Cantarell',
+              'Fira Sans','Droid Sans','Helvetica Neue',sans-serif`;
 
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i];
-    const testLine = currentLine + ' ' + word;
-    const testWidth = ctx.measureText(testLine).width;
-    if (testWidth > maxWidth) {
-      // If exceeding maxWidth, push current line and start a new one
-      lines.push(currentLine);
-      currentLine = word;
+  function measure(text) {
+    return ctx.measureText(text).width;
+  }
+
+  let currentLine = '';
+
+  for (let i = 0; i < words.length; i++) {
+    let word = words[i];
+    // If adding this word to currentLine doesn't exceed maxWidth, append
+    if (currentLine === '') {
+      // If the word alone is bigger than maxWidth, we’ll forcibly break it up
+      currentLine = breakLongWord(word, measure, maxWidth);
     } else {
-      currentLine = testLine;
+      const testLine = currentLine + ' ' + word;
+      if (measure(testLine) > maxWidth) {
+        // Push the currentLine
+        lines.push(currentLine);
+        // Start a new line with 'word'—but break it if needed
+        currentLine = breakLongWord(word, measure, maxWidth);
+      } else {
+        currentLine = testLine;
+      }
     }
   }
-  // push the final line
+
+  // push the last line
   if (currentLine) {
     lines.push(currentLine);
   }
 
   return lines;
+}
+
+/**
+ * If a single word is wider than maxWidth, break it into multiple parts.
+ * e.g. "Supercalifragilistic..." might be chopped into segments 
+ * that each fit within maxWidth.
+ */
+function breakLongWord(word, measureFn, maxWidth) {
+  const segments = [];
+  let current = '';
+  for (let i = 0; i < word.length; i++) {
+    const test = current + word[i];
+    if (measureFn(test) > maxWidth && current !== '') {
+      // current alone is as far as we can go
+      segments.push(current);
+      current = word[i]; // start a new segment with the current char
+    } else {
+      current = test;
+    }
+  }
+  // push the remainder
+  if (current) segments.push(current);
+
+  // then join these with spaces (or newlines?), 
+  // but in this scenario we just put them with hyphens or else 
+  // treat each segment as separate "word" so it can re-wrap.
+
+  // If you want each segment on a new line, you could:
+  //   return segments.join('\n');
+  // But we want to treat them as separate "words" for the line logic
+  // so let's just combine them with spaces for now:
+  return segments.join(' ');
 }

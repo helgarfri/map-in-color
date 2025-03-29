@@ -18,6 +18,7 @@ export default function EuropeSVG({
   showNoDataLegend,
   titleFontSize,
   legendFontSize,
+  
 }) {
   const svgRef = useRef(null);
 
@@ -161,7 +162,7 @@ export default function EuropeSVG({
   const totalLegendHeight = (numberOfLegendItems - 1) * spacingBetween;
 
   // The user’s override or a default for the title
-  const finalTitleFontSize = titleFontSize ?? 28;
+  const finalTitleFontSize = titleFontSize || 28;
 
   // We want to center the entire block (title+legend) around some centerY
   const centerY = 250; // pick a vertical center for your Europe map
