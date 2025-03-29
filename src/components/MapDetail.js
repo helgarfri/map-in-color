@@ -581,6 +581,67 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       // Clone the SVG so we can manipulate it without affecting what's on screen
       const svgClone = originalSvg.cloneNode(true);
   
+      /* --------------------------------------------
+       * NEW STEP: Replace <foreignObject> with <text>
+       * -------------------------------------------- */
+      // Find the <foreignObject> (assuming there's only one for the title)
+      const foreignObject = svgClone.querySelector('foreignObject');
+      if (foreignObject) {
+        // 1) Extract info
+        const div = foreignObject.querySelector('div');
+        const titleText = div ? div.textContent.trim() : '';
+  
+        // Use FO's position & size (falling back to your known defaults)
+        const x = parseFloat(foreignObject.getAttribute('x') || '170');
+        const y = parseFloat(foreignObject.getAttribute('y') || '100');
+        const width = parseFloat(foreignObject.getAttribute('width') || '320');
+        // (You can choose a default or read from your mapData.titleFontSize)
+        const finalTitleFontSize = mapData?.titleFontSize ?? 30;
+  
+        // 2) Remove the <foreignObject> entirely
+        foreignObject.remove();
+  
+        // 3) Wrap text lines
+        const lines = wrapTextIntoLines(
+          titleText,
+          finalTitleFontSize,
+          width, // the same as <foreignObject> width
+          'bold',
+          mapData.font_color || '#333'
+        );
+  
+        // 4) Create a new <text> element
+        const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textElement.setAttribute('x', x.toString());
+        // We'll set the y on each <tspan>, so the parent can start at the top line
+        textElement.setAttribute('y', y.toString());
+        textElement.setAttribute('dominant-baseline', 'hanging'); // <== add this
+        textElement.setAttribute('fill', mapData.font_color || '#333');
+        textElement.setAttribute('font-weight', 'bold');
+        textElement.setAttribute('font-size', String(finalTitleFontSize));
+        textElement.setAttribute(
+          'font-family',
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans','Helvetica Neue', sans-serif"
+        );
+  
+        // 5) Append a <tspan> for each line
+        lines.forEach((line, index) => {
+          const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+          // each line starts at the same X
+          tspan.setAttribute('x', x.toString());
+          // offset each line downward by lineHeight
+          const lineHeight = finalTitleFontSize * 1.2;
+          const tspanY = y + index * lineHeight ;
+          tspan.setAttribute('y', tspanY.toString());
+          tspan.textContent = line;
+          textElement.appendChild(tspan);
+        });
+  
+        // 6) Put <text> into the SVG
+        svgClone.appendChild(textElement);
+      }
+      /* ---- END NEW STEP ---- */
+  
       // (Optional) Override viewBox if you want a custom bounding box
       if (mapData?.selected_map === 'europe') {
         svgClone.setAttribute('viewBox', '-50 0 700 520');
@@ -612,7 +673,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', " +
               "'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif"
           );
-          // If the text is inside a group with id "legend" (USA/Europe maps), set normal weight
+          // If the text is inside a group with id "legend", set normal weight
           if (el.closest('#legend')) {
             el.setAttribute('font-weight', 'normal');
           } else if (
@@ -664,7 +725,6 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
         // We'll use the smaller side for consistent scaling (same approach as the logo)
         const smallerSide = Math.min(width, height);
-
         const padding = 20;
   
         // 1) Create the Image for the logo
@@ -675,7 +735,6 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
           const logoWidth = smallerSide * logoRatio;
           const logoHeight = logoImg.height * (logoWidth / logoImg.width);
   
-          const padding = 20;
           ctx.save();
           ctx.globalAlpha = 0.5;
           ctx.drawImage(
@@ -700,16 +759,11 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
           const sources = mapData.sources || [];
           if (sources.length > 0) {
-            // Build each reference line with the new format
+            // Build each reference line
             const refStrings = sources.map((ref) => {
               let line = ref.sourceName || 'Unknown';
-              if (ref.publicationYear) {
-                line += ` (${ref.publicationYear})`;
-              }
-              if (ref.publicator) {
-                line += `. ${ref.publicator}.`;
-              }
-             
+              if (ref.publicationYear) line += ` (${ref.publicationYear})`;
+              if (ref.publicator) line += `. ${ref.publicator}.`;
               return line;
             });
   
@@ -806,6 +860,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       console.error('Error downloading image:', error);
     }
   };
+  
   
   
   // Right before the return, handle the special cases:
@@ -1002,18 +1057,20 @@ if (mapData.is_public === false && !mapData.isOwner) {
                   </button>
                 )}
   
-                {/* If public → Star + Download */}
-                {is_public && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button className={styles.saveButton} onClick={handleSave}>
-                      {isSaved ? '★' : '☆'} {save_count}
-                    </button>
-                    <button className={styles.saveButton} onClick={handleDownload}>
-                      <BiDownload /> {download_count}
-                    </button>
-                  </div>
-                )}
-              </div>
+           
+  {(is_public || isOwner) && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      {is_public && (
+        <button className={styles.saveButton} onClick={handleSave}>
+          {isSaved ? '★' : '☆'} {save_count}
+        </button>
+      )}
+      <button className={styles.saveButton} onClick={handleDownload}>
+        <BiDownload /> {download_count}
+      </button>
+    </div>
+  )}
+        </div>
   
               {timeAgo && (
                 <p className={styles.created_at}>Created {timeAgo}</p>
@@ -1681,4 +1738,39 @@ function findCommentById(commentsArray, targetId) {
     }
   }
   return null;
+}
+
+/**
+ * Split a long string into multiple lines according to maxWidth (in pixels).
+ * We measure the text width via a hidden canvas context.
+ */
+function wrapTextIntoLines(str, fontSize, maxWidth, fontWeight = 'normal', fontColor = '#333') {
+  const words = str.trim().split(/\s+/);
+  const lines = [];
+  let currentLine = words[0] || '';
+
+  // Temporary <canvas> to measure text widths
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.font = `${fontWeight} ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+              'Oxygen','Ubuntu','Cantarell','Fira Sans','Droid Sans','Helvetica Neue', sans-serif`;
+
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    const testLine = currentLine + ' ' + word;
+    const testWidth = ctx.measureText(testLine).width;
+    if (testWidth > maxWidth) {
+      // If exceeding maxWidth, push current line and start a new one
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  // push the final line
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
 }
