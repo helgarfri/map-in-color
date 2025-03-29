@@ -327,6 +327,8 @@ export default function Dashboard() {
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
                           showNoDataLegend={map.show_no_data_legend}
+                          titleFontSize={map.title_font_size}
+                          legendFontSize={map.legend_font_size}
                         />
                       );
                     } else if (map.selected_map === 'usa') {
@@ -341,6 +343,8 @@ export default function Dashboard() {
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
                           showNoDataLegend={map.show_no_data_legend}
+                          titleFontSize={map.title_font_size}
+                          legendFontSize={map.legend_font_size}
 
                           
                         />
@@ -357,6 +361,8 @@ export default function Dashboard() {
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
                           showNoDataLegend={map.show_no_data_legend}
+                          titleFontSize={map.title_font_size}
+                          legendFontSize={map.legend_font_size}
 
                         />
                       );
@@ -430,6 +436,8 @@ export default function Dashboard() {
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
                           showNoDataLegend={map.show_no_data_legend}
+                          titleFontSize={map.title_font_size}
+                          legendFontSize={map.legend_font_size}
                         />
                       );
                     } else if (map.selected_map === 'usa') {
@@ -444,6 +452,8 @@ export default function Dashboard() {
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
                           showNoDataLegend={map.show_no_data_legend}
+                          titleFontSize={map.title_font_size}
+                          legendFontSize={map.legend_font_size}
 
                         />
                       );
@@ -459,6 +469,8 @@ export default function Dashboard() {
                           is_title_hidden={map.is_title_hidden}
                           isThumbnail
                           showNoDataLegend={map.show_no_data_legend}
+                          titleFontSize={map.title_font_size}
+                          legendFontSize={map.legend_font_size}
 
                         />
                       );
