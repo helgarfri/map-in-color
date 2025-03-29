@@ -49,7 +49,9 @@ router.get('/profile/:username', async (req, res) => {
         data,
         save_count,
         created_at,
-        show_no_data_legend
+        show_no_data_legend,
+        title_font_size,
+        legend_font_size
       `)
       .eq('user_id', user_id)
       .order('created_at', { ascending: false })
@@ -82,7 +84,14 @@ router.get('/profile/:username', async (req, res) => {
       .select(`
         created_at,
         map_id,
-        Map:maps(*)
+          Map:maps(
+          id, title, selected_map,
+          ocean_color, unassigned_color, font_color,
+          is_title_hidden, groups, data,
+          save_count, created_at, show_no_data_legend,
+          title_font_size,
+          legend_font_size
+        )
       `)
       .eq('user_id', user_id)
       .order('created_at', { ascending: false })
@@ -117,30 +126,16 @@ router.get('/profile/:username', async (req, res) => {
       const { data: userComments } = await supabaseAdmin
       .from('comments')
       .select(`
-        id,
-        content,
-        created_at,
-        status,
-        user_id,
+        id, content, created_at, status,
         Map:maps(
-          id,
-          title,
-          selected_map,
-          ocean_color,
-          unassigned_color,
-          font_color,
-          is_title_hidden,
-          groups,
-          data,
-          save_count,
-          created_at,
-          show_no_data_legend
+          id, title, selected_map,
+          ocean_color, unassigned_color, font_color,
+          is_title_hidden, groups, data,
+          save_count, created_at, show_no_data_legend,
+          title_font_size,
+          legend_font_size
         ),
-        User:users(
-          id,
-          username,
-          profile_picture
-        )
+        User:users(id, username, profile_picture)
       `)
       .eq('user_id', user_id)
       .eq('status', 'visible')
@@ -228,7 +223,9 @@ router.get('/dashboard', auth, async (req, res) => {
           id, title, selected_map,
           ocean_color, unassigned_color, font_color,
           is_title_hidden, groups, data,
-          save_count, created_at, show_no_data_legend
+          save_count, created_at, show_no_data_legend,
+          title_font_size,
+          legend_font_size
         `)
         .eq('user_id', user_id);
   
@@ -257,7 +254,17 @@ router.get('/dashboard', auth, async (req, res) => {
       // ---------------------------------------------
       const { data: starredRows } = await supabaseAdmin
         .from('map_saves')
-        .select(`created_at, map_id, Map:maps(*)`)
+        .select(`
+          created_at, map_id, 
+          Map:maps(
+            id, title, selected_map,
+            ocean_color, unassigned_color, font_color,
+            is_title_hidden, groups, data,
+            save_count, created_at, show_no_data_legend,
+            title_font_size,
+            legend_font_size
+          )
+        `)
         .eq('user_id', user_id);
   
       const starredActivities = (starredRows || []).map((save) => {
@@ -410,7 +417,10 @@ router.get('/dashboard', auth, async (req, res) => {
           .select(`
             id, title, selected_map,
             ocean_color, unassigned_color, font_color,
-            is_title_hidden, groups, data, save_count, created_at, show_no_data_legend
+            is_title_hidden, groups, data, save_count,
+            created_at, show_no_data_legend,
+            title_font_size,
+            legend_font_size
           `)
           .in('id', mapIds);
         if (fetchedMaps) {

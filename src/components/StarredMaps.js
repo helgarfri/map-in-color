@@ -103,6 +103,9 @@ export default function StarredMaps() {
       show_top_high_values: false,
       show_top_low_values: false,
       showNoDataLegend: map.show_no_data_legend,
+      titleFontSize: map.title_font_size,
+      legendFontSize: map.legend_font_size,
+      
     };
 
     if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
