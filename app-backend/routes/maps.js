@@ -41,13 +41,17 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const user_id = req.user.id;
-    const mapData = { ...req.body };
+     // Destructure titleFontSize and legendFontSize from req.body
+     const { titleFontSize, legendFontSize, ...mapData } = req.body;
+
+
 
     // If "tags" is an array, normalize to lowercase
     if (Array.isArray(mapData.tags)) {
       mapData.tags = mapData.tags.map((tag) => tag.toLowerCase());
     }
 
+  
     // Insert into "maps"
     const { data: insertedMaps, error } = await supabaseAdmin
       .from('maps')

@@ -257,12 +257,12 @@ export default function DataIntegration({
   const [tempPublicator, setTempPublicator] = useState('');
 
   const [titleFontSize, setTitleFontSize] = useState(
-    existingMapData?.titleFontSize ?? null
+    existingMapData?.title_font_size ?? null
   );
   const [legendFontSize, setLegendFontSize] = useState(
-    existingMapData?.legendFontSize ?? null
+    existingMapData?.legend_font_size ?? null
   );
-
+  
   
   // If existingMapData is provided (editing)
   useEffect(() => {
