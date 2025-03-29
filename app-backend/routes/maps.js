@@ -217,6 +217,10 @@ router.put('/:id', auth, async (req, res) => {
     const user_id = req.user.id;
     const updateData = { ...req.body };
 
+    // Pull out the front-end fields
+    const { titleFontSize, legendFontSize, ...rest } = updateData;
+
+
     // If tags is an array, normalize
     if (Array.isArray(updateData.tags)) {
       updateData.tags = updateData.tags.map((t) => t.toLowerCase());
@@ -497,6 +501,8 @@ router.post('/:id/save', auth, async (req, res) => {
         {
           map_id: mapRow.id,
           user_id: user_id,
+          title_font_size: titleFontSize,   // use your new columns
+          legend_font_size: legendFontSize, // use your new columns
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
