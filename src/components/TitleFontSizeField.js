@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./DataIntergration.module.css";
 
 // Example preset sizes. You can add more or reorder as you like.
@@ -14,6 +14,16 @@ export default function TitleFontSizeField({ titleFontSize, setTitleFontSize }) 
   const [isOpen, setIsOpen] = useState(false);
 
   const containerRef = useRef(null);
+
+   // Whenever parent prop `titleFontSize` changes,
+ // sync our local `inputValue` accordingly.
+ useEffect(() => {
+   if (titleFontSize === null) {
+     setInputValue("");
+   } else {
+     setInputValue(String(titleFontSize));
+   }
+ }, [titleFontSize]);
 
   // We'll close the dropdown if user clicks outside
   React.useEffect(() => {

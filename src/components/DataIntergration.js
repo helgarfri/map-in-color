@@ -287,6 +287,8 @@ export default function DataIntegration({
       setTags(existingMapData.tags || []);
       setIsPublic(existingMapData.is_public || false);
       setIsTitleHidden(existingMapData.is_title_hidden || false);
+      setTitleFontSize(existingMapData.title_font_size || null);
+      setLegendFontSize(existingMapData.legend_font_size || null);
     }
     // eslint-disable-next-line
   }, [existingMapData]);
@@ -963,8 +965,8 @@ function applyPalette(oldRanges, paletteColors) {
       file_stats,
       is_title_hidden,
       sources: references,
-      titleFontSize,
-      legendFontSize,
+      title_font_size: titleFontSize,
+      legend_font_size: legendFontSize,
 
     };
     try {

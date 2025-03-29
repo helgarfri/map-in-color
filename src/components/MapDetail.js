@@ -1622,9 +1622,12 @@ function mapDataProps() {
     font_color: mapData.font_color,
     show_top_high_values: mapData.show_top_high_values,
     top_low_values: mapData.top_low_values,
-    is_title_hidden: mapData.is_title_hidden
+    is_title_hidden: mapData.is_title_hidden,
+    titleFontSize: mapData.title_font_size,
+    legendFontSize: mapData.legend_font_size
   };
 }
+
 
 
 async function handleSubmitReport() {

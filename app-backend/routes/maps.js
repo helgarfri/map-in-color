@@ -218,7 +218,7 @@ router.put('/:id', auth, async (req, res) => {
     const updateData = { ...req.body };
 
     // Pull out the front-end fields
-    const { titleFontSize, legendFontSize, ...rest } = updateData;
+    const { titleFontSize, legendFontSize, ...rest } =  req.body;
 
 
     // If tags is an array, normalize
