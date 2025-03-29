@@ -965,8 +965,8 @@ function applyPalette(oldRanges, paletteColors) {
       file_stats,
       is_title_hidden,
       sources: references,
-      title_font_size: titleFontSize,
-      legend_font_size: legendFontSize,
+      titleFontSize,
+      legendFontSize,
 
     };
     try {
