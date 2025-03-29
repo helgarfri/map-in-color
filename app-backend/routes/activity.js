@@ -74,6 +74,8 @@ router.get('/profile/:username', async (req, res) => {
         save_count: m.save_count,
         created_at: m.created_at,
         show_no_data_legend: m.show_no_data_legend,
+        titleFontSize: m.title_font_size,
+        legendFontSize: m.legend_font_size
       },
       commentContent: null,
     }));
@@ -116,6 +118,8 @@ router.get('/profile/:username', async (req, res) => {
               save_count: map.save_count,
               created_at: map.created_at,
               show_no_data_legend: map.show_no_data_legend,
+              titleFontSize: map.title_font_size,
+              legendFontSize: map.legend_font_size
             }
           : null,
         commentContent: null,
@@ -174,6 +178,8 @@ router.get('/profile/:username', async (req, res) => {
                 save_count: map.save_count,
                 created_at: map.created_at,
                 show_no_data_legend: map.show_no_data_legend,
+                titleFontSize: map.title_font_size,
+                legendFontSize: map.legend_font_size
               }
             : null,
         };
@@ -286,6 +292,8 @@ router.get('/dashboard', auth, async (req, res) => {
                 save_count: m.save_count,
                 created_at: m.created_at,
                 show_no_data_legend: m.show_no_data_legend,
+                titleFontSize: m.title_font_size,
+                legendFontSize: m.legend_font_size
 
               }
             : null,
@@ -308,7 +316,7 @@ router.get('/dashboard', auth, async (req, res) => {
           id, title, selected_map,
           ocean_color, unassigned_color, font_color,
           is_title_hidden, groups, data,
-          save_count, created_at, show_no_data_legend
+          save_count, created_at, show_no_data_legend, titleFontSize, legendFontSize
         ),
         User:users(
           id,
@@ -337,7 +345,9 @@ router.get('/dashboard', auth, async (req, res) => {
               data: c.Map.data,
               save_count: c.Map.save_count,
               created_at: c.Map.created_at,
-              show_no_data_legend: c.Map.show_no_data_legend
+              show_no_data_legend: c.Map.show_no_data_legend,
+              titleFontSize: c.Map.title_font_size,
+              legendFontSize: c.Map.legend_font_size
             }
           : null,
       }));
@@ -506,6 +516,8 @@ router.get('/dashboard', auth, async (req, res) => {
                   save_count: mapObj.save_count,
                   created_at: mapObj.created_at,
                   show_no_data_legend: mapObj.show_no_data_legend,
+                  titleFontSize: mapObj.title_font_size,
+                  legendFontSize: mapObj.legend_font_size,
                 }
               : null,
             commentContent: commentObj ? commentObj.content : null,

@@ -184,6 +184,7 @@ export default function DashboardActivityFeed({ userProfile }) {
       is_title_hidden,
       show_no_data_legend,
       title_font_size,
+      legend_font_size,
     } = mapObj;
 
     const sharedProps = {
@@ -197,6 +198,7 @@ export default function DashboardActivityFeed({ userProfile }) {
       isThumbnail: true,
       showNoDataLegend: show_no_data_legend,
       titleFontSize: title_font_size,
+      legendFontSize: legend_font_size
 
     };
 
