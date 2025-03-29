@@ -244,7 +244,7 @@ router.put('/:id', auth, async (req, res) => {
     const { data: updatedMap, error: updateErr } = await supabaseAdmin
       .from('maps')
       .update({
-        ...updateData,
+        ...rest,
         title_font_size: titleFontSize,
         legend_font_size: legendFontSize,
         updated_at: new Date().toISOString()
