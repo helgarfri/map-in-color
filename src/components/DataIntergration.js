@@ -27,60 +27,99 @@ const themes = [
     colors: ['#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3', '#c3c3c3'],
   },
   {
-    name: 'Blues',
-    colors: ['#e1edf8', '#c3def1', '#a6d0ea', '#88c1e3', '#6ab3dc', '#4da4d5', '#2f95ce', '#1187c7', '#0078bf', '#005f9e'],
-  },
+    name: 'Mic Blues',
+    colors: [
+      '#d2e9ef', // light but still blue
+      '#b9dbe4',
+      '#a0cdd8',
+      '#89bfcb',
+      '#78b0bd', // just a bit lighter than midpoint
+      '#7aa7b7', // midpoint
+      '#6993a3',
+      '#5b7f8d',
+      '#4a6b78',
+      '#385561', // dark but still colorful
+    ],},
   {
-    name: 'Reds',
-    colors: ['#ffe0d9', '#ffccc2', '#ffb7ab', '#ffa295', '#ff8e7e', '#ff7967', '#ff6450', '#ff5039', '#ff3b22', '#e62e1a'],
-  },
+    name: 'Mic Reds',
+    colors: [
+      '#f9d3cf', // light but still red-leaning
+      '#f5a8a4',
+      '#f0807c',
+      '#ea5b58',
+      '#e14a48', // just a bit lighter than midpoint
+      '#d24b4c', // midpoint
+      '#b94443',
+      '#9f3a39',
+      '#86302f',
+      '#6c2625', // dark, saturated red
+    ],  },
   {
-    name: 'Greens',
-    colors: ['#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#33a34d', '#26873c', '#1c6b31', '#145227', '#0d3a1d'],
+    name: 'Mic Greens',
+    colors: [
+      '#b2e3d8', // lightest
+      '#93d4c5',
+      '#74c5b2',
+      '#55b79f',
+      '#39a88c',
+      '#319d81', // anchor tone
+      '#2c8c73',
+      '#257b65',
+      '#1f6a57',
+      '#185949'  // darkest
+    ],
   },
+
   {
-    name: 'Yellows',
-    colors: ['#fff7bc', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#d5600e', '#b04d0b', '#8a3907', '#6b2d05', '#4d2103'],
-  },
+    name: 'Mic Oranges',
+    colors: [
+      '#fde0d6', // light but still orangey
+      '#fbb8a4',
+      '#f8917a',
+      '#f36b58',
+      '#ec4f3e', // slightly lighter than midpoint
+      '#e6604d', // midpoint
+      '#c65245',
+      '#a6463d',
+      '#853a34',
+      '#642e2b', // deep orange-red
+    ],  },
+
   {
-    name: 'Red to Green',
-    colors: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#4daf4a', '#238b45', '#006837'],
-  },
+    name: 'Mic Purples',
+    colors: [
+      '#edd5e5', // light but not washed out
+      '#e0accd',
+      '#cf84b5',
+      '#b85d9d',
+      '#9f457f', // lighter than midpoint
+      '#80346b', // midpoint
+      '#692d5a',
+      '#522549',
+      '#3b1d38',
+      '#2a1428', // deep but still purple-toned
+    ],  },
+
+    {
+      name: 'Red to Green',
+      colors: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#4daf4a', '#238b45', '#006837'],
+    },
+  
   {
     name: 'Heatmap',
-    colors: ['#ffffcc', '#ffeda0', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#8e0152', '#67001f', '#49000d'],
+    colors: ['#ffeda0', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#a20025', '#870023', '#6c0020', '#54001a'],
   },
-  {
-    name: 'Oranges',
-    colors: ['#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d55a0d', '#a94703', '#853200', '#662400', '#4d1800'],
-  },
-  {
-    name: 'Purples',
-    colors: ['#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6b65ab', '#564699', '#453480', '#352366', '#24124c'],
-  },
+
+  
   {
     name: 'GNBu',
-    colors: ['#e0f3db', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#3791b7', '#1d7295', '#0f4d6f', '#08306b', '#041f3a'],
+    colors: ['#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#3791b7', '#2e7da1', '#24698b', '#1b5475', '#123f5f', '#0b2d4a'],
   },
   {
     name: 'PuBu',
-    colors: ['#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#7a4ea0', '#65348b', '#50216e', '#3b0f52', '#260036'],
+    colors: ['#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#7a4ea0', '#6b4490', '#5b397f', '#4a2d6e', '#3a225c', '#2b184a'],
   },
-  {
-    name: 'MIC colors',
-    colors: [
-      '#f8b489',  // Lighter Orange start
-      '#f69b62',
-      '#f3823a',
-      '#f16913',  // Orange control point
-      '#ed5515',
-      '#ea4218',
-      '#e62e1a',  // Red control point
-      '#be2f32',
-      '#953149',
-      '#6d3261'   // Purple end
-    ],
-  }
+
   
   
   
@@ -150,7 +189,7 @@ const map_themes = [
   },
   {
     name: 'MIC theme',
-    ocean_color: '#80a0b0',
+    ocean_color: '#7aa7b7',
     font_color: 'white',
     unassigned_color: '#c0c0c0',
   }

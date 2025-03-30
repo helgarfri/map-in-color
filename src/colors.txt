@@ -1,5 +1,11 @@
-Green: #55957b
-Blue/Gray: #80a0b0
-Red/Orange: #c4564d
-Purple: #6d3261
+Green: #319d81
+Blue/Gray: #7aa7b7
+Red: #d24b4c
+Purple: #80346b
 White: #ffffff
+
+Orange: #e6604d
+Red: #c63c48
+Purple: #7e3168
+Green: #309d81
+Blue: #79a6b7
