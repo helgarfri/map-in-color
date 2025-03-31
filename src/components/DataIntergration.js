@@ -191,7 +191,7 @@ const map_themes = [
     name: 'MIC theme',
     ocean_color: '#7aa7b7',
     font_color: 'white',
-    unassigned_color: '#c0c0c0',
+    unassigned_color: '#7aa7b7',
   }
 ];
 

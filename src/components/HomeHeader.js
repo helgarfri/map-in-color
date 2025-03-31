@@ -27,6 +27,9 @@ return (
             <a href="/" className={styles.navLink}>
                 Home
             </a>
+            <a href="/explore" className={styles.navLink}>
+                Explore
+            </a>
             <a href="/docs" className={styles.navLink}>
                 Documentation
             </a>

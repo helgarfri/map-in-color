@@ -15,14 +15,16 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token has expired or is invalid
+      // Token expired or invalid => remove token from localStorage
       localStorage.removeItem('token');
-      // Optionally, redirect to login page
-      window.location.href = '/login';
+      // Possibly dispatch a "logout" action or set some state,
+      // but do NOT forcibly navigate:
+      // e.g. store.dispatch({ type: 'LOGOUT' });
     }
     return Promise.reject(error);
   }
 );
+
 
 export { API };
 

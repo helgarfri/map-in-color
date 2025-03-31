@@ -1,0 +1,47 @@
+/* LoggedInExplore.module.css */
+
+/* Container that holds the Sidebar on the left and the main content on the right */
+.loggedInExploreContainer {
+    display: flex;
+    min-height: 100vh;
+    position: relative; /* so we can position overlay if needed */
+  }
+  
+  /* 
+     The main content (Header + ExploreContent).
+     By default (on large screens), we push content to the right 
+     to make room for an expanded sidebar (250px). 
+  */
+  .mainContentWrapper {
+    flex: 1; /* fill remaining space */
+    margin-left: 250px; /* for expanded sidebar on large screens */
+    
+    /* margin-top if you have a fixed Header (adjust if your header is 60px tall) */
+    margin-top: 60px; 
+    box-sizing: border-box;
+  }
+  
+  /* If sidebar is collapsed (on large screens), 
+     reduce margin-left from 250px to 70px (icon-only).
+  */
+  .mainContentWrapper.collapsed {
+    margin-left: 70px;
+  }
+  
+  /* 
+     On smaller screens (< 1000px), we remove the left margin entirely. 
+     The sidebar becomes an overlay instead of pushing content.
+  */
+  @media (max-width: 1000px) {
+    .mainContentWrapper {
+      margin-left: 0 !important;
+    }
+    .mainContentWrapper.collapsed {
+      margin-left: 0 !important;
+    }
+  }
+  
+  /*
+     Overlay that appears on small screens if the sidebar is open (!isCollapsed).
+     Clicking this overlay will close the sidebar.
+  */

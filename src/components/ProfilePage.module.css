@@ -337,7 +337,7 @@
   background-color: #e0e0e0;
 }
 .reportProfileButton.active {
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
 }
 .icon {
@@ -404,7 +404,7 @@
 }
 
 .modalActions button:first-child {
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
 }
 
