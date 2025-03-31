@@ -10,7 +10,7 @@
 /* Main content area */
 .starredMapsContent {
   flex: 1;
-  padding: 20px;
+  padding: 0px 20px;
   margin-left: 250px; /* Sidebar width when expanded */
   transition: margin-left 0.3s ease;
 }

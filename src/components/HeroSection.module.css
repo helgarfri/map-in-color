@@ -11,7 +11,7 @@
     /* Add some vertical spacing as needed */
     padding: 60px 200px;
     box-sizing: border-box;
-    background-color: #80a0b0;
+    background-color: #79a6b7;
     overflow: hidden;
   }
   
@@ -42,7 +42,7 @@
   .signupButton {
     display: inline-block;
     padding: 14px 24px;
-    background-color: #c4564d;
+    background-color: #d24b4c;
     color: #ffffff;
     border-radius: 4px;
     text-decoration: none;

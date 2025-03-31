@@ -39,11 +39,13 @@ function Explore() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  
 
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
   const showOverlay = !isCollapsed && width < 1000;
 
+  
   useEffect(() => {
     if (width < 1000) setIsCollapsed(true);
     else setIsCollapsed(false);

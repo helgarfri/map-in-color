@@ -1,0 +1,42 @@
+/* LoggedInMapDetail.module.css */
+
+.loggedInMapDetailContainer {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    background-color: #f7f7f7;
+  }
+  
+  .mainContentWrapper {
+    flex: 1;
+    margin-left: 250px; /* expanded sidebar width */
+    margin-top: 40px;   /* if header is fixed, adjust or remove */
+    padding: 15px;
+    transition: margin-left 0.3s ease;
+  }
+  
+  .mainContentWrapper.collapsed {
+    margin-left: 70px; /* collapsed sidebar */
+  }
+  
+  /* On small screens, remove margin-left => overlay instead */
+  @media (max-width: 1000px) {
+    .mainContentWrapper {
+      margin-left: 0 !important;
+    }
+    .mainContentWrapper.collapsed {
+      margin-left: 0 !important;
+    }
+  }
+  
+  /* Overlay for small screens */
+  .sidebarOverlay {
+    position: fixed;
+    top: 40px; /* or 60px if your Header is fixed & that tall */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 40px);
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+  }
+  

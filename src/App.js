@@ -12,7 +12,9 @@ import YourMaps from './components/YourMaps';
 
 import PrivateRoute from './components/PrivateRoute';
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+
+import { UserContext } from './context/UserContext';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DataIntegration from './components/DataIntergration';
@@ -42,14 +44,24 @@ import Terms from './components/Terms';
 import VerifyAccount from './components/VerifyAccount';
 import Verified from './components/Verified';
 import VerificationError from './components/VerificationError';
+import PublicExplore from './components/PublicExplore';
+import LoggedInExplore from './components/LoggedInExplore';
+import PublicMapDetail from './components/PublicMapDetail';
+import LoggedInMapDetail from './components/LoggedInMapDetail';
 
 library.add(fas);
 
 function App() {
+
+  const { authToken, profile } = useContext(UserContext);
+
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+
+  const isUserLoggedIn = !!authToken && !!profile;
+
   return (
-    <SidebarProvider>
-    <UserProvider>
+
     <Router>
     <ScrollToTop />
       <Routes>
@@ -87,23 +99,24 @@ function App() {
           }
         />
 
-        <Route
-          path="/map/:id"
-          element={
-            <MapDetail
-              
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          }
-        />
+      <Route
+        path="/map/:id"
+        element={
+          isUserLoggedIn
+            ? <LoggedInMapDetail />
+            : <PublicMapDetail />
+        }
+      />
 
-        <Route 
-          path="/explore" 
-          element={<Explore
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />} />
+
+          <Route path="/explore" element={
+            isUserLoggedIn ? 
+              <LoggedInExplore
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}/> : 
+                <PublicExplore />
+          } />
+
 
         <Route
           path="/your-maps"
@@ -210,8 +223,7 @@ function App() {
       </Routes>
 
     </Router>
-    </UserProvider>
-    </SidebarProvider>
+
   );
 }
 

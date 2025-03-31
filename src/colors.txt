@@ -5,7 +5,7 @@ Purple: #80346b
 White: #ffffff
 
 Orange: #e6604d
-Red: #c63c48
+Red: #d24b4c
 Purple: #7e3168
 Green: #309d81
 Blue: #79a6b7

@@ -10,7 +10,7 @@
 /* Main content styling */
 .mainContent {
   flex: 1;
-  padding: 20px;
+  padding: 0px 20px;
   margin-left: 250px; /* Sidebar width when expanded */
   transition: margin-left 0.3s ease;
 }
@@ -100,7 +100,7 @@
 
 .typeIcon {
   font-size: 20px;
-  color: #80a0b0;
+  color: #79a6b7;
 }
 
 /* Profile picture */

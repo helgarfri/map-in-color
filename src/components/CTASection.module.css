@@ -1,5 +1,5 @@
 .ctaSection {
-    background-color: #80a0b0;
+    background-color: #79a6b7;
     width: 100%;
     /* If you want it full-height, use: height: 100vh; */
     /* Otherwise, a comfortable height can be used, e.g.: */
@@ -37,7 +37,7 @@
   .ctaButton {
     display: inline-block;
     padding: 14px 28px;
-    background-color: #c4564d; /* Contrasting button color */
+    background-color: #d24b4c; /* Contrasting button color */
     color: #ffffff;
     border-radius: 4px;
     text-decoration: none;

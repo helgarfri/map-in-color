@@ -12,7 +12,7 @@
 /* Main content styling */
 .myMapsContent {
   flex: 1;
-  padding: 20px;
+  padding: 0px 20px;
   margin-left: 250px; /* Sidebar width when expanded */
 }
 
@@ -182,7 +182,7 @@
 
 /* View Button: Blue/Gray */
 .viewButton {
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
 }
 
@@ -202,7 +202,7 @@
 
 /* Delete Button: Red/Orange */
 .deleteButton {
-  background-color: #c4564d;
+  background-color: #d24b4c;
   color: #fff;
 }
 
@@ -241,7 +241,7 @@
 }
 
 .deleteButtonModal {
-  background-color: #c4564d;
+  background-color: #d24b4c;
   color: #fff;
   padding: 8px 16px;
   border: none;

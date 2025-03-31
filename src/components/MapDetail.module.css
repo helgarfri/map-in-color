@@ -3,23 +3,20 @@
 /* Container around the sidebar & main content */
 .mapDetailContainer {
   display: flex;
-  margin-top: 60px;
   background-color: #f7f7f7;
   min-height: 1000px;
+  margin: 0 auto;
+
 }
 
 /* The main content area next to the sidebar */
 .mapDetailContent {
   flex: 1;
   padding: 20px;
-  margin-left: 250px; /* expanded sidebar width */
   display: flex;
   flex-direction: column;
 }
 
-.contentCollapsed {
-  margin-left: 70px; /* collapsed sidebar width */
-}
 
 /* ------------------------- */
 /* MAP DISPLAY AREA          */
@@ -250,7 +247,7 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .mapTag:hover {
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
 }
 
@@ -293,7 +290,7 @@
 }
 .commentTextarea:focus {
   outline: none;
-  border-color: #80a0b0;
+  border-color: #79a6b7;
 }
 .commentButton {
   margin-left: 10px;
@@ -397,7 +394,7 @@ a {
   background-color: #e0e0e0;
 }
 .reactionButton.active {
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
 }
 .reactionButtonSmall {
@@ -424,7 +421,7 @@ a {
 .replyButton {
   background: none;
   border: none;
-  color: #80a0b0;
+  color: #79a6b7;
   cursor: pointer;
   margin-left: 10px;
 }
@@ -449,7 +446,7 @@ a {
 }
 .replyTextarea:focus {
   outline: none;
-  border-color: #80a0b0;
+  border-color: #79a6b7;
 }
 .replyButtonSubmit {
   align-self: flex-end;
@@ -457,7 +454,7 @@ a {
   padding: 6px 12px;
   font-size: 14px;
   border: none;
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
   border-radius: 8px;
   cursor: pointer;
@@ -576,7 +573,7 @@ a {
 .toggleRepliesButton {
   background: none;
   border: none;
-  color: #80a0b0;
+  color: #79a6b7;
   cursor: pointer;
   margin-left: 65px;
   margin-bottom: 10px;
@@ -588,7 +585,7 @@ a {
 
 /* Edit/Delete Buttons */
 .editButton {
-  background: #80a0b0;
+  background: #79a6b7;
   color: #fff;
   border: none;
   padding: 6px 10px;
@@ -610,7 +607,7 @@ a {
 .deleteButton:hover {
   text-decoration: underline;
 }
-
+/* Modal Overlay: covers full screen with a semi-transparent backdrop */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -624,21 +621,100 @@ a {
   z-index: 9999;
 }
 
+/* Modal Content Container */
 .modalContent {
+  position: relative; /* So the close button can be positioned absolutely */
+  display: flex;
+  flex-direction: row;
   background: #fff;
-  padding: 2rem;              /* Increased padding for a roomier layout */
   border-radius: 8px;
-  max-width: 600px;           /* Increased max-width */
-  width: 90%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-width: 900px; /* Wider max-width for a more spacious layout */
+  width: 100%;
+  overflow: hidden; /* Ensures no content bleeds outside corners */
 }
 
-/* Header for profile picture & username */
-.modalHeader {
+
+/* Close (X) Button */
+.modalCloseButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Left Side */
+.modalLeft {
+  flex: 1;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* Title */
+.modalTitle {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+/* Subtitle */
+.modalSubtitle {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.4;
+}
+
+/* Main CTA Button */
+.signupButton {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  /* Example color palette – tweak to match your brand */
+  background-color: #d24b4c;
+  color: #fff;
   margin-bottom: 1rem;
 }
+
+/* Login prompt text */
+.loginPrompt {
+  font-size: 0.95rem;
+}
+
+.loginLink {
+  color: #79a6b7;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Right Side: Image Container */
+.modalRight {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9f9f9; /* Subtle background for contrast */
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Image */
+.modalImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
 
 .modalProfilePicture {
   width: 50px;
@@ -685,7 +761,7 @@ a {
 }
 
 .modalActions button:first-child {
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
 }
 
@@ -693,6 +769,58 @@ a {
   background-color: #ccc;
   color: #333;
 }
+
+.referenceItem a {
+  display: inline-block;       /* so we can constrain/wrap it */
+  max-width: 100%;             /* so it never exceeds parent width */
+  word-wrap: break-word;       /* older name for line-breaking long words */
+  overflow-wrap: break-word;   /* modern name for line-breaking */
+  white-space: normal;         /* ensure the text can wrap */
+}
+
+
+
+@media (max-width: 600px) {
+  .modalContent {
+    flex-direction: column;
+    width: 100%;       /* Let it be full width */
+    margin: 0px;    /* Center it */
+    padding: 1rem;     /* Slightly reduce padding to fit on phone screens */
+    
+  }
+
+  /* (If you want smaller text) */
+  .modalTitle {
+    font-size: 1.4rem;
+  }
+  .modalSubtitle {
+    font-size: 1rem;
+  }
+
+  .modalContent {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  .mapDetailContent {
+    padding: 0px;
+  }
+  
+}
+@media (max-width: 600px) {
+  .modalRight {
+    margin-top: 1rem; /* so it doesn’t clash with the text above */
+  }
+  .modalImage {
+    max-width: 100%;
+    height: auto;
+  }
+
+
+}
+
 
 .loadingContainer,
 .successContainer {
@@ -869,10 +997,7 @@ a {
     margin-left: 0;
   }
 
-  .mapDetailContent {
-    padding: 5px;
-  }
-  
+
 }
 
 /* 4) Very small phones (~400px) for further tweaks */

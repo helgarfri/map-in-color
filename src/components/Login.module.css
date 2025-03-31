@@ -25,7 +25,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom right, #80a0b0, #80a0b0);
+  background: linear-gradient(to bottom right, #79a6b7, #79a6b7);
 }
 
 /* Container to hold the logo and brand text side by side */
@@ -100,7 +100,7 @@
 /* Button styling */
 .loginButton {
   padding: 14px;
-  background-color: #80a0b0;
+  background-color: #79a6b7;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -121,7 +121,7 @@
 }
 
 .loginBox a {
-  color: #80a0b0;
+  color: #79a6b7;
   text-decoration: none;
 }
 
@@ -152,7 +152,7 @@
 
 .spinner {
   border: 8px solid #f3f3f3;
-  border-top: 8px solid #80a0b0;
+  border-top: 8px solid #79a6b7;
   border-radius: 50%;
   width: 30px;
   height: 30px;

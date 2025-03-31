@@ -1,5 +1,5 @@
 .header {
-    background-color: #80a0b0; /* Blue/Gray tone */
+    background-color: #79a6b7; /* Blue/Gray tone */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -44,7 +44,7 @@
   }
   
   .loginButton {
-    background-color: #c4564d; /* Red/Orange */
+    background-color: #d24b4c; /* Red/Orange */
     color: #ffffff;
     border: none;
     border-radius: 4px;
@@ -99,17 +99,17 @@
   }
 
   .logo {
-      width: 60px;
-      height: 60px;
+      width: 35px;
+      height: 35px;
   }
 
   .navLink {
-      font-size: 1.1rem;
+      font-size: 0.8rem;
   }
 
   .loginButton {
-    padding: 5px 15px;
-    font-size: 1rem;
+    padding: 3px 10px;
+    font-size: 0.8rem;
   }
 
   .nav {

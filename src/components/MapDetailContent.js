@@ -35,7 +35,7 @@ import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
 
 
-export default function MapDetail() {
+export default function MapDetailContent() {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -60,6 +60,8 @@ export default function MapDetail() {
   const [isPostingReply, setIsPostingReply] = useState(false);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
 useEffect(() => {
@@ -203,10 +205,10 @@ useEffect(() => {
   const handleSave = async () => {
     if (!is_public) return;
     if (!isUserLoggedIn) {
-      navigate('/login');
-      return;
-    }
-  
+        setShowLoginModal(true);
+        return;
+      }
+      
     try {
       let response;
       if (isSaved) {
@@ -238,9 +240,9 @@ useEffect(() => {
     if (!newComment.trim()) return;
   
     if (!isUserLoggedIn) {
-      navigate('/login');
-      return;
-    }
+        setShowLoginModal(true);
+        return;
+      }
   
     // 1) Turn on the loading state
     setIsPostingComment(true);
@@ -267,9 +269,9 @@ useEffect(() => {
     if (!replyContent.trim()) return;
   
     if (!isUserLoggedIn) {
-      navigate('/login');
-      return;
-    }
+        setShowLoginModal(true);
+        return;
+      }
   
     // 1) Indicate we are posting a reply
     setIsPostingReply(true);
@@ -304,11 +306,10 @@ useEffect(() => {
 // Update handleLike and handleDislike functions
 
 function handleLike(comment_id, currentReaction) {
-  if (!isUserLoggedIn) {
-    navigate('/login');
-    return;
-  }
-
+    if (!isUserLoggedIn) {
+        setShowLoginModal(true);
+        return;
+      }
   // If user currently has 'like', next click => remove reaction (null)
   const desiredReaction = currentReaction === 'like' ? null : 'like';
   
@@ -329,11 +330,10 @@ function handleLike(comment_id, currentReaction) {
 }
 
 function handleDislike(comment_id, currentReaction) {
-  if (!isUserLoggedIn) {
-    navigate('/login');
-    return;
-  }
-
+    if (!isUserLoggedIn) {
+        setShowLoginModal(true);
+        return;
+      }
   // If user currently 'dislike', clicking "Dislike" => remove reaction
   const desiredReaction = currentReaction === 'dislike' ? null : 'dislike';
 
@@ -852,12 +852,7 @@ if (fetchError) {
     <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={styles.mapDetailContent}>
-        <Header
-          notifications={notifications.slice(0, 6)}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={handleMarkAllAsRead}
-          profile_picture={profile?.profile_picture}
-        />
+  
         <div className={styles.errorBox}>
           <h2>Map not available</h2>
           <p>We couldn’t load this map right now. Please try again later.</p>
@@ -875,7 +870,7 @@ if (isLoading) {
       <div className={styles.mapDetailContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={styles.mapDetailContent}>
- 
+   
           <div className={styles.privateMapBox}>
             <FaLock className={styles.lockIcon} />
             <h2>This map is private</h2>
@@ -891,7 +886,7 @@ if (isLoading) {
     <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={styles.mapDetailContent}>
-    
+  
       </div>
     </div>
   );
@@ -909,12 +904,7 @@ if (mapData.is_public === false && !mapData.isOwner) {
     <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={styles.mapDetailContent}>
-    '    <Header
-          notifications={notifications.slice(0, 6)}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={handleMarkAllAsRead}
-          profile_picture={profile?.profile_picture}
-        />'
+   
         <div className={styles.privateMapBox}>
           <FaLock className={styles.lockIcon} />
           <h2>This map is private</h2>
@@ -937,7 +927,15 @@ if (mapData.is_public === false && !mapData.isOwner) {
           isCollapsed ? styles.contentCollapsed : ''
         }`}
       >
-
+        {/* <Header
+          title={`${mapData?.user?.username} / ${mapData.title || 'Untitled Map'}`}
+          notifications={notifications.slice(0, 6)}
+          onNotificationClick={handleNotificationClick}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          profile_picture={profile?.profile_picture}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        /> */}
   
         {/* Map Display */}
         <div
@@ -988,454 +986,559 @@ if (mapData.is_public === false && !mapData.isOwner) {
           />
         )}
   
-        {/*
-          DETAILS + STATS + DISCUSSION
-          We'll have a container .detailsAndStats that has:
-            1) .leftContent
-                 - .mapDetails (top)
-                 - .discussionSection (below)
-            2) .mapStats
-          Then on phone, we reorder so .mapStats comes above the .discussionSection.
-        */}
-        <div className={styles.detailsAndStats}>
-          {/* LEFT column: Map Details + Discussion */}
-          <div className={styles.leftContent}>
-            {/* MAP DETAILS */}
-            <div className={styles.mapDetails}>
-              {/* Title / Save / Download */}
-              <div className={styles.titleSection}>
-                <h1>
-                  {mapData.title || 'Untitled Map'}
-                  {isOwner && (
-                    <span className={styles.visibilityTag}>
-                      {is_public ? 'Public' : 'Private'}
-                    </span>
-                  )}
-                </h1>
-  
-                {/* Edit Button for Owner */}
-                {isOwner && (
-                  <button className={styles.editButton} onClick={handleEdit}>
-                    Edit Map
-                  </button>
+{/*
+  DETAILS + STATS + DISCUSSION
+  We'll have a container .detailsAndStats that has:
+    1) .leftContent
+         - .mapDetails (top)
+         - .discussionSection (below)
+    2) .mapStats
+  On phone, we reorder so .mapStats comes above the .discussionSection.
+*/}
+<div className={styles.detailsAndStats}>
+  {/* LEFT column: Map Details + Discussion */}
+  <div className={styles.leftContent}>
+    {/* MAP DETAILS */}
+    <div className={styles.mapDetails}>
+      {/* Title / Save / Download */}
+      <div className={styles.titleSection}>
+        <h1>
+          {mapData.title || 'Untitled Map'}
+          {isOwner && (
+            <span className={styles.visibilityTag}>
+              {is_public ? 'Public' : 'Private'}
+            </span>
+          )}
+        </h1>
+
+        {/* If you’re the map owner, show Edit button */}
+        {isOwner && (
+          <button className={styles.editButton} onClick={handleEdit}>
+            Edit Map
+          </button>
+        )}
+
+        {/* Show star & download if map is public or you are the owner */}
+        {(is_public || isOwner) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Star/save button always visible. If not logged in => modal */}
+            {is_public && (
+              <button
+                className={styles.saveButton}
+                onClick={() => {
+                  if (!isUserLoggedIn) {
+                    setShowLoginModal(true);
+                    return;
+                  }
+                  handleSave(); // if logged in, do normal logic
+                }}
+              >
+                {isSaved ? '★' : '☆'} {save_count}
+              </button>
+            )}
+
+            {/* Download is always allowed */}
+            <button className={styles.saveButton} onClick={handleDownload}>
+              <BiDownload /> {download_count}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {timeAgo && <p className={styles.created_at}>Created {timeAgo}</p>}
+
+      {/* Creator Info */}
+      <div className={styles.creatorInfo}>
+        {/* If user is not logged in, clicking profile => show modal */}
+        {isUserLoggedIn ? (
+          <Link
+            to={`/profile/${mapData?.user?.username || 'unknown'}`}
+            className={styles.creatorProfileLink}
+          >
+            <img
+              src={
+                mapData.user?.profile_picture
+                  ? mapData.user.profile_picture
+                  : '/default-profile-pic.jpg'
+              }
+              alt={`${
+                mapData.user?.first_name ||
+                mapData?.user?.username ||
+                'unknown'
+              }'s profile`}
+              className={styles.creatorProfilePicture}
+            />
+            <span className={styles.creatorName}>
+              {mapData.user.first_name || ''} {mapData.user.last_name || ''}
+            </span>
+          </Link>
+        ) : (
+          <div
+            className={styles.creatorProfileLink}
+            style={{ cursor: 'pointer' }}
+            onClick={() => setShowLoginModal(true)}
+          >
+            <img
+              src={
+                mapData.user?.profile_picture
+                  ? mapData.user.profile_picture
+                  : '/default-profile-pic.jpg'
+              }
+              alt="Creator's profile"
+              className={styles.creatorProfilePicture}
+            />
+            <span className={styles.creatorName}>
+              {mapData.user.first_name || ''} {mapData.user.last_name || ''}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <p className={styles.description}>{mapData.description}</p>
+
+      {/* Tags */}
+      <div className={styles.tags}>
+        {mapData.tags &&
+          mapData.tags.map((tag, index) => (
+            <span
+              key={index}
+              className={styles.mapTag}
+              onClick={() =>
+                navigate(`/explore?tags=${encodeURIComponent(tag.toLowerCase())}`)
+              }
+              title={`See all maps with the tag "${tag}"`}
+            >
+              {tag}
+            </span>
+          ))}
+      </div>
+
+      {/* References */}
+      {mapData.sources && mapData.sources.length > 0 && (
+        <div className={styles.sources}>
+          <h3>References</h3>
+          <ol className={styles.referencesList}>
+            {mapData.sources.map((ref, idx) => (
+              <li key={idx} className={styles.referenceItem}>
+                {ref.sourceName || 'Unknown'}
+                {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
+                {ref.publicator ? `. ${ref.publicator}` : ''}
+
+                {ref.url && (
+                  <>
+                    {' '}
+                    - [
+                    <a href={ref.url} target="_blank" rel="noopener noreferrer">
+                      {ref.url}
+                    </a>
+                    ]
+                  </>
                 )}
-  
-           
-  {(is_public || isOwner) && (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      {is_public && (
-        <button className={styles.saveButton} onClick={handleSave}>
-          {isSaved ? '★' : '☆'} {save_count}
-        </button>
-      )}
-      <button className={styles.saveButton} onClick={handleDownload}>
-        <BiDownload /> {download_count}
-      </button>
-    </div>
-  )}
+                {ref.notes && (
+                  <div className={styles.referenceNotes}>
+                    Notes: {ref.notes}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
-  
-              {timeAgo && (
-                <p className={styles.created_at}>Created {timeAgo}</p>
-              )}
-                
-              {/* Creator Info */}
-              <div className={styles.creatorInfo}>
-                <Link
-                  to={`/profile/${mapData?.user?.username || 'unknown'}`}
-                  className={styles.creatorProfileLink}
-                >
-                  <img
-                    src={
-                      mapData.user?.profile_picture
-                        ? mapData.user.profile_picture
-                        : '/default-profile-pic.jpg'
-                    }
-                    alt={`${
-                      mapData.user?.first_name ||
-                      mapData?.user?.username ||
-                      'unknown'
-                    }'s profile`}
-                    className={styles.creatorProfilePicture}
-                  />
-                  <span className={styles.creatorName}>
-                    {mapData.user.first_name || ''} {mapData.user.last_name || ''}
-                  </span>
-                </Link>
-              </div>
-  
-              <p className={styles.description}>{mapData.description}</p>
-  
-              {/* Tags */}
-              <div className={styles.tags}>
-                {mapData.tags &&
-                  mapData.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className={styles.mapTag}
-                      onClick={() =>
-                        navigate(`/explore?tags=${encodeURIComponent(tag.toLowerCase())}`)
-                      }
-                      title={`See all maps with the tag "${tag}"`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-              </div>
-  
-              {/* References */}
-              {mapData.sources && mapData.sources.length > 0 && (
-                <div className={styles.sources}>
-                  <h3>References</h3>
-                  <ol className={styles.referencesList}>
-                    {mapData.sources.map((ref, idx) => (
-                      <li key={idx} className={styles.referenceItem}>
-                        {ref.sourceName || 'Unknown'}
-                        {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
-                        {ref.publicator ? `. ${ref.publicator}` : ''}
-  
-                        {ref.url && (
-                          <>
-                            {' '}
-                            - [
-                            <a href={ref.url} target="_blank" rel="noopener noreferrer">
-                              {ref.url}
-                            </a>
-                            ]
-                          </>
-                        )}
-                        {ref.notes && (
-                          <div className={styles.referenceNotes}>
-                            Notes: {ref.notes}
+      )}
+    </div>
+
+    {/* DISCUSSION SECTION (below map details on desktop) */}
+    <div className={styles.discussionSection} ref={discussionRef}>
+      <h2>Discussion</h2>
+
+      {/* Only show the comment form if map is public AND user is logged in. */}
+      {(is_public && isUserLoggedIn) && (
+        <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Add a comment..."
+            required
+            className={styles.commentTextarea}
+          />
+          <button
+            type="submit"
+            className={styles.commentButton}
+            disabled={isPostingComment}
+          >
+            Post
+          </button>
+        </form>
+      )}
+
+      {/* Show existing comments if the map is public (even if user is not logged in) */}
+      {is_public ? (
+        <>
+          {comments.length > 0 ? (
+            <ul className={styles.commentsList}>
+              {comments.map((comment) => {
+                const areRepliesExpanded = expandedReplies[comment.id] || false;
+                const repliesArray = comment.Replies || [];
+                const totalReplies = repliesArray.length;
+                const repliesToShow = areRepliesExpanded
+                  ? repliesArray
+                  : repliesArray.slice(0, 3);
+
+                return (
+                  <li key={comment.id} className={styles.commentItem}>
+                    <div className={styles.commentHeader}>
+                      {/* Profile link => if not logged in => show modal */}
+                      {comment.user && comment.user.profile_picture ? (
+                        isUserLoggedIn ? (
+                          <Link
+                            to={`/profile/${comment?.user?.username || 'unknown'}`}
+                          >
+                            <img
+                              src={
+                                comment.user?.profile_picture ||
+                                '/default-profile-pic.jpg'
+                              }
+                              alt={`${comment?.user?.username || 'unknown'}'s profile`}
+                              className={styles.commentProfilePicture}
+                            />
+                          </Link>
+                        ) : (
+                          <div
+                            className={styles.commentProfilePicture}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setShowLoginModal(true)}
+                          >
+                            <img
+                              src={
+                                comment.user?.profile_picture ||
+                                '/default-profile-pic.jpg'
+                              }
+                              alt="Profile"
+                              className={styles.commentProfilePicture}
+                            />
                           </div>
+                        )
+                      ) : (
+                        <div className={styles.commentPlaceholder}></div>
+                      )}
+
+                      <div className={styles.commentContentWrapper}>
+                        <div className={styles.commentInfo}>
+                          {/* Username link => if not logged in => modal */}
+                          {isUserLoggedIn ? (
+                            <Link
+                              to={`/profile/${comment?.user?.username || 'unknown'}`}
+                              className={styles.commentAuthorLink}
+                            >
+                              <span className={styles.commentAuthor}>
+                                {comment.user.username || 'Unknown'}
+                              </span>
+                            </Link>
+                          ) : (
+                            <span
+                              className={styles.commentAuthor}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => setShowLoginModal(true)}
+                            >
+                              {comment.user.username || 'Unknown'}
+                            </span>
+                          )}
+
+                          <span className={styles.commentTime}>
+                            {formatDistanceToNow(new Date(comment.created_at), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        </div>
+
+                        <p className={styles.commentContent}>{comment.content}</p>
+
+                        <div className={styles.commentActions}>
+                          {/* Like is visible. If not logged in => show modal instead of handleLike */}
+                          <button
+                            className={`${styles.reactionButton} ${
+                              comment.userReaction === 'like' ? styles.active : ''
+                            }`}
+                            onClick={() => {
+                              if (!isUserLoggedIn) {
+                                setShowLoginModal(true);
+                                return;
+                              }
+                              handleLike(comment.id, comment.userReaction);
+                            }}
+                          >
+                            {/* Like icon */}
+                            <svg
+                              className={styles.icon}
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+                            </svg>
+                            <span>{comment.like_count}</span>
+                          </button>
+
+                          {/* Dislike is visible. If not logged in => show modal instead of handleDislike */}
+                          <button
+                            className={`${styles.reactionButton} ${
+                              comment.userReaction === 'dislike' ? styles.active : ''
+                            }`}
+                            onClick={() => {
+                              if (!isUserLoggedIn) {
+                                setShowLoginModal(true);
+                                return;
+                              }
+                              handleDislike(comment.id, comment.userReaction);
+                            }}
+                          >
+                            {/* Dislike icon */}
+                            <svg
+                              className={styles.icon}
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                            </svg>
+                            <span>{comment.dislike_count}</span>
+                          </button>
+
+                          {/* Reply button => hidden if not logged in */}
+                          {isUserLoggedIn && (
+                            <button
+                              className={styles.reactionButton}
+                              onClick={() =>
+                                setReplyingTo({ comment_id: comment.id, content: '' })
+                              }
+                            >
+                              <svg
+                                className={styles.icon}
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
+                              </svg>
+                              <span>Reply</span>
+                            </button>
+                          )}
+
+                          {/* Delete => only if user is the comment owner (and presumably isUserLoggedIn) */}
+                          {comment.user?.username === profile?.username && (
+                            <button
+                              className={styles.reactionButton}
+                              onClick={() => handleDeleteCommentWithConfirm(comment.id)}
+                            >
+                              <svg
+                                className={styles.icon}
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                              </svg>
+                              <span>Delete</span>
+                            </button>
+                          )}
+
+                          {/* Report => hidden if not logged in */}
+                          {isUserLoggedIn && comment.user?.username !== profile?.username && (
+                            <button
+                              className={styles.reactionButton}
+                              onClick={() => {
+                                setReportTargetComment(comment.id);
+                                setShowReportModal(true);
+                              }}
+                            >
+                              <svg
+                                className={styles.icon}
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                              </svg>
+                              <span>Report</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* If replying */}
+                        {replyingTo && replyingTo.comment_id === comment.id && (
+                          <form
+                            onSubmit={(e) => handleReplySubmit(e, comment.id)}
+                            className={styles.replyForm}
+                          >
+                            <textarea
+                              value={replyingTo.content}
+                              onChange={(e) =>
+                                setReplyingTo({
+                                  ...replyingTo,
+                                  content: e.target.value,
+                                })
+                              }
+                              placeholder="Write a reply..."
+                              required
+                              className={styles.replyTextarea}
+                            />
+                            <div className={styles.replyActions}>
+                              <button
+                                type="button"
+                                className={styles.replyCancelButton}
+                                onClick={handleReplyCancel}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                className={styles.replyButtonSubmit}
+                                disabled={isPostingReply}
+                              >
+                                Post
+                              </button>
+                            </div>
+                          </form>
                         )}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-            </div>
-  
-            {/* DISCUSSION SECTION (below map details on desktop) */}
-            <div className={styles.discussionSection} ref={discussionRef}>
-              <h2>Discussion</h2>
-              {is_public ? (
-                <>
-                  <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Add a comment..."
-                      required
-                      className={styles.commentTextarea}
-                    />
-                    <button
-                      type="submit"
-                      className={styles.commentButton}
-                      disabled={isPostingComment}
-                    >
-                      Post
-                    </button>
-                  </form>
-  
-                  {comments.length > 0 ? (
-                    <ul className={styles.commentsList}>
-                      {comments.map((comment) => {
-                        const areRepliesExpanded = expandedReplies[comment.id] || false;
-                        const repliesArray = comment.Replies || [];
-                        const totalReplies = repliesArray.length;
-                        const repliesToShow = areRepliesExpanded
-                          ? repliesArray
-                          : repliesArray.slice(0, 3);
-  
-                        return (
-                          <li key={comment.id} className={styles.commentItem}>
-                            <div className={styles.commentHeader}>
-                              {comment.user && comment.user.profile_picture ? (
-                                <Link
-                                  to={`/profile/${comment?.user?.username || 'unknown'}`}
-                                >
-                                  <img
-                                    src={
-                                      comment.user?.profile_picture ||
-                                      '/default-profile-pic.jpg'
-                                    }
-                                    alt={`${comment?.user?.username || 'unknown'}'s profile`}
-                                    className={styles.commentProfilePicture}
-                                  />
-                                </Link>
-                              ) : (
-                                <div className={styles.commentPlaceholder}></div>
-                              )}
-  
-                              <div className={styles.commentContentWrapper}>
-                                <div className={styles.commentInfo}>
-                                  <Link
-                                    to={`/profile/${comment?.user?.username || 'unknown'}`}
-                                    className={styles.commentAuthorLink}
-                                  >
-                                    <span className={styles.commentAuthor}>
-                                      {comment.user.username || 'Unknown'}
-                                    </span>
-                                  </Link>
-                                  <span className={styles.commentTime}>
-                                    {formatDistanceToNow(new Date(comment.created_at), {
-                                      addSuffix: true,
-                                    })}
-                                  </span>
-                                </div>
-  
-                                <p className={styles.commentContent}>{comment.content}</p>
-  
-                                <div className={styles.commentActions}>
-                                  <button
-                                    className={`${styles.reactionButton} ${
-                                      comment.userReaction === 'like' ? styles.active : ''
-                                    }`}
-                                    onClick={() =>
-                                      handleLike(comment.id, comment.userReaction)
-                                    }
-                                  >
-                                    {/* Like icon */}
-                                    <svg
-                                      className={styles.icon}
-                                      viewBox="0 0 24 24"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                                    </svg>
-                                    <span>{comment.like_count}</span>
-                                  </button>
-  
-                                  <button
-                                    className={`${styles.reactionButton} ${
-                                      comment.userReaction === 'dislike'
-                                        ? styles.active
-                                        : ''
-                                    }`}
-                                    onClick={() =>
-                                      handleDislike(comment.id, comment.userReaction)
-                                    }
-                                  >
-                                    {/* Dislike icon */}
-                                    <svg
-                                      className={styles.icon}
-                                      viewBox="0 0 24 24"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-                                    </svg>
-                                    <span>{comment.dislike_count}</span>
-                                  </button>
-  
-                                  <button
-                                    className={styles.reactionButton}
-                                    onClick={() =>
-                                      setReplyingTo({ comment_id: comment.id, content: '' })
-                                    }
-                                  >
-                                    <svg
-                                      className={styles.icon}
-                                      viewBox="0 0 24 24"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z"/>
-                                    </svg>
-                                    <span>Reply</span>
-                                  </button>
 
-                                  {(
-                                    (comment.user && comment.user.username === profile?.username)) && (
-                                      <button
-                                      className={styles.reactionButton}
-                                      onClick={() => handleDeleteCommentWithConfirm(comment.id)}
-                                    >
-                                      <svg
-                                        className={styles.icon}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
+                        {/* Replies */}
+                        {repliesArray.length > 0 && (
+                          <ul className={styles.repliesList}>
+                            {repliesToShow.map((reply) => (
+                              <li key={reply.id} className={styles.replyItem}>
+                                <div className={styles.commentHeader}>
+                                  {reply.user?.profile_picture ? (
+                                    isUserLoggedIn ? (
+                                      <Link to={`/profile/${reply.user.username}`}>
+                                        <img
+                                          src={
+                                            reply.user?.profile_picture ||
+                                            '/default-profile-pic.jpg'
+                                          }
+                                          alt={`${reply.user.username}'s profile`}
+                                          className={styles.commentProfilePicture}
+                                        />
+                                      </Link>
+                                    ) : (
+                                      <div
+                                        className={styles.commentProfilePicture}
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => setShowLoginModal(true)}
                                       >
-                                        <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-                                      </svg>
-                                      <span>Delete</span>
-                                    </button>
-                                    
-                                  )}
-                                 {comment.user?.username !== profile?.username && (
-                                    <button
-                                      className={styles.reactionButton}
-                                      onClick={() => {
-                                        if (!isUserLoggedIn) {
-                                          navigate('/login');
-                                          return;
-                                        }
-                                        setReportTargetComment(comment.id);
-                                        setShowReportModal(true);
-                                      }}
-                                    >
-                                      <svg
-                                        className={styles.icon}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                      >
-                                        <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
-                                      </svg>
-                                      <span>Report</span>
-                                    </button>
+                                        <img
+                                          src={
+                                            reply.user?.profile_picture ||
+                                            '/default-profile-pic.jpg'
+                                          }
+                                          alt="Profile"
+                                          className={styles.commentProfilePicture}
+                                        />
+                                      </div>
+                                    )
+                                  ) : (
+                                    <div className={styles.commentPlaceholder}></div>
                                   )}
 
-
-
-
-                                </div>
-  
-                                {/* If replying */}
-                                {replyingTo && replyingTo.comment_id === comment.id && (
-                                  <form
-                                    onSubmit={(e) => handleReplySubmit(e, comment.id)}
-                                    className={styles.replyForm}
-                                  >
-                                    <textarea
-                                      value={replyingTo.content}
-                                      onChange={(e) =>
-                                        setReplyingTo({
-                                          ...replyingTo,
-                                          content: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Write a reply..."
-                                      required
-                                      className={styles.replyTextarea}
-                                    />
-                                    <div className={styles.replyActions}>
-                                      <button
-                                        type="button"
-                                        className={styles.replyCancelButton}
-                                        onClick={handleReplyCancel}
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                          type="submit"
-                                          className={styles.replyButtonSubmit}
-                                          disabled={isPostingReply} // Add this
+                                  <div className={styles.commentContentWrapper}>
+                                    <div className={styles.commentInfo}>
+                                      {isUserLoggedIn ? (
+                                        <Link
+                                          to={`/profile/${
+                                            reply.user?.username || 'unknown'
+                                          }`}
+                                          className={styles.commentAuthorLink}
                                         >
-                                          Post 
-                                        </button>
+                                          <span className={styles.commentAuthor}>
+                                            {reply.user?.username || 'Unknown'}
+                                          </span>
+                                        </Link>
+                                      ) : (
+                                        <span
+                                          className={styles.commentAuthor}
+                                          style={{ cursor: 'pointer' }}
+                                          onClick={() => setShowLoginModal(true)}
+                                        >
+                                          {reply.user?.username || 'Unknown'}
+                                        </span>
+                                      )}
 
+                                      <span className={styles.commentTime}>
+                                        {formatDistanceToNow(
+                                          new Date(reply.created_at),
+                                          { addSuffix: true }
+                                        )}
+                                      </span>
                                     </div>
-                                  </form>
-                                )}
-  
-                                {/* Replies */}
-                                {repliesArray.length > 0 && (
-                                  <ul className={styles.repliesList}>
-                                    {repliesToShow.map((reply) => (
-                                      <li key={reply.id} className={styles.replyItem}>
-                                        <div className={styles.commentHeader}>
-                                          {reply.user?.profile_picture ? (
-                                            <Link to={`/profile/${reply.user.username}`}>
-                                              <img
-                                                src={
-                                                  reply.user?.profile_picture ||
-                                                  '/default-profile-pic.jpg'
-                                                }
-                                                alt={`${reply.user.username}'s profile`}
-                                                className={styles.commentProfilePicture}
-                                              />
-                                            </Link>
-                                          ) : (
-                                            <div className={styles.commentPlaceholder}></div>
-                                          )}
-  
-                                          <div className={styles.commentContentWrapper}>
-                                            <div className={styles.commentInfo}>
-                                              <Link
-                                                to={`/profile/${
-                                                  reply.user?.username || 'unknown'
-                                                }`}
-                                                className={styles.commentAuthorLink}
-                                              >
-                                                <span className={styles.commentAuthor}>
-                                                  {reply.user?.username || 'Unknown'}
-                                                </span>
-                                              </Link>
-                                              <span className={styles.commentTime}>
-                                                {formatDistanceToNow(
-                                                  new Date(reply.created_at),
-                                                  { addSuffix: true }
-                                                )}
-                                              </span>
-                                            </div>
-  
-                                            <p className={styles.commentContent}>
-                                              {reply.content}
-                                            </p>
-  
-                                            <div className={styles.commentActions}>
-                                              <button
-                                                className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-                                                  reply.userReaction === 'like'
-                                                    ? styles.active
-                                                    : ''
-                                                }`}
-                                                onClick={() => handleLike(reply.id)}
-                                              >
-                                                <svg
-                                                  className={styles.iconSmall}
-                                                  viewBox="0 0 24 24"
-                                                  fill="currentColor"
-                                                >
-                                                  <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                                                </svg>
-                                                <span>{reply.like_count}</span>
-                                              </button>
-  
-                                              <button
-                                                className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-                                                  reply.userReaction === 'dislike'
-                                                    ? styles.active
-                                                    : ''
-                                                }`}
-                                                onClick={() => handleDislike(reply.id)}
-                                              >
-                                                <svg
-                                                  className={styles.iconSmall}
-                                                  viewBox="0 0 24 24"
-                                                  fill="currentColor"
-                                                >
-                                                  <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-                                                </svg>
-                                                <span>{reply.dislike_count}</span>
-                                              </button>
-  
-                                              {profile?.username === reply.user?.username && (
-                                                <button
-                                                  className={styles.reactionButton}
-                                                  onClick={() => handleDeleteCommentWithConfirm(reply.id)}
-                                                >
-                                                  <svg
-                                                    className={styles.icon}
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                  >
-                                                    <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-                                                  </svg>
-                                                  <span>Delete</span>
-                                                </button>
 
-                                              )}
-                                    {reply.user?.username !== profile?.username && (
+                                    <p className={styles.commentContent}>{reply.content}</p>
+
+                                    <div className={styles.commentActions}>
+                                      {/* Like/dislike => visible to all, but modal if not logged in */}
+                                      <button
+                                        className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
+                                          reply.userReaction === 'like' ? styles.active : ''
+                                        }`}
+                                        onClick={() => {
+                                          if (!isUserLoggedIn) {
+                                            setShowLoginModal(true);
+                                            return;
+                                          }
+                                          handleLike(reply.id, reply.userReaction);
+                                        }}
+                                      >
+                                        <svg
+                                          className={styles.iconSmall}
+                                          viewBox="0 0 24 24"
+                                          fill="currentColor"
+                                        >
+                                          <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+                                        </svg>
+                                        <span>{reply.like_count}</span>
+                                      </button>
+
+                                      <button
+                                        className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
+                                          reply.userReaction === 'dislike' ? styles.active : ''
+                                        }`}
+                                        onClick={() => {
+                                          if (!isUserLoggedIn) {
+                                            setShowLoginModal(true);
+                                            return;
+                                          }
+                                          handleDislike(reply.id, reply.userReaction);
+                                        }}
+                                      >
+                                        <svg
+                                          className={styles.iconSmall}
+                                          viewBox="0 0 24 24"
+                                          fill="currentColor"
+                                        >
+                                          <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+                                        </svg>
+                                        <span>{reply.dislike_count}</span>
+                                      </button>
+
+                                      {/* Delete => only if this is your own reply */}
+                                      {profile?.username === reply.user?.username && (
+                                        <button
+                                          className={styles.reactionButton}
+                                          onClick={() =>
+                                            handleDeleteCommentWithConfirm(reply.id)
+                                          }
+                                        >
+                                          <svg
+                                            className={styles.icon}
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                          >
+                                            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                                          </svg>
+                                          <span>Delete</span>
+                                        </button>
+                                      )}
+
+                                      {/* Report => only if user is logged in and not your own comment */}
+                                      {isUserLoggedIn && reply.user?.username !== profile?.username && (
                                         <button
                                           className={styles.reactionButton}
                                           onClick={() => {
-                                            if (!isUserLoggedIn) {
-                                              navigate('/login');
-                                              return;
-                                            }
                                             setReportTargetComment(reply.id);
                                             setShowReportModal(true);
                                           }}
@@ -1450,43 +1553,41 @@ if (mapData.is_public === false && !mapData.isOwner) {
                                           </svg>
                                           <span>Report</span>
                                         </button>
-)}
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                            {totalReplies > 3 && (
+                              <button
+                                className={styles.toggleRepliesButton}
+                                onClick={() => toggleReplies(comment.id)}
+                              >
+                                {areRepliesExpanded
+                                  ? 'Show less replies'
+                                  : `View more replies (${totalReplies - 3})`}
+                              </button>
+                            )}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p>No comments yet.</p>
+          )}
+        </>
+      ) : (
+        <p>Comments are not available for private maps.</p>
+      )}
+    </div>
+  </div>
 
 
-
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </li>
-                                    ))}
-                                    {totalReplies > 3 && (
-                                      <button
-                                        className={styles.toggleRepliesButton}
-                                        onClick={() => toggleReplies(comment.id)}
-                                      >
-                                        {areRepliesExpanded
-                                          ? 'Show less replies'
-                                          : `View more replies (${totalReplies - 3})`}
-                                      </button>
-                                    )}
-                                  </ul>
-                                )}
-                              </div>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : (
-                    <p>No comments yet.</p>
-                  )}
-                </>
-              ) : (
-                <p>Comments are not available for private maps.</p>
-              )}
-            </div>
-          </div>
-  
           {/* RIGHT column: Statistics */}
           <div className={styles.mapStats}>
             <div className={styles.statsSummary}>
@@ -1621,6 +1722,53 @@ if (mapData.is_public === false && !mapData.isOwner) {
     </div>
   </div>
 )}
+
+{showLoginModal && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContent}>
+      {/* Close Button (X) */}
+      <button
+        className={styles.modalCloseButton}
+        onClick={() => setShowLoginModal(false)}
+      >
+        &times;
+      </button>
+
+      {/* Left Side: Title, Subtitle, CTA */}
+      <div className={styles.modalLeft}>
+        <h2 className={styles.modalTitle}>
+          See how people are mapping the world
+        </h2>
+        <p className={styles.modalSubtitle}>
+        Join a worldwide community creating and exploring meaningful maps. 
+        </p>
+        <button
+          className={styles.signupButton}
+          onClick={() => navigate('/signup')}
+        >
+          Join for free
+        </button>
+        <p className={styles.loginPrompt}>
+          Already have an account?{' '}
+          <span onClick={() => navigate('/login')} className={styles.loginLink}>
+            Log In
+          </span>
+        </p>
+      </div>
+
+      {/* Right Side: Image */}
+      <div className={styles.modalRight}>
+        <img
+          src="/assets/preview2.png"
+          alt="Preview of the mapping features"
+          className={styles.modalImage}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
+
 
 
 
