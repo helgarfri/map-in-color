@@ -460,6 +460,8 @@ router.post('/:id/save', auth, async (req, res) => {
     const mapId = req.params.id;
     const user_id = req.user.id;
 
+    
+
     // fetch the map (join the user to see if user is banned)
     const { data: mapRow } = await supabaseAdmin
       .from('maps')
@@ -505,8 +507,8 @@ router.post('/:id/save', auth, async (req, res) => {
         {
           map_id: mapRow.id,
           user_id: user_id,
-          title_font_size: titleFontSize,   // use your new columns
-          legend_font_size: legendFontSize, // use your new columns
+
+
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },

@@ -22,7 +22,7 @@ function sleep(ms) {
     }
 
     // 2. Read the email template
-    const filePath = path.join(__dirname, '..', 'emails', 'launch.html');
+    const filePath = path.join(__dirname, '..', 'emails', 'mic_selection1.html');
     const template = fs.readFileSync(filePath, 'utf-8');
 
     // 3. Loop through each subscriber, create their unsubscribe link, and send
@@ -33,9 +33,9 @@ function sleep(ms) {
 
       try {
         await resend.emails.send({
-          from: 'Helgi from Map in Color <no-reply@mapincolor.com>',
+          from: 'Helgi from Map in Color <hello@mapincolor.com>',
           to: subscriber.email,
-          subject: 'Mic is live!',
+          subject: 'Mic Selected – Volume 1: Defence Spending per Citizen (2024)',
           html: finalHtml,
         });
         console.log(`Email sent successfully to ${subscriber.email}`);
