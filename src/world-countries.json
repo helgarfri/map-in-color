@@ -319,6 +319,15 @@
 	  ]
 	},
 	{
+		"code": "CC",
+		"name": "Cocos Islands",
+		"aliases": [
+			"Cocos Island",
+			"Cocos (Keeling) Islands",
+			"Cocos (Keeling) Islands (the)"
+		]
+	},
+	{
 	  "code": "CO",
 	  "name": "Colombia",
 	  "aliases": [
@@ -349,7 +358,9 @@
 	{
 	  "code": "CX",
 	  "name": "Christmas Island",
-	  "aliases": []
+	  "aliases": [
+		"Christmas Islands"
+	  ]
 	},
 	{
 	  "code": "CY",
@@ -364,6 +375,14 @@
 	  "aliases": [
 		"Czechia"
 	  ]
+	},
+
+	{
+		"code": "CW",
+		"name": "Curaçao",
+		"aliases": [
+			"Curacao"
+		]
 	},
 	{
 	  "code": "DE",
@@ -626,7 +645,9 @@
 	{
 	  "code": "HM",
 	  "name": "Heard Island and Mcdonald Islands",
-	  "aliases": []
+	  "aliases": [
+		"Heard and McDonald Islands"
+	  ]
 	},
 	{
 	  "code": "HN",
@@ -1082,7 +1103,9 @@
 	{
 	  "code": "NF",
 	  "name": "Norfolk Island",
-	  "aliases": []
+	  "aliases": [
+		"Norfolk Islands"
+	  ]
 	},
 	{
 	  "code": "NG",
@@ -1198,7 +1221,9 @@
 	{
 	  "code": "PM",
 	  "name": "Saint Pierre and Miquelon",
-	  "aliases": []
+	  "aliases": [
+		"Saint Pierre & Miquelon"
+	  ]
 	},
 	{
 	  "code": "PN",
@@ -1338,7 +1363,9 @@
 	{
 	  "code": "SJ",
 	  "name": "Svalbard and Jan Mayen",
-	  "aliases": []
+	  "aliases": [
+		"Svalbard"
+	]
 	},
 	{
 	  "code": "SK",
@@ -1410,6 +1437,14 @@
 	  "aliases": [
 		"Syrian Arab Republic"
 	  ]
+	},
+	{
+		"code": "SX",
+		"name": "Sint Maarten",
+		"aliases": [
+			"Saint Martin",
+			"Sint Maarten (Dutch part)"
+		]
 	},
 	{
 	  "code": "SZ",
