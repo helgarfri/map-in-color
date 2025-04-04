@@ -197,3 +197,11 @@
 .svg-world--large {
   max-height: none;
 }
+
+svg title {
+	display: none;
+  }
+  
+  .landxx title {
+	display: none;
+  }
