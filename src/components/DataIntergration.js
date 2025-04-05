@@ -872,7 +872,7 @@ function applyPalette(oldRanges, paletteColors) {
   const handleTagInputKeyDown = (e) => {
     if (e.key === 'Enter' && tagInput.trim() !== '') {
       e.preventDefault();
-      const newTag = tagInput.trim();
+      const newTag = tagInput.trim().toLowerCase();
       if (!tags.includes(newTag)) {
         setTags([...tags, newTag]);
       }
