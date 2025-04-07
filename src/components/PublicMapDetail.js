@@ -1,18 +1,51 @@
-// PublicMapDetail.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import HomeHeader from './HomeHeader';
 import HomeFooter from './HomeFooter';
 import MapDetailContent from './MapDetailContent';
-// or import from your user context if needed
-// but typically the user is not logged in here
-
 import styles from './PublicMapDetail.module.css';
+// Suppose you have a similar fetchMapById or a different call
+import { fetchMapById } from '../api';
+import { useParams } from 'react-router-dom';
 
 export default function PublicMapDetail() {
+  const { id } = useParams();
+  const [mapData, setMapData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    async function getMap() {
+      try {
+        setIsLoading(true);
+        const response = await fetchMapById(id);
+        setMapData(response.data);
+      } catch (err) {
+        console.error('Error fetching map:', err);
+        setErrorMessage('Failed to load map');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    getMap();
+  }, [id]);
+
+  if (errorMessage) {
+    return <div>Error: {errorMessage}</div>;
+  }
+
   return (
     <div className={styles.publicMapDetailContainer}>
+      {/* Always render the public header + footer */}
       <HomeHeader />
-      <MapDetailContent authToken={null} profile={null} />
+
+      {/* Pass isLoading down so MapDetailContent does the skeleton or real UI */}
+      <MapDetailContent
+        isLoading={isLoading}
+        mapData={mapData}
+        authToken={null}
+        profile={null}
+      />
+
       <HomeFooter />
     </div>
   );

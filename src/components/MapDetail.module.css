@@ -623,15 +623,34 @@ a {
 
 /* Modal Content Container */
 .modalContent {
-  position: relative; /* So the close button can be positioned absolutely */
+  position: relative;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  max-width: 900px; /* Wider max-width for a more spacious layout */
-  width: 100%;
-  overflow: hidden; /* Ensures no content bleeds outside corners */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  max-width: 500px;       /* narrower than 900px */
+  width: 90%;             /* a little responsive wiggle room */
+  overflow: hidden;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.modalHeader {
+  display: flex;
+  flex-direction: row;
+}
+
+.modalContent h2 {
+  margin-top: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modalContent h3 {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 
@@ -663,6 +682,7 @@ a {
   margin-bottom: 1rem;
   font-weight: bold;
   line-height: 1.2;
+  margin-top: 0;
 }
 
 /* Subtitle */
@@ -848,6 +868,142 @@ a {
   font-size: 3rem;
   color: #444;
   margin-bottom: 16px;
+}
+
+/* ------------------------------------ */
+/* MAIN SKELETON SHIMMER STYLES         */
+/* ------------------------------------ */
+
+/* 
+  All these classes will have the shimmer. 
+  Make sure in your JSX you use: className={styles.skeletonRow}, 
+  className={styles.skeletonStatItem}, etc.
+*/
+.skeletonRow,
+.skeletonStatItem,
+.skeletonSectionTitle,
+.skeletonMapCard,
+.skeletonLine,
+.skeletonMapArea {
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;  /* needed for the .::after shimmer */
+  border-radius: 4px;
+  will-change: transform;      /* helps performance */
+}
+
+/*
+  The actual "shining" effect uses a pseudo-element that
+  slides from left to right.
+*/
+.skeletonRow::after,
+.skeletonStatItem::after,
+.skeletonSectionTitle::after,
+.skeletonMapCard::after,
+.skeletonLine::after,
+.skeletonMapArea::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* 
+    Make it wider than 50% so we get a bigger streak 
+    that spans across the element. 
+  */
+  width: 80%;
+  height: 100%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    to right, 
+    transparent 0%, 
+    rgba(255,255,255,0.6) 50%, 
+    transparent 100%
+  );
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Keyframe that moves the streak across the element */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ------------------------------------ */
+/* INDIVIDUAL SKELETON CLASS SIZES      */
+/* ------------------------------------ */
+
+/* Large map area skeleton (400px tall, for example) */
+.skeletonMapArea {
+  width: 100%;
+  height: 400px;
+  border-radius: 6px;
+}
+
+/* The row skeleton can vary in height via inline style or extra class */
+.skeletonRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px;
+}
+
+/* A stat item, e.g. "Highest Value" placeholder */
+.skeletonStatItem {
+  width: 100px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+/* Section Title (a short bar) */
+.skeletonSectionTitle {
+  width: 120px;
+  height: 18px;
+  margin-bottom: 10px;
+}
+
+/* A map card placeholder, or other larger placeholders */
+.skeletonMapCard {
+  width: 100%;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+/* 
+  The "line" is typically used inside text blocks, 
+  so we can style them in various widths (inlined in JSX).
+*/
+.skeletonLine {
+  width: 100%;
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* 
+  The "thumb" often used for an avatar or thumbnail shape 
+  in a skeleton row.  
+*/
+.skeletonThumb {
+  width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  background-color: #eee;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 
+  For text blocks (multiple lines), each line might be a 
+  .skeletonLine. 
+*/
+.skeletonTextBlock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 

@@ -845,32 +845,27 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
   
   // Right before the return, handle the special cases:
-
-// 1) If we had a real fetchError (server error, 404, or timed out)
-if (fetchError) {
-  return (
-    <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={styles.mapDetailContent}>
-  
-        <div className={styles.errorBox}>
-          <h2>Map not available</h2>
-          <p>We couldn’t load this map right now. Please try again later.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 2) If we’re still “loading”...
-if (isLoading) {
-  // If it's private & not the owner => show lock message
-  if (is_public === false && !isOwner) {
+  // 1) If we have an error
+  if (fetchError) {
     return (
       <div className={styles.mapDetailContainer}>
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <Sidebar />
         <div className={styles.mapDetailContent}>
-   
+          <div className={styles.errorBox}>
+            <h2>Map not available</h2>
+            <p>We couldn’t load this map right now. Please try again later.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2) If loading but the map is private + not owner => locked
+  if (isLoading && is_public === false && !isOwner) {
+    return (
+      <div className={styles.mapDetailContainer}>
+        <Sidebar />
+        <div className={styles.mapDetailContent}>
           <div className={styles.privateMapBox}>
             <FaLock className={styles.lockIcon} />
             <h2>This map is private</h2>
@@ -881,41 +876,95 @@ if (isLoading) {
     );
   }
 
-  // Otherwise if it's loading, show spinner
-  return (
-    <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={styles.mapDetailContent}>
-  
-      </div>
-    </div>
-  );
-}
+  // 3) If loading => show the skeleton for everything
+  if (isLoading) {
+    return (
+      <div className={styles.mapDetailContainer}>
+        <Sidebar />
+        <div className={styles.mapDetailContent}>
+          {/* --- SKELETON STARTS HERE --- */}
+          <div className={styles.mapDisplay}>
+            {/* Large map placeholder */}
+            <div className={styles.skeletonRow} style={{ height: '400px', borderRadius: '8px' }}/>
+          </div>
 
-// 3) If loaded, but no mapData?
-if (!mapData) {
-  // Just a safety check
-  return null;
-}
+          <div className={styles.detailsAndStats} style={{ marginTop: '20px' }}>
+            {/* LEFT side: mapDetails + discussion */}
+            <div className={styles.leftContent}>
+              {/* MAP DETAILS SKELETON */}
+              <div className={styles.mapDetails} style={{ marginBottom: '20px' }}>
+                {/* Title line */}
+                <div className={styles.skeletonRow}  style={{ height: '24px', width: '60%', marginBottom: '10px' }} />
+                {/* A couple more lines for the description */}
+                <div className={styles.skeletonRow}  style={{ height: '16px', width: '90%', marginBottom: '8px' }} />
+                <div className={styles.skeletonRow}  style={{ height: '16px', width: '80%', marginBottom: '8px' }} />
+                {/* A row of tags */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
+                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
+                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
+                </div>
+              </div>
 
-// 4) If the map is private & user not owner => locked
-if (mapData.is_public === false && !mapData.isOwner) {
-  return (
-    <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={styles.mapDetailContent}>
-   
-        <div className={styles.privateMapBox}>
-          <FaLock className={styles.lockIcon} />
-          <h2>This map is private</h2>
-          <p>You do not have permission to view this map.</p>
+              {/* DISCUSSION SKELETON */}
+              <div className={styles.discussionSection}>
+                <div className={styles.skeletonSectionTitle} style={{ width: '100px', height: '18px', marginBottom: '16px' }} />
+                {/* pretend we have two or three "comment" placeholders */}
+                {[1,2,3].map((i) => (
+                  <div className={styles.skeletonRow}  key={i} style={{ marginBottom: '20px' }}>
+                    <div className={styles.skeletonThumb} style={{ width: '50px', height: '50px' }}/>
+                    <div className={styles.skeletonTextBlock}>
+                      <div className={styles.skeletonLine} style={{ height: '14px', marginBottom: '6px' }} />
+                      <div className={styles.skeletonLine} style={{ width: '80%', height: '14px' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RIGHT side: stats */}
+            <div className={styles.mapStats}>
+              <div className={styles.statsSummary}>
+                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
+                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
+                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
+              </div>
+
+              <div className={styles.countryList} style={{ marginTop: '10px' }}>
+                {/* A few skeleton rows for the table */}
+                {[1,2,3,4].map((i) => (
+                  <div className={styles.skeletonRow} key={i} style={{ height: '20px', marginBottom: '8px' }}/>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* --- END SKELETON --- */}
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-// 5) Otherwise, show the normal map UI...
+  // 4) If no data
+  if (!mapData) {
+    return null;
+  }
+
+  // 5) If private & not owner => locked
+  if (mapData.is_public === false && !mapData.isOwner) {
+    return (
+      <div className={styles.mapDetailContainer}>
+        <Sidebar />
+        <div className={styles.mapDetailContent}>
+          <div className={styles.privateMapBox}>
+            <FaLock className={styles.lockIcon} />
+            <h2>This map is private</h2>
+            <p>You do not have permission to view this map.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
 
 
   return (
