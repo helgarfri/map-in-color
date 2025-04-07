@@ -54,6 +54,7 @@ router.get('/profile/:username', async (req, res) => {
         legend_font_size
       `)
       .eq('user_id', user_id)
+      .eq('is_public', true)
       .order('created_at', { ascending: false })
       .limit(1000); 
       // or just fetch all then apply .slice() below
@@ -92,10 +93,12 @@ router.get('/profile/:username', async (req, res) => {
           is_title_hidden, groups, data,
           save_count, created_at, show_no_data_legend,
           title_font_size,
-          legend_font_size
+          legend_font_size,
+          is_public
         )
       `)
       .eq('user_id', user_id)
+      .eq('Map.is_public', true) 
       .order('created_at', { ascending: false })
       .limit(1000);
 
