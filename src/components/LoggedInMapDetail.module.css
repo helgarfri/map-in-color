@@ -12,7 +12,6 @@
     margin-left: 250px; /* expanded sidebar width */
     margin-top: 40px;   /* if header is fixed, adjust or remove */
     padding: 15px;
-    transition: margin-left 0.3s ease;
   }
   
   .mainContentWrapper.collapsed {

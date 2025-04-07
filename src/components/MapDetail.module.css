@@ -257,15 +257,18 @@
   margin-left: 0;
   padding-left: 0;
   margin-top: 8px;
+  
 }
 .referenceItem {
   margin-bottom: 10px;
   line-height: 1.5;
+  font-size: 0.9rem;
 }
 .referenceNotes {
   margin-top: 5px;
   margin-left: 20px; /* indent "Notes:" if you like */
   font-style: italic;
+  font-size: 0.8rem;
 }
 
 /* ------------------------- */
@@ -294,8 +297,8 @@
 }
 .commentButton {
   margin-left: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 5px 12px 0px;
+  font-size: 18px;
   border: none;
   background-color: #55957b;
   color: #fff;
@@ -451,13 +454,14 @@ a {
 .replyButtonSubmit {
   align-self: flex-end;
   margin-top: 5px;
-  padding: 6px 12px;
+  padding: 5px 12px 0px;
   font-size: 14px;
   border: none;
   background-color: #79a6b7;
   color: #fff;
   border-radius: 8px;
   cursor: pointer;
+  align-items: center;
 }
 .replyButtonSubmit:hover {
   background-color: #6999b1;
@@ -798,6 +802,12 @@ a {
   white-space: normal;         /* ensure the text can wrap */
 }
 
+.mapDetails h3 {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 
 
 @media (max-width: 600px) {
@@ -1057,8 +1067,8 @@ a {
   }
 
   .commentButton {
-    font-size: 12px;
-    padding: 8px 12px;
+    font-size: 18px;
+    padding: 5px 12px 0px;
   }
 
 }

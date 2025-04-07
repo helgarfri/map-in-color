@@ -10,7 +10,7 @@ import styles from './MapDetail.module.css';
 import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
 import FullScreenMap from './FullScreenMap';
-import { BiDownload } from 'react-icons/bi';
+import { BiDownload, BiSend } from 'react-icons/bi';
 import {
   fetchMapById,
   saveMap,
@@ -1214,7 +1214,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             className={styles.commentButton}
             disabled={isPostingComment}
           >
-            Post
+            <BiSend/>
           </button>
         </form>
       )}
@@ -1440,7 +1440,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
                                 className={styles.replyButtonSubmit}
                                 disabled={isPostingReply}
                               >
-                                Post
+                                <BiSend/> 
                               </button>
                             </div>
                           </form>

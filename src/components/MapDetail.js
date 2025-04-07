@@ -10,7 +10,7 @@ import styles from './MapDetail.module.css';
 import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
 import FullScreenMap from './FullScreenMap';
-import { BiDownload } from 'react-icons/bi';
+import { BiDownload, BiSend } from 'react-icons/bi';
 import {
   fetchMapById,
   saveMap,
@@ -1134,7 +1134,7 @@ if (mapData.is_public === false && !mapData.isOwner) {
                       className={styles.commentButton}
                       disabled={isPostingComment}
                     >
-                      Post
+                      <BiSend/> 
                     </button>
                   </form>
   
@@ -1322,7 +1322,7 @@ if (mapData.is_public === false && !mapData.isOwner) {
                                           className={styles.replyButtonSubmit}
                                           disabled={isPostingReply} // Add this
                                         >
-                                          Post 
+                                          <BiSend/> 
                                         </button>
 
                                     </div>
