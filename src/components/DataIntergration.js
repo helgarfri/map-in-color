@@ -20,6 +20,10 @@ import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
 import LegendFontSizeField from "./LegendFontSizeField";
 
+import UploadDataModal from "./UploadDataModal";
+
+
+
 /** Color Palettes **/
 const themes = [
   {
@@ -196,7 +200,18 @@ const map_themes = [
 ];
 
 
-
+// A simple default stats object:
+const defaultFileStats = {
+  lowestValue: null,
+  lowestCountry: '',
+  highestValue: null,
+  highestCountry: '',
+  averageValue: null,
+  medianValue: null,
+  standardDeviation: null,
+  numberOfValues: 0,
+  totalCountries: 0,
+};
 
 
 
@@ -212,12 +227,9 @@ export default function DataIntegration({
   const [selected_map, setSelectedMap] = useState(
     existingMapData ? existingMapData.selected_map : location.state?.selected_map || 'world'
   );
-  const [file_name, setFileName] = useState('');
-  const [fileIsValid, setFileIsValid] = useState(null);
+  const [missingCountries, setMissingCountries] = useState([]);
   const [dataSource, setDataSource] = useState([]);
   const [validData, setValidData] = useState([]);
-  const [missingCountries, setMissingCountries] = useState([]);
-  const [errors, setErrors] = useState([]);
   const [data, setData] = useState([]);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
@@ -231,17 +243,9 @@ export default function DataIntegration({
   }, [width, setIsCollapsed]);
 
 
-  const [file_stats, setFileStats] = useState({
-    lowestValue: null,
-    lowestCountry: '',
-    highestValue: null,
-    highestCountry: '',
-    averageValue: null,
-    medianValue: null,
-    standardDeviation: null,
-    numberOfValues: 0,
-    totalCountries: 0,
-  });
+  const [file_stats, setFileStats] = useState(
+    existingMapData?.file_stats || defaultFileStats
+  );
 
   const [custom_ranges, setCustomRanges] = useState([
     {
@@ -301,17 +305,45 @@ export default function DataIntegration({
   const [legendFontSize, setLegendFontSize] = useState(
     existingMapData?.legend_font_size ?? null
   );
+
+  // Show/hide the UploadDataModal
+const [showUploadModal, setShowUploadModal] = useState(false);
+
+// We already have "selected_map". We can pass that to the modal as "selectedMap"
+function handleOpenModal() {
+  setShowUploadModal(true);
+}
+
+function handleCloseModal() {
+  setShowUploadModal(false);
+}
+
+// This is the callback for the modal’s onImport:
+function handleImportData(data, stats) {
+  setData(data);
+  setFileStats(stats || defaultFileStats);
+}
+
   
   
   // If existingMapData is provided (editing)
   useEffect(() => {
     if (existingMapData) {
-      setFileName(existingMapData.file_name);
-      setFileStats(existingMapData.file_stats);
+      setFileStats(existingMapData.file_stats || defaultFileStats);      
       setMapTitle(existingMapData.title);
       setData(existingMapData.data);
-      setCustomRanges(existingMapData.custom_ranges);
-      setGroups(existingMapData.groups);
+      setCustomRanges(
+             existingMapData.custom_ranges || [
+               {
+                 id: Date.now(),
+                 color: '#c0c0c0',
+                 name: '',
+                 lowerBound: '',
+                 
+                 upperBound: '',
+               },
+             ]
+           );      setGroups(existingMapData.groups);
       setSelectedMap(existingMapData.selected_map);
       setOceanColor(existingMapData.ocean_color);
       setUnassignedColor(existingMapData.unassigned_color);
@@ -332,6 +364,8 @@ export default function DataIntegration({
     // eslint-disable-next-line
   }, [existingMapData]);
 
+
+
   // Prevent scrolling when popup is open
   useEffect(() => {
     document.body.style.overflow = isPopupOpen ? 'hidden' : 'auto';
@@ -340,11 +374,23 @@ export default function DataIntegration({
     };
   }, [isPopupOpen]);
 
-  // Data completeness
+          // or if you are receiving “parsed data + stats” from `UploadDataModal`
+  // you can do something similar to ensure it never becomes undefined:
+  const handleImportFromModal = (parsedData, stats) => {
+    setData(parsedData);
+    setFileStats(stats || defaultFileStats);
+  };
+
+
   const dataCompleteness =
     file_stats.totalCountries > 0
       ? ((file_stats.numberOfValues / file_stats.totalCountries) * 100).toFixed(2)
       : 'N/A';
+
+
+
+  
+
 
   // Track missing countries
   useEffect(() => {
@@ -363,189 +409,6 @@ export default function DataIntegration({
   // Toggle popup
   const togglePopup = () => setIsPopupOpen(!isPopupOpen);
 
-  // File upload
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    setFileName(file.name);
-    setFileIsValid(null);
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      processCsv(e.target.result);
-    };
-    reader.readAsText(file);
-  };
-
-// Parse CSV
-const processCsv = (csvText) => {
-  const lines = csvText
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith('#'));
-
-  setErrors([]);
-
-  // Decide dataSource
-  let dataSourceLocal;
-  if (selected_map === 'usa') {
-    dataSourceLocal = usStatesCodes;
-  } else if (selected_map === 'europe') {
-    dataSourceLocal = euCodes;
-  } else {
-    dataSourceLocal = countryCodes; // now this has 'aliases' property
-  }
-
-  const parsedData = [];
-  const errorList = [];
-
-  lines.forEach((line, index) => {
-    const lineNumber = index + 1;
-    const parts = line.split(',').map((p) => p.trim().replace(/""/g, '"'));
-    if (parts.length < 2) {
-      errorList.push({
-        line: lineNumber,
-        type: 'Missing Separator',
-        message: `Missing comma separator after "${parts[0]}"`,
-      });
-      return;
-    }
-
-    const name = parts[0];
-    const valueRaw = parts[1].trim();
-    // If there's truly no value, skip this line entirely:
-    if (valueRaw === '') {
-      // Just ignore this line: no error, no push
-      return;
-    }
-
-    // Convert to float
-    const value = parseFloat(valueRaw);
-
-    // Find matching country/state by code or name/alias
-    const dataItem = dataSourceLocal.find((item) => {
-      // Case-insensitive compare for code
-      const codeMatches = item.code.toLowerCase() === name.toLowerCase();
-
-      // Combine primary name + aliases into lowercased array
-      const allNames = [item.name, ...(item.aliases || [])].map((s) =>
-        s.toLowerCase()
-      );
-
-      // Check if the CSV name matches any known name/alias
-      const nameMatches = allNames.includes(name.toLowerCase());
-
-      return codeMatches || nameMatches;
-    });
-
-    // If invalid name/code, log error
-    if (!dataItem) {
-      errorList.push({
-        line: lineNumber,
-        type: 'Invalid Name',
-        message: `Country/State/Code "${name}" is invalid.`,
-      });
-      return; // skip this row
-    }
-
-    // If valueRaw is non-empty but not numeric, error
-    if (isNaN(value)) {
-      errorList.push({
-        line: lineNumber,
-        type: 'Invalid Numeric Value',
-        message: `Value "${valueRaw}" is not a valid number.`,
-      });
-      return; // skip this row
-    }
-
-    // Otherwise, we have a valid data row
-    parsedData.push({ name, code: dataItem.code, value });
-  });
-
-  if (errorList.length > 0) {
-    setErrors(errorList);
-    setFileIsValid(false);
-  } else {
-    setErrors([]);
-    setFileIsValid(true);
-  }
-
-  setData(parsedData);
-  setDataSource(dataSourceLocal);
-  setValidData(parsedData);
-
-  // Post-process
-  if (parsedData.length > 0 && errorList.length === 0) {
-    // Sort descending
-    const sortedDesc = [...parsedData].sort((a, b) => b.value - a.value);
-    sortedDesc.forEach((item, i) => (item.rankDesc = i + 1));
-
-    // Sort ascending
-    const sortedAsc = [...parsedData].sort((a, b) => a.value - b.value);
-    sortedAsc.forEach((item, i) => (item.rankAsc = i + 1));
-
-    // Top values
-    setTopHighValues(sortedDesc.slice(0, Math.min(3, sortedDesc.length)));
-    setTopLowValues(sortedAsc.slice(0, Math.min(3, sortedAsc.length)));
-
-    // Stats
-    const values = parsedData.map((d) => d.value);
-    const totalVals = values.length;
-    const sumVals = values.reduce((sum, val) => sum + val, 0);
-    const avg = sumVals / totalVals;
-    const sortedVals = [...values].sort((a, b) => a - b);
-    const midIndex = Math.floor(totalVals / 2);
-    const median =
-      totalVals % 2 !== 0
-        ? sortedVals[midIndex]
-        : (sortedVals[midIndex - 1] + sortedVals[midIndex]) / 2;
-    const variance =
-      values.reduce((sum, val) => sum + (val - avg) ** 2, 0) / totalVals;
-    const stdDev = Math.sqrt(variance);
-
-    // Find extremes
-    let lowestValue = values[0];
-    let highestValue = values[0];
-    let lowestCountry = parsedData[0].name;
-    let highestCountry = parsedData[0].name;
-    parsedData.forEach((item) => {
-      if (item.value < lowestValue) {
-        lowestValue = item.value;
-        lowestCountry = item.name;
-      }
-      if (item.value > highestValue) {
-        highestValue = item.value;
-        highestCountry = item.name;
-      }
-    });
-
-    setFileStats({
-      lowestValue,
-      lowestCountry,
-      highestValue,
-      highestCountry,
-      averageValue: parseFloat(avg.toFixed(2)),
-      medianValue: parseFloat(median.toFixed(2)),
-      standardDeviation: parseFloat(stdDev.toFixed(2)),
-      numberOfValues: totalVals,
-      totalCountries: dataSourceLocal.length,
-    });
-  } else {
-    setFileStats({
-      lowestValue: null,
-      lowestCountry: '',
-      highestValue: null,
-      highestCountry: '',
-      averageValue: null,
-      medianValue: null,
-      standardDeviation: null,
-      numberOfValues: 0,
-      totalCountries: dataSourceLocal.length,
-    });
-    setTopHighValues([]);
-    setTopLowValues([]);
-  }
-};
 
 
   // Download template
@@ -579,23 +442,6 @@ const processCsv = (csvText) => {
     document.body.removeChild(link);
   };
 
-  // Download error log
-  const downloadErrorLog = () => {
-    if (errors.length === 0) return;
-    let errorContent = "Line,Error Type,Message\n";
-    errors.forEach((err) => {
-      const escapedMsg = err.message.replace(/"/g, '""');
-      errorContent += `${err.line},"${err.type}","${escapedMsg}"\n`;
-    });
-    const blob = new Blob([errorContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "error_log.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   // Palette
 // 1) Make a helper that calculates groups from ranges and data
@@ -1000,7 +846,6 @@ function applyPalette(oldRanges, paletteColors) {
       top_low_values,
       selected_palette,
       selected_map_theme,
-      file_name,
       file_stats,
       is_title_hidden,
       sources: references,
@@ -1019,6 +864,7 @@ function applyPalette(oldRanges, paletteColors) {
       console.error(err);
     }
   };
+
 
   return (
     <div className={styles.container}>
@@ -1081,138 +927,8 @@ function applyPalette(oldRanges, paletteColors) {
               </p>
             </div>
 
-            {/* CSV UPLOAD BOX */}
-            <div className={styles.csvUploadBox}>
-              <h3>Upload Your CSV</h3>
-              <label
-                htmlFor="csvFileInput"
-                className={styles.csvIconLabel}
-                title="Click to browse CSV file"
-              >
-                <FontAwesomeIcon icon={faFileCsv} className={styles.bigCsvIcon} />
-              </label>
-              <input
-                id="csvFileInput"
-                type="file"
-                accept=".csv"
-                className={styles.csvHiddenInput}
-                onChange={handleFileUpload}
-              />
+          
 
-              <div className={styles.uploadStatus}>
-                {file_name ? (
-                  <p className={styles.file_nameLabel}>{file_name}</p>
-                ) : (
-                  <p className={styles.noFileSelected}></p>
-                )}
-
-                {file_name && fileIsValid === true && (
-                  <p className={styles.validMessage}>File is valid</p>
-                )}
-                {file_name && fileIsValid === false && (
-                  <p className={styles.invalidMessage}>File is not valid</p>
-                )}
-                {!file_name && (
-                  <p className={styles.noFileMessage}>No file selected.</p>
-                )}
-              </div>
-
-              {/* Errors (scrollable) */}
-              {errors.length > 0 && (
-                <div className={styles.errorBoxScrollable}>
-                  <p className={styles.errorTitle}>
-                    {`There are ${errors.length} error${errors.length > 1 ? 's' : ''}:`}
-                  </p>
-                  <ul className={styles.errorList}>
-                    {errors.map((err, i) => (
-                      <li key={i}>
-                        <strong>Line {err.line}:</strong> {err.message}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    className={styles.downloadErrorButton}
-                    onClick={downloadErrorLog}
-                  >
-                    Download Error Log
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* FILE INFO BOX / TABLE */}
-            <div className={styles.fileInfoBox}>
-              <div className={styles.tableContainer}>
-                <table className={styles.fileInfoTable}>
-                  <tbody>
-                    <tr>
-                      <th>File Name</th>
-                      <td>{file_name || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                      <th>Lowest Value</th>
-                      <td>
-                        {file_stats.lowestValue !== null
-                          ? file_stats.lowestValue
-                          : 'N/A'}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>State (Lowest)</th>
-                      <td>{file_stats.lowestCountry || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                      <th>Highest Value</th>
-                      <td>
-                        {file_stats.highestValue !== null
-                          ? file_stats.highestValue
-                          : 'N/A'}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>State (Highest)</th>
-                      <td>{file_stats.highestCountry || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                      <th>Average Value</th>
-                      <td>
-                        {file_stats.averageValue !== null
-                          ? file_stats.averageValue
-                          : 'N/A'}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>Median Value</th>
-                      <td>
-                        {file_stats.medianValue !== null
-                          ? file_stats.medianValue
-                          : 'N/A'}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>Standard Deviation</th>
-                      <td>
-                        {file_stats.standardDeviation !== null
-                          ? file_stats.standardDeviation
-                          : 'N/A'}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>Values Count</th>
-                      <td>{file_stats.numberOfValues}</td>
-                    </tr>
-                    <tr>
-                      <th>Total Countries</th>
-                      <td>{file_stats.totalCountries}</td>
-                    </tr>
-                    <tr>
-                      <th>Data Completeness (%)</th>
-                      <td>{dataCompleteness}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
 
       {/* RANGE TABLE */}
@@ -1820,52 +1536,24 @@ function applyPalette(oldRanges, paletteColors) {
   </div>
 )}
 
+<button onClick={handleOpenModal}>Upload Data</button>
+
+<UploadDataModal
+  isOpen={showUploadModal}
+  onClose={handleCloseModal}
+  selectedMap={selected_map}
+  onImport={handleImportData}
+/>
 
 
 
 
-          {/* Login Modal */}
-          {showLoginModal && (
-            <div
-              className={styles.modalOverlay}
-              onClick={() => setShowLoginModal(false)}
-            >
-              <div
-                className={styles.modalContent}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  className={styles.closeButton}
-                  onClick={() => setShowLoginModal(false)}
-                >
-                  &times;
-                </button>
-                <h2>Don't Lose Your Progress!</h2>
-                <p>Please log in or sign up to save your map.</p>
-                <div className={styles.modalButtons}>
-                  <button
-                    className={styles.secondaryButton}
-                    onClick={() => {
-                      window.location.href = '/login';
-                    }}
-                  >
-                    Log In
-                  </button>
-                  <button
-                    className={styles.primaryButton}
-                    onClick={() => {
-                      window.location.href = '/signup';
-                    }}
-                  >
-                    Sign Up
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+
+          
 
         </div>
       </div>
     </div>
   );
+
 }

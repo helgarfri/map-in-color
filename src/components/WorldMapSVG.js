@@ -38,12 +38,11 @@ export default function WorldMapSVG({
  // (initially 0, or any guess)
  const [finalTitleY, setFinalTitleY] = useState(0);
 
- // Build your legend items
- const legendItems = groups.map((g) => ({
-   id: g.id,
-   color: g.color,
-   label: g.rangeLabel,
- }));
+ const legendItems = groups?.map((g) => ({
+	id: g.id,
+	color: g.color,
+	label: g.rangeLabel,
+  })) || [];
  if (showNoDataLegend) {
    legendItems.push({
 	 id: "no-data",
@@ -78,37 +77,38 @@ export default function WorldMapSVG({
 
  // 1) Fill unassigned and assigned colors
  useEffect(() => {
-   let dataSource;
-   switch (selected_map) {
-	 case "usa":
-	   dataSource = usStatesCodes;
-	   break;
-	 case "europe":
-	   dataSource = euCodes;
-	   break;
-	 default:
-	   dataSource = countryCodes;
-	   break;
-   }
-
-   if (!svgRef.current) return;
-   const svgElement = svgRef.current;
-
-   // Fill everything with unassigned
-   const allCodes = dataSource.map((c) => c.code.toLowerCase());
-   allCodes.forEach((code) => {
-	 const path = svgElement.getElementById(code);
-	 if (path) path.style.fill = unassigned_color;
-   });
-
-   // Then fill assigned
-   groups.forEach(({ countries, color }) => {
-	 countries.forEach((country) => {
-	   const path = svgElement.getElementById(country.code.toLowerCase());
-	   if (path) path.style.fill = color;
-	 });
-   });
- }, [groups, unassigned_color, selected_map]);
+	let dataSource;
+	switch (selected_map) {
+	  case "usa":
+		dataSource = usStatesCodes;
+		break;
+	  case "europe":
+		dataSource = euCodes;
+		break;
+	  default:
+		dataSource = countryCodes;
+		break;
+	}
+  
+	if (!svgRef.current) return;
+	const svgElement = svgRef.current;
+  
+	// Fill everything with unassigned
+	const allCodes = dataSource.map((c) => c.code.toLowerCase());
+	allCodes.forEach((code) => {
+	  const path = svgElement.getElementById(code);
+	  if (path) path.style.fill = unassigned_color;
+	});
+  
+	// Then fill assigned
+	(groups || []).forEach(({ countries, color }) => {
+	  (countries || []).forEach((country) => {
+		const path = svgElement.getElementById(country.code.toLowerCase());
+		if (path) path.style.fill = color;
+	  });
+	});
+  }, [groups, unassigned_color, selected_map]);
+  
 
  // 2) Measure the actual height of the <div> text
  //    Then compute final Y so that the bottom of the text 

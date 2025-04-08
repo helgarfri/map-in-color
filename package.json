@@ -41,7 +41,8 @@
     "react-scripts": "^5.0.1",
     "react-select": "^5.7.0",
     "react-svg-pan-zoom": "^3.13.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
