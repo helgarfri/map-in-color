@@ -1,23 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { useDropzone } from 'react-dropzone';
-import styles from './UploadDataModal.module.css';
-
-// Example import for your map components
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
 
 // JSON with country/state codes
 import countryCodes from '../world-countries.json';
 import usStatesCodes from '../united-states.json';
 import euCodes from '../european-countries.json';
 
+// Example imports for your map components
+import WorldMapSVG from './WorldMapSVG';
+import UsSVG from './UsSVG';
+import EuropeSVG from './EuropeSVG';
+
+// Icons
+import {
+  FaUpload,
+  FaAngleDown,
+  FaFileAlt,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaArrowDown,   // for Lowest Value
+  FaArrowUp,     // for Highest Value
+  FaCalculator,  // for Average
+  FaPercent      // for Data Completion
+} from 'react-icons/fa';
+
+import styles from './UploadDataModal.module.css';
+
 function UploadDataModal({
   isOpen,
   onClose,
   selectedMap = 'world', // 'world' | 'usa' | 'europe'
-  onImport,                // callback: gets the parsed data + stats
+  onImport,             // callback: gets the parsed data + stats
 }) {
   // State for file name, validity, parsing errors
   const [fileName, setFileName] = useState('');
@@ -38,7 +52,7 @@ function UploadDataModal({
   // Parsed data
   const [parsedData, setParsedData] = useState([]);
 
-  // Decide data source
+  // Decide data source based on map
   const dataSource =
     selectedMap === 'usa'
       ? usStatesCodes
@@ -46,7 +60,7 @@ function UploadDataModal({
       ? euCodes
       : countryCodes;
 
-  // Reset when closed
+  // Reset states when the modal closes
   useEffect(() => {
     if (!isOpen) {
       setFileName('');
@@ -65,14 +79,13 @@ function UploadDataModal({
     }
   }, [isOpen, dataSource.length]);
 
-  // On Drop or File Browse
+  // Dropzone setup
   const onDrop = (acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       processFile(acceptedFiles[0]);
     }
   };
 
-  // Setup Dropzone
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'text/csv': ['.csv'],
@@ -152,7 +165,8 @@ function UploadDataModal({
         return;
       }
       if (!valueRaw) {
-        return; // skip
+        // If there's a name but no value, skip it silently
+        return;
       }
 
       const numericVal = parseFloat(valueRaw);
@@ -277,142 +291,179 @@ function UploadDataModal({
     onClose();
   };
 
+  // If the modal isn't open, return null
   if (!isOpen) return null;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        {/* Close button (X) */}
+        {/* 'X' close in top-right corner */}
         <button className={styles.closeButton} onClick={onClose}>
           &times;
         </button>
 
         <div className={styles.modalBody}>
-          {/* LEFT: Drop area + error display */}
-          <div className={styles.leftSide}>
+
+          {/* TOP ROW: 2 columns side by side */}
+          <div className={styles.topRow}>
+            {/* LEFT: Drag & Drop area */}
             <div
               {...getRootProps()}
-              className={`${styles.dropArea} ${isDragActive ? styles.dragging : ''}`}
+              className={
+                isDragActive
+                  ? `${styles.dropZone} ${styles.dropZoneActive}`
+                  : styles.dropZone
+              }
             >
               <input {...getInputProps()} />
+              <FaUpload className={styles.uploadIcon} />
               {isDragActive ? (
-                <p>Drop the file here ...</p>
+                <p>Drop the file here...</p>
               ) : (
-                <>
-                  <p>Drag & Drop your CSV, TSV, or Excel file here</p>
-                  <p>OR click to browse</p>
-                </>
+                <p>Drag & drop or click to browse</p>
               )}
             </div>
 
-            <div className={styles.fileDisplay}>
-              {fileName && (
-                <p className={styles.fileName}>
-                  File: <strong>{fileName}</strong>
-                </p>
-              )}
-              {fileName && fileIsValid === true && (
-                <p className={styles.validMessage}>File is valid</p>
-              )}
-              {fileName && fileIsValid === false && (
-                <p className={styles.invalidMessage}>File is not valid</p>
-              )}
-              {!fileName && (
-                <p className={styles.noFileMessage}>
-                  No file selected or dropped yet.
-                </p>
-              )}
-            </div>
+            {/* RIGHT: Map with "Download Template" overlay */}
+            <div className={styles.mapWrapper}>
+              {selectedMap === 'world' && <WorldMapSVG ocean_color='#79a6b7' unassigned_color='white' />}
+              {selectedMap === 'usa' && <UsSVG ocean_color='#79a6b7' />}
+              {selectedMap === 'europe' && <EuropeSVG ocean_color='#79a6b7' />}
 
-            {/* If errors exist, show them */}
-            {errors.length > 0 && (
-              <div className={styles.errorBox}>
-                <p>
-                  {`There ${
-                    errors.length === 1 ? 'is' : 'are'
-                  } ${errors.length} error${errors.length > 1 ? 's' : ''}:`}
-                </p>
-                <ul>
-                  {errors.map((err, i) => (
-                    <li key={i}>
-                      <strong>Line {err.line}:</strong> {err.message}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT: Map overlay + stats + import button */}
-          <div className={styles.rightSide}>
-            <div className={styles.mapPreviewWrapper}>
               <div className={styles.mapOverlay}>
-                <div className={styles.mapOverlayText}>
+                <div className={styles.mapName}>
                   {selectedMap === 'world'
                     ? 'World'
                     : selectedMap === 'usa'
                     ? 'USA'
                     : 'Europe'}
                 </div>
+                <button
+                  className={styles.downloadBtn}
+                  onClick={downloadStarterTemplate}
+                >
+                  Download Starter Template
+                </button>
               </div>
-              <div className={styles.mapContainer}>
-                {selectedMap === 'world' && <WorldMapSVG />}
-                {selectedMap === 'usa' && <UsSVG />}
-                {selectedMap === 'europe' && <EuropeSVG />}
+            </div>
+          </div>
+
+          {/* BELOW the top row: File panel, stats, buttons, etc. */}
+          {/* FILE SECTION */}
+          <div
+            className={
+              fileName
+                ? fileIsValid
+                  ? `${styles.fileSection} ${styles.fileSectionValid}`
+                  : `${styles.fileSection} ${styles.fileSectionError}`
+                : styles.fileSection
+            }
+          >
+            {/* Left: file icon */}
+            <FaFileAlt className={styles.fileIcon} />
+
+            {/* Middle: file name or 'No file selected' */}
+            <div className={styles.fileDetails}>
+              <div className={styles.fileName}>
+                {fileName || 'No file selected'}
               </div>
             </div>
 
-            <button className={styles.downloadTemplateBtn} onClick={downloadStarterTemplate}>
-              Download Starter Template
-            </button>
+            {/* Right: if valid, show green check; if error, show red warning with hover tooltip */}
+            {fileName && fileIsValid === true && (
+              <div className={styles.validBadge}>
+                <FaCheckCircle className={styles.checkIcon} />
+                <span>Valid File</span>
+              </div>
+            )}
 
-            <div className={styles.statsTable}>
-              <table>
-                <tbody>
-                  <tr>
-                    <th>File Name</th>
-                    <td>{fileName || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <th>Lowest Value</th>
-                    <td>
-                      {fileStats.lowestValue !== null
-                        ? fileStats.lowestValue
-                        : 'N/A'}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Highest Value</th>
-                    <td>
-                      {fileStats.highestValue !== null
-                        ? fileStats.highestValue
-                        : 'N/A'}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Average Value</th>
-                    <td>
-                      {fileStats.averageValue !== null
-                        ? fileStats.averageValue
-                        : 'N/A'}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Data Completion</th>
-                    <td>
-                      {fileStats.numberOfValues}/{fileStats.totalCountries} ({dataCompleteness}%)
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            {fileName && fileIsValid === false && (
+              <div className={styles.errorBadge}>
+                <FaExclamationTriangle className={styles.warnIcon} />
+                <span>{errors.length} error{errors.length > 1 ? 's' : ''}</span>
+                {/* Same hover behavior for the tooltip */}
+                <div className={styles.errorTooltip}>
+                  <ul>
+                    {errors.map((err, i) => (
+                      <li key={i}>
+                        <strong>Line {err.line}:</strong> {err.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* STATS - each with icon, label left, big value right */}
+          <div className={styles.statsContainer}>
+            {/* Lowest Value */}
+            <div className={styles.statItem}>
+              <FaArrowDown className={styles.statIcon} />
+              <div className={styles.statText}>
+                <div className={styles.statLabel}>Lowest Value</div>
+                <div className={styles.statValue}>
+                  {fileStats.lowestValue !== null
+                    ? fileStats.lowestValue
+                    : 'N/A'}
+                </div>
+              </div>
             </div>
 
+            {/* Highest Value */}
+            <div className={styles.statItem}>
+              <FaArrowUp className={styles.statIcon} />
+              <div className={styles.statText}>
+                <div className={styles.statLabel}>Highest Value</div>
+                <div className={styles.statValue}>
+                  {fileStats.highestValue !== null
+                    ? fileStats.highestValue
+                    : 'N/A'}
+                </div>
+              </div>
+            </div>
+
+            {/* Average Value */}
+            <div className={styles.statItem}>
+              <FaCalculator className={styles.statIcon} />
+              <div className={styles.statText}>
+                <div className={styles.statLabel}>Average Value</div>
+                <div className={styles.statValue}>
+                  {fileStats.averageValue !== null
+                    ? fileStats.averageValue
+                    : 'N/A'}
+                </div>
+              </div>
+            </div>
+
+            {/* Data Completion */}
+            <div className={styles.statItem}>
+              <FaPercent className={styles.statIcon} />
+              <div className={styles.statText}>
+                <div className={styles.statLabel}>Data Completion</div>
+                <div className={styles.statValue}>
+                  {fileStats.numberOfValues}/{fileStats.totalCountries} (
+                  {dataCompleteness}%)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ACTION BUTTONS: Import / Manually Adjust */}
+          <div className={styles.actionsRow}>
             <button
               className={styles.importDataBtn}
               disabled={!fileIsValid || parsedData.length === 0}
               onClick={handleImportData}
             >
               Import Data
+            </button>
+
+            <button
+              className={styles.closeModalBtn}
+              onClick={onClose}
+            >
+              Manually Adjust Values
             </button>
           </div>
         </div>

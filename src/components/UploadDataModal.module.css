@@ -1,143 +1,276 @@
 .modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  }
-  
-  .modalContent {
-    background: #fff;
-    width: 80%;
-    max-width: 1200px;
-    border-radius: 8px;
-    position: relative;
-    padding: 20px;
-  }
-  
-  .closeButton {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-  }
-  
-  .modalBody {
-    display: flex;
-    gap: 20px;
-  }
-  
-  /* LEFT SIDE */
-  .leftSide {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .dropArea {
-    border: 2px dashed #ccc;
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-  }
-  
-  .dragging {
-    border-color: #000;
-    background-color: #f5f5f5;
-  }
-  
-  .errorBox {
-    margin-top: 15px;
-    padding: 10px;
-    background: #ffe6e6;
-    color: #b00;
-    border: 1px solid #b00;
-    max-height: 200px;
-    overflow-y: auto;
-  }
-  
-  /* RIGHT SIDE */
-  .rightSide {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .mapPreviewWrapper {
-    position: relative;
-    width: 100%;
-    height: 240px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    border: 1px solid #ccc;
-  }
-  
-  .mapContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-  
-  .mapOverlay {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
-  }
-  
-  .mapOverlayText {
-    font-size: 2rem;
-    color: #fff;
-    font-weight: bold;
-    text-transform: uppercase;
-    text-align: center;
-  }
-  
-  .downloadTemplateBtn {
-    margin-bottom: 10px;
-    padding: 6px 12px;
-    cursor: pointer;
-  }
-  
-  .statsTable {
-    margin-bottom: 10px;
-    width: 100%;
-  }
-  
-  .statsTable table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .statsTable th, .statsTable td {
-    border: 1px solid #ccc;
-    padding: 6px 8px;
-    text-align: left;
-  }
-  
-  .importDataBtn {
-    padding: 8px 16px;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  
-  .importDataBtn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalContent {
+  background: #fff;
+  width: 80%;
+  max-width: 1100px;
+  border-radius: 8px;
+  position: relative;
+  padding: 20px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* TOP ROW: 2 columns: Dropzone (left) + Map (right) */
+.topRow {
+  display: flex;
+  gap: 20px; /* space between the two halves */
+  width: 100%;
+}
+
+/* The dropzone / left half */
+.dropZone {
+  flex: 1; 
+  border: 2px dashed #ccc;
+  padding: 108px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.dropZoneActive {
+  background-color: #f5f5f5;
+  border-color: #000;
+}
+.uploadIcon {
+  display: block;
+  font-size: 2rem;
+  margin: 0 auto 10px auto;
+}
+
+/* The map / right half */
+.mapWrapper {
+  flex: 1;
+  position: relative;
+  height: 300px;
+  border: 1px solid #ccc;
+  overflow: hidden;
+}
+
+.mapOverlay {
+  position: absolute;
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.mapName {
+  font-size: 2rem;
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.downloadBtn {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* FILE SECTION */
+.fileSection {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fdfdfd; 
+  gap: 16px;
+}
+
+.fileSectionValid {
+  border-color: #c3e6cb;
+  background-color: #d4edda; /* success background */
+}
+
+.fileSectionError {
+  border-color: #f5c6cb;
+  background-color: #f8d7da; /* danger background */
+}
+
+.fileIcon {
+  font-size: 1.8rem;
+  color: #888;
+}
+
+.fileDetails {
+  flex: 1;
+}
+
+.fileName {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* VALID/ERROR BADGES */
+.validBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #155724; /* dark green text */
+  font-weight: bold;
+}
+.checkIcon {
+  color: #155724;
+  font-size: 1.2rem;
+}
+
+.errorBadge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #721c24; /* dark red */
+  font-weight: bold;
+  cursor: pointer;
+}
+.warnIcon {
+  font-size: 1.2rem;
+}
+
+/* Hoverable error tooltip */
+.errorTooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  position: absolute;
+  top: 115%;
+  left: 0;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #b00;
+  padding: 8px;
+  border-radius: 4px;
+  width: 300px; 
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.errorBadge:hover .errorTooltip,
+.errorTooltip:hover {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* STATS */
+.statsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Each stat is also a panel with same style as file panel */
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fdfdfd;
+  width: 280px; 
+}
+
+/* Icon for each stat */
+.statIcon {
+  font-size: 1.6rem;
+  color: #444;
+}
+
+/* Holds the label + value */
+.statText {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
+/* smaller label text */
+.statLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #444;
+}
+
+/* bigger value text */
+.statValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #000;
+}
+
+/* ACTION BUTTONS */
+.actionsRow {
+  display: flex;
+  gap: 0; 
+  width: 100%;
+}
+
+.importDataBtn,
+.closeModalBtn {
+  width: 50%;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+}
+
+.importDataBtn {
+  background: #309d81; 
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+.importDataBtn:hover {
+  background: #1c8e71; 
+}
+
+.closeModalBtn {
+  background: #6c757d;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+.closeModalBtn:hover {
+  background: #5a6268;
+}
+
+.importDataBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
