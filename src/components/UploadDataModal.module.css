@@ -1,9 +1,6 @@
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.4);
   display: flex;
   justify-content: center;
@@ -36,16 +33,15 @@
   gap: 20px;
 }
 
-/* TOP ROW: 2 columns: Dropzone (left) + Map (right) */
+/* The top row with dropzone + map side by side */
 .topRow {
   display: flex;
-  gap: 20px; /* space between the two halves */
+  gap: 20px;
   width: 100%;
 }
 
-/* The dropzone / left half */
 .dropZone {
-  flex: 1; 
+  flex: 1;
   border: 2px dashed #ccc;
   padding: 108px;
   text-align: center;
@@ -62,7 +58,6 @@
   margin: 0 auto 10px auto;
 }
 
-/* The map / right half */
 .mapWrapper {
   flex: 1;
   position: relative;
@@ -73,10 +68,7 @@
 
 .mapOverlay {
   position: absolute;
-  top: 0; 
-  left: 0; 
-  right: 0; 
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
@@ -99,25 +91,25 @@
   font-weight: 500;
 }
 
-/* FILE SECTION */
+/* FILE SECTION (the panel with file name, errors, etc.) */
 .fileSection {
   display: flex;
   align-items: center;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  background-color: #fdfdfd; 
+  background-color: #fdfdfd;
   gap: 16px;
 }
 
 .fileSectionValid {
   border-color: #c3e6cb;
-  background-color: #d4edda; /* success background */
+  background-color: #d4edda;
 }
 
 .fileSectionError {
   border-color: #f5c6cb;
-  background-color: #f8d7da; /* danger background */
+  background-color: #f8d7da;
 }
 
 .fileIcon {
@@ -134,12 +126,19 @@
   font-weight: 600;
 }
 
-/* VALID/ERROR BADGES */
+.dataTypeSelect {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Valid/error badges */
 .validBadge {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #155724; /* dark green text */
+  color: #155724;
   font-weight: bold;
 }
 .checkIcon {
@@ -152,7 +151,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #721c24; /* dark red */
+  color: #721c24;
   font-weight: bold;
   cursor: pointer;
 }
@@ -160,21 +159,20 @@
   font-size: 1.2rem;
 }
 
-/* Hoverable error tooltip */
 .errorTooltip {
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
   position: absolute;
-  top: 115%;
+  top: 120%;
   left: 0;
   background-color: #fff;
   color: #000;
   border: 1px solid #b00;
   padding: 8px;
   border-radius: 4px;
-  width: 300px; 
+  width: 300px;
   max-height: 150px;
   overflow-y: auto;
   z-index: 10;
@@ -186,58 +184,87 @@
   pointer-events: auto;
 }
 
-/* STATS */
-.statsContainer {
+/* Stats & Table side by side */
+.statsAndTable {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  gap: 20px; /* space between stats and table */
+  width: 100%;
 }
 
-/* Each stat is also a panel with same style as file panel */
+/* Stats in a 2-col grid, same size for numeric or categorical */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  flex: 1;
+}
+
 .statItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 8px;
+  padding: 8px;
   border: 1px solid #ddd;
   border-radius: 6px;
   background-color: #fdfdfd;
-  width: 280px; 
 }
 
-/* Icon for each stat */
 .statIcon {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   color: #444;
 }
 
-/* Holds the label + value */
 .statText {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
   width: 100%;
   align-items: center;
 }
 
-/* smaller label text */
 .statLabel {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #444;
 }
 
-/* bigger value text */
 .statValue {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #000;
 }
 
-/* ACTION BUTTONS */
+/* Table wrapper with overflow */
+.valuesTableWrapper {
+  width: 45%;
+  max-height: 300px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+.valuesTableWrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.valuesTableWrapper th,
+.valuesTableWrapper td {
+  border-bottom: 1px solid #eee;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.valuesTableWrapper thead tr {
+  background-color: #f4f4f4;
+  position: sticky;
+  top: 0;
+}
+
+/* Action buttons at bottom */
 .actionsRow {
   display: flex;
-  gap: 0; 
+  gap: 0;
   width: 100%;
 }
 
@@ -253,12 +280,12 @@
 }
 
 .importDataBtn {
-  background: #309d81; 
+  background: #309d81;
   color: #fff;
   transition: background-color 0.2s ease;
 }
 .importDataBtn:hover {
-  background: #1c8e71; 
+  background: #1c8e71;
 }
 
 .closeModalBtn {
@@ -273,4 +300,68 @@
 .importDataBtn:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* Additional CSS for the "mixed data" warning overlay */
+.mixedWarningOverlay {
+  position: fixed;
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mixedWarningModal {
+  background: #fff;
+  border-radius: 6px;
+  width: 460px;
+  max-width: 90%;
+  padding: 20px;
+  position: relative;
+}
+
+.mixedCloseBtn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.mixedWarningContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.mixedWarnIcon {
+  font-size: 2rem;
+  color: #d9534f; /* typical "danger" color */
+}
+
+.mixedActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.mixedActions button {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 1px solid #666;
+  border-radius: 4px;
+  background: #f1f1f1;
+  font-weight: 600;
+}
+.mixedActions button:hover {
+  background: #e7e7e7;
 }
