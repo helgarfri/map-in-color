@@ -1,0 +1,237 @@
+/* Container for the sidebar, pinned to the right edge */
+.sidebarContainer {
+    width: 300px;
+    background-color: #fff;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 0 3px rgba(0,0,0,0.1); /* optional */
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* let the content scroll if it gets tall */
+    /* no position: fixed; or top/bottom, etc. */
+  }
+  
+  /* Tabs row container */
+  .tabRow {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  
+  /* Each tab */
+  .tabItem {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.3s ease;
+  }
+  .tabItem:hover {
+    color: #333;
+  }
+  .activeTab {
+    color: #333;
+    font-weight: 600;
+    border-bottom: 2px solid #55957b;
+  }
+  
+  /* “Upload Data” button */
+  .uploadButtonAlt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .uploadButtonAlt:hover {
+    background-color: #e0e0e0;
+  }
+  .uploadIcon {
+    font-size: 16px;
+  }
+  
+  /* Category manager block (only visible if mapDataType === 'categorical') */
+  .categoryManager {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #fafafa;
+  }
+  .categoryManager h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .addCategoryRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .addCategoryRow input {
+    flex: 1;
+    font-size: 13px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .addCategoryRow button {
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid #666;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+  .addCategoryRow button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .categoryList {
+    list-style: none;
+    margin: 0; 
+    padding: 0;
+  }
+  .categoryList li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    background-color: #fff;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .removeCatBtn {
+    background: none;
+    border: none;
+    color: #444;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: color 0.3s ease;
+  }
+  .removeCatBtn:hover {
+    color: #d9534f;
+  }
+  
+  /* MAIN SCROLLABLE AREA */
+  .scrollableList {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #fafafa;
+  }
+  
+  /* Row for each country/state + input or select */
+  .countryRow {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .countryRow:last-child {
+    border-bottom: none;
+  }
+  .countryLabel {
+    flex: 0 0 120px;
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Numeric input (Choropleth) */
+  .countryInput {
+    flex: 1;
+    font-size: 14px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+    max-width: 90px; 
+  }
+  .countryInput:focus {
+    border-color: #66afe9;
+    outline: none;
+  }
+  
+  /* Category dropdown (Categorical) */
+  .countrySelect {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+  }
+  
+  /* WARNING MODAL */
+  .typeWarningOverlay {
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .typeWarningModal {
+    background: #fff;
+    border-radius: 6px;
+    width: 460px;
+    max-width: 90%;
+    padding: 20px;
+    position: relative;
+  }
+  .typeWarningCloseBtn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  .typeWarningContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .typeWarningContent h2 {
+    margin-bottom: 8px;
+  }
+  .typeWarningActions {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .typeWarningActions button {
+    padding: 8px 16px;
+    cursor: pointer;
+    border: 1px solid #666;
+    border-radius: 4px;
+    background: #f1f1f1;
+    font-weight: 600;
+  }
+  .typeWarningActions button:hover {
+    background: #e7e7e7;
+  }
+  
