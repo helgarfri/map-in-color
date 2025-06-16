@@ -1,49 +1,54 @@
+/* Layout.module.css */
 .layoutContainer {
-  /* Make the entire screen a 2-column, 2-row grid */
   display: grid;
-  grid-template-columns: 1fr 2fr; /* Left is 1fr, right is 2fr (2/3) */
-  grid-template-rows: 1fr 1fr;    /* Two rows: top & bottom halves */
+  grid-template-columns: 1fr 2fr;
   width: 100vw;
   height: 100vh;
   background-color: #f7f7f7;
-  position: relative;
 }
 
-/* This is your left sidebar (DataSidebar). 
-   It spans both rows (i.e. top & bottom). */
+/* Left Sidebar with dynamic margin */
 .leftSidebar {
   grid-column: 1;
-  grid-row: 1 / span 2; 
+  grid-row: 1 / span 2;
   background-color: #fff;
   border-right: 1px solid #ccc;
   overflow-y: auto;
   padding: 16px;
+  margin-top: 60px;
+  margin-left: 250px; /* Default expanded margin */
+  transition: margin-left 0.3s ease; /* Smooth transition */
 }
 
-/* The top half of the right side: 
-   Used for the Header + tabs area. */
-.topRight {
+.leftSidebar.collapsed {
+  margin-left: 50px; /* Collapsed margin */
+}
+
+/* ------- RIGHT COLUMN ------- */
+.rightPanel {
   grid-column: 2;
-  grid-row: 1;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Changed from hidden to auto */
+  margin-top: 60px;
+}
+
+/* Map preview (fixed height / not scrollable) */
+.mapSection {
+  flex: 0 0 auto;
   background-color: #f9f9f9;
-  overflow-y: auto;
   padding: 16px;
 }
 
-/* The bottom half of the right side:
-   Used for map preview. */
-.bottomRight {
-  grid-column: 2;
-  grid-row: 2;
+/* Scrollable nav & settings */
+.navSection {
+  flex: 1 1 auto;
+  /* Removed overflow-y: auto */
   background-color: #f9f9f9;
-  overflow-y: auto;
   padding: 16px;
 }
-
-/* If you have a <Header> that’s not sticky, it can simply sit at the top.
-   You can add margin/padding in .topRight to separate the content if desired. */
-
-/* Example “mapBox” and “mapPreview” styles */
+/* -------- MAP BOX -------- */
 .mapBox {
   border: 1px solid #ddd;
   background-color: #fff;
@@ -58,7 +63,7 @@
   height: auto;
 }
 
-/* Tab row at top of .topRight content */
+/* -------- TABS & CONTENT -------- */
 .tabRow {
   display: flex;
   border-bottom: 1px solid #ccc;
@@ -80,11 +85,9 @@
   font-weight: 700;
   color: #333;
 }
-.tabContentArea {
-  /* The container for your tab panels */
-}
+.tabContentArea {}
 
-/* Section box for “ranges”, etc. */
+/* Section box */
 .section {
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -93,7 +96,7 @@
   margin-bottom: 20px;
 }
 
-/* Range table styles */
+/* Range table */
 .rangeTable {
   width: 100%;
   border-collapse: collapse;
@@ -112,7 +115,6 @@
   font-weight: bold;
 }
 
-/* Ranges controls at the bottom of the .section */
 .rangeControls {
   margin-top: 15px;
   display: flex;
@@ -121,7 +123,6 @@
   align-items: center;
 }
 
-/* Input boxes, buttons, error messages, etc. */
 .inputBox {
   padding: 6px 8px;
   font-size: 14px;
@@ -180,7 +181,7 @@
   font-size: 14px;
 }
 
-/* Theme tab, reference styles, etc. */
+/* Theme, info, etc. */
 .themeTab, .infoTab {
   margin-bottom: 20px;
 }
@@ -243,7 +244,6 @@
   color: #ff4d4f;
 }
 
-/* References list and items */
 .referencesList {
   max-height: 120px; 
   overflow-y: auto;
@@ -259,7 +259,7 @@
   text-decoration: none;
 }
 
-/* Visibility Custom Select */
+/* Custom select */
 .customSelect {
   position: relative;
   width: 100px;
@@ -300,7 +300,7 @@
   background-color: #f0f0f0;
 }
 
-/* Modal Overlay & Content */
+/* Modal */
 .modalOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -365,8 +365,7 @@
   color: #333;
 }
 
-/* If you want a responsive fallback (stack the columns):
-   Adjust the grid or switch to flex-direction: column on narrow screens. */
+/* Responsive */
 @media (max-width: 900px) {
   .layoutContainer {
     display: flex;
@@ -376,13 +375,9 @@
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #ccc;
-    grid-row: auto; /* not used anymore */
   }
-  .topRight, 
-  .bottomRight {
+  .rightPanel {
     width: 100%;
-    min-height: auto;
-    grid-column: auto;
-    grid-row: auto;
+    margin-top: 0;
   }
 }

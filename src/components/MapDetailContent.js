@@ -30,12 +30,13 @@ import LoadingSpinner from './LoadingSpinner';
 import { FaDownload } from 'react-icons/fa'; // icon for download
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
-
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
+import Map from './Map';
 
 
-export default function MapDetailContent() {
+export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -48,8 +49,6 @@ export default function MapDetailContent() {
   const [is_public, setIsPublic] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [viewBox, setViewBox] = useState('0 0 2754 1398');
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
@@ -145,16 +144,6 @@ useEffect(() => {
     };
   }, [comments]);
 
-  useEffect(() => {
-    if (!mapData) return;
-    if (mapData.selected_map === 'usa') {
-      setViewBox('-90 -10 1238 610');   // after editing the raw US SVG
-    } else if (mapData.selected_map === 'europe') {
-      setViewBox('-50 0 700 520');    // after editing the raw Europe SVG
-    } else {
-      setViewBox('0 0 2754 1398');  // world
-    }
-  }, [mapData]);
 
   
   useEffect(() => {
@@ -231,9 +220,7 @@ useEffect(() => {
   };
   
 
-  const toggleFullScreen = () => {
-    setIsFullScreen(!isFullScreen);
-  };
+
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -444,49 +431,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   
   
 
-  const handleZoom = (scaleFactor) => {
-    let [x, y, width, height] = viewBox.split(' ').map(Number);
-    const newWidth = width / scaleFactor;
-    const newHeight = height / scaleFactor;
-    const minWidth = 500;
-    const maxWidth = 5000;
-    if (newWidth < minWidth || newWidth > maxWidth) return;
-    const dx = (width - newWidth) / 2;
-    const dy = (height - newHeight) / 2;
-    x += dx;
-    y += dy;
-    setViewBox(`${x} ${y} ${newWidth} ${newHeight}`);
-  };
 
-  const handleMouseDown = (e) => {
-    isPanning.current = true;
-    lastMousePosition.current = { x: e.clientX, y: e.clientY };
-    e.currentTarget.style.cursor = 'grabbing';
-  };
 
-  const handleMouseMove = (e) => {
-    if (!isPanning.current) return;
-    const dx = e.clientX - lastMousePosition.current.x;
-    const dy = e.clientY - lastMousePosition.current.y;
-    let [x, y, width, height] = viewBox.split(' ').map(Number);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const scaleX = width / rect.width;
-    const scaleY = height / rect.height;
-    x -= dx * scaleX;
-    y -= dy * scaleY;
-    setViewBox(`${x} ${y} ${width} ${height}`);
-    lastMousePosition.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseUp = (e) => {
-    isPanning.current = false;
-    e.currentTarget.style.cursor = 'grab';
-  };
-
-  const handleMouseLeave = (e) => {
-    isPanning.current = false;
-    e.currentTarget.style.cursor = 'grab';
-  };
 
   const handleNotificationClick = async (notification) => {
     try {
@@ -849,7 +795,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   if (fetchError) {
     return (
       <div className={styles.mapDetailContainer}>
-        <Sidebar />
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={styles.mapDetailContent}>
           <div className={styles.errorBox}>
             <h2>Map not available</h2>
@@ -864,7 +810,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   if (isLoading && is_public === false && !isOwner) {
     return (
       <div className={styles.mapDetailContainer}>
-        <Sidebar />
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={styles.mapDetailContent}>
           <div className={styles.privateMapBox}>
             <FaLock className={styles.lockIcon} />
@@ -880,7 +826,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   if (isLoading) {
     return (
       <div className={styles.mapDetailContainer}>
-        <Sidebar />
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={styles.mapDetailContent}>
           {/* --- SKELETON STARTS HERE --- */}
           <div className={styles.mapDisplay}>
@@ -953,7 +899,7 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   if (mapData.is_public === false && !mapData.isOwner) {
     return (
       <div className={styles.mapDetailContainer}>
-        <Sidebar />
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className={styles.mapDetailContent}>
           <div className={styles.privateMapBox}>
             <FaLock className={styles.lockIcon} />
@@ -969,11 +915,18 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 
   return (
     <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+      {!isFullScreen && (
+        <>
+          <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        </>
+
+      )}
   
       <div
         className={`${styles.mapDetailContent} ${
-          isCollapsed ? styles.contentCollapsed : ''
+          isCollapsed ? styles.contentCollapsed : '',
+          isFullScreen && styles.noPadding 
         }`}
       >
         {/* <Header
@@ -987,55 +940,28 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
         /> */}
   
         {/* Map Display */}
-        <div
-          className={styles.mapDisplay}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          style={{ cursor: 'grab', position: 'relative' }}
-        >
-          {mapData.selected_map === 'world' && (
-            <WorldMapSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
-          )}
-          {mapData.selected_map === 'usa' && (
-            <UsSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
-          )}
-          {mapData.selected_map === 'europe' && (
-            <EuropeSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
-          )}
-  
-          <div
-            className={styles.zoomControls}
-            onMouseDown={(e) => e.stopPropagation()}
-            onMouseUp={(e) => e.stopPropagation()}
-            onMouseMove={(e) => e.stopPropagation()}
-            onMouseLeave={(e) => e.stopPropagation()}
-          >
-            <button onClick={() => handleZoom(1.2)}>+</button>
-            <button onClick={() => handleZoom(0.8)}>-</button>
-          </div>
-  
-          <button className={styles.viewModeButton} onClick={toggleFullScreen}>
-            🖵
-          </button>
-        </div>
-  
-        {isFullScreen && (
-          <FullScreenMap
-            mapData={mapData}
-            handleZoom={handleZoom}
-            viewBox={viewBox}
-            setViewBox={setViewBox}
-            handleMouseDown={handleMouseDown}
-            handleMouseMove={handleMouseMove}
-            handleMouseUp={handleMouseUp}
-            handleMouseLeave={handleMouseLeave}
-            toggleFullScreen={toggleFullScreen}
-          />
-        )}
-  
-{/*
+    <div
+  className={`${styles.mapDisplay} ${isFullScreen ? styles.fullScreen : ''}`}
+  style={{ position: 'relative', cursor: isPanning.current ? 'grabbing' : 'grab' }}
+>
+  <Map {...mapDataProps()} isLargeMap={isFullScreen} />
+
+ <button
+   onClick={toggleFullScreen}
+   aria-label={isFullScreen ? 'Exit view mode' : 'Enter view mode'}
+   className={styles.fullScreenBtn}
+ >
+   {isFullScreen ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+   <span className={styles.fullScreenLabel}>
+     {isFullScreen ? 'Exit view mode' : 'View mode'}
+   </span>
+ </button>
+</div>
+
+
+   {!isFullScreen && (
+        <>
+        {/*
   DETAILS + STATS + DISCUSSION
   We'll have a container .detailsAndStats that has:
     1) .leftContent
@@ -1680,6 +1606,11 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
             </div>
           </div>
         </div>
+        </>
+
+      )}
+  
+
       </div>
 
       {showReportModal && reportedComment && (

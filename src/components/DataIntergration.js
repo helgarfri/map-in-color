@@ -380,469 +380,476 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 
   return (
     <div className={styles.layoutContainer}>
-      {/* Your main site sidebar (if needed) */}
+      {/* Main sidebar */}
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      {/* LEFT: Data Sidebar (full height, 1/3 width) */}
-      <div className={styles.leftSidebar}>
-        <DataSidebar
-          selectedMap={selected_map}
-          mapDataType={mapDataType}
-          onChangeDataType={setMapDataType}
-          dataEntries={data}
-          setDataEntries={setData}
-          onOpenUploadModal={handleOpenUploadModal}
-        />
-      </div>
+      {/* LEFT: Data sidebar */}
 
-      {/* TOP RIGHT: Tabs & main content (occupies top half of the right 2/3) */}
-      <div className={styles.topRight}>
-        <Header
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          title={isEditing ? `Edit ${mapTitle}` : 'Create Map'}
-        />
 
-        <div className={styles.tabRow}>
-          <div
-            className={`${styles.tabItem} ${activeTab === 'ranges' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('ranges')}
-          >
-            Data & Ranges
-          </div>
-          <div
-            className={`${styles.tabItem} ${activeTab === 'theme' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('theme')}
-          >
-            Map Theme
-          </div>
-          <div
-            className={`${styles.tabItem} ${activeTab === 'info' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('info')}
-          >
-            Map Info
+      {/* RIGHT: Map preview on top, navigation below */}
+      <div className={styles.rightPanel}>
+        {/* Map preview */}
+        <div className={styles.mapSection}>
+          <div className={styles.mapBox}>
+            <h4>Map Preview</h4>
+            <div className={styles.mapPreview}>
+              {selected_map === 'world' && (
+                <WorldMapSVG
+                  groups={groups}
+                  mapTitleValue={mapTitle}
+                  ocean_color={ocean_color}
+                  unassigned_color={unassigned_color}
+                  data={data}
+                  selected_map={selected_map}
+                  font_color={font_color}
+                  showNoDataLegend={showNoDataLegend}
+                  is_title_hidden={is_title_hidden}
+                  titleFontSize={titleFontSize}
+                  legendFontSize={legendFontSize}
+                />
+              )}
+              {selected_map === 'usa' && (
+                <UsSVG
+                  groups={groups}
+                  mapTitleValue={mapTitle}
+                  ocean_color={ocean_color}
+                  unassigned_color={unassigned_color}
+                  data={data}
+                  font_color={font_color}
+                  showNoDataLegend={showNoDataLegend}
+                  is_title_hidden={is_title_hidden}
+                  titleFontSize={titleFontSize}
+                  legendFontSize={legendFontSize}
+                />
+              )}
+              {selected_map === 'europe' && (
+                <EuropeSVG
+                  groups={groups}
+                  mapTitleValue={mapTitle}
+                  ocean_color={ocean_color}
+                  unassigned_color={unassigned_color}
+                  data={data}
+                  font_color={font_color}
+                  showNoDataLegend={showNoDataLegend}
+                  is_title_hidden={is_title_hidden}
+                  titleFontSize={titleFontSize}
+                  legendFontSize={legendFontSize}
+                />
+              )}
+            </div>
           </div>
         </div>
 
-        <div className={styles.tabContentArea}>
-          {activeTab === 'ranges' && (
-            <>
-              {mapDataType === 'choropleth' ? (
-                <div className={styles.section}>
-                  <h3>Define Custom Ranges</h3>
-                  <table className={styles.rangeTable}>
-                    <thead>
-                      <tr>
-                        <th>Lower Bound</th>
-                        <th>Upper Bound</th>
-                        <th>Name</th>
-                        <th>Color</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {custom_ranges.map(range => (
-                        <tr key={range.id}>
-                          <td>
-                            <input
-                              type="number"
-                              className={styles.inputBox}
-                              value={range.lowerBound}
-                              onChange={(e) =>
-                                handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
-                              }
-                              placeholder="Min"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              className={styles.inputBox}
-                              value={range.upperBound}
-                              onChange={(e) =>
-                                handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
-                              }
-                              placeholder="Max"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              className={styles.inputBox}
-                              value={range.name}
-                              onChange={(e) => handleRangeChange(range.id, 'name', e.target.value)}
-                              placeholder="Range Name"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="color"
-                              className={styles.inputBox}
-                              value={range.color}
-                              onChange={(e) => handleRangeChange(range.id, 'color', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            {custom_ranges.length > 1 ? (
-                              <button
-                                className={styles.removeButton}
-                                onClick={() => removeRange(range.id)}
-                              >
-                                &times;
-                              </button>
-                            ) : (
-                              <button className={styles.removeButton} disabled>&times;</button>
-                            )}
-                          </td>
+        {/* Navigation / settings */}
+        <div className={styles.navSection}>
+          <Header
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            title={isEditing ? `Edit ${mapTitle}` : 'Create Map'}
+          />
+
+          {/* Tabs */}
+          <div className={styles.tabRow}>
+            <div
+              className={`${styles.tabItem} ${activeTab === 'ranges' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('ranges')}
+            >
+              Data &amp; Ranges
+            </div>
+            <div
+              className={`${styles.tabItem} ${activeTab === 'theme' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('theme')}
+            >
+              Map Theme
+            </div>
+            <div
+              className={`${styles.tabItem} ${activeTab === 'info' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('info')}
+            >
+              Map Info
+            </div>
+          </div>
+
+          {/* Tab content */}
+          <div className={styles.tabContentArea}>
+            {activeTab === 'ranges' && (
+              <>
+                {mapDataType === 'choropleth' ? (
+                  <div className={styles.section}>
+                    <h3>Define Custom Ranges</h3>
+                    <table className={styles.rangeTable}>
+                      <thead>
+                        <tr>
+                          <th>Lower Bound</th>
+                          <th>Upper Bound</th>
+                          <th>Name</th>
+                          <th>Color</th>
+                          <th>Actions</th>
                         </tr>
+                      </thead>
+                      <tbody>
+                        {custom_ranges.map(range => (
+                          <tr key={range.id}>
+                            <td>
+                              <input
+                                type="number"
+                                className={styles.inputBox}
+                                value={range.lowerBound}
+                                onChange={(e) =>
+                                  handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
+                                }
+                                placeholder="Min"
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className={styles.inputBox}
+                                value={range.upperBound}
+                                onChange={(e) =>
+                                  handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
+                                }
+                                placeholder="Max"
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                className={styles.inputBox}
+                                value={range.name}
+                                onChange={(e) => handleRangeChange(range.id, 'name', e.target.value)}
+                                placeholder="Range Name"
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="color"
+                                className={styles.inputBox}
+                                value={range.color}
+                                onChange={(e) => handleRangeChange(range.id, 'color', e.target.value)}
+                              />
+                            </td>
+                            <td>
+                              {custom_ranges.length > 1 ? (
+                                <button
+                                  className={styles.removeButton}
+                                  onClick={() => removeRange(range.id)}
+                                >
+                                  &times;
+                                </button>
+                              ) : (
+                                <button className={styles.removeButton} disabled>&times;</button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    <div className={styles.rangeControls}>
+                      <label>Ranges:</label>
+                      <select
+                        value={numRanges}
+                        onChange={(e) => setNumRanges(parseInt(e.target.value))}
+                        className={styles.inputBox}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={rangeOrder}
+                        onChange={(e) => setRangeOrder(e.target.value)}
+                        className={styles.inputBox}
+                      >
+                        <option value="low-high">Low to High</option>
+                        <option value="high-low">High to Low</option>
+                      </select>
+
+                      <button className={styles.secondaryButton} onClick={suggestRanges}>
+                        Suggest Ranges
+                      </button>
+                      <button className={styles.secondaryButton} onClick={addRange}>
+                        Add Range
+                      </button>
+                      <button
+                        className={styles.primaryButton}
+                        disabled={!data.length || !rangesValidation.isValid}
+                        onClick={generateGroups}
+                      >
+                        Generate Groups
+                      </button>
+
+                      {(!rangesValidation.isValid || !data.length) && (
+                        <p className={styles.errorMessage}>
+                          {(!data.length)
+                            ? 'Please upload or enter data first.'
+                            : rangesValidation.errorMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  renderCategoryGroupsTable()
+                )}
+              </>
+            )}
+
+            {activeTab === 'theme' && (
+              <div className={styles.themeTab}>
+                <h3>Map Theme</h3>
+                <div className={styles.themeField}>
+                  <label htmlFor="paletteSelector">Palette:</label>
+                  <select
+                    id="paletteSelector"
+                    className={styles.inputBox}
+                    value={selected_palette}
+                    onChange={handlePaletteChange}
+                  >
+                    {themes.map((th) => (
+                      <option key={th.name} value={th.name}>{th.name}</option>
+                    ))}
+                  </select>
+                  <div className={styles.themePreview}>
+                    {themes
+                      .find(t => t.name === selected_palette)
+                      ?.colors.map((color, idx) => (
+                        <div
+                          key={idx}
+                          className={styles.themeColor}
+                          style={{ backgroundColor: color }}
+                        />
                       ))}
-                    </tbody>
-                  </table>
+                  </div>
+                </div>
 
-                  <div className={styles.rangeControls}>
-                    <label>Ranges:</label>
-                    <select
-                      value={numRanges}
-                      onChange={(e) => setNumRanges(parseInt(e.target.value))}
-                      className={styles.inputBox}
-                    >
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                        <option key={n} value={n}>{n}</option>
-                      ))}
-                    </select>
+                <div className={styles.themeField}>
+                  <label>Map Theme:</label>
+                  <select
+                    className={styles.inputBox}
+                    value={selected_map_theme}
+                    onChange={handleThemeChange}
+                  >
+                    {map_themes.map(mt => (
+                      <option key={mt.name} value={mt.name}>
+                        {mt.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                    <select
-                      value={rangeOrder}
-                      onChange={(e) => setRangeOrder(e.target.value)}
-                      className={styles.inputBox}
-                    >
-                      <option value="low-high">Low to High</option>
-                      <option value="high-low">High to Low</option>
-                    </select>
+                <div className={styles.themeField}>
+                  <label>Ocean Color:</label>
+                  <input
+                    type="color"
+                    className={styles.inputBox}
+                    value={ocean_color}
+                    onChange={(e) => setOceanColor(e.target.value)}
+                  />
+                </div>
 
-                    <button className={styles.secondaryButton} onClick={suggestRanges}>
-                      Suggest Ranges
-                    </button>
-                    <button className={styles.secondaryButton} onClick={addRange}>
-                      Add Range
-                    </button>
-                    <button
-                      className={styles.primaryButton}
-                      disabled={!data.length || !rangesValidation.isValid}
-                      onClick={generateGroups}
-                    >
-                      Generate Groups
-                    </button>
+                <div className={styles.themeField}>
+                  <label>Unassigned Color:</label>
+                  <input
+                    type="color"
+                    className={styles.inputBox}
+                    value={unassigned_color}
+                    onChange={(e) => setUnassignedColor(e.target.value)}
+                  />
+                </div>
 
-                    {(!rangesValidation.isValid || !data.length) && (
-                      <p className={styles.errorMessage}>
-                        {(!data.length)
-                          ? 'Please upload or enter data first.'
-                          : rangesValidation.errorMessage}
-                      </p>
+                <div className={styles.themeField}>
+                  <label>Font Color:</label>
+                  <div className={styles.radioGroup}>
+                    <label>
+                      <input
+                        type="radio"
+                        value="black"
+                        checked={font_color === 'black'}
+                        onChange={(e) => setFontColor(e.target.value)}
+                      />
+                      Black
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        value="white"
+                        checked={font_color === 'white'}
+                        onChange={(e) => setFontColor(e.target.value)}
+                      />
+                      White
+                    </label>
+                  </div>
+                </div>
+
+                <div className={styles.themeField}>
+                  <TitleFontSizeField
+                    titleFontSize={titleFontSize}
+                    setTitleFontSize={setTitleFontSize}
+                  />
+                </div>
+                <div className={styles.themeField}>
+                  <LegendFontSizeField
+                    legendFontSize={legendFontSize}
+                    setLegendFontSize={setLegendFontSize}
+                  />
+                </div>
+
+                <div className={styles.themeField}>
+                  <label>Show "No data" in legend:</label>
+                  <input
+                    type="checkbox"
+                    checked={showNoDataLegend}
+                    onChange={(e) => setShowNoDataLegend(e.target.checked)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'info' && (
+              <div className={styles.infoTab}>
+                <h3>Map Information</h3>
+                <div className={styles.settingItemRow}>
+                  <label>Map Title:</label>
+                  <input
+                    type="text"
+                    className={styles.inputBox}
+                    style={{ width: '220px' }}
+                    value={mapTitle}
+                    onChange={(e) => setMapTitle(e.target.value)}
+                    placeholder="Enter map title"
+                  />
+                  <label className={styles.hideTitleLabel}>
+                    <input
+                      type="checkbox"
+                      checked={is_title_hidden}
+                      onChange={(e) => setIsTitleHidden(e.target.checked)}
+                    />
+                    Hide
+                  </label>
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label>Description:</label>
+                  <textarea
+                    className={`${styles.inputBox} ${styles.descriptionInput}`}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter description"
+                  />
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label>Tags:</label>
+                  <input
+                    type="text"
+                    className={styles.inputBox}
+                    value={tagInput}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\s/g, '');
+                      setTagInput(val);
+                    }}
+                    onKeyDown={handleTagInputKeyDown}
+                    placeholder="Type a tag and press Enter"
+                  />
+                  <div className={styles.tagBox}>
+                    {tags.map((tag, i) => (
+                      <div key={i} className={styles.tagItem}>
+                        {tag}
+                        <button
+                          className={styles.removeTagButton}
+                          onClick={() => removeTag(i)}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label>References:</label>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={handleAddReference}
+                    style={{ marginBottom: '10px' }}
+                  >
+                    + Add Reference
+                  </button>
+                  <div className={styles.referencesList}>
+                    {references.length === 0 ? (
+                      <p style={{ fontStyle: 'italic' }}>No references added.</p>
+                    ) : (
+                      references.map(ref => (
+                        <div
+                          key={ref.id}
+                          className={styles.referenceItem}
+                          onClick={() => handleEditReference(ref)}
+                          title="Click to edit"
+                        >
+                          {ref.sourceName} ({ref.publicationYear})
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>
-              ) : (
-                renderCategoryGroupsTable()
-              )}
-            </>
-          )}
 
-          {activeTab === 'theme' && (
-            <div className={styles.themeTab}>
-              <h3>Map Theme</h3>
-              <div className={styles.themeField}>
-                <label htmlFor="paletteSelector">Palette:</label>
-                <select
-                  id="paletteSelector"
-                  className={styles.inputBox}
-                  value={selected_palette}
-                  onChange={handlePaletteChange}
-                >
-                  {themes.map((th) => (
-                    <option key={th.name} value={th.name}>{th.name}</option>
-                  ))}
-                </select>
-                <div className={styles.themePreview}>
-                  {themes
-                    .find(t => t.name === selected_palette)
-                    ?.colors.map((color, idx) => (
-                      <div
-                        key={idx}
-                        className={styles.themeColor}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                </div>
-              </div>
-
-              <div className={styles.themeField}>
-                <label>Map Theme:</label>
-                <select
-                  className={styles.inputBox}
-                  value={selected_map_theme}
-                  onChange={handleThemeChange}
-                >
-                  {map_themes.map(mt => (
-                    <option key={mt.name} value={mt.name}>
-                      {mt.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.themeField}>
-                <label>Ocean Color:</label>
-                <input
-                  type="color"
-                  className={styles.inputBox}
-                  value={ocean_color}
-                  onChange={(e) => setOceanColor(e.target.value)}
-                />
-              </div>
-
-              <div className={styles.themeField}>
-                <label>Unassigned Color:</label>
-                <input
-                  type="color"
-                  className={styles.inputBox}
-                  value={unassigned_color}
-                  onChange={(e) => setUnassignedColor(e.target.value)}
-                />
-              </div>
-
-              <div className={styles.themeField}>
-                <label>Font Color:</label>
-                <div className={styles.radioGroup}>
-                  <label>
-                    <input
-                      type="radio"
-                      value="black"
-                      checked={font_color === 'black'}
-                      onChange={(e) => setFontColor(e.target.value)}
+                <div className={styles.settingItem}>
+                  <label>Visibility:</label>
+                  <div
+                    className={styles.customSelect}
+                    onClick={() => setShowVisibilityOptions(!showVisibilityOptions)}
+                  >
+                    <FontAwesomeIcon
+                      icon={is_public ? faGlobe : faLock}
+                      className={styles.visibilityIcon}
                     />
-                    Black
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="white"
-                      checked={font_color === 'white'}
-                      onChange={(e) => setFontColor(e.target.value)}
-                    />
-                    White
-                  </label>
-                </div>
-              </div>
-
-              <div className={styles.themeField}>
-                <TitleFontSizeField
-                  titleFontSize={titleFontSize}
-                  setTitleFontSize={setTitleFontSize}
-                />
-              </div>
-              <div className={styles.themeField}>
-                <LegendFontSizeField
-                  legendFontSize={legendFontSize}
-                  setLegendFontSize={setLegendFontSize}
-                />
-              </div>
-
-              <div className={styles.themeField}>
-                <label>Show "No data" in legend:</label>
-                <input
-                  type="checkbox"
-                  checked={showNoDataLegend}
-                  onChange={(e) => setShowNoDataLegend(e.target.checked)}
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'info' && (
-            <div className={styles.infoTab}>
-              <h3>Map Information</h3>
-              <div className={styles.settingItemRow}>
-                <label>Map Title:</label>
-                <input
-                  type="text"
-                  className={styles.inputBox}
-                  style={{ width: '220px' }}
-                  value={mapTitle}
-                  onChange={(e) => setMapTitle(e.target.value)}
-                  placeholder="Enter map title"
-                />
-                <label className={styles.hideTitleLabel}>
-                  <input
-                    type="checkbox"
-                    checked={is_title_hidden}
-                    onChange={(e) => setIsTitleHidden(e.target.checked)}
-                  />
-                  Hide
-                </label>
-              </div>
-
-              <div className={styles.settingItem}>
-                <label>Description:</label>
-                <textarea
-                  className={`${styles.inputBox} ${styles.descriptionInput}`}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter description"
-                />
-              </div>
-
-              <div className={styles.settingItem}>
-                <label>Tags:</label>
-                <input
-                  type="text"
-                  className={styles.inputBox}
-                  value={tagInput}
-                  onChange={(e) => {
-                    // if you'd rather keep spaces, remove the replace():
-                    const val = e.target.value.replace(/\s/g, '');
-                    setTagInput(val);
-                  }}
-                  onKeyDown={handleTagInputKeyDown}
-                  placeholder="Type a tag and press Enter"
-                />
-                <div className={styles.tagBox}>
-                  {tags.map((tag, i) => (
-                    <div key={i} className={styles.tagItem}>
-                      {tag}
-                      <button
-                        className={styles.removeTagButton}
-                        onClick={() => removeTag(i)}
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.settingItem}>
-                <label>References:</label>
-                <button
-                  className={styles.secondaryButton}
-                  onClick={handleAddReference}
-                  style={{ marginBottom: '10px' }}
-                >
-                  + Add Reference
-                </button>
-                <div className={styles.referencesList}>
-                  {references.length === 0 ? (
-                    <p style={{ fontStyle: 'italic' }}>No references added.</p>
-                  ) : (
-                    references.map(ref => (
-                      <div
-                        key={ref.id}
-                        className={styles.referenceItem}
-                        onClick={() => handleEditReference(ref)}
-                        title="Click to edit"
-                      >
-                        {ref.sourceName} ({ref.publicationYear})
+                    {is_public ? 'Public' : 'Private'}
+                    <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
+                    {showVisibilityOptions && (
+                      <div className={styles.selectOptions}>
+                        <div
+                          className={styles.selectOption}
+                          onClick={() => { setIsPublic(true); setShowVisibilityOptions(false); }}
+                        >
+                          <FontAwesomeIcon icon={faGlobe} className={styles.visibilityIcon} />
+                          Public
+                        </div>
+                        <div
+                          className={styles.selectOption}
+                          onClick={() => { setIsPublic(false); setShowVisibilityOptions(false); }}
+                        >
+                          <FontAwesomeIcon icon={faLock} className={styles.visibilityIcon} />
+                          Private
+                        </div>
                       </div>
-                    ))
-                  )}
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.navigationButtons}>
+                  <button className={styles.primaryButton} onClick={handleSaveMap}>
+                    Save Map
+                  </button>
                 </div>
               </div>
-
-              <div className={styles.settingItem}>
-                <label>Visibility:</label>
-                <div
-                  className={styles.customSelect}
-                  onClick={() => setShowVisibilityOptions(!showVisibilityOptions)}
-                >
-                  <FontAwesomeIcon
-                    icon={is_public ? faGlobe : faLock}
-                    className={styles.visibilityIcon}
-                  />
-                  {is_public ? 'Public' : 'Private'}
-                  <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
-                  {showVisibilityOptions && (
-                    <div className={styles.selectOptions}>
-                      <div
-                        className={styles.selectOption}
-                        onClick={() => { setIsPublic(true); setShowVisibilityOptions(false); }}
-                      >
-                        <FontAwesomeIcon icon={faGlobe} className={styles.visibilityIcon} />
-                        Public
-                      </div>
-                      <div
-                        className={styles.selectOption}
-                        onClick={() => { setIsPublic(false); setShowVisibilityOptions(false); }}
-                      >
-                        <FontAwesomeIcon icon={faLock} className={styles.visibilityIcon} />
-                        Private
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.navigationButtons}>
-                <button className={styles.primaryButton} onClick={handleSaveMap}>
-                  Save Map
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* BOTTOM RIGHT: Map Preview (occupies bottom half of the right 2/3) */}
-      <div className={styles.bottomRight}>
-        <div className={styles.mapBox}>
-          <h4>Map Preview</h4>
-          <div className={styles.mapPreview}>
-            {selected_map === 'world' && (
-              <WorldMapSVG
-                groups={groups}
-                mapTitleValue={mapTitle}
-                ocean_color={ocean_color}
-                unassigned_color={unassigned_color}
-                data={data}
-                selected_map={selected_map}
-                font_color={font_color}
-                showNoDataLegend={showNoDataLegend}
-                is_title_hidden={is_title_hidden}
-                titleFontSize={titleFontSize}
-                legendFontSize={legendFontSize}
-              />
-            )}
-            {selected_map === 'usa' && (
-              <UsSVG
-                groups={groups}
-                mapTitleValue={mapTitle}
-                ocean_color={ocean_color}
-                unassigned_color={unassigned_color}
-                data={data}
-                font_color={font_color}
-                showNoDataLegend={showNoDataLegend}
-                is_title_hidden={is_title_hidden}
-                titleFontSize={titleFontSize}
-                legendFontSize={legendFontSize}
-              />
-            )}
-            {selected_map === 'europe' && (
-              <EuropeSVG
-                groups={groups}
-                mapTitleValue={mapTitle}
-                ocean_color={ocean_color}
-                unassigned_color={unassigned_color}
-                data={data}
-                font_color={font_color}
-                showNoDataLegend={showNoDataLegend}
-                is_title_hidden={is_title_hidden}
-                titleFontSize={titleFontSize}
-                legendFontSize={legendFontSize}
-              />
             )}
           </div>
         </div>
+
       </div>
+
+      <div className={`${styles.leftSidebar} ${isCollapsed ? styles.collapsed : ''}`}>
+  <DataSidebar
+    selectedMap={selected_map}
+    mapDataType={mapDataType}
+    onChangeDataType={setMapDataType}
+    dataEntries={data}
+    setDataEntries={setData}
+    onOpenUploadModal={handleOpenUploadModal}
+  />
+</div>
 
       {/* Reference Modal */}
       {isReferenceModalOpen && (
@@ -903,6 +910,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
               />
             </div>
 
+
             <div className={styles.modalBottomRow}>
               {selectedReference && (
                 <span className={styles.deleteRefLink} onClick={handleDeleteReference}>
@@ -913,6 +921,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
                 Save
               </button>
             </div>
+
           </div>
         </div>
       )}
