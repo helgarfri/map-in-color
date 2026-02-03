@@ -1,0 +1,367 @@
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalContent {
+  background: #fff;
+  width: 80%;
+  max-width: 1100px;
+  border-radius: 8px;
+  position: relative;
+  padding: 20px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* The top row with dropzone + map side by side */
+.topRow {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+.dropZone {
+  flex: 1;
+  border: 2px dashed #ccc;
+  padding: 108px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.dropZoneActive {
+  background-color: #f5f5f5;
+  border-color: #000;
+}
+.uploadIcon {
+  display: block;
+  font-size: 2rem;
+  margin: 0 auto 10px auto;
+}
+
+.mapWrapper {
+  flex: 1;
+  position: relative;
+  height: 300px;
+  border: 1px solid #ccc;
+  overflow: hidden;
+}
+
+.mapOverlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.mapName {
+  font-size: 2rem;
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.downloadBtn {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* FILE SECTION (the panel with file name, errors, etc.) */
+.fileSection {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fdfdfd;
+  gap: 16px;
+}
+
+.fileSectionValid {
+  border-color: #c3e6cb;
+  background-color: #d4edda;
+}
+
+.fileSectionError {
+  border-color: #f5c6cb;
+  background-color: #f8d7da;
+}
+
+.fileIcon {
+  font-size: 1.8rem;
+  color: #888;
+}
+
+.fileDetails {
+  flex: 1;
+}
+
+.fileName {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.dataTypeSelect {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Valid/error badges */
+.validBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #155724;
+  font-weight: bold;
+}
+.checkIcon {
+  color: #155724;
+  font-size: 1.2rem;
+}
+
+.errorBadge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #721c24;
+  font-weight: bold;
+  cursor: pointer;
+}
+.warnIcon {
+  font-size: 1.2rem;
+}
+
+.errorTooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #b00;
+  padding: 8px;
+  border-radius: 4px;
+  width: 300px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.errorBadge:hover .errorTooltip,
+.errorTooltip:hover {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Stats & Table side by side */
+.statsAndTable {
+  display: flex;
+  gap: 20px; /* space between stats and table */
+  width: 100%;
+}
+
+/* Stats in a 2-col grid, same size for numeric or categorical */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  flex: 1;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fdfdfd;
+}
+
+.statIcon {
+  font-size: 1.4rem;
+  color: #444;
+}
+
+.statText {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.statValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Table wrapper with overflow */
+.valuesTableWrapper {
+  width: 45%;
+  max-height: 300px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+.valuesTableWrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.valuesTableWrapper th,
+.valuesTableWrapper td {
+  border-bottom: 1px solid #eee;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.valuesTableWrapper thead tr {
+  background-color: #f4f4f4;
+  position: sticky;
+  top: 0;
+}
+
+/* Action buttons at bottom */
+.actionsRow {
+  display: flex;
+  gap: 0;
+  width: 100%;
+}
+
+.importDataBtn,
+.closeModalBtn {
+  width: 50%;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+}
+
+.importDataBtn {
+  background: #309d81;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+.importDataBtn:hover {
+  background: #1c8e71;
+}
+
+.closeModalBtn {
+  background: #6c757d;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+.closeModalBtn:hover {
+  background: #5a6268;
+}
+
+.importDataBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Additional CSS for the "mixed data" warning overlay */
+.mixedWarningOverlay {
+  position: fixed;
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mixedWarningModal {
+  background: #fff;
+  border-radius: 6px;
+  width: 460px;
+  max-width: 90%;
+  padding: 20px;
+  position: relative;
+}
+
+.mixedCloseBtn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.mixedWarningContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.mixedWarnIcon {
+  font-size: 2rem;
+  color: #d9534f; /* typical "danger" color */
+}
+
+.mixedActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.mixedActions button {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 1px solid #666;
+  border-radius: 4px;
+  background: #f1f1f1;
+  font-weight: 600;
+}
+.mixedActions button:hover {
+  background: #e7e7e7;
+}

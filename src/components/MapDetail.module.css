@@ -1016,6 +1016,84 @@ a {
   gap: 8px;
 }
 
+.fullScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10; /* above the rest of MapDetail, beneath Header */
+}
+
+.mapDisplay.fullScreen {
+  position: fixed;
+  inset: 0;
+  height: 100vh;     /* 🔸 ← add this */
+  background: #fff;
+  overflow: hidden;
+}
+
+/* children can now safely rely on 100 % */
+.mapDisplay.fullScreen .react-transform-wrapper,
+.mapDisplay.fullScreen .react-transform-component {
+  width: 100%;
+  height: 100%;      /* 100 % of 100 vh = the whole screen */
+}
+
+
+.mapDisplay.fullScreen svg.mapCanvas {
+  height: 100vh;     /* fill the viewport vertically                */
+  width : auto;      /* auto-scale width to preserve aspect ratio    */
+
+  /* never overflow on ultra-wide or ultra-tall displays             */
+  max-width : 100vw;
+  max-height: 100vh;
+
+  display: block;    /* removes the tiny baseline gap some browsers add */
+  flex: 0 0 auto;    /* stops flexbox from stretching it                */
+}
+
+.mapDisplay.fullScreen              { inset:0; height:100vh; }
+.mapDisplay.fullScreen .react-transform-wrapper,
+.mapDisplay.fullScreen .react-transform-component { width:100%; height:100%; }
+
+.mapCanvas {
+  height:100vh;         /* or 100% – both work with slice          */
+  width:auto;
+  max-width:100vw;
+  max-height:100vh;
+  display:block;
+  flex:0 0 auto;
+}
+
+.noPadding {
+  padding: 0 !important;
+}
+
+/* MapDetail.module.css (or wherever .fullScreenBtn lives) */
+
+.fullScreenBtn  {
+  position: absolute;          /* anchored inside .mapDisplay (rel.) */
+  bottom: 20px;
+  left: 20px;                  /* bottom-left for both modes          */
+  display: flex;
+  align-items: center;
+  gap: 6px;                    /* space between icon & label          */
+  padding: 8px 12px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 5;                  /* above the SVG but below tooltips    */
+  transition: background 0.2s;
+}
+
+.fullScreenBtn:hover {
+  background: #f1f1f1;
+}
+
+.fullScreenLabel {
+  user-select: none;
+}
+
 
 
 

@@ -1,3 +1,4 @@
+// LoggedInMapDetail.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -10,6 +11,9 @@ import { fetchNotifications, fetchMapById } from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export default function LoggedInMapDetail() {
+  /* -------------------------------------------------- */
+  /* hooks & context                                    */
+  /* -------------------------------------------------- */
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -17,73 +21,89 @@ export default function LoggedInMapDetail() {
   const { authToken, profile } = useContext(UserContext);
 
   const { width } = useWindowSize();
-  const showOverlay = !isCollapsed && width < 1000;
 
+  /* -------------------------------------------------- */
+  /* local state                                        */
+  /* -------------------------------------------------- */
   const [notifications, setNotifications] = useState([]);
   const [mapData, setMapData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Collapse logic
+  /* ➊ full-screen flag lives in the parent */
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  /* -------------------------------------------------- */
+  /* derived helpers                                    */
+  /* -------------------------------------------------- */
+  const showOverlay = !isCollapsed && width < 1000 && !isFullScreen;
+
+  const titleForHeader = mapData
+    ? `${mapData.user?.username || 'Unknown'} / ${mapData.title || 'Untitled Map'}`
+    : 'Loading…';
+
+  /* -------------------------------------------------- */
+  /* effects                                            */
+  /* -------------------------------------------------- */
+  /* collapse sidebar automatically under 1000 px */
   useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
+    setIsCollapsed(width < 1000);
   }, [width, setIsCollapsed]);
 
-  // Fetch notifications
+  /* notifications */
   useEffect(() => {
-    async function getNotifs() {
+    (async () => {
       try {
         const res = await fetchNotifications();
         setNotifications(res.data || []);
       } catch (err) {
         console.error('Error fetching notifications:', err);
       }
-    }
-    getNotifs();
+    })();
   }, []);
 
-  // Fetch the map data
+  /* map data */
   useEffect(() => {
-    async function getMap() {
+    (async () => {
       try {
         setIsLoading(true);
-        const response = await fetchMapById(id);
-        setMapData(response.data);
+        const res = await fetchMapById(id);
+        setMapData(res.data);
       } catch (err) {
         console.error('Error fetching map:', err);
         setErrorMessage('Failed to load map');
       } finally {
         setIsLoading(false);
       }
-    }
-    getMap();
+    })();
   }, [id]);
 
-  // Handle errors up front
-  if (errorMessage) {
-    return <div>Error: {errorMessage}</div>;
-  }
-
-  // Derive a title, even if mapData is still null
-  const titleForHeader = mapData
-    ? `${mapData.user?.username || 'Unknown'} / ${mapData.title || 'Untitled Map'}`
-    : 'Loading...'; // fallback if still loading
-
+  /* -------------------------------------------------- */
+  /* callbacks                                          */
+  /* -------------------------------------------------- */
   function handleNotificationClick(notification) {
     console.log('Clicked notification', notification);
-    // ...
-  }
-  function handleMarkAllAsRead() {
-    console.log('Mark all as read...');
+    // navigate or whatever…
   }
 
+  function handleMarkAllAsRead() {
+    console.log('Mark all as read…');
+  }
+
+  /* -------------------------------------------------- */
+  /* early returns                                      */
+  /* -------------------------------------------------- */
+  if (errorMessage) return <div>Error: {errorMessage}</div>;
+
+  /* -------------------------------------------------- */
+  /* render                                             */
+  /* -------------------------------------------------- */
   return (
     <div className={styles.loggedInMapDetailContainer}>
-      {/* Sidebar visible even while loading */}
-      <Sidebar isCollapsed={isCollapsed} />
+      {/* ➋ Sidebar disappears in full-screen */}
+      {!isFullScreen && <Sidebar isCollapsed={isCollapsed} />}
 
-      {/* Overlay on small screens */}
+      {/* ➌ Small-screen overlay (but not in full-screen) */}
       {showOverlay && (
         <div
           className={styles.sidebarOverlay}
@@ -92,27 +112,31 @@ export default function LoggedInMapDetail() {
       )}
 
       <div
-        className={`${styles.mainContentWrapper} ${
-          isCollapsed ? styles.collapsed : ''
-        }`}
+         className={`${styles.mainContentWrapper}
+             ${isCollapsed ? styles.collapsed : ''}
+             ${isFullScreen ? styles.fullScreen : ''}`}
       >
-        {/* Header visible even while loading */}
-        <Header
-          title={titleForHeader}
-          notifications={notifications.slice(0, 6)}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={handleMarkAllAsRead}
-          profile_picture={profile?.profile_picture}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
+        {/* ➍ Header disappears in full-screen */}
+        {!isFullScreen && (
+          <Header
+            title={titleForHeader}
+            notifications={notifications.slice(0, 6)}
+            onNotificationClick={handleNotificationClick}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            profile_picture={profile?.profile_picture}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+        )}
 
-        {/* Pass isLoading and mapData to child */}
+        {/* ➎ Pass flag + toggle down to the map component */}
         <MapDetailContent
           authToken={authToken}
           profile={profile}
           mapData={mapData}
           isLoading={isLoading}
+          isFullScreen={isFullScreen}
+          toggleFullScreen={() => setIsFullScreen((v) => !v)}
         />
       </div>
     </div>

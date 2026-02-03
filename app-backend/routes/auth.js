@@ -10,7 +10,9 @@ const { resend } = require('../config/resend');
 
 const saltRounds = 10;
 // Full public URL from Supabase
-const DEFAULT_PROFILE_PIC = 'https://cuijtjpwlzmamegajljz.supabase.co/storage/v1/object/public/profile-pictures/default-pic.jpg';
+const DEFAULT_PROFILE_PIC =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/profile-pictures/default-pic.jpg`;
+
 
 
 // SIGNUP

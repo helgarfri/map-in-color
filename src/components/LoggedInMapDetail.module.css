@@ -39,3 +39,15 @@
     z-index: 999;
   }
   
+  /* LoggedInMapDetail.module.css */
+
+.fullScreen {
+  /* wipe out what the normal layout adds */
+  margin: 0   !important;
+  padding: 0 !important;
+
+  /* the map is fixed, but the wrapper itself must not steal
+     any room either */
+  width: 100%;
+  height: 100%;
+}

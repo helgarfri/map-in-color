@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------------------------------------------------
+ * Map.module.css  ◆ 2 Jun 2025
+ * -------------------------------------------------- */
+
+/* 1 ▸ hover highlight */
+.hovered {
+  stroke: #fff;
+  stroke-width: 1.5;
+  filter: brightness(1.25);
+  cursor: pointer;
+}
+
+/* 2 ▸ tooltip that never steals the pointer */
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  background: rgba(24, 24, 24, 0.9);
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* 3 ▸ info-box ----------------------------------------------------- */
+/* ▼ replace the whole .infoBox rule */
+.infoBox {
+  position: absolute;        /* ⟵ from fixed → absolute (relative to .mapRoot) */
+  top: 50%;                  /* centre vertically */
+  right: 1rem;
+  transform: translateY(-50%);
+
+  max-width: 20rem;
+  max-height: 90%;           /* use % → stays inside map even when zoomed */
+  overflow-y: auto;
+
+  background: #fff;
+  color: #111;
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  padding: 1.25rem 1rem 1.5rem;
+
+  z-index: 10;               /* no pointer-locking problems */
+  animation: slideIn 250ms ease-out;
+}
+
+/* optional: on small screens pin it lower so fat fingers reach it */
+@media (max-width: 640px) {
+  .infoBox {
+    top: auto;
+    bottom: 1rem;
+    transform: none;
+  }
+}
+
+
+/* ── header row (flag · name · ×) ---------------------------------- */
+.infoBoxHeader {
+  position: relative;       /* so the × can sit absolutely inside */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.infoBoxHeader img {
+  width: 1.75rem;           /* 28 px flag */
+  height: auto;
+  border-radius: 0.1875rem;
+  flex-shrink: 0;
+}
+
+.infoBoxHeader h2 {
+  font-size: 1.125rem;      /* text-lg */
+  font-weight: 600;
+  line-height: 1.2;
+  flex: 1 1 auto;           /* take the remaining width */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── close button --------------------------------------------------- */
+.closeBtn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.25rem;       /* nicer glyph size */
+  line-height: 1;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 120ms ease-in-out;
+}
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── value row with colour swatch ---------------------------------- */
+.valueRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;      /* text-sm */
+}
+
+.valueRow .swatch {
+  width: 0.875rem;          /* 14 px */
+  height: 0.875rem;
+  border-radius: 9999px;
+  border: 1px solid #0003;
+  flex-shrink: 0;
+}
+/* Map.module.css */
+.mapCanvas{
+  width:100%;
+  height:auto;          /* keep aspect ratio */
+  max-height:100dvh;    /* never spill over on phones */
+  display:block;        /* remove inline-gap */
+}
+
+.mapRoot{
+  position:relative;     /* not fixed any more                 */
+  width:100%;
+  height:100%;           /* inherits from the full-screen wrapper */
+  overflow:hidden;       /* same behaviour you had before      */
+}
+
+
+/* 4 ▸ fade/slide-in */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(1rem, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}

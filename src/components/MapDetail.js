@@ -33,6 +33,7 @@ import useWindowSize from '../hooks/useWindowSize';
 
 import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
+import Map from './Map';
 
 
 export default function MapDetail() {
@@ -949,7 +950,7 @@ if (mapData.is_public === false && !mapData.isOwner) {
           style={{ cursor: 'grab', position: 'relative' }}
         >
           {mapData.selected_map === 'world' && (
-            <WorldMapSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
+            <Map {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
           )}
           {mapData.selected_map === 'usa' && (
             <UsSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />

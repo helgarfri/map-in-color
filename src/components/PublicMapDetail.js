@@ -6,6 +6,7 @@ import styles from './PublicMapDetail.module.css';
 // Suppose you have a similar fetchMapById or a different call
 import { fetchMapById } from '../api';
 import { useParams } from 'react-router-dom';
+import Header from './Header';
 
 export default function PublicMapDetail() {
   const { id } = useParams();
@@ -36,7 +37,7 @@ export default function PublicMapDetail() {
   return (
     <div className={styles.publicMapDetailContainer}>
       {/* Always render the public header + footer */}
-      <HomeHeader />
+      <Header />
 
       {/* Pass isLoading down so MapDetailContent does the skeleton or real UI */}
       <MapDetailContent

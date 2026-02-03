@@ -48,6 +48,7 @@ import PublicExplore from './components/PublicExplore';
 import LoggedInExplore from './components/LoggedInExplore';
 import PublicMapDetail from './components/PublicMapDetail';
 import LoggedInMapDetail from './components/LoggedInMapDetail';
+import Map from './components/Map';
 
 library.add(fas);
 
@@ -218,6 +219,8 @@ function App() {
 <Route path="/verified" element={<Verified/> } />
 
 <Route path="verification-error" element={<VerificationError/>} />
+
+<Route path="map" element={<Map />} />
 
 
       </Routes>

@@ -1,221 +1,102 @@
-/* Container Layout */
-.container {
-  display: flex;
-  width: 100%;
-  margin: 0;
-  padding-top: 80px;
+/* Layout.module.css */
+.layoutContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  width: 100vw;
+  height: 100vh;
   background-color: #f7f7f7;
- 
-
 }
-.content {
-  flex: 1;
-  margin-left: 250px; /* sidebar width */
+
+/* Left Sidebar with dynamic margin */
+.leftSidebar {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  background-color: #fff;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+  padding: 16px;
+  margin-top: 60px;
+  margin-left: 250px; /* Default expanded margin */
+  transition: margin-left 0.3s ease; /* Smooth transition */
+}
+
+.leftSidebar.collapsed {
+  margin-left: 50px; /* Collapsed margin */
+}
+
+/* ------- RIGHT COLUMN ------- */
+.rightPanel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Changed from hidden to auto */
+  margin-top: 60px;
 }
-.contentCollapsed {
-  margin-left: 80px; /* collapsed sidebar width */
+
+/* Map preview (fixed height / not scrollable) */
+.mapSection {
+  flex: 0 0 auto;
+  background-color: #f9f9f9;
+  padding: 16px;
 }
-.contentInner {
-  padding: 0 50px 50px 50px;
-  
+
+/* Scrollable nav & settings */
+.navSection {
+  flex: 1 1 auto;
+  /* Removed overflow-y: auto */
+  background-color: #f9f9f9;
+  padding: 16px;
 }
-.section {
-  margin-top: 20px;
+/* -------- MAP BOX -------- */
+.mapBox {
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 10px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.mapPreview {
+  width: 100%;
+  height: auto;
+}
+
+/* -------- TABS & CONTENT -------- */
+.tabRow {
+  display: flex;
+  border-bottom: 1px solid #ccc;
   margin-bottom: 20px;
 }
-.section h3 {
-  text-align: center;
-}
-
-/* Top Three Boxes Row */
-.topThreeBoxes {
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-/* 1) Instructions Box */
-.instructionsBox {
-  flex: 1.1;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fafafa;
-  min-height: 320px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center; 
-  justify-content: center; 
-  text-align: center;
-}
-.instructionsBox h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 18px;
-}
-.templateButton {
-  background-color: #55957b;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  margin: 10px 0;
-  border-radius: 4px;
+.tabItem {
+  padding: 10px 20px;
   cursor: pointer;
-}
-.templateButton:hover {
-  background-color: #49816b;
-}
-.instructionText {
-  margin-top: 5px;
-  font-size: 14px;
-  line-height: 1.6;
-  text-align: left; /* if you want text left-aligned inside the box */
-}
-.csvExample {
-  background-color: #eee;
-  padding: 5px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-/* 2) CSV Upload Box */
-.csvUploadBox {
-  flex: 0.8; 
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fafafa;
-  min-height: 320px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.csvUploadBox h3 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-}
-
-/* Big CSV Icon */
-.csvIconLabel {
-  cursor: pointer;
-  margin-bottom: 15px;
-}
-.bigCsvIcon {
-  font-size: 60px;
+  font-weight: 500;
   color: #666;
-  transition: color 0.3s;
+  border-right: 1px solid #ccc;
+  transition: background-color 0.2s;
 }
-.csvIconLabel:hover .bigCsvIcon {
+.tabItem:hover {
+  background-color: #fafafa;
+}
+.activeTab {
+  background-color: #fff;
+  font-weight: 700;
   color: #333;
 }
-.csvHiddenInput {
-  display: none;
-}
+.tabContentArea {}
 
-/* File upload messages */
-.uploadStatus {
-  margin-top: 10px;
-}
-.file_nameLabel {
-  font-weight: bold;
-  font-size: 14px;
-}
-.noFileSelected {
-  font-size: 14px;
-  font-style: italic;
-  color: #666;
-}
-.validMessage {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #28a745;
-  font-weight: bold;
-}
-.invalidMessage {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #ff4d4f;
-  font-weight: bold;
-}
-.noFileMessage {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #888;
-  font-style: italic;
-}
-
-/* Scrollable Error Box */
-.errorBoxScrollable {
-  border: 1px solid #ff4d4f;
-  background-color: #ffe6e6;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 15px;
-  max-height: 240px;
-  overflow-y: auto;
-  width: 100%;
-  text-align: left;
-}
-.errorTitle {
-  color: #ff1a1a;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-.errorList {
-  padding-left: 0px;
-  font-size: 14px;
-  padding: 0px;
-}
-.downloadErrorButton {
-  margin-top: 8px;
-  background-color: #ff4d4f;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-/* 3) File Info Box + Table */
-.fileInfoBox {
-  flex: 1;
+/* Section box */
+.section {
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 6px;
+  padding: 10px;
   background-color: #fff;
-  min-height: 320px;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-}
-.tableContainer {
-  flex: 1;
-  display: flex;
-}
-.fileInfoTable {
-  flex: 1;
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0;
-}
-.fileInfoTable th,
-.fileInfoTable td {
-  padding: 8px 12px;
-  font-size: 14px;
-}
-.fileInfoTable th {
-  background-color: #f5f5f5;
-  text-align: left;
-  width: 180px;
-}
-.fileInfoTable td {
-  text-align: right;
+  margin-bottom: 20px;
 }
 
-/* Range Table */
+/* Range table */
 .rangeTable {
   width: 100%;
   border-collapse: collapse;
@@ -234,29 +115,22 @@
   font-weight: bold;
 }
 
-/* Range Controls */
 .rangeControls {
   margin-top: 15px;
   display: flex;
-}
-.leftControls {
-  display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
-.errorMessage {
-  color: #555;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-}
-.warningIcon {
-  height: 15px;
-  margin-right: 5px;
-}
 
-/* Buttons */
+.inputBox {
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 32px;
+  box-sizing: border-box;
+}
 .primaryButton,
 .secondaryButton {
   padding: 8px 16px;
@@ -265,7 +139,6 @@
   border: 1px solid rgba(0,0,0,0.16);
   cursor: pointer;
   transition: background-color 0.3s ease;
-  flex-shrink: 0;
 }
 .primaryButton {
   background-color: #55957b;
@@ -302,212 +175,59 @@
 .removeButton:hover:not(:disabled) {
   color: #ff4d4f;
 }
-
-/* Input box */
-.inputBox {
-  padding: 6px 8px;
+.errorMessage {
+  color: #d00;
+  margin-left: 10px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  height: 32px;
-  transition: border-color 0.3s;
-}
-.inputBox:focus {
-  border-color: #66afe9;
-  outline: none;
-  box-shadow: 0 0 5px rgba(102,175,233,0.6);
-}
-.inputBox[type="number"]::-webkit-inner-spin-button,
-.inputBox[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.inputBox[type="number"] {
-  -moz-appearance: textfield;
 }
 
-/* MAP PREVIEW & DETAILS LAYOUT */
-.mapPreviewAndDetails {
-  display: flex;
-  gap: 40px;
-  margin-top: 20px;
+/* Theme, info, etc. */
+.themeTab, .infoTab {
+  margin-bottom: 20px;
 }
-.mapPreviewSection {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-}
-.mapPreviewContainer {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #f9f9f9;
-}
-.mapPreviewWrapper {
-  flex: 1;
-  width: 100%;
-  height: auto;
-
-}
-.mapPreviewWrapper svg {
-  width: 100%;
-  height: auto;
-}
-
-/* Right side: Map Details Section */
-.mapDetailsSection {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* The two boxes inside Map Details (Map Theme + Map Details) */
-.mapDetailsContainer {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #f9f9f9;
-}
-.mapDetailsHeader {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: left;
-}
-
-/* Theme Settings Box => already inside .mapDetailsContainer now, but keep the layout */
-.themeSettingsBox {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 0; /* override old margin */
-  background-color: #f9f9f9; /* can keep or remove */
-  border: none; /* remove extra border if desired */
-  padding: 0; /* remove extra padding */
-}
-
-/* Updated Theme Field Style */
 .themeField {
+  margin-bottom: 12px;
+}
+.themePreview {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 7px;
-  margin-bottom: 3px;
-  border: 1px solid #ddd;
+  gap: 4px;
+  margin-top: 4px;
+}
+.themeColor {
+  width: 20px;
+  height: 20px;
   border-radius: 4px;
-  background-color: #f9f9f9;
-  font-size: 14px;
-  font-weight: 500;
-  gap: 7px
- 
 }
-
-/* Label styling in theme field */
-.themeField label {
-  flex: 1 1; /* fixed width for alignment */
-  margin-right: 4px;
-}
-
-/* Styling for input elements within a theme field */
-.themeField .inputBox,
-.themeField input[type="color"],
-.themeField select {
-  flex: 1;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box; /* ensure padding doesn’t cause overlap */
-  height: 100%;
-  
-}
-
-/* Radio group styling to keep options inline */
-.themeField .radioGroup {
-  flex: 1;
+.radioGroup {
   display: flex;
-  gap: 15px;
-  align-items: center;
+  gap: 16px;
 }
-
-/* Optional: Improve spacing for checkboxes or similar controls */
-.themeField input[type="checkbox"] {
-  transform: scale(1.2);
-  margin-left: 5px;
-}
-
-/* Media query for smaller screens */
-@media (max-width: 600px) {
-  .themeField {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .themeField label {
-    margin-bottom: 5px;
-  }
-  .themeField .inputBox,
-  .themeField input[type="color"],
-  .themeField select,
-  .themeField .radioGroup {
-    width: 100%;
-  }
-}
-
-/* Setting Item */
-.settingItem {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-  align-items: flex-start;
-}
-.settingItem label {
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-.settingItemRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
+.settingItem, .settingItemRow {
+  margin-bottom: 12px;
 }
 .hideTitleLabel {
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  margin-left: 16px;
 }
-
-/* Description */
 .descriptionInput {
-  resize: none;
-  min-height: 80px;
-  width: 100%;
-  height: 120px;
-  
+  height: 80px;
 }
-
-/* Fixed-Size Tag Box */
 .tagBox {
   margin-top: 10px;
   width: 100%;
-  height: 60px; /* enough for ~2 lines of smaller tags */
+  height: 60px;
   border: 1px solid #ccc;
   border-radius: 6px;
   padding: 4px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  /* Instead of 'overflow: hidden;' do this: */
   overflow-y: auto;
-  overflow-x: hidden; 
   align-content: flex-start;
 }
-
 .tagItem {
   background-color: #e0e0e0;
   border-radius: 16px;
-  font-size: 12px; /* smaller so we can fit more */
+  font-size: 12px;
   padding: 3px 8px;
   display: flex;
   align-items: center;
@@ -523,133 +243,23 @@
 .removeTagButton:hover {
   color: #ff4d4f;
 }
+
 .referencesList {
-  /* border: 1px solid #ccc;  // remove border */
-  /* border-radius: 6px;     // remove border radius */
-  /* padding: 8px;           // remove padding */
   max-height: 120px; 
   overflow-y: auto;
 }
-
-/* Make them display in a vertical line with some spacing: */
 .referenceItem {
-  background-color: transparent; /* no background */
+  background-color: transparent;
   margin-bottom: 6px;
-  padding: 0; /* no padding */
-  border-radius: 0;
   cursor: pointer;
-  text-decoration: underline; /* optional, or remove it if you prefer */
+  text-decoration: underline;
   color: #333;
 }
 .referenceItem:hover {
-  text-decoration: none; /* or keep underline on hover */
-  background-color: transparent; 
+  text-decoration: none;
 }
 
-/* Modal Overlay: full-screen dimmed background */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5); 
-  display: flex;
-  align-items: center;     /* vertically center modal */
-  justify-content: center; /* horizontally center modal */
-  z-index: 9999;           /* ensure it's on top */
-}
-
-/* Modal Content: the "box" in the middle */
-.modalContent {
-  background-color: #fff;
-  padding: 20px 30px;
-  border-radius: 8px;
-  width: 500px;          /* fixed width, or you can do max-width */
-  max-width: 95%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  position: relative;    /* so we can position the close button inside */
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* space between form rows, button, etc. */
-}
-
-/* Close button in top-right corner */
-.closeButton {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-/* Center the modal heading or you can keep left-aligned */
-.modalContent h2 {
-  margin-top: 0;
-  text-align: center; /* optional */
-}
-
-/* Example “form row” layout for label + input */
-.modalFormRow {
-  display: flex;
-  flex-wrap: nowrap;  /* keep label + input side-by-side on wide screens */
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-/* The label in each row */
-.modalFormRow label {
-  flex: 0 0 150px;   /* fixed label width */
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-/* Inputs or textareas occupy remaining space */
-.modalFormRow input,
-.modalFormRow textarea {
-  flex: 1;
-  font-size: 14px;
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  min-height: 32px;
-}
-
-/* For the textarea to align well in the row: */
-.modalFormRow textarea {
-  resize: vertical;  /* allow vertical resizing if you like */
-}
-
-/* The Save button at the bottom */
-.modalContent .primaryButton {
-  align-self: flex-end; /* push the button to the right */
-  margin-top: 12px;
-}
-
-.deleteRefLink {
-  color: #666;
-  text-decoration: underline;
-  cursor: pointer;
-  margin-right: auto; /* so it stays on the left if you want */
-}
-.deleteRefLink:hover {
-  color: #333;
-}
-
-/* The row that holds Delete on the left and Save on the right */
-.modalBottomRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* space between so delete is left, save is right */
-  margin-top: 8px;
-}
-
-
-
-
-/* Visibility Select */
+/* Custom select */
 .customSelect {
   position: relative;
   width: 100px;
@@ -676,8 +286,8 @@
   top: calc(100% + 2px);
   left: 0;
   width: 100%;
-  background-color: #fff;
   border: 1px solid #ccc;
+  background-color: #fff;
   z-index: 100;
 }
 .selectOption {
@@ -690,294 +300,84 @@
   background-color: #f0f0f0;
 }
 
-/* Navigation Buttons */
-.navigationButtons {
-  display: flex;
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex; 
+  align-items: center;
   justify-content: center;
-  margin-top: 20px;
-}
-
-/* A new container that wraps left & right columns */
-.mapLayoutContainer {
-  display: flex;
-  gap: 40px;
-  margin-top: 20px; 
-  /* You can also use margin-bottom if you want spacing from sections below */
-}
-
-/* Left column has 2 stacked boxes: Map Preview + Theme */
-.leftColumn {
-  display: flex;
-  flex-direction: column;
-  flex: 1.5 1;
-  gap: 20px; 
-}
-
-/* Right column is the "Map Info" box */
-.rightColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Generic box style (Preview, Theme, Info) */
-.mapPreviewBox,
-.mapThemeBox,
-.mapInfoBox {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #f9f9f9;
-}
-
-.mapBoxHeader {
-  margin: 0 0 10px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: left;
-}
-
-.fontSizeInputContainer {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 8px;
-}
-
-
-
-.minusButton, .plusButton {
-  /* Example styling for the + or – buttons */
-  width: 28px;
-  height: 28px;
-  font-size: 20px;
-  border: 1px solid #ccc;
-  background-color: #f8f8f8;
-  cursor: pointer;
-  text-align: center;
-  padding: 0;
-  margin: 0 4px;
-}
-
-.fontSizeInput {
-  width: 60px; /* Enough space to type a few digits or "Auto" */
-  text-align: center;
-  border: 1px solid #ccc;
-  margin: 0;
-}
-
-
-
-.fontSizeLabel {
-  display: inline-block;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.fontSizeInputContainer {
-  display: flex;
-  align-items: center;
-  gap: 4px; /* space between minus/input/plus */
-}
-
-.minusButton,
-.plusButton {
-  width: 28px;
-  height: 28px;
-  font-size: 16px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  
-}
-
-.minusButton:hover,
-.plusButton:hover {
-  background-color: #e8e8e8;
-}
-
-.fontSizeInput {
-  width: 60px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  height: 28px;
-}
-
-.fontSizeField {
-  position: relative; /* so the dropdown can be absolutely positioned */
-}
-
-.fontSizeLabel {
-  display: inline-block;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.fontSizeInputContainer {
-  display: inline-flex;
-  align-items: center;
-  position: relative; /* anchor for the dropdown */
-  gap: 4px;
-}
-
-.minusButton,
-.plusButton {
-  width: 28px;
-  height: 28px;
-  font-size: 16px;
-  background-color: #f2f2f2;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.minusButton:hover,
-.plusButton:hover {
-  background-color: #e2e2e2;
-}
-
-.fontSizeInput {
-  width: 60px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  height: 28px;
-}
-
-/* The custom dropdown container */
-.customDropdown {
-  position: absolute;
-  top: -355px;
-  left: 37px;
-
-  margin-top: 2px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 70px;     /* or any width you like */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   z-index: 9999;
-  /* so it floats on top of everything */
-  text-align: center;
-
-
 }
-
-/* Each item in the dropdown */
-.dropdownItem {
-  padding: 4px 8px;
+.modalContent {
+  background-color: #fff;
+  padding: 20px 30px;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 95%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
   cursor: pointer;
-  white-space: nowrap; /* So text doesn’t wrap */
-
-
+}
+.modalFormRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.modalFormRow label {
+  flex: 0 0 150px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+.modalFormRow input,
+.modalFormRow textarea {
+  flex: 1;
+  font-size: 14px;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.modalBottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.deleteRefLink {
+  color: #666;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-right: auto;
+}
+.deleteRefLink:hover {
+  color: #333;
 }
 
-.dropdownItem:hover {
-  background-color: #f2f2f2;
-}
-
-
-/* The SVG or preview area can keep same styling as before */
-.mapPreviewWrapper {
-  /* your existing styles, e.g. */
-  width: 100%;
-  height: auto;
-  /* etc. */
-}
-
-/* Make sure the rest of your themeFields, inputBox, etc. remain consistent. */
-/* 1) Remove left margin below 1000px */
-@media (max-width: 1000px) {
-  .content {
-    margin-left: 0 !important;
-    width: 100%;
-  }
-  .contentCollapsed {
-    margin-left: 0 !important;
-  }
-}
-
-/* 2) Stack columns below 768px */
-@media (max-width: 768px) {
-  .topThreeBoxes {
+/* Responsive */
+@media (max-width: 900px) {
+  .layoutContainer {
+    display: flex;
     flex-direction: column;
   }
-  .mapLayoutContainer {
-    flex-direction: column;
-  }
-  .leftColumn,
-  .rightColumn {
+  .leftSidebar {
     width: 100%;
-    margin-bottom: 20px;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
   }
-}
-@media (max-width: 930px) {
-  /* Range table – turn into “cards”/stacked rows */
-  .rangeTable {
-    border: 0;
+  .rightPanel {
     width: 100%;
-  }
-
-  /* Hide the table header row */
-  .rangeTable thead {
-    display: none;
-  }
-
-  /* Each table row becomes a block */
-  .rangeTable tr {
-    display: block;
-    margin-bottom: 15px; /* space between “cards” */
-    border: 1px solid #ccc; /* optional card border */
-    border-radius: 6px;
-    padding: 8px; /* optional card padding */
-    background-color: #fafafa;
-    
-  }
-
-  /* Each table cell becomes a row within the card */
-  .rangeTable td {
-    display: block;
-    text-align: left;       /* left-align the content */
-    border-bottom: none;    /* remove normal cell borders */
-    position: relative;
-    padding: 6px 0;         /* vertical spacing */
-    font-size: 14px;
-  }
-
-  /* Add the “Column Title” via ::before using data-label. */
-  .rangeTable td::before {
-    content: attr(data-label) ": ";
-    font-weight: bold;
-    display: inline-block;
-    width: auto;   /* you can fix a width if you like */
-    margin-right: 5px;
-    color: #333;
-  }
-
-  /* Because we no longer need separate columns, reduce color input width, etc. */
-  .rangeTable td input[type="color"],
-  .rangeTable td input[type="number"],
-  .rangeTable td input[type="text"] {
-    width: 60%; /* or 100%, as you prefer */
-  }
-}
-
-@media (max-width: 600px) {
-  .contentInner {
-    padding: 0px 10px;
-  }
-}
-
-@media (max-width: 400px) {
-  .settingItemRow {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-   
-  }
-
-  .contentInner {
-    padding: 10px;
+    margin-top: 0;
   }
 }
