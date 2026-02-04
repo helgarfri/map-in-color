@@ -11,14 +11,9 @@ import {
   FaInfoCircle,
 } from 'react-icons/fa';
 
-import {
-  fetchDashboardActivity,
-  markNotificationAsRead
-} from '../api';
+import { fetchDashboardActivity, markNotificationAsRead } from '../api';
 
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
 
 import dashFeedStyles from './DashboardActivityFeed.module.css';
@@ -46,6 +41,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     setActivities([]);
     setHasMore(true);
     loadFirstPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
 
   async function loadFirstPage() {
@@ -87,35 +83,32 @@ export default function DashboardActivityFeed({ userProfile }) {
    */
   useEffect(() => {
     if (!sentinelRef.current) return;
-    if (!hasMore) return; // no need to observe if there's nothing more to fetch
+    if (!hasMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const firstEntry = entries[0];
         if (firstEntry.isIntersecting) {
-          // the sentinel is visible => load next page
           if (!isFetchingMore && !isInitialLoading && hasMore) {
             loadMore();
           }
         }
       },
       {
-        root: null, // viewport
+        root: null,
         rootMargin: '0px',
-        threshold: 0.1, // when 10% of sentinel is visible
+        threshold: 0.1,
       }
     );
 
     observer.observe(sentinelRef.current);
 
-    // cleanup
     return () => {
-      // Only unobserve if the current ref is still there
       if (observer && sentinelRef.current) {
         observer.unobserve(sentinelRef.current);
       }
     };
-  }, [sentinelRef, hasMore, isFetchingMore, isInitialLoading, offset]);
+  }, [hasMore, isFetchingMore, isInitialLoading, offset]);
 
   // -----------
   // item click
@@ -143,7 +136,10 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   function getOverlayAvatarUrl(act) {
     if (act.type.startsWith('notification_') && act.notificationData?.sender) {
-      return act.notificationData.sender.profile_picture || '/default-profile-picture.png';
+      return (
+        act.notificationData.sender.profile_picture ||
+        '/default-profile-picture.png'
+      );
     }
     return userProfile?.profile_picture || '/default-profile-picture.png';
   }
@@ -157,63 +153,80 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   function getActivityIcon(type) {
     switch (type) {
-      case 'createdMap': return <FaPlus />;
+      case 'createdMap':
+        return <FaPlus />;
       case 'starredMap':
-      case 'notification_star': return <FaStar />;
+      case 'notification_star':
+        return <FaStar />;
       case 'commented':
-      case 'notification_comment': return <FaComment />;
-      case 'notification_reply': return <FaReply />;
-      case 'notification_like': return <FaThumbsUp />;
-      default: return <FaInfoCircle />;
+      case 'notification_comment':
+        return <FaComment />;
+      case 'notification_reply':
+        return <FaReply />;
+      case 'notification_like':
+        return <FaThumbsUp />;
+      default:
+        return <FaInfoCircle />;
     }
   }
 
+  /**
+   * Single-map thumbnail renderer:
+   * - Always uses <Map />
+   * - Supports both snake_case and camelCase values returned from API
+   */
   function renderMapThumbnail(mapObj, act) {
     if (!mapObj) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
 
-    const {
-      selected_map,
-      title,
-      groups,
-      ocean_color,
-      unassigned_color,
-      data,
-      font_color,
-      is_title_hidden,
-      show_no_data_legend,
-      titleFontSize,
-      legendFontSize,
-    } = mapObj;
-
-    const sharedProps = {
-      groups,
-      mapTitleValue: title || 'Untitled',
-      ocean_color,
-      unassigned_color,
-      data,
-      font_color,
-      is_title_hidden,
-      isThumbnail: true,
-      showNoDataLegend: show_no_data_legend,
-      titleFontSize,
-      legendFontSize
-
-    };
-
-    let MapComponent = <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
-    if (selected_map === 'world')   MapComponent = <WorldMapSVG {...sharedProps} />;
-    if (selected_map === 'usa')     MapComponent = <UsSVG {...sharedProps} />;
-    if (selected_map === 'europe')  MapComponent = <EuropeSVG {...sharedProps} />;
-
     const overlayUrl = getOverlayAvatarUrl(act);
     const overlayUsername = getOverlayAvatarUsername(act);
     const overlayIcon = getActivityIcon(act.type);
 
+    const title = mapObj.title || 'Untitled';
+
+    const ocean_color = mapObj.ocean_color ?? '#ffffff';
+    const unassigned_color = mapObj.unassigned_color ?? '#c0c0c0';
+    const font_color = mapObj.font_color ?? 'black';
+
+    const is_title_hidden = !!mapObj.is_title_hidden;
+    const showNoDataLegend = !!mapObj.show_no_data_legend;
+
+    // Handle both possible key styles
+    const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
+    const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+
+    const groups = Array.isArray(mapObj.groups) ? mapObj.groups : [];
+    const data = Array.isArray(mapObj.data) ? mapObj.data : [];
+
     return (
       <div className={dashFeedStyles.thumbContainer}>
-        {MapComponent}
+        {/* Wrapper lets us crop/position the svg without touching Map component */}
+        <div className={dashFeedStyles.thumbMapStage}>
+          <Map
+            groups={groups}
+            mapTitleValue={title}
+            ocean_color={ocean_color}
+            unassigned_color={unassigned_color}
+            data={data}
+            selected_map="world"
+            font_color={font_color}
+            is_title_hidden={is_title_hidden}
+            isThumbnail={true}
+            showNoDataLegend={showNoDataLegend}
+            titleFontSize={titleFontSize}
+            legendFontSize={legendFontSize}
+          />
+        </div>
+
+        {/* This blocks hover/zoom/pan + tooltip. Click still works on the row. */}
+        <div
+          className={dashFeedStyles.interactionBlocker}
+          aria-hidden="true"
+        />
+
+        {/* Your existing overlay stays clickable */}
         <div
           className={dashFeedStyles.activityOverlay}
           onClick={(e) => {
@@ -226,12 +239,11 @@ export default function DashboardActivityFeed({ userProfile }) {
             src={overlayUrl}
             alt="User"
           />
-          <div className={dashFeedStyles.activityIcon}>
-            {overlayIcon}
-          </div>
+          <div className={dashFeedStyles.activityIcon}>{overlayIcon}</div>
         </div>
       </div>
     );
+
   }
 
   function renderSenderName(act) {
@@ -249,6 +261,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else {
       displayName = 'Someone';
     }
+
     return (
       <strong
         className={dashFeedStyles.senderName}
@@ -309,9 +322,7 @@ export default function DashboardActivityFeed({ userProfile }) {
             navigate(`/profile/${commentAuthor}`);
           }}
         />
-        <div className={dashFeedStyles.commentBody}>
-          {act.commentContent}
-        </div>
+        <div className={dashFeedStyles.commentBody}>{act.commentContent}</div>
       </div>
     );
   }
@@ -328,13 +339,29 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else if (type === 'commented') {
       mainText = <>You commented on {renderMapTitle(map)}</>;
     } else if (type === 'notification_star') {
-      mainText = <>{renderSenderName(act)} starred your map {renderMapTitle(map)}</>;
+      mainText = (
+        <>
+          {renderSenderName(act)} starred your map {renderMapTitle(map)}
+        </>
+      );
     } else if (type === 'notification_reply') {
-      mainText = <>{renderSenderName(act)} replied to your comment on {renderMapTitle(map)}</>;
+      mainText = (
+        <>
+          {renderSenderName(act)} replied to your comment on {renderMapTitle(map)}
+        </>
+      );
     } else if (type === 'notification_like') {
-      mainText = <>{renderSenderName(act)} liked your comment on {renderMapTitle(map)} </>;
+      mainText = (
+        <>
+          {renderSenderName(act)} liked your comment on {renderMapTitle(map)}{' '}
+        </>
+      );
     } else if (type === 'notification_comment') {
-      mainText = <>{renderSenderName(act)} commented on your map {renderMapTitle(map)}</>;
+      mainText = (
+        <>
+          {renderSenderName(act)} commented on your map {renderMapTitle(map)}
+        </>
+      );
     } else {
       mainText = <>Activity: {type}</>;
     }
@@ -358,9 +385,7 @@ export default function DashboardActivityFeed({ userProfile }) {
         <div className={dashFeedStyles.activityDetails}>
           <p className={dashFeedStyles.mainText}>{mainText}</p>
           {shouldShowCommentBox && renderCommentBox(act)}
-          <div className={dashFeedStyles.timestampBox}>
-            {timeAgo(created_at)}
-          </div>
+          <div className={dashFeedStyles.timestampBox}>{timeAgo(created_at)}</div>
         </div>
       </div>
     );
@@ -370,11 +395,9 @@ export default function DashboardActivityFeed({ userProfile }) {
   if (isInitialLoading && activities.length === 0) {
     return (
       <div className={dashFeedStyles.dashActivityFeed}>
-        {/* Show however many skeleton placeholders you want */}
         <SkeletonActivityRow />
         <SkeletonActivityRow />
         <SkeletonActivityRow />
-        
       </div>
     );
   }
@@ -388,7 +411,6 @@ export default function DashboardActivityFeed({ userProfile }) {
     <div className={dashFeedStyles.dashActivityFeed}>
       {activities.map((act, i) => renderActivityItem(act, i))}
 
-      {/* If fetching more => show skeleton placeholders */}
       {isFetchingMore && (
         <>
           <SkeletonActivityRow />
@@ -396,10 +418,7 @@ export default function DashboardActivityFeed({ userProfile }) {
         </>
       )}
 
-      {/* The "sentinel" div at the very bottom */}
-      {hasMore && (
-        <div ref={sentinelRef} style={{ height: '1px' }} />
-      )}
+      {hasMore && <div ref={sentinelRef} style={{ height: '1px' }} />}
     </div>
   );
 }

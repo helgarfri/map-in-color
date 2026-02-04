@@ -3,9 +3,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
 import styles from './MapDetail.module.css';
 import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
@@ -949,16 +946,10 @@ if (mapData.is_public === false && !mapData.isOwner) {
           onMouseLeave={handleMouseLeave}
           style={{ cursor: 'grab', position: 'relative' }}
         >
-          {mapData.selected_map === 'world' && (
+          
             <Map {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
-          )}
-          {mapData.selected_map === 'usa' && (
-            <UsSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
-          )}
-          {mapData.selected_map === 'europe' && (
-            <EuropeSVG {...mapDataProps()} viewBox={viewBox} isLargeMap={false} />
-          )}
-  
+        
+      
           <div
             className={styles.zoomControls}
             onMouseDown={(e) => e.stopPropagation()}

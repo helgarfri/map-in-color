@@ -216,15 +216,16 @@
   }
   
   /* thumbnail => fix a certain height */
-  .thumbnail {
-    width: 100%;
-    height: 140px; /* was 100% or 120px; you can adjust */
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fafafa;
-  }
+.thumbnail {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  background: #fafafa;
+
+  position: relative;   /* ✅ REQUIRED */
+  isolation: isolate;   /* ✅ strongly recommended */
+}
+
   
   .thumbnail svg {
     width: 100%;

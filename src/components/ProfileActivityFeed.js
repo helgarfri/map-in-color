@@ -2,25 +2,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  FaStar,
-  FaPlus,
-  FaComment,
-  FaInfoCircle,
-} from 'react-icons/fa';
+import { FaStar, FaPlus, FaComment, FaInfoCircle } from 'react-icons/fa';
 
 import { fetchUserActivity } from '../api';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
 
+// ✅ Use the SAME CSS as DashboardActivityFeed
 import styles from './DashboardActivityFeed.module.css';
 
 export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
 
-  // Pagination states
+  // Pagination
   const [activities, setActivities] = useState([]);
   const [offset, setOffset] = useState(0);
   const limit = 15;
@@ -33,28 +27,26 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   // Sentinel for infinite scrolling
   const sentinelRef = useRef(null);
 
-  // Reset and load first page whenever username changes
+  // Reset + load first page when username changes
   useEffect(() => {
     if (!username) return;
     setActivities([]);
     setOffset(0);
     setHasMore(true);
     loadFirstPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
 
-  // --------------------------
-  // Loaders
-  // --------------------------
   async function loadFirstPage() {
     try {
       setIsInitialLoading(true);
-      const res = await fetchUserActivity(username, 0, limit); 
-      // fetchUserActivity(username, offset = 0, limit = 15)
-      const newItems = res.data;
+      const res = await fetchUserActivity(username, 0, limit);
+      const newItems = res.data || [];
       setActivities(newItems);
       setHasMore(newItems.length === limit);
     } catch (err) {
       console.error('Error fetching user activity:', err);
+      setHasMore(false);
     } finally {
       setIsInitialLoading(false);
     }
@@ -65,25 +57,26 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
       const res = await fetchUserActivity(username, newOffset, limit);
-      const newItems = res.data;
+      const newItems = res.data || [];
+
       setActivities((prev) => [...prev, ...newItems]);
       setOffset(newOffset);
-      if (newItems.length < limit) {
-        setHasMore(false);
-      }
+
+      if (newItems.length < limit) setHasMore(false);
     } catch (err) {
       console.error('Error fetching more user activity:', err);
+      setHasMore(false);
     } finally {
       setIsFetchingMore(false);
     }
   }
 
-  // --------------------------
-  // IntersectionObserver
-  // --------------------------
+  // IntersectionObserver for infinite scroll
   useEffect(() => {
     if (!sentinelRef.current) return;
     if (!hasMore) return;
+
+    const el = sentinelRef.current;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -94,24 +87,14 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
           }
         }
       },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1, // Trigger when 10% is visible
-      }
+      { root: null, rootMargin: '0px', threshold: 0.1 }
     );
 
-    observer.observe(sentinelRef.current);
-    return () => {
-      if (observer && sentinelRef.current) {
-        observer.unobserve(sentinelRef.current);
-      }
-    };
-  }, [sentinelRef, hasMore, isFetchingMore, isInitialLoading, offset]);
+    observer.observe(el);
+    return () => observer.unobserve(el);
+  }, [hasMore, isFetchingMore, isInitialLoading, offset]); // offset ok
 
-  // --------------------------
-  // Utility
-  // --------------------------
+  // Utils
   function timeAgo(dateString) {
     if (!dateString) return '';
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
@@ -119,56 +102,15 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
 
   function getActivityIcon(type) {
     switch (type) {
-      case 'createdMap': return <FaPlus />;
-      case 'starredMap': return <FaStar />;
-      case 'commented':  return <FaComment />;
-      default:          return <FaInfoCircle />;
+      case 'createdMap':
+        return <FaPlus />;
+      case 'starredMap':
+        return <FaStar />;
+      case 'commented':
+        return <FaComment />;
+      default:
+        return <FaInfoCircle />;
     }
-  }
-
-  // --------------------------
-  // Rendering
-  // --------------------------
-  function renderMapThumbnail(map, type) {
-    if (!map) {
-      return <div className={styles.defaultThumbnail}>No Map</div>;
-    }
-
-    const sharedProps = {
-      groups: map.groups || [],
-      mapTitleValue: map.title || 'Untitled',
-      ocean_color: map.ocean_color,
-      unassigned_color: map.unassigned_color,
-      data: map.data,
-      font_color: map.font_color,
-      is_title_hidden: map.is_title_hidden,
-      isThumbnail: true,
-      showNoDataLegend: map.show_no_data_legend,
-      titleFontSize: map.titleFontSize,
-      legendFontSize: map.legendFontSize
-
-    };
-
-    let MapComponent = <div className={styles.defaultThumbnail}>No Map</div>;
-    if (map.selected_map === 'world')   MapComponent = <WorldMapSVG {...sharedProps} />;
-    if (map.selected_map === 'usa')     MapComponent = <UsSVG {...sharedProps} />;
-    if (map.selected_map === 'europe')  MapComponent = <EuropeSVG {...sharedProps} />;
-
-    return (
-      <div className={styles.thumbContainer}>
-        {MapComponent}
-        <div className={styles.activityOverlay}>
-          <img
-            className={styles.activityAvatar}
-            src={profile_pictureUrl || '/default-profile-picture.png'}
-            alt="User"
-          />
-          <div className={styles.activityIcon}>
-            {getActivityIcon(type)}
-          </div>
-        </div>
-      </div>
-    );
   }
 
   function renderMapTitle(map) {
@@ -178,9 +120,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
         className={styles.mapTitleLink}
         onClick={(e) => {
           e.stopPropagation();
-          if (map?.id) {
-            navigate(`/map/${map.id}`);
-          }
+          if (map?.id) navigate(`/map/${map.id}`);
         }}
       >
         {map.title || 'Untitled'}
@@ -191,6 +131,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   function renderCommentBox(act) {
     const commentAvatarUrl =
       act.commentAuthor?.profile_picture || '/default-profile-picture.png';
+
     return (
       <div className={styles.commentBox}>
         <img
@@ -204,8 +145,72 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
             }
           }}
         />
-        <div className={styles.commentBody}>
-          {act.commentContent}
+        <div className={styles.commentBody}>{act.commentContent}</div>
+      </div>
+    );
+  }
+
+  /**
+   * ✅ SAME thumbnail approach as DashboardActivityFeed:
+   * - Always uses <Map />
+   * - Blocks interactions inside the map thumbnail
+   * - Keeps overlay with avatar + icon
+   */
+  function renderMapThumbnail(mapObj, type) {
+    if (!mapObj) {
+      return <div className={styles.defaultThumbnail}>No Map</div>;
+    }
+
+    const title = mapObj.title || 'Untitled';
+
+    const ocean_color = mapObj.ocean_color ?? '#ffffff';
+    const unassigned_color = mapObj.unassigned_color ?? '#c0c0c0';
+    const font_color = mapObj.font_color ?? 'black';
+
+    const is_title_hidden = !!mapObj.is_title_hidden;
+    const showNoDataLegend = !!mapObj.show_no_data_legend;
+
+    const titleFontSize =
+      mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
+    const legendFontSize =
+      mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+
+    const groups = Array.isArray(mapObj.groups) ? mapObj.groups : [];
+    const data = Array.isArray(mapObj.data) ? mapObj.data : [];
+
+    // IMPORTANT: use the map's selected_map (fallback to world)
+    const selected_map = mapObj.selected_map || 'world';
+
+    return (
+      <div className={styles.thumbContainer}>
+        <div className={styles.thumbMapStage}>
+          <Map
+            groups={groups}
+            mapTitleValue={title}
+            ocean_color={ocean_color}
+            unassigned_color={unassigned_color}
+            data={data}
+            selected_map={selected_map}
+            font_color={font_color}
+            is_title_hidden={is_title_hidden}
+            isThumbnail={true}
+            showNoDataLegend={showNoDataLegend}
+            titleFontSize={titleFontSize}
+            legendFontSize={legendFontSize}
+          />
+        </div>
+
+        {/* ✅ blocks hover/zoom/pan/tooltip inside thumbnail */}
+        <div className={styles.interactionBlocker} aria-hidden="true" />
+
+        {/* ✅ overlay: avatar + icon */}
+        <div className={styles.activityOverlay} aria-hidden="true">
+          <img
+            className={styles.activityAvatar}
+            src={profile_pictureUrl || '/default-profile-picture.png'}
+            alt="User"
+          />
+          <div className={styles.activityIcon}>{getActivityIcon(type)}</div>
         </div>
       </div>
     );
@@ -217,13 +222,24 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
 
     let mainText;
     if (type === 'createdMap') {
-      mainText = <>{username} created map {renderMapTitle(map)}</>;
+      mainText = (
+        <>
+          {username} created map {renderMapTitle(map)}
+        </>
+      );
     } else if (type === 'starredMap') {
-      mainText = <>{username} starred map {renderMapTitle(map)}</>;
+      mainText = (
+        <>
+          {username} starred map {renderMapTitle(map)}
+        </>
+      );
     } else if (type === 'commented') {
-      mainText = <>{username} commented on {renderMapTitle(map)}</>;
+      mainText = (
+        <>
+          {username} commented on {renderMapTitle(map)}
+        </>
+      );
     } else {
-      // fallback
       mainText = <>Activity: {type}</>;
     }
 
@@ -232,28 +248,22 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
         key={idx}
         className={styles.activityItem}
         onClick={() => {
-          if (map?.id) {
-            navigate(`/map/${map.id}`);
-          }
+          if (map?.id) navigate(`/map/${map.id}`);
         }}
       >
         {mapThumb}
+
         <div className={styles.activityDetails}>
           <p className={styles.mainText}>{mainText}</p>
           {commentContent && renderCommentBox(act)}
-          <div className={styles.timestampBox}>
-            {timeAgo(created_at)}
-          </div>
+          <div className={styles.timestampBox}>{timeAgo(created_at)}</div>
         </div>
       </div>
     );
   }
 
-  // --------------------------
-  // Actual return
-  // --------------------------
+  // Initial load skeletons
   if (isInitialLoading && activities.length === 0) {
-    // Show skeletons only for the initial load
     return (
       <div className={styles.dashActivityFeed}>
         <SkeletonActivityRow />
@@ -264,16 +274,13 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   }
 
   if (!isInitialLoading && activities.length === 0) {
-    // No activity found
     return <p>No recent activity.</p>;
   }
 
-  // Otherwise, show the activity feed
   return (
     <div className={styles.dashActivityFeed}>
       {activities.map((act, i) => renderActivityItem(act, i))}
 
-      {/* If fetching more, show skeleton placeholders */}
       {isFetchingMore && (
         <>
           <SkeletonActivityRow />
@@ -281,7 +288,6 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
         </>
       )}
 
-      {/* Sentinel at bottom for infinite scroll */}
       {hasMore && <div ref={sentinelRef} style={{ height: '1px' }} />}
     </div>
   );

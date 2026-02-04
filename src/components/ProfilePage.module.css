@@ -250,6 +250,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
+
 .cardThumbnail {
   width: 100%;
   height: 180px;
@@ -258,6 +259,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative; /* ✅ keeps the StaticMapThumbnail blocker contained */
 }
 
 .cardBody {

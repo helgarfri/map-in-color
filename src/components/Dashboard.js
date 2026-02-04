@@ -1,3 +1,4 @@
+// src/components/Dashboard.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -5,35 +6,23 @@ import {
   deleteMap,
   fetchNotifications,
   markNotificationAsRead,
-  fetchSavedMaps
+  fetchSavedMaps,
 } from '../api';
 import { differenceInDays, formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
 
 // Icons
-import {
-  FaStar,
-  FaMap,
-  FaCalendarAlt,
-  FaEdit
-} from 'react-icons/fa';
+import { FaStar, FaMap, FaCalendarAlt, FaEdit } from 'react-icons/fa';
 
 import Sidebar from './Sidebar';
 import Header from './Header';
-
-// We keep your existing Activity Feed (which has its own skeleton logic)
 import DashboardActivityFeed from './DashboardActivityFeed';
-
-// Thumbnails
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import StaticMapThumbnail from './StaticMapThumbnail';
 
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
 import styles from './Dashboard.module.css';
-
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -55,18 +44,16 @@ export default function Dashboard() {
 
   // Basic Stats
   const totalMapsCreated = maps.length;
-  const totalStarsReceived = maps.reduce(
-    (sum, map) => sum + (map.save_count || 0),
-    0
-  );
+  const totalStarsReceived = maps.reduce((sum, map) => sum + (map.save_count || 0), 0);
   const profileAgeDays = profile?.created_at
     ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
 
-    useEffect(() => {
-      if (width < 1000) setIsCollapsed(true);
-      else setIsCollapsed(false);
-    }, [width, setIsCollapsed]);
+  // Collapse sidebar on smaller widths
+  useEffect(() => {
+    if (width < 1000) setIsCollapsed(true);
+    else setIsCollapsed(false);
+  }, [width, setIsCollapsed]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -77,23 +64,23 @@ export default function Dashboard() {
         const [mapsRes, notificationsRes, savedMapsRes] = await Promise.all([
           fetchMaps(),
           fetchNotifications(),
-          fetchSavedMaps()
+          fetchSavedMaps(),
         ]);
 
         // Sort maps by updated_at desc
-        const sortedMaps = mapsRes.data.sort(
+        const sortedMaps = (mapsRes.data || []).sort(
           (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
         setMaps(sortedMaps);
 
-        // notifications sorted desc, only keep first few
-        const sortedNotifications = notificationsRes.data
+        // Notifications sorted desc, only keep first few
+        const sortedNotifications = (notificationsRes.data || [])
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 6);
         setNotifications(sortedNotifications);
 
-        // saved (starred) maps
-        setSavedMaps(savedMapsRes.data);
+        // Saved (starred) maps
+        setSavedMaps(savedMapsRes.data || []);
       } catch (err) {
         console.error('Error fetching data:', err);
       } finally {
@@ -156,17 +143,16 @@ export default function Dashboard() {
     }
   };
 
-  // If we are still loading => SKELETON placeholders
+  // -----------------------
+  // SKELETON
+  // -----------------------
   if (isLoading) {
     return (
       <div className={styles.dashboardContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
         {showOverlay && (
-          <div
-            className={styles.sidebarOverlay}
-            onClick={() => setIsCollapsed(true)}
-          />
+          <div className={styles.sidebarOverlay} onClick={() => setIsCollapsed(true)} />
         )}
 
         <div
@@ -174,33 +160,27 @@ export default function Dashboard() {
             isCollapsed ? styles.contentCollapsed : ''
           }`}
         >
-          {/* Header with skeleton fallback */}
           <Header
             title="Dashboard"
-            notifications={[]} // no data yet
+            notifications={[]}
             onNotificationClick={() => {}}
             onMarkAllAsRead={() => {}}
-            profile_picture={''}
+            profile_picture=""
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
           />
 
-          {/* Now the "skeleton" version of main layout */}
           <div className={styles.mainWrapper}>
-            {/* LEFT/CENTER: stats + feed placeholders */}
             <div className={styles.centerColumn}>
-              {/* Stats row skeleton */}
               <div className={styles.statsContainer}>
                 <div className={styles.skeletonStatItem} />
                 <div className={styles.skeletonStatItem} />
                 <div className={styles.skeletonStatItem} />
               </div>
 
-              {/* Activity feed skeleton – or let the feed handle it 
-                  but here we can do a top title bar skeleton + rows */}
               <section className={styles.activityFeedSection}>
                 <div className={styles.skeletonSectionTitle} />
-                {/* If you want the same skeleton rows from the feed: */}
+
                 <div className={styles.skeletonRow}>
                   <div className={styles.skeletonThumb} />
                   <div className={styles.skeletonTextBlock}>
@@ -209,6 +189,7 @@ export default function Dashboard() {
                     <div className={styles.skeletonLine} />
                   </div>
                 </div>
+
                 <div className={styles.skeletonRow}>
                   <div className={styles.skeletonThumb} />
                   <div className={styles.skeletonTextBlock}>
@@ -217,6 +198,7 @@ export default function Dashboard() {
                     <div className={styles.skeletonLine} />
                   </div>
                 </div>
+
                 <div className={styles.skeletonRow}>
                   <div className={styles.skeletonThumb} />
                   <div className={styles.skeletonTextBlock}>
@@ -228,13 +210,13 @@ export default function Dashboard() {
               </section>
             </div>
 
-            {/* RIGHT side: recently modified + starred skeleton */}
             <div className={styles.sideColumn}>
               <div className={styles.sectionCard}>
                 <div className={styles.skeletonSectionTitle} />
                 <div className={styles.skeletonMapCard} />
                 <div className={styles.skeletonMapCard} />
               </div>
+
               <div className={styles.sectionCard}>
                 <div className={styles.skeletonSectionTitle} />
                 <div className={styles.skeletonMapCard} />
@@ -245,26 +227,21 @@ export default function Dashboard() {
         </div>
       </div>
     );
-  } // end if (isLoading)
+  }
 
-  // --------------------------------------------------
-  // If *not* loading, render the REAL dashboard
-  // --------------------------------------------------
+  // -----------------------
+  // REAL DASHBOARD
+  // -----------------------
   return (
     <div className={styles.dashboardContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       {showOverlay && (
-        <div
-          className={styles.sidebarOverlay}
-          onClick={() => setIsCollapsed(true)}
-        />
+        <div className={styles.sidebarOverlay} onClick={() => setIsCollapsed(true)} />
       )}
 
       <div
-        className={`${styles.dashboardContent} ${
-          isCollapsed ? styles.contentCollapsed : ''
-        }`}
+        className={`${styles.dashboardContent} ${isCollapsed ? styles.contentCollapsed : ''}`}
       >
         <Header
           title="Dashboard"
@@ -277,7 +254,7 @@ export default function Dashboard() {
         />
 
         <div className={styles.mainWrapper}>
-          {/* CENTER COLUMN: Stats + Activity Feed */}
+          {/* CENTER COLUMN */}
           <div className={styles.centerColumn}>
             <div className={styles.statsContainer}>
               <div className={styles.statItem}>
@@ -285,11 +262,13 @@ export default function Dashboard() {
                 <span className={styles.statLabel}>Maps Created:</span>
                 <span className={styles.statValue}>{totalMapsCreated}</span>
               </div>
+
               <div className={styles.statItem}>
                 <FaStar className={styles.statIcon} />
                 <span className={styles.statLabel}>Stars Received:</span>
                 <span className={styles.statValue}>{totalStarsReceived}</span>
               </div>
+
               <div className={styles.statItem}>
                 <FaCalendarAlt className={styles.statIcon} />
                 <span className={styles.statLabel}>Profile Age:</span>
@@ -302,109 +281,59 @@ export default function Dashboard() {
             </section>
           </div>
 
-          {/* RIGHT SIDE: Recently Modified + Starred Maps */}
+          {/* RIGHT COLUMN */}
           <div className={styles.sideColumn}>
             {/* Recently Modified */}
             <div className={styles.sectionCard}>
               <h2>Recently Modified Maps</h2>
+
               {recentMaps.length === 0 ? (
                 <p>No maps found.</p>
               ) : (
                 <div className={styles.mapCardsList}>
-                  {recentMaps.map((map) => {
-                    let Thumbnail = (
-                      <div className={styles.defaultThumbnail}>No preview</div>
-                    );
-                    if (map.selected_map === 'world') {
-                      Thumbnail = (
-                        <WorldMapSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-                        />
-                      );
-                    } else if (map.selected_map === 'usa') {
-                      Thumbnail = (
-                        <UsSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
+                  {recentMaps.map((map) => (
+                    <div
+                      key={map.id}
+                      className={styles.mapCard}
+                      onClick={() => handleMapClick(map.id)}
+                    >
+                      <div className={styles.mapCardThumb}>
+                        <StaticMapThumbnail map={map} background="#dddddd" />
+                      </div>
 
-                          
-                        />
-                      );
-                    } else if (map.selected_map === 'europe') {
-                      Thumbnail = (
-                        <EuropeSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
+                      <div className={styles.mapCardDetails}>
+                        <h3 className={styles.mapCardTitle}>
+                          {map.title || 'Untitled Map'}
+                        </h3>
 
-                        />
-                      );
-                    }
+                        <p className={styles.mapCardTimestamp}>
+                          Last modified{' '}
+                          {map.updated_at
+                            ? formatDistanceToNow(new Date(map.updated_at), {
+                                addSuffix: true,
+                              })
+                            : 'Unknown'}
+                        </p>
 
-                    return (
-                      <div
-                        key={map.id}
-                        className={styles.mapCard}
-                        onClick={() => handleMapClick(map.id)}
-                      >
-                        <div className={styles.mapCardThumb}>{Thumbnail}</div>
-                        <div className={styles.mapCardDetails}>
-                          <h3 className={styles.mapCardTitle}>
-                            {map.title || 'Untitled Map'}
-                          </h3>
-                          <p className={styles.mapCardTimestamp}>
-                            Last modified{' '}
-                            {map.updated_at
-                              ? formatDistanceToNow(
-                                  new Date(map.updated_at),
-                                  { addSuffix: true }
-                                )
-                              : 'Unknown'}
-                          </p>
+                        <div className={styles.editContainer}>
+                          <FaEdit
+                            onClick={(e) => handleEdit(e, map.id)}
+                            className={styles.editIcon}
+                          />
+                          <button
+                            className={styles.editBtn}
+                            onClick={(e) => handleEdit(e, map.id)}
+                          >
+                            Edit Map
+                          </button>
 
-                          <div className={styles.editContainer}>
-                            <FaEdit
-                              onClick={(e) => handleEdit(e, map.id)}
-                              className={styles.editIcon}
-                            />
-                            <button
-                              className={styles.editBtn}
-                              onClick={(e) => handleEdit(e, map.id)}
-                            >
-                              Edit Map
-                            </button>
-                          </div>
+                          {/* Optional delete hook if you want it on the card
+                              (you had the handler already) */}
+                          {/* <button onClick={(e) => handleDelete(e, map.id)}>Delete</button> */}
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -412,6 +341,7 @@ export default function Dashboard() {
             {/* Starred Maps */}
             <div className={styles.sectionCard}>
               <h2>Starred Maps</h2>
+
               {savedMaps.length === 0 ? (
                 <p>You haven't saved any maps yet.</p>
               ) : (
@@ -421,73 +351,19 @@ export default function Dashboard() {
                     const displayName = userObj?.username || 'Unknown';
                     const mapTitle = map.title || 'Untitled Map';
 
-                    let Thumbnail = (
-                      <div className={styles.defaultThumbnail}>No preview</div>
-                    );
-                    if (map.selected_map === 'world') {
-                      Thumbnail = (
-                        <WorldMapSVG
-                          groups={map.groups}
-                          mapTitleValue={mapTitle}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-                        />
-                      );
-                    } else if (map.selected_map === 'usa') {
-                      Thumbnail = (
-                        <UsSVG
-                          groups={map.groups}
-                          mapTitleValue={mapTitle}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-
-                        />
-                      );
-                    } else if (map.selected_map === 'europe') {
-                      Thumbnail = (
-                        <EuropeSVG
-                          groups={map.groups}
-                          mapTitleValue={mapTitle}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-
-                        />
-                      );
-                    }
-
                     return (
                       <div
                         key={map.id}
                         className={styles.mapCard}
                         onClick={() => navigate(`/map/${map.id}`)}
                       >
-                        <div className={styles.mapCardThumb}>{Thumbnail}</div>
+                        <div className={styles.mapCardThumb}>
+                          <StaticMapThumbnail map={map} background="#dddddd" />
+                        </div>
+
                         <div className={styles.mapCardDetails}>
                           <h3 className={styles.mapCardTitle}>{mapTitle}</h3>
-                          <p className={styles.mapCardTimestamp}>
-                            by {displayName}
-                          </p>
+                          <p className={styles.mapCardTimestamp}>by {displayName}</p>
                           <p className={styles.starCount}>
                             <FaStar /> {map.save_count || 0}
                           </p>
@@ -513,14 +389,11 @@ export default function Dashboard() {
         {/* DELETE MAP MODAL */}
         {showDeleteModal && (
           <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
               <h2>Confirm Deletion</h2>
               <p>
-                Are you sure you want to delete "
-                <strong>{mapToDelete?.title}</strong>"?
+                Are you sure you want to delete "<strong>{mapToDelete?.title}</strong>
+                "?
               </p>
               <div className={styles.modalButtons}>
                 <button className={styles.confirmDelete} onClick={confirmDelete}>

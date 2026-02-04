@@ -62,6 +62,7 @@ export default function Map({
   ocean_color,
   unassigned_color = "#dedede",
   font_color = "black",
+  mapDataType = "choropleth",
 
   /* data & meta */
   data: rawData = [], // [{ code, value }]
@@ -82,14 +83,124 @@ export default function Map({
     [rawData]
   );
 
-  const groups = useMemo(
-    () =>
-      hydrateGroups(rawGroups, custom_ranges, data).map((g) => ({
+  // ✅ Back-compat: infer map type if not explicitly provided
+  const effectiveMapType = useMemo(() => {
+    // if caller explicitly sets it, respect it
+    if (mapDataType) return mapDataType;
+
+    // if groups look categorical (named groups), assume categorical
+    const looksCategorical =
+      Array.isArray(rawGroups) &&
+      rawGroups.some((g) => typeof g?.name === "string" && g.name.trim().length > 0);
+
+    if (looksCategorical) return "categorical";
+
+    // otherwise default choropleth
+    return "choropleth";
+  }, [mapDataType, rawGroups]);
+
+  // ✅ Back-compat: normalize old-style groups (ensure {code} objects + uppercase)
+  const normalizeGroups = useCallback((groups = []) => {
+    return (groups || [])
+      .filter(Boolean)
+      .map((g) => ({
         ...g,
-        countries: g.countries.map((c) => ({ ...c, code: norm(c.code) })),
-      })),
-    [rawGroups, custom_ranges, data]
-  );
+        countries: (g.countries || [])
+          .map((c) => {
+            // c might be {code}, {countryCode}, or a string
+            const code =
+              typeof c === "string"
+                ? c
+                : (c?.code ?? c?.countryCode ?? c?.id ?? "");
+            return { code: norm(code) };
+          })
+          .filter((c) => c.code),
+      }))
+      .filter((g) => g.countries.length > 0);
+  }, []);
+
+  const derivedGroups = useMemo(() => {
+    const hasRanges = Array.isArray(custom_ranges) && custom_ranges.length > 0;
+
+    // ✅ If we have old groups with countries, that’s enough to paint.
+    const hasOldGroups =
+      Array.isArray(rawGroups) &&
+      rawGroups.length > 0 &&
+      rawGroups.some((g) => Array.isArray(g?.countries) && g.countries.length > 0);
+
+    // ------------------------
+    // CHOROPLETH
+    // ------------------------
+    if (effectiveMapType === "choropleth") {
+      // NEW: derive from custom_ranges
+      if (hasRanges) {
+        const toNum = (x) => {
+          const n =
+            typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
+          return Number.isFinite(n) ? n : null;
+        };
+
+        const ranges = custom_ranges
+          .map((r) => ({
+            ...r,
+            lower: toNum(r.lowerBound),
+            upper: toNum(r.upperBound),
+          }))
+          .filter((r) => r.lower != null && r.upper != null);
+
+        return ranges.map((r) => ({
+          color: r.color,
+          countries: data
+            .filter(
+              (d) =>
+                typeof d.value === "number" &&
+                d.value >= r.lower &&
+                d.value < r.upper
+            )
+            .map((d) => ({ code: d.code })),
+        }));
+      }
+
+      // OLD: groups already contain countries -> use them directly
+      if (hasOldGroups) {
+        return normalizeGroups(rawGroups);
+      }
+
+      // no way to derive colors
+      return [];
+    }
+
+    // ------------------------
+    // CATEGORICAL
+    // ------------------------
+    // OLD: if groups have explicit membership, just use them
+    if (hasOldGroups) {
+      return normalizeGroups(rawGroups);
+    }
+
+    // NEW-ish categorical fallback: derive categories from data, use rawGroups for colors if available
+    const colorByCategory = new Map(
+      (rawGroups || []).map((g) => [String(g?.name || "").trim(), g.color])
+    );
+
+    const categories = Array.from(
+      new Set(
+        data
+          .map((d) => (d.value == null ? "" : String(d.value).trim()))
+          .filter(Boolean)
+      )
+    );
+
+    return categories.map((cat) => ({
+      name: cat,
+      color: colorByCategory.get(cat) || "#c0c0c0",
+      countries: data
+        .filter((d) => String(d.value).trim() === cat)
+        .map((d) => ({ code: d.code })),
+    }));
+  }, [effectiveMapType, custom_ranges, rawGroups, data, normalizeGroups]);
+
+
 
   /* ── refs / state ─────────────────────────────────────────────────── */
   const svgRef = useRef(null);
@@ -126,33 +237,35 @@ export default function Map({
     [data]
   );
 
-  const findColor = useCallback(
-    (code) => {
-      for (const g of groups) {
-        if (g.countries.some((c) => c.code === code)) return g.color;
-      }
-      return unassigned_color;
-    },
-    [groups, unassigned_color]
-  );
+const findColor = useCallback(
+  (code) => {
+    for (const g of derivedGroups) {
+      if (g.countries.some((c) => c.code === code)) return g.color;
+    }
+    return unassigned_color;
+  },
+  [derivedGroups, unassigned_color]
+);
+
 
   /* ── paint base map ──────────────────────────────────────────────── */
-  useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
+useEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
 
-    // 1. reset
-    svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
-      el.style.fill = unassigned_color;
+  // reset
+  svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+    el.style.fill = unassigned_color;
+  });
+
+  // recolor
+  derivedGroups.forEach(({ countries = [], color }) => {
+    countries.forEach(({ code }) => {
+      getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
     });
+  });
+}, [derivedGroups, unassigned_color]);
 
-    // 2. colour by group
-    groups.forEach(({ countries = [], color }) =>
-      countries.forEach(({ code }) =>
-        getCountryEls(svg, code).forEach((el) => (el.style.fill = color))
-      )
-    );
-  }, [groups, unassigned_color]);
 
   /* ── hover / click logic ─────────────────────────────────────────── */
   useEffect(() => {

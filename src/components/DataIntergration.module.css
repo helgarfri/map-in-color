@@ -119,8 +119,8 @@
   margin-top: 15px;
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
   align-items: center;
+  
 }
 
 .inputBox {
@@ -130,6 +130,10 @@
   border-radius: 4px;
   height: 32px;
   box-sizing: border-box;
+}
+
+.inputBox[type='number'] {
+  width: 80px;
 }
 .primaryButton,
 .secondaryButton {

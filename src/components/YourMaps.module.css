@@ -88,16 +88,16 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Thumbnail Area */
 .thumbnail {
   width: 100%;
-  height: 100%; /* Reduced thumbnail height */
+  height: 150px;          /* ✅ give it a real height */
   background: #fafafa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
+
+  position: relative;     /* ✅ keeps blocker contained */
+  isolation: isolate;     /* ✅ prevents overlay weirdness */
 }
+
 
 /* Card Body */
 .cardBody {

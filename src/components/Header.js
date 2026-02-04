@@ -8,7 +8,6 @@ import {
   markAllNotificationsAsRead,
 } from '../api';
 import { formatDistanceToNow } from 'date-fns';
-import MapSelectionModal from './MapSelectionModal';
 import { UserContext } from '../context/UserContext';
 import styles from './Header.module.css';
 import useWindowSize from '../hooks/useWindowSize';
@@ -17,18 +16,15 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
-  const { width } = useWindowSize(); // or pass it down as props
+  const { width } = useWindowSize();
 
-  const [showMapModal, setShowMapModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
 
   const navigate = useNavigate();
 
-  // Pull `profile` and `setAuthToken` from context
   const { profile, setAuthToken } = useContext(UserContext);
 
-  // On mount, fetch notifications
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,7 +37,6 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     fetchData();
   }, []);
 
-  // Mark a single notification as read
   const handleNotificationClick = async (notification) => {
     try {
       await markNotificationAsRead(notification.id);
@@ -56,7 +51,6 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     }
   };
 
-  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
@@ -66,19 +60,12 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
     }
   };
 
-  // Close notifications/profile menu if user clicks outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target)
-      ) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setShowProfileMenu(false);
       }
     };
@@ -89,36 +76,24 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // "Create Map" button handler
+  // Create Map now goes straight to /create
   const handleCreateMap = () => {
-    setShowMapModal(true);
+    navigate('/create');
   };
 
-  // When user selects a map type in the modal
-  const handleMapSelection = (selected_map) => {
-    if (selected_map) {
-      setShowMapModal(false);
-      navigate('/create', { state: { selected_map } });
-    }
-  };
-
-  // Logout handler
   const handleLogout = () => {
     localStorage.removeItem('token');
     if (setAuthToken) setAuthToken(null);
     navigate('/login');
   };
 
-  // Read the profile picture from context
   const profile_pictureUrl = profile?.profile_picture
     ? profile.profile_picture
     : '/default-profile-pic.jpg';
 
   return (
-    <header className={styles.header} >
-      {/* LEFT: Hamburger + Logo + Title */}
+    <header className={styles.header}>
       <div className={styles.headerLeft}>
-        {/* Hamburger */}
         <button
           className={styles.hamburgerButton}
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -140,14 +115,12 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
         </div>
       </div>
 
-      {/* RIGHT: Create map, notifications, profile */}
       <div className={styles.headerRight}>
         <button className={styles.createMapButton} onClick={handleCreateMap}>
           <FaPlus className={styles.plusIcon} />
           <span>Create</span>
         </button>
 
-        {/* Notifications */}
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button
             className={styles.notificationBell}
@@ -156,10 +129,9 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
             <span className={styles.iconWrapper}>
               {showNotifications ? <FaBell /> : <FaRegBell />}
             </span>
-            {unreadCount > 0 && (
-              <span className={styles.unreadBadge}>{unreadCount}</span>
-            )}
+            {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount}</span>}
           </button>
+
           {showNotifications && (
             <div className={styles.notificationPopout}>
               <div className={styles.notificationHeader}>
@@ -173,6 +145,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                   </button>
                 )}
               </div>
+
               <ul className={styles.notificationList}>
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
@@ -196,9 +169,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                         <div className={styles.notificationText}>
                           <p className={styles.notificationContent}>
                             <Link
-                              to={`/profile/${
-                                notification.Sender?.username || 'unknown'
-                              }`}
+                              to={`/profile/${notification.Sender?.username || 'unknown'}`}
                               className={styles.senderName}
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -209,26 +180,21 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                             {getNotificationMessage(notification)}
                           </p>
                           <p className={styles.notificationMeta}>
-                            {formatDistanceToNow(
-                              new Date(notification.created_at),
-                              { addSuffix: true }
-                            )}
+                            {formatDistanceToNow(new Date(notification.created_at), {
+                              addSuffix: true,
+                            })}
                           </p>
                         </div>
                       </div>
                     </li>
                   ))
                 ) : (
-                  <li className={styles.noNotifications}>
-                    No new notifications.
-                  </li>
+                  <li className={styles.noNotifications}>No new notifications.</li>
                 )}
               </ul>
+
               <div className={styles.viewAllLink}>
-                <Link
-                  to="/notifications"
-                  onClick={() => setShowNotifications(false)}
-                >
+                <Link to="/notifications" onClick={() => setShowNotifications(false)}>
                   View All Notifications
                 </Link>
               </div>
@@ -236,7 +202,6 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
           )}
         </div>
 
-        {/* Profile Menu */}
         <div className={styles.profileWrapper} ref={profileMenuRef}>
           <img
             src={profile_pictureUrl}
@@ -246,7 +211,6 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
           />
           {showProfileMenu && (
             <div className={styles.profileMenu}>
-              {/* Mini Profile Header */}
               <div className={styles.profileMenuHeader}>
                 <img
                   src={profile_pictureUrl}
@@ -257,12 +221,10 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                   <div className={styles.profileMenuName}>
                     {profile?.first_name} {profile?.last_name}
                   </div>
-                  <div className={styles.profileMenuUsername}>
-                    @{profile?.username}
-                  </div>
+                  <div className={styles.profileMenuUsername}>@{profile?.username}</div>
                 </div>
               </div>
-              {/* Menu Items */}
+
               <ul className={styles.profileMenuList}>
                 <li>
                   <Link
@@ -302,22 +264,10 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
           )}
         </div>
       </div>
-
-      {/* Map Selection Modal */}
-      {showMapModal && (
-        <MapSelectionModal
-          show={showMapModal}
-          onClose={() => setShowMapModal(false)}
-          onCreateMap={handleMapSelection}
-        />
-      )}
     </header>
   );
 }
 
-/**
- * Helper to format the notification message
- */
 function getNotificationMessage(notification) {
   const mapTitle = notification.Map?.title || 'Untitled Map';
   const mapId = notification.Map?.id;

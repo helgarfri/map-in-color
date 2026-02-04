@@ -5,45 +5,31 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { FaStar, FaSearch } from 'react-icons/fa';
 
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
-
+import StaticMapThumbnail from './StaticMapThumbnail';
 import styles from './ExploreContent.module.css';
 
 function ExploreContent() {
-  // ------------------------------------------------------------------
-  // 1) State for maps, tags, search, pagination, loading, etc.
-  // ------------------------------------------------------------------
   const [maps, setMaps] = useState([]);
   const [allMapsForTags, setAllMapsForTags] = useState([]);
 
-  // Tracking if we've fully loaded once
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Search (uncontrolled)
   const [searchApplied, setSearchApplied] = useState('');
   const searchRef = useRef(null);
 
-  // Sorting & filtering
   const [sort, setSort] = useState('newest');
   const [selectedTags, setSelectedTags] = useState([]);
 
-  // Pagination
   const [page, setPage] = useState(1);
   const [totalMaps, setTotalMaps] = useState(0);
   const mapsPerPage = 40;
 
-  // Loading
   const [loading, setLoading] = useState(false);
 
-  // Routing
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ------------------------------------------------------------------
-  // 2) Fetch top 50 tags (on mount)
-  // ------------------------------------------------------------------
+  // Fetch tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -58,13 +44,10 @@ function ExploreContent() {
     fetchTags();
   }, []);
 
-  // ------------------------------------------------------------------
-  // 3) Parse ?tags & ?page from URL
-  // ------------------------------------------------------------------
+  // Parse URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
-    // Tags
     const urlTags = params.get('tags');
     if (urlTags) {
       const splitTags = urlTags
@@ -76,36 +59,27 @@ function ExploreContent() {
       setSelectedTags([]);
     }
 
-    // Page
     const urlPage = parseInt(params.get('page'), 10);
     setPage(urlPage && urlPage > 0 ? urlPage : 1);
   }, [location.search]);
 
-  // ------------------------------------------------------------------
-  // 4) Fetch maps for current page
-  // ------------------------------------------------------------------
+  // Fetch maps
   const fetchMaps = async () => {
     setLoading(true);
     try {
       const params = { sort, page, limit: mapsPerPage };
-      if (searchApplied.trim()) {
-        params.search = searchApplied.trim();
-      }
-      if (selectedTags.length > 0) {
-        params.tags = selectedTags.join(',');
-      }
 
-      const res = await axios.get(
-        'https://map-in-color.onrender.com/api/explore',
-        { params }
-      );
+      if (searchApplied.trim()) params.search = searchApplied.trim();
+      if (selectedTags.length > 0) params.tags = selectedTags.join(',');
+
+      const res = await axios.get('https://map-in-color.onrender.com/api/explore', {
+        params,
+      });
+
       setMaps(res.data.maps);
       setTotalMaps(res.data.total);
 
-      // If this is our first load, mark it done.
-      if (initialLoad) {
-        setInitialLoad(false);
-      }
+      if (initialLoad) setInitialLoad(false);
     } catch (err) {
       console.error('Error fetching maps:', err);
     } finally {
@@ -113,32 +87,24 @@ function ExploreContent() {
     }
   };
 
-  // Trigger fetch on changes
   useEffect(() => {
     fetchMaps();
     // eslint-disable-next-line
   }, [selectedTags, sort, searchApplied, page]);
 
-  // ------------------------------------------------------------------
-  // 5) Handlers
-  // ------------------------------------------------------------------
-
-  // (A) Searching map titles
+  // Handlers
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const typedValue = searchRef.current.value;
     setSearchApplied(typedValue);
 
     const params = new URLSearchParams(location.search);
-    params.delete('page'); // reset to page=1 whenever we do a new search
+    params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
-  // Clear the search
   const handleClearSearch = () => {
-    if (searchRef.current) {
-      searchRef.current.value = '';
-    }
+    if (searchRef.current) searchRef.current.value = '';
     setSearchApplied('');
     setPage(1);
 
@@ -147,54 +113,41 @@ function ExploreContent() {
     navigate(`?${params.toString()}`, { replace: true });
   };
 
-  // (B) Toggling a tag
   const handleTagChange = (tag) => {
     let newSelected;
-    if (selectedTags.includes(tag)) {
-      newSelected = selectedTags.filter((t) => t !== tag);
-    } else {
-      newSelected = [...selectedTags, tag];
-    }
+    if (selectedTags.includes(tag)) newSelected = selectedTags.filter((t) => t !== tag);
+    else newSelected = [...selectedTags, tag];
 
     const params = new URLSearchParams(location.search);
-    if (newSelected.length) {
-      params.set('tags', newSelected.join(','));
-    } else {
-      params.delete('tags');
-    }
-    params.delete('page'); // go back to page=1
+    if (newSelected.length) params.set('tags', newSelected.join(','));
+    else params.delete('tags');
+
+    params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // (C) Changing sort
   const handleSortChange = (newSort) => {
     setSort(newSort);
-
     const params = new URLSearchParams(location.search);
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
-  // (D) Remove single tag
   const handleRemoveSelectedTag = (tagToRemove) => {
     const newSelected = selectedTags.filter((t) => t !== tagToRemove);
 
     const params = new URLSearchParams(location.search);
-    if (newSelected.length) {
-      params.set('tags', newSelected.join(','));
-    } else {
-      params.delete('tags');
-    }
+    if (newSelected.length) params.set('tags', newSelected.join(','));
+    else params.delete('tags');
+
     params.delete('page');
     navigate(`?${params.toString()}`, { replace: true });
   };
 
-  // (E) Pagination
   const totalPages = Math.ceil(totalMaps / mapsPerPage);
   const handlePageChange = (newPage) => {
     if (newPage === page) return;
-    // partial skeleton on subsequent loads
     setLoading(true);
 
     const params = new URLSearchParams(location.search);
@@ -203,34 +156,6 @@ function ExploreContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ------------------------------------------------------------------
-  // 6) Helper to render an SVG map thumbnail
-  // ------------------------------------------------------------------
-  const renderMapThumbnail = (map) => {
-    const mapTitle = map.title || 'Untitled Map';
-    const sharedProps = {
-      groups: map.groups,
-      mapTitleValue: mapTitle,
-      ocean_color: map.ocean_color,
-      unassigned_color: map.unassigned_color,
-      data: map.data,
-      selected_map: map.selected_map,
-      font_color: map.font_color,
-      is_title_hidden: map.is_title_hidden,
-      show_top_high_values: false,
-      show_top_low_values: false,
-      showNoDataLegend: map.show_no_data_legend,
-      titleFontSize: map.title_font_size,
-      legendFontSize: map.legend_font_size,
-    };
-
-    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
-    return null;
-  };
-
-  // Display name
   const getDisplayName = (user) => {
     if (!user) return 'Unknown';
     const { first_name, last_name, username } = user;
@@ -239,11 +164,7 @@ function ExploreContent() {
       : username;
   };
 
-  // ------------------------------------------------------------------
-  // 7) Render
-  // ------------------------------------------------------------------
-
-  // 7A) If STILL loading *and* it's the first load => show entire skeleton
+  // Full skeleton first load
   if (initialLoad && loading) {
     return (
       <div className={styles.exploreContentContainer}>
@@ -265,7 +186,6 @@ function ExploreContent() {
         </div>
 
         <div className={styles.skeletonMainContent}>
-          {/* Left: Grid of Map Cards (skeleton) */}
           <div className={styles.skeletonMapsGrid}>
             {Array.from({ length: 12 }).map((_, i) => (
               <div className={styles.skeletonMapCard} key={i}>
@@ -277,7 +197,6 @@ function ExploreContent() {
             ))}
           </div>
 
-          {/* Right: Tag Sidebar (skeleton) */}
           <div className={styles.skeletonTagsSidebar}>
             <div className={styles.skeletonTagTitle} />
             {Array.from({ length: 10 }).map((_, i) => (
@@ -295,36 +214,27 @@ function ExploreContent() {
     );
   }
 
-  // 7B) Otherwise => normal render
-  //     (If loading & NOT first load => partial skeleton for map cards only)
   const showMapsSkeleton = !initialLoad && loading;
 
   return (
     <div className={styles.exploreContentContainer}>
-      {/* Top Bar: Sort & Search */}
       <div className={styles.topBar}>
         <div className={styles.sortTabs}>
           <span className={styles.sortByLabel}>Sort by:</span>
           <button
-            className={`${styles.tabButton} ${
-              sort === 'newest' ? styles.activeTab : ''
-            }`}
+            className={`${styles.tabButton} ${sort === 'newest' ? styles.activeTab : ''}`}
             onClick={() => handleSortChange('newest')}
           >
             Newest
           </button>
           <button
-            className={`${styles.tabButton} ${
-              sort === 'starred' ? styles.activeTab : ''
-            }`}
+            className={`${styles.tabButton} ${sort === 'starred' ? styles.activeTab : ''}`}
             onClick={() => handleSortChange('starred')}
           >
             Most Starred
           </button>
           <button
-            className={`${styles.tabButton} ${
-              sort === 'trending' ? styles.activeTab : ''
-            }`}
+            className={`${styles.tabButton} ${sort === 'trending' ? styles.activeTab : ''}`}
             onClick={() => handleSortChange('trending')}
           >
             Trending
@@ -343,11 +253,7 @@ function ExploreContent() {
               </button>
             )}
 
-            <input
-              type="text"
-              placeholder="Search by map title..."
-              ref={searchRef}
-            />
+            <input type="text" placeholder="Search by map title..." ref={searchRef} />
             <button type="submit" className={styles.searchButton} title="Search">
               <FaSearch />
             </button>
@@ -355,7 +261,6 @@ function ExploreContent() {
         </form>
       </div>
 
-      {/* Results Row (total count, page X of Y, selected tags) */}
       <div className={styles.resultsRow}>
         <span className={styles.totalResults}>
           {totalMaps} results
@@ -385,12 +290,9 @@ function ExploreContent() {
         )}
       </div>
 
-      {/* Main area: map cards + tags sidebar */}
       <div className={styles.mainContent}>
-        {/* Left: Maps section */}
         <div className={styles.mapsSection}>
           {showMapsSkeleton ? (
-            // PARTIAL skeleton for map cards only
             <div className={styles.skeletonMapsGrid}>
               {Array.from({ length: 12 }).map((_, i) => (
                 <div className={styles.skeletonMapCard} key={i}>
@@ -402,7 +304,6 @@ function ExploreContent() {
               ))}
             </div>
           ) : (
-            // Actual map cards
             <div className={styles.mapsGrid}>
               {maps.length === 0 ? (
                 <p>No maps found.</p>
@@ -410,6 +311,7 @@ function ExploreContent() {
                 maps.map((map) => {
                   const mapTitle = map.title || 'Untitled Map';
                   const displayName = getDisplayName(map.user);
+
                   return (
                     <div
                       key={map.id}
@@ -417,15 +319,19 @@ function ExploreContent() {
                       onClick={() => navigate(`/map/${map.id}`)}
                     >
                       <div className={styles.thumbnail}>
-                        {renderMapThumbnail(map)}
+                        {/* ✅ Static preview + blocker (no interactions) */}
+                        <StaticMapThumbnail map={map} background="#dddddd" />
                       </div>
+
                       <h3 className={styles.mapTitle}>{mapTitle}</h3>
+
                       <div className={styles.mapInfoRow}>
                         <span>{displayName}</span>
                         <span className={styles.starCountContainer}>
                           <FaStar /> {map.save_count || 0}
                         </span>
                       </div>
+
                       {map.tags && map.tags.length > 0 && (
                         <div className={styles.tags}>
                           {map.tags.slice(0, 5).map((tg, idx) => (
@@ -434,9 +340,7 @@ function ExploreContent() {
                             </span>
                           ))}
                           {map.tags.length > 5 && (
-                            <span className={styles.tag}>
-                              +{map.tags.length - 5}
-                            </span>
+                            <span className={styles.tag}>+{map.tags.length - 5}</span>
                           )}
                         </div>
                       )}
@@ -447,13 +351,9 @@ function ExploreContent() {
             </div>
           )}
 
-          {/* Pagination */}
           {!showMapsSkeleton && totalPages > 1 && (
             <div className={styles.pagination}>
-              <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page <= 1}
-              >
+              <button onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
                 ‹
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -465,36 +365,39 @@ function ExploreContent() {
                   {p}
                 </button>
               ))}
-              <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page >= totalPages}
-              >
+              <button onClick={() => handlePageChange(page + 1)} disabled={page >= totalPages}>
                 ›
               </button>
             </div>
           )}
         </div>
 
-        {/* Right: Tags filter sidebar */}
         <div className={styles.tagsSidebar}>
           <h2>Filter by Tags</h2>
-          <div className={styles.tagsList}>
-            {allMapsForTags.map((item) => (
-              <label key={item.tag} className={styles.tagCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={selectedTags.includes(item.tag)}
-                  onChange={() => handleTagChange(item.tag)}
-                />
-                <span className={styles.checkboxTag}>
-                  {item.tag}&nbsp;
-                  <span style={{ color: '#999', fontSize: '0.9em' }}>
-                    ({item.count})
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
+       <div className={styles.tagsList}>
+  {allMapsForTags.map((item) => (
+    <label
+      key={item.tag}
+      className={styles.tagCheckbox}
+      onClick={(e) => e.stopPropagation()} // ✅ prevents parent clicks
+    >
+      <input
+        type="checkbox"
+        checked={selectedTags.includes(item.tag)}
+        onClick={(e) => e.stopPropagation()} // ✅ important
+        onChange={() => handleTagChange(item.tag)}
+      />
+      <span
+        className={styles.checkboxTag}
+        onClick={(e) => e.stopPropagation()} // ✅ also safe
+      >
+        {item.tag}{' '}
+        <span style={{ color: '#999', fontSize: '0.9em' }}>({item.count})</span>
+      </span>
+    </label>
+  ))}
+</div>
+
         </div>
       </div>
     </div>

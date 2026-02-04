@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router";
 import styles from "./DataIntergration.module.css";
 
@@ -80,9 +80,9 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const { width } = useWindowSize();
 
   // Map selection
-  const [selected_map, setSelectedMap] = useState(
-    existingMapData?.selected_map || location.state?.selected_map || 'world'
-  );
+  // selected map is now always world
+  const [selected_map] = useState('world');
+
 
   // Are we in "choropleth" or "categorical"?
   const [mapDataType, setMapDataType] = useState('choropleth');
@@ -138,6 +138,9 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   // Tabs: 'ranges' | 'theme' | 'info'
   const [activeTab, setActiveTab] = useState('ranges');
 
+  const [editingRangeId, setEditingRangeId] = useState(null);
+
+
   // Collapse the main sidebar for small screens
   useEffect(() => {
     if (width < 1000) setIsCollapsed(true);
@@ -147,9 +150,46 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   // If editing existing
   useEffect(() => {
     if (existingMapData) {
+      setMapDataType(existingMapData.map_data_type || existingMapData.mapDataType || "choropleth");
+
       // Possibly detect numeric vs text
     }
   }, [existingMapData]);
+
+  useEffect(() => {
+  if (!existingMapData) return;
+
+  // IMPORTANT: actually load the DB data into state
+  setData(existingMapData.data || []);
+
+  // (optional but recommended) sync the rest too
+  setMapTitle(existingMapData.title || "");
+  setDescription(existingMapData.description || "");
+  setTags(existingMapData.tags || []);
+  setIsPublic(!!existingMapData.is_public);
+
+  setCustomRanges(
+    existingMapData.custom_ranges || [
+      { id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" },
+    ]
+  );
+
+  setGroups(existingMapData.groups || []);
+  setOceanColor(existingMapData.ocean_color || "#ffffff");
+  setUnassignedColor(existingMapData.unassigned_color || "#c0c0c0");
+  setFontColor(existingMapData.font_color || "black");
+  setSelectedPalette(existingMapData.selected_palette || "None");
+  setSelectedMapTheme(existingMapData.selected_map_theme || "Default");
+
+  setIsTitleHidden(!!existingMapData.is_title_hidden);
+  setShowNoDataLegend(!!existingMapData.show_no_data_legend);
+  setTitleFontSize(existingMapData.title_font_size ?? null);
+  setLegendFontSize(existingMapData.legend_font_size ?? null);
+
+  setReferences(existingMapData.sources || []);
+  setFileStats(existingMapData.file_stats || defaultFileStats);
+}, [existingMapData]);
+
 
   // Upload modal
   const handleOpenUploadModal = () => {
@@ -342,42 +382,142 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
     setIsReferenceModalOpen(false);
   };
 
-  // Save map
-  const handleSaveMap = async () => {
-    const mapData = {
-      id: isEditing ? existingMapData.id : Date.now(),
-      title: mapTitle,
-      description,
-      tags,
-      is_public,
-      data,
-      mapDataType,
-      custom_ranges,
-      groups,
-      selected_map,
-      ocean_color,
-      unassigned_color,
-      font_color,
-      selected_palette,
-      selected_map_theme,
-      file_stats,
-      is_title_hidden,
-      show_no_data_legend: showNoDataLegend,
-      title_font_size: titleFontSize,
-      legend_font_size: legendFontSize,
-      sources: references,
-    };
-    try {
-      if (isEditing) {
-        await updateMap(existingMapData.id, mapData);
-      } else {
-        await createMap(mapData);
-      }
-      navigate('/dashboard');
-    } catch (err) {
-      console.error(err);
-    }
+    function pick(obj, keys) {
+  for (const k of keys) {
+    if (obj && obj[k] != null && String(obj[k]).trim() !== "") return obj[k];
+  }
+  return null;
+}
+
+function toNumber(x) {
+  const n = typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+const mapDataNormalized = useMemo(() => {
+  return (data || [])
+    .map((d) => {
+      const code = pick(d, ["code", "countryCode", "iso2", "ISO2", "Country Code", "country_code"]);
+      const name = pick(d, ["name", "countryName", "Country", "country_name"]);
+      const valueRaw = pick(d, ["value", "Value", "val"]);
+
+      return {
+        ...d,
+        code: code ? String(code).trim().toUpperCase() : "",
+        name: name ? String(name) : undefined,
+        value: mapDataType === "choropleth" ? toNumber(valueRaw) : valueRaw,
+      };
+    })
+    .filter((d) => d.code); // drop broken rows
+}, [data, mapDataType]);
+
+const rangesWithCountries = useMemo(() => {
+  const toNum = (x) => {
+    const n = typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
+    return Number.isFinite(n) ? n : null;
   };
+
+  // sanitize ranges (some of yours are "" initially)
+  const rangesClean = (custom_ranges || []).map((r) => ({
+    ...r,
+    lower: toNum(r.lowerBound),
+    upper: toNum(r.upperBound),
+  }));
+
+  // helper: for display, use name if present else code
+  const countryLabel = (d) => {
+    const n = d.name ? String(d.name).trim() : "";
+    const c = d.code ? String(d.code).trim() : "";
+    return (n || c).toLowerCase();
+  };
+
+  // compute countries per range using normalized numeric data
+  const rows = rangesClean.map((r) => {
+    const valid = r.lower != null && r.upper != null;
+
+    const countries = valid
+      ? (mapDataNormalized || [])
+          .filter((d) => typeof d.value === "number" && d.value >= r.lower && d.value < r.upper)
+          .map(countryLabel)
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b))
+      : [];
+
+    return {
+      ...r,
+      countries,
+      count: countries.length,
+      isValidRange: valid,
+    };
+  });
+
+  // sort by lower bound (invalid ranges sink to bottom)
+  rows.sort((a, b) => {
+    if (a.lower == null && b.lower == null) return 0;
+    if (a.lower == null) return 1;
+    if (b.lower == null) return -1;
+    return a.lower - b.lower;
+  });
+
+  return rows;
+}, [custom_ranges, mapDataNormalized]);
+
+
+
+  // Save map
+const handleSaveMap = async () => {
+  // ✅ IMPORTANT: don't send `id` on create (Supabase should generate it)
+  const payload = {
+    title: mapTitle,
+    description,
+    tags,
+    is_public,
+
+    // Use normalized data so codes are clean ISO2, numbers are real numbers
+    data: mapDataNormalized,
+
+    // Pick ONE of these based on your DB column name.
+    // If your DB column is `map_data_type`, keep this:
+    map_data_type: mapDataType,
+    // If your DB column is `mapDataType` (older), keep this instead:
+    // mapDataType,
+
+    custom_ranges,
+    groups,
+
+    selected_map, // world
+    ocean_color,
+    unassigned_color,
+    font_color,
+    selected_palette,
+    selected_map_theme,
+
+    file_stats,
+    is_title_hidden,
+    show_no_data_legend: showNoDataLegend,
+    sources: references,
+
+    // ✅ what your backend expects (it converts to title_font_size / legend_font_size)
+    titleFontSize: titleFontSize ?? null,
+    legendFontSize: legendFontSize ?? null,
+  };
+
+  try {
+    const res = isEditing
+      ? await updateMap(existingMapData.id, payload)
+      : await createMap(payload);
+
+    console.log("✅ Saved map:", res?.data);
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("❌ Save map failed:", err?.response?.data || err);
+    alert(err?.response?.data?.msg || "Failed to save map (check console).");
+  }
+};
+
+
+
+  
 
   return (
     <div className={styles.layoutContainer}>
@@ -394,49 +534,22 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
           <div className={styles.mapBox}>
             <h4>Map Preview</h4>
             <div className={styles.mapPreview}>
-              {selected_map === 'world' && (
                 <Map
                   groups={groups}
                   mapTitleValue={mapTitle}
+                  custom_ranges={custom_ranges}     
+                  mapDataType={mapDataType} 
                   ocean_color={ocean_color}
                   unassigned_color={unassigned_color}
-                  data={data}
-                  selected_map={selected_map}
+                  data={mapDataNormalized}
+                  selected_map="world"
                   font_color={font_color}
                   showNoDataLegend={showNoDataLegend}
                   is_title_hidden={is_title_hidden}
                   titleFontSize={titleFontSize}
                   legendFontSize={legendFontSize}
                 />
-              )}
-              {selected_map === 'usa' && (
-                <UsSVG
-                  groups={groups}
-                  mapTitleValue={mapTitle}
-                  ocean_color={ocean_color}
-                  unassigned_color={unassigned_color}
-                  data={data}
-                  font_color={font_color}
-                  showNoDataLegend={showNoDataLegend}
-                  is_title_hidden={is_title_hidden}
-                  titleFontSize={titleFontSize}
-                  legendFontSize={legendFontSize}
-                />
-              )}
-              {selected_map === 'europe' && (
-                <EuropeSVG
-                  groups={groups}
-                  mapTitleValue={mapTitle}
-                  ocean_color={ocean_color}
-                  unassigned_color={unassigned_color}
-                  data={data}
-                  font_color={font_color}
-                  showNoDataLegend={showNoDataLegend}
-                  is_title_hidden={is_title_hidden}
-                  titleFontSize={titleFontSize}
-                  legendFontSize={legendFontSize}
-                />
-              )}
+
             </div>
           </div>
         </div>
@@ -471,132 +584,211 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
             </div>
           </div>
 
-          {/* Tab content */}
-          <div className={styles.tabContentArea}>
-            {activeTab === 'ranges' && (
-              <>
-                {mapDataType === 'choropleth' ? (
-                  <div className={styles.section}>
-                    <h3>Define Custom Ranges</h3>
-                    <table className={styles.rangeTable}>
-                      <thead>
-                        <tr>
-                          <th>Lower Bound</th>
-                          <th>Upper Bound</th>
-                          <th>Name</th>
-                          <th>Color</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {custom_ranges.map(range => (
-                          <tr key={range.id}>
-                            <td>
-                              <input
-                                type="number"
-                                className={styles.inputBox}
-                                value={range.lowerBound}
-                                onChange={(e) =>
-                                  handleRangeChange(range.id, 'lowerBound', parseFloat(e.target.value))
-                                }
-                                placeholder="Min"
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="number"
-                                className={styles.inputBox}
-                                value={range.upperBound}
-                                onChange={(e) =>
-                                  handleRangeChange(range.id, 'upperBound', parseFloat(e.target.value))
-                                }
-                                placeholder="Max"
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="text"
-                                className={styles.inputBox}
-                                value={range.name}
-                                onChange={(e) => handleRangeChange(range.id, 'name', e.target.value)}
-                                placeholder="Range Name"
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="color"
-                                className={styles.inputBox}
-                                value={range.color}
-                                onChange={(e) => handleRangeChange(range.id, 'color', e.target.value)}
-                              />
-                            </td>
-                            <td>
-                              {custom_ranges.length > 1 ? (
-                                <button
-                                  className={styles.removeButton}
-                                  onClick={() => removeRange(range.id)}
-                                >
-                                  &times;
-                                </button>
-                              ) : (
-                                <button className={styles.removeButton} disabled>&times;</button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+{/* Tab content */}
+<div className={styles.tabContentArea}>
+  {activeTab === "ranges" && (
+    <>
+      {mapDataType === "choropleth" ? (
+        <div className={styles.section}>
+          <h3>Ranges</h3>
 
-                    <div className={styles.rangeControls}>
-                      <label>Ranges:</label>
-                      <select
-                        value={numRanges}
-                        onChange={(e) => setNumRanges(parseInt(e.target.value))}
-                        className={styles.inputBox}
-                      >
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                          <option key={n} value={n}>{n}</option>
-                        ))}
-                      </select>
+          <table className={styles.rangeTable}>
+            <thead>
+              <tr>
+                <th>Countries</th>
+                <th>Lower</th>
+                <th>Upper</th>
+                <th>Name</th>
+                <th>Color</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-                      <select
-                        value={rangeOrder}
-                        onChange={(e) => setRangeOrder(e.target.value)}
-                        className={styles.inputBox}
-                      >
-                        <option value="low-high">Low to High</option>
-                        <option value="high-low">High to Low</option>
-                      </select>
+            <tbody>
+              {rangesWithCountries.map((range) => {
+                const isEditingRow = editingRangeId === range.id;
 
-                      <button className={styles.secondaryButton} onClick={suggestRanges}>
-                        Suggest Ranges
-                      </button>
-                      <button className={styles.secondaryButton} onClick={addRange}>
-                        Add Range
-                      </button>
-                      <button
-                        className={styles.primaryButton}
-                        disabled={!data.length || !rangesValidation.isValid}
-                        onClick={generateGroups}
-                      >
-                        Generate Groups
-                      </button>
-
-                      {(!rangesValidation.isValid || !data.length) && (
-                        <p className={styles.errorMessage}>
-                          {(!data.length)
-                            ? 'Please upload or enter data first.'
-                            : rangesValidation.errorMessage}
-                        </p>
+                return (
+                  <tr key={range.id}>
+                    {/* Countries */}
+                    <td style={{ maxWidth: 380 }}>
+                      {range.isValidRange ? (
+                        <>
+                          <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
+                            {range.count} countries
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              lineHeight: 1.3,
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            {range.countries.join(", ")}
+                          </div>
+                        </>
+                      ) : (
+                        <span style={{ fontStyle: "italic", opacity: 0.7 }}>
+                          Add lower/upper to see countries
+                        </span>
                       )}
-                    </div>
-                  </div>
-                ) : (
-                  renderCategoryGroupsTable()
-                )}
-              </>
-            )}
+                    </td>
 
+                    {/* Lower */}
+                    <td>
+                      {isEditingRow ? (
+                        <input
+                          type="number"
+                          className={styles.inputBox}
+                          value={range.lowerBound}
+                          onChange={(e) =>
+                            handleRangeChange(range.id, "lowerBound", parseFloat(e.target.value))
+                          }
+                          placeholder="Min"
+                        />
+                      ) : (
+                        <span>{range.lower ?? ""}</span>
+                      )}
+                    </td>
+
+                    {/* Upper */}
+                    <td>
+                      {isEditingRow ? (
+                        <input
+                          type="number"
+                          className={styles.inputBox}
+                          value={range.upperBound}
+                          onChange={(e) =>
+                            handleRangeChange(range.id, "upperBound", parseFloat(e.target.value))
+                          }
+                          placeholder="Max"
+                        />
+                      ) : (
+                        <span>{range.upper ?? ""}</span>
+                      )}
+                    </td>
+
+                    {/* Name */}
+                    <td>
+                      {isEditingRow ? (
+                        <input
+                          type="text"
+                          className={styles.inputBox}
+                          value={range.name}
+                          onChange={(e) => handleRangeChange(range.id, "name", e.target.value)}
+                          placeholder="Range Name"
+                        />
+                      ) : (
+                        <span>
+                          {range.name || <span style={{ opacity: 0.6 }}>(unnamed)</span>}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Color */}
+                    <td>
+                      {isEditingRow ? (
+                        <input
+                          type="color"
+                          className={styles.inputBox}
+                          value={range.color}
+                          onChange={(e) => handleRangeChange(range.id, "color", e.target.value)}
+                        />
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: 4,
+                              background: range.color,
+                              border: "1px solid rgba(0,0,0,0.2)",
+                              display: "inline-block",
+                            }}
+                          />
+                          <span style={{ fontSize: 12, opacity: 0.8 }}>{range.color}</span>
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td>
+                      {isEditingRow ? (
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => setEditingRangeId(null)}
+                          >
+                            Done
+                          </button>
+
+                          <button
+                            className={styles.removeButton}
+                            onClick={() => {
+                              setEditingRangeId(null);
+                              removeRange(range.id);
+                            }}
+                            disabled={custom_ranges.length <= 1}
+                            title={
+                              custom_ranges.length <= 1
+                                ? "You must keep at least one range"
+                                : "Delete"
+                            }
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => setEditingRangeId(range.id)}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            className={styles.removeButton}
+                            onClick={() => removeRange(range.id)}
+                            disabled={custom_ranges.length <= 1}
+                            title={
+                              custom_ranges.length <= 1
+                                ? "You must keep at least one range"
+                                : "Delete"
+                            }
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* Keep your existing range controls exactly as before */}
+          <div className={styles.rangeControls}>
+          
+       
+            <button className={styles.secondaryButton} onClick={addRange}>
+              Add Range
+            </button>
+
+           
+            {(!rangesValidation.isValid || !data.length) && (
+              <p className={styles.errorMessage}>
+                {!data.length ? "Please upload or enter data first." : rangesValidation.errorMessage}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        renderCategoryGroupsTable()
+      )}
+    </>
+  )}
             {activeTab === 'theme' && (
               <div className={styles.themeTab}>
                 <h3>Map Theme</h3>

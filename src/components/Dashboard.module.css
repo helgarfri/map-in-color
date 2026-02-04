@@ -156,6 +156,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 }
 
 .defaultThumbnail {

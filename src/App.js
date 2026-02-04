@@ -76,15 +76,18 @@ function App() {
             element={<Docs />} 
           />
 
-        <Route
-          path="/create"
-          element={
-            <DataIntegration
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          }
-        />
+    <Route
+  path="/create"
+  element={
+    <PrivateRoute>
+      <DataIntegration
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+    </PrivateRoute>
+  }
+/>
+
 
         <Route
           path="/dashboard"

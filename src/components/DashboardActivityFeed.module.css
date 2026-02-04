@@ -28,7 +28,7 @@
   position: relative;
   width: 200px;
   height: 100px;
-  background-color: #ddd;
+  background-color: #dddddd;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
@@ -232,6 +232,14 @@
   animation: shimmer 1.2s infinite;
 }
 
+/* Transparent overlay that blocks map interaction (hover, wheel, drag) */
+.interactionBlocker {
+  position: absolute;
+  inset: 0;
+  z-index: 2;               /* above the map */
+  background: transparent;  /* invisible */
+  pointer-events: all;      /* IMPORTANT: it must capture events */
+}
 
 /* Responsive layout */
 @media (max-width: 600px) {

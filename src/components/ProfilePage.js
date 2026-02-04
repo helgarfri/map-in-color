@@ -1,3 +1,4 @@
+// src/components/ProfilePage.js
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
@@ -10,7 +11,7 @@ import {
   fetchStarredMapsByuser_id,
   fetchUserActivity,
   fetchUserMapStats,
-  reportProfile
+  reportProfile,
 } from '../api';
 import {
   FaMapMarkerAlt,
@@ -19,15 +20,13 @@ import {
   FaMap,
   FaBookmark,
   FaListUl,
-  FaLock
+  FaLock,
 } from 'react-icons/fa';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
 import { formatDistanceToNow } from 'date-fns';
 import styles from './ProfilePage.module.css';
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
+import StaticMapThumbnail from './StaticMapThumbnail';
 
 export default function ProfilePage() {
   const { username } = useParams();
@@ -39,56 +38,41 @@ export default function ProfilePage() {
   const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
 
-  // ------------------------------
   // Auto-collapse sidebar
-  // ------------------------------
   useEffect(() => {
     if (width < 1000) setIsCollapsed(true);
     else setIsCollapsed(false);
   }, [width, setIsCollapsed]);
-  // ------------------------------
+
   // Basic profile info
-  // ------------------------------
   const [profile, setProfile] = useState(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // Are we looking at our own profile?
   const isMyProfile =
     currentUserProfile && currentUserProfile.username === profile?.username;
 
-  // Is the user logged in at all?
   const isUserLoggedIn = !!authToken && !!currentUserProfile;
 
-  // ------------------------------
   // Stats (maps & stars)
-  // ------------------------------
   const [totalPublicMaps, setTotalPublicMaps] = useState(0);
   const [totalStars, setTotalStars] = useState(0);
-  
-  // ------------------------------
+
   // Tabs: 'maps' | 'starred' | 'activity'
-  // ------------------------------
   const [currentTab, setCurrentTab] = useState('maps');
 
-  // ------------------------------
-  // "Report Profile" modal
-  // ------------------------------
+  // Report Profile modal
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReasons, setReportReasons] = useState('');
   const reportDetailsRef = useRef('');
   const [isReporting, setIsReporting] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
 
-  // ------------------------------
   // Activity feed
-  // ------------------------------
   const [activity, setActivity] = useState([]);
   const [loadingActivity, setLoadingActivity] = useState(false);
 
-  // ------------------------------
   // Pagination + Sorting (Maps)
-  // ------------------------------
   const [userMaps, setUserMaps] = useState([]);
   const [loadingMaps, setLoadingMaps] = useState(false);
   const [mapsPage, setMapsPage] = useState(1);
@@ -96,9 +80,7 @@ export default function ProfilePage() {
   const [mapsTotal, setMapsTotal] = useState(0);
   const [sortMapsBy, setSortMapsBy] = useState('newest');
 
-  // ------------------------------
   // Pagination + Sorting (Starred)
-  // ------------------------------
   const [starredMaps, setStarredMaps] = useState([]);
   const [loadingStarred, setLoadingStarred] = useState(false);
   const [starredPage, setStarredPage] = useState(1);
@@ -125,7 +107,6 @@ export default function ProfilePage() {
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
-        // If profile not found, or server error => show 404
         navigate('/404');
       } finally {
         setLoadingProfile(false);
@@ -137,13 +118,11 @@ export default function ProfilePage() {
   // =========================================================================
   // 2) Once profile is loaded, fetch stats
   // =========================================================================
-
   useEffect(() => {
     if (!profile) return;
     (async function loadStats() {
       try {
         const res = await fetchUserMapStats(profile.id);
-        // Now returns { totalMaps, totalPublicMaps, totalStars }
         setTotalPublicMaps(res.data.totalPublicMaps);
         setTotalStars(res.data.totalStars);
       } catch (err) {
@@ -159,7 +138,7 @@ export default function ProfilePage() {
     if (!profile) return;
     if (currentTab !== 'maps') return;
 
-    async function fetchMaps() {
+    async function fetchMapsFn() {
       try {
         setLoadingMaps(true);
         const response = await fetchMapsByuser_id(
@@ -176,7 +155,7 @@ export default function ProfilePage() {
         setLoadingMaps(false);
       }
     }
-    fetchMaps();
+    fetchMapsFn();
   }, [profile, currentTab, mapsPage, mapsPerPage, sortMapsBy]);
 
   // =========================================================================
@@ -232,18 +211,14 @@ export default function ProfilePage() {
   // =========================================================================
   function handleTabChange(tab) {
     setCurrentTab(tab);
-    if (tab === 'maps') {
-      setMapsPage(1);
-    } else if (tab === 'starred') {
-      setStarredPage(1);
-    }
+    if (tab === 'maps') setMapsPage(1);
+    if (tab === 'starred') setStarredPage(1);
   }
 
   // =========================================================================
   // 7) Report profile
   // =========================================================================
   function handleReportProfile() {
-    // If not logged in, redirect to login
     if (!isUserLoggedIn) {
       navigate('/login');
       return;
@@ -253,11 +228,13 @@ export default function ProfilePage() {
 
   async function handleSubmitProfileReport() {
     if (!profile?.username) return;
+    if (!reportReasons) return;
+
     setIsReporting(true);
     try {
       await reportProfile(profile.username, {
         reasons: [reportReasons],
-        details: reportDetailsRef.current
+        details: reportDetailsRef.current,
       });
       setShowReportSuccess(true);
       setReportReasons('');
@@ -273,33 +250,10 @@ export default function ProfilePage() {
   }
 
   // =========================================================================
-  // 8) Render a single map card
+  // 8) Render a single map card (STATIC thumbnail)
   // =========================================================================
   function renderMapCard(map) {
     const mapTitle = map.title || 'Untitled Map';
-
-    const sharedProps = {
-      groups: map.groups,
-      mapTitleValue: mapTitle,
-      ocean_color: map.ocean_color,
-      unassigned_color: map.unassigned_color,
-      data: map.data,
-      selected_map: map.selected_map,
-      font_color: map.font_color,
-      is_title_hidden: map.is_title_hidden,
-      show_top_high_values: false,
-      show_top_low_values: false,
-      showNoDataLegend: map.show_no_data_legend,
-    };
-
-    let thumbnail = null;
-    if (map.selected_map === 'world') {
-      thumbnail = <WorldMapSVG {...sharedProps} />;
-    } else if (map.selected_map === 'usa') {
-      thumbnail = <UsSVG {...sharedProps} />;
-    } else if (map.selected_map === 'europe') {
-      thumbnail = <EuropeSVG {...sharedProps} />;
-    }
 
     return (
       <div
@@ -307,7 +261,9 @@ export default function ProfilePage() {
         className={styles.card}
         onClick={() => navigate(`/map/${map.id}`)}
       >
-        <div className={styles.cardThumbnail}>{thumbnail}</div>
+        <div className={styles.cardThumbnail}>
+          <StaticMapThumbnail map={map} background="#dddddd" />
+        </div>
         <div className={styles.cardBody}>
           <h3 className={styles.cardTitle}>{mapTitle}</h3>
           <div className={styles.detailsRow}>
@@ -343,9 +299,6 @@ export default function ProfilePage() {
   // 10) Loading / Not Found
   // =========================================================================
   if (loadingProfile) {
-    // --------------------
-    // FULL-PAGE SKELETON
-    // --------------------
     return (
       <div className={styles.profilePageContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -356,7 +309,6 @@ export default function ProfilePage() {
         >
           <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
           <div className={styles.skeletonProfileContainer}>
-            {/* Left column skeleton */}
             <div className={styles.skeletonProfileLeftColumn}>
               <div className={`${styles.skeletonProfilePic} ${styles.skeletonShimmer}`} />
               <div
@@ -373,9 +325,7 @@ export default function ProfilePage() {
               />
             </div>
 
-            {/* Right column skeleton */}
             <div className={styles.skeletonProfileRightColumn}>
-              {/* Skeleton tabs */}
               <div className={styles.skeletonTabs}>
                 <div
                   className={`${styles.skeletonTab} ${styles.skeletonShimmer}`}
@@ -391,7 +341,6 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Skeleton cards grid for maps or starred */}
               <div className={styles.skeletonCardsGrid}>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className={styles.skeletonCard}>
@@ -435,7 +384,7 @@ export default function ProfilePage() {
   }
 
   // =========================================================================
-  // 11) Handle private profile
+  // 11) Private profile gate
   // =========================================================================
   const isPrivate = profile.profile_visibility === 'onlyMe';
   if (isPrivate && !isMyProfile) {
@@ -464,13 +413,14 @@ export default function ProfilePage() {
     );
   }
 
-  // Otherwise, if it's "everyone" or it's "onlyMe" but my profile => show normal
+  // Pages
   const mapsTotalPages = Math.ceil(mapsTotal / mapsPerPage);
   const starredTotalPages = Math.ceil(starredTotal / starredPerPage);
 
   return (
     <div className={styles.profilePageContainer}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
       <div
         className={`${styles.profileContent} ${
           isCollapsed ? styles.contentCollapsed : ''
@@ -483,7 +433,7 @@ export default function ProfilePage() {
         />
 
         <div className={styles.mainContainer}>
-          {/* LEFT COLUMN: Profile Info */}
+          {/* LEFT COLUMN */}
           <div className={styles.leftColumn}>
             <div className={styles.profileInfoBox}>
               <div className={styles.profilePictureWrapper}>
@@ -493,57 +443,50 @@ export default function ProfilePage() {
                   className={styles.profilePicture}
                 />
               </div>
+
               <h2 className={styles.username}>@{profile.username}</h2>
               <h1 className={styles.fullName}>
                 {profile.first_name} {profile.last_name}
               </h1>
 
-              {/* Location / DOB */}
-                <div className={styles.infoRow}>
-                  {profile.location && profile.show_location && (
-                    <div className={styles.infoItem}>
-                      <FaMapMarkerAlt className={styles.icon} />
-                      <span>{profile.location}</span>
-                    </div>
-                  )}
+              <div className={styles.infoRow}>
+                {profile.location && profile.show_location && (
+                  <div className={styles.infoItem}>
+                    <FaMapMarkerAlt className={styles.icon} />
+                    <span>{profile.location}</span>
+                  </div>
+                )}
 
-                  {profile.date_of_birth && profile.show_date_of_birth && (
-                    <div className={styles.infoItem}>
-                      <FaBirthdayCake className={styles.icon} />
-                      <span>
-                        {new Date(profile.date_of_birth).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: '2-digit',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                {profile.date_of_birth && profile.show_date_of_birth && (
+                  <div className={styles.infoItem}>
+                    <FaBirthdayCake className={styles.icon} />
+                    <span>
+                      {new Date(profile.date_of_birth).toLocaleDateString(
+                        'en-US',
+                        { month: 'long', day: '2-digit', year: 'numeric' }
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-
-              {/* Stats */}
               <div className={styles.statsRowInfo}>
-              <div className={styles.statsItem}>
-                <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
-                <span>{totalPublicMaps} Maps</span> 
+                <div className={styles.statsItem}>
+                  <FaMap className={`${styles.icon} ${styles.mapIcon}`} />
+                  <span>{totalPublicMaps} Maps</span>
+                </div>
+                <div className={styles.statsItem}>
+                  <FaStar className={styles.icon} />
+                  <span>{totalStars} Stars</span>
+                </div>
               </div>
-              <div className={styles.statsItem}>
-                <FaStar className={styles.icon} />
-                <span>{totalStars} Stars</span>
-              </div>
-             
-            </div>
 
-
-              {/* Description / Bio */}
               {profile.description && (
                 <div className={styles.bio}>
                   <p>{profile.description}</p>
                 </div>
               )}
 
-              {/* Edit / Report buttons */}
               {isMyProfile && (
                 <button
                   className={styles.editProfileButton}
@@ -553,7 +496,6 @@ export default function ProfilePage() {
                 </button>
               )}
 
-              {/* If it's our own private profile, optionally show a small note */}
               {isPrivate && isMyProfile && (
                 <div className={styles.privateLabelContainer}>
                   <div className={styles.privateLabel}>
@@ -587,7 +529,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Tabs + Content */}
+          {/* RIGHT COLUMN */}
           <div className={styles.rightColumn}>
             <div className={styles.tabs}>
               <button
@@ -599,6 +541,7 @@ export default function ProfilePage() {
                 <FaMap className={styles.tabIcon} />
                 <span>Maps</span>
               </button>
+
               <button
                 className={`${styles.tabButton} ${
                   currentTab === 'starred' ? styles.activeTab : ''
@@ -608,6 +551,7 @@ export default function ProfilePage() {
                 <FaBookmark className={styles.tabIcon} />
                 <span>Starred</span>
               </button>
+
               <button
                 className={`${styles.tabButton} ${
                   currentTab === 'activity' ? styles.activeTab : ''
@@ -620,7 +564,7 @@ export default function ProfilePage() {
             </div>
 
             <div className={styles.tabContent}>
-              {/* =========== MAPS TAB =========== */}
+              {/* MAPS TAB */}
               {currentTab === 'maps' && (
                 <>
                   <div className={styles.topBarRow}>
@@ -673,7 +617,6 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Pagination for Maps */}
                   {userMaps.length > 0 && (
                     <div className={styles.pagination}>
                       {mapsTotalPages > 1 && (
@@ -684,18 +627,19 @@ export default function ProfilePage() {
                           >
                             ‹
                           </button>
-                          {Array.from(
-                            { length: mapsTotalPages },
-                            (_, i) => i + 1
-                          ).map((p) => (
-                            <button
-                              key={p}
-                              onClick={() => handleMapsPageChange(p)}
-                              className={p === mapsPage ? styles.activePage : ''}
-                            >
-                              {p}
-                            </button>
-                          ))}
+
+                          {Array.from({ length: mapsTotalPages }, (_, i) => i + 1).map(
+                            (p) => (
+                              <button
+                                key={p}
+                                onClick={() => handleMapsPageChange(p)}
+                                className={p === mapsPage ? styles.activePage : ''}
+                              >
+                                {p}
+                              </button>
+                            )
+                          )}
+
                           <button
                             onClick={() => handleMapsPageChange(mapsPage + 1)}
                             disabled={mapsPage >= mapsTotalPages}
@@ -709,7 +653,7 @@ export default function ProfilePage() {
                 </>
               )}
 
-              {/* =========== STARRED TAB =========== */}
+              {/* STARRED TAB */}
               {currentTab === 'starred' && (
                 <>
                   {profile.show_saved_maps === false ? (
@@ -774,7 +718,6 @@ export default function ProfilePage() {
                         </div>
                       )}
 
-                      {/* Pagination for Starred */}
                       {starredMaps.length > 0 && (
                         <div className={styles.pagination}>
                           {starredTotalPages > 1 && (
@@ -787,6 +730,7 @@ export default function ProfilePage() {
                               >
                                 ‹
                               </button>
+
                               {Array.from(
                                 { length: starredTotalPages },
                                 (_, i) => i + 1
@@ -801,6 +745,7 @@ export default function ProfilePage() {
                                   {p}
                                 </button>
                               ))}
+
                               <button
                                 onClick={() =>
                                   handleStarredPageChange(starredPage + 1)
@@ -818,7 +763,7 @@ export default function ProfilePage() {
                 </>
               )}
 
-              {/* =========== ACTIVITY TAB =========== */}
+              {/* ACTIVITY TAB */}
               {currentTab === 'activity' && (
                 <>
                   {profile.show_activity_feed === false ? (
@@ -831,8 +776,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                   ) : loadingActivity ? (
-                    <div className={styles.loadingContainer}>
-                    </div>
+                    <div className={styles.loadingContainer} />
                   ) : (
                     <div className={styles.activityTabContent}>
                       <ProfileActivityFeed
@@ -867,58 +811,28 @@ export default function ProfilePage() {
                   Please let us know why you are reporting{' '}
                   <strong>@{profile.username}</strong>:
                 </p>
+
                 <div className={styles.reportOptions}>
-                  <label className={styles.reportOption}>
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="Inappropriate profile picture"
-                      checked={reportReasons === 'Inappropriate profile picture'}
-                      onChange={(e) => setReportReasons(e.target.value)}
-                    />
-                    Inappropriate profile picture
-                  </label>
-                  <label className={styles.reportOption}>
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="Inappropriate name or username"
-                      checked={reportReasons === 'Inappropriate name or username'}
-                      onChange={(e) => setReportReasons(e.target.value)}
-                    />
-                    Inappropriate name or username
-                  </label>
-                  <label className={styles.reportOption}>
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="Inappropriate description/bio"
-                      checked={reportReasons === 'Inappropriate description/bio'}
-                      onChange={(e) => setReportReasons(e.target.value)}
-                    />
-                    Inappropriate description/bio
-                  </label>
-                  <label className={styles.reportOption}>
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="Spam or fake profile"
-                      checked={reportReasons === 'Spam or fake profile'}
-                      onChange={(e) => setReportReasons(e.target.value)}
-                    />
-                    Spam or fake profile
-                  </label>
-                  <label className={styles.reportOption}>
-                    <input
-                      type="radio"
-                      name="reportReason"
-                      value="Harassment or bullying"
-                      checked={reportReasons === 'Harassment or bullying'}
-                      onChange={(e) => setReportReasons(e.target.value)}
-                    />
-                    Harassment or bullying
-                  </label>
+                  {[
+                    'Inappropriate profile picture',
+                    'Inappropriate name or username',
+                    'Inappropriate description/bio',
+                    'Spam or fake profile',
+                    'Harassment or bullying',
+                  ].map((label) => (
+                    <label key={label} className={styles.reportOption}>
+                      <input
+                        type="radio"
+                        name="reportReason"
+                        value={label}
+                        checked={reportReasons === label}
+                        onChange={(e) => setReportReasons(e.target.value)}
+                      />
+                      {label}
+                    </label>
+                  ))}
                 </div>
+
                 <div className={styles.reportDetails}>
                   <label>Optional additional details:</label>
                   <textarea
@@ -928,8 +842,11 @@ export default function ProfilePage() {
                     }}
                   />
                 </div>
+
                 <div className={styles.modalActions}>
-                  <button onClick={handleSubmitProfileReport}>Submit</button>
+                  <button onClick={handleSubmitProfileReport} disabled={!reportReasons}>
+                    Submit
+                  </button>
                   <button onClick={() => setShowReportModal(false)}>Cancel</button>
                 </div>
               </>

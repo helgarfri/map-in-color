@@ -1,3 +1,4 @@
+// src/components/YourMaps.js
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './YourMaps.module.css';
 import { useNavigate } from 'react-router-dom';
@@ -8,9 +9,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../api';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import StaticMapThumbnail from './StaticMapThumbnail';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { formatDistanceToNow } from 'date-fns';
@@ -38,7 +37,6 @@ export default function YourMaps() {
     const getMaps = async () => {
       try {
         const res = await fetchMaps();
-        // Sort maps by updated_at descending
         const sortedMaps = res.data.sort(
           (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
@@ -63,7 +61,7 @@ export default function YourMaps() {
     getNotifications();
   }, []);
 
-  // Calculate stats for maps
+  // Stats
   const totalMaps = maps.length;
   const publicMaps = maps.filter((map) => map.is_public).length;
   const privateMaps = totalMaps - publicMaps;
@@ -112,46 +110,21 @@ export default function YourMaps() {
   };
 
   const confirmDelete = async () => {
-    if (mapToDelete) {
-      try {
-        await deleteMap(mapToDelete.id);
-        setMaps(maps.filter((map) => map.id !== mapToDelete.id));
-        setShowDeleteModal(false);
-        setMapToDelete(null);
-      } catch (err) {
-        console.error(err);
-      }
+    if (!mapToDelete) return;
+
+    try {
+      await deleteMap(mapToDelete.id);
+      setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
+      setShowDeleteModal(false);
+      setMapToDelete(null);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setMapToDelete(null);
-  };
-
-  // Render the appropriate SVG thumbnail based on map type.
-  const renderMapThumbnail = (map) => {
-    const mapTitle = map.title || 'Untitled Map';
-    const sharedProps = {
-      groups: map.groups,
-      mapTitleValue: mapTitle,
-      ocean_color: map.ocean_color,
-      unassigned_color: map.unassigned_color,
-      data: map.data,
-      selected_map: map.selected_map,
-      font_color: map.font_color,
-      is_title_hidden: map.is_title_hidden,
-      show_top_high_values: false,
-      show_top_low_values: false,
-      showNoDataLegend: map.show_no_data_legend,
-      titleFontSize: map.title_font_size,
-      legendFontSize: map.legend_font_size,
-    };
-
-    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
-    return null;
   };
 
   // --------------------------
@@ -161,6 +134,7 @@ export default function YourMaps() {
     return (
       <div className={styles.myMapsContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
         <div
           className={`${styles.myMapsContent} ${
             isCollapsed ? styles.contentCollapsed : ''
@@ -172,14 +146,12 @@ export default function YourMaps() {
             setIsCollapsed={setIsCollapsed}
           />
 
-          {/* Skeleton Stats Bar */}
           <div className={styles.skeletonStatsBar}>
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className={styles.skeletonStatBox} />
             ))}
           </div>
 
-          {/* Skeleton Maps Grid */}
           <div className={styles.skeletonMapsGrid}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={styles.skeletonMapCard}>
@@ -192,10 +164,7 @@ export default function YourMaps() {
                   className={styles.skeletonLine}
                   style={{ width: '40%', marginBottom: '6px' }}
                 />
-                <div
-                  className={styles.skeletonLine}
-                  style={{ width: '90%' }}
-                />
+                <div className={styles.skeletonLine} style={{ width: '90%' }} />
               </div>
             ))}
           </div>
@@ -225,23 +194,25 @@ export default function YourMaps() {
           title="Your Maps"
         />
 
-        {/* Stats Bar */}
         <div className={styles.statsBar}>
           <div className={styles.statBox}>
             <FaMap className={styles.statIcon} />
             <div className={styles.statValue}>{totalMaps}</div>
             <div className={styles.statLabel}>Total Maps</div>
           </div>
+
           <div className={styles.statBox}>
             <FaGlobe className={styles.statIcon} />
             <div className={styles.statValue}>{publicMaps}</div>
             <div className={styles.statLabel}>Public</div>
           </div>
+
           <div className={styles.statBox}>
             <FaLock className={styles.statIcon} />
             <div className={styles.statValue}>{privateMaps}</div>
             <div className={styles.statLabel}>Private</div>
           </div>
+
           <div className={styles.statBox}>
             <FaStar className={styles.statIcon} style={{ color: '#000' }} />
             <div className={styles.statValue}>{totalStars}</div>
@@ -253,6 +224,7 @@ export default function YourMaps() {
           <div className={styles.mapsGrid}>
             {maps.map((map) => {
               const mapTitle = map.title || 'Untitled Map';
+
               return (
                 <div
                   key={map.id}
@@ -260,10 +232,13 @@ export default function YourMaps() {
                   onClick={() => navigate(`/map/${map.id}`)}
                 >
                   <div className={styles.thumbnail}>
-                    {renderMapThumbnail(map)}
+                    {/* ✅ Static preview (no zoom/hover/pan), but card remains clickable */}
+                    <StaticMapThumbnail map={map} background="#dddddd" />
                   </div>
+
                   <div className={styles.cardBody}>
                     <h3 className={styles.mapTitle}>{mapTitle}</h3>
+
                     <div className={styles.detailsRow}>
                       <span className={styles.modified}>
                         Modified{' '}
@@ -271,6 +246,7 @@ export default function YourMaps() {
                           addSuffix: true,
                         })}
                       </span>
+
                       <span className={styles.visibility}>
                         {map.is_public ? (
                           <>
@@ -283,12 +259,13 @@ export default function YourMaps() {
                         )}
                       </span>
                     </div>
+
                     <div className={styles.statsRow}>
                       <div className={styles.starCount}>
-                        <FaStar className={styles.starIcon} />{' '}
-                        {map.save_count || 0}
+                        <FaStar className={styles.starIcon} /> {map.save_count || 0}
                       </div>
                     </div>
+
                     <div className={styles.actionsRow}>
                       <button
                         className={styles.viewButton}
@@ -327,8 +304,8 @@ export default function YourMaps() {
               <h2>Confirm Delete</h2>
               <p>
                 Are you sure you want to delete the map titled{' '}
-                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>? This
-                action cannot be undone.
+                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>? This action
+                cannot be undone.
               </p>
               <div className={styles.modalButtons}>
                 <button
@@ -337,10 +314,7 @@ export default function YourMaps() {
                 >
                   Delete
                 </button>
-                <button
-                  className={styles.cancelButton}
-                  onClick={cancelDelete}
-                >
+                <button className={styles.cancelButton} onClick={cancelDelete}>
                   Cancel
                 </button>
               </div>
