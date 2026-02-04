@@ -66,7 +66,6 @@ useEffect(() => {
 }, [width, setIsCollapsed]);
 
 
-
     // For reporting a comment
   const [reportTargetComment, setReportTargetComment] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -106,7 +105,12 @@ useEffect(() => {
       }, 10000);
 
       const res = await fetchMapById(id);
-      setMapData(res.data);
+
+      console.log("fetchMapById res.data keys:", Object.keys(res.data || {}));
+console.log("typeof custom_ranges:", typeof res.data?.custom_ranges, res.data?.custom_ranges);
+console.log("typeof map_data_type:", typeof res.data?.map_data_type, res.data?.map_data_type);
+
+  
       setSaveCount(res.data.save_count || 0);
       setIsSaved(res.data.isSavedByCurrentUser || false);
       setIsOwner(res.data.isOwner || false);
@@ -570,6 +574,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   entries.sort((a, b) => b.value - a.value);
 
   const isUserLoggedIn = !!authToken && !!profile;
+
+
   
   const handleDownload = async () => {
     try {
@@ -839,7 +845,8 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
       console.error('Error downloading image:', error);
     }
   };
-  
+
+
   
   
   // Right before the return, handle the special cases:
@@ -1618,27 +1625,41 @@ if (mapData.is_public === false && !mapData.isOwner) {
 
     </div>
   );
+
   
+function parseJsonArray(x) {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  if (typeof x === "string") {
+    try {
+      const parsed = JSON.parse(x);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
 function mapDataProps() {
   return {
-    groups: mapData.groups,
+    groups: parseJsonArray(mapData.groups),
+    custom_ranges: parseJsonArray(mapData.custom_ranges),
+    mapDataType: mapData.map_data_type || null,
+
     mapTitleValue: mapData.title,
     ocean_color: mapData.ocean_color,
     unassigned_color: mapData.unassigned_color,
-    show_top_high_values: mapData.show_top_high_values,
-    show_top_low_values: mapData.show_top_low_values,
-    showNoDataLegend: mapData.show_no_data_legend,
-    data: mapData.data,
+    data: parseJsonArray(mapData.data),
+
     selected_map: mapData.selected_map,
     font_color: mapData.font_color,
-    show_top_high_values: mapData.show_top_high_values,
-    top_low_values: mapData.top_low_values,
     is_title_hidden: mapData.is_title_hidden,
     titleFontSize: mapData.title_font_size,
-    legendFontSize: mapData.legend_font_size
+    legendFontSize: mapData.legend_font_size,
   };
 }
+
 
 
 

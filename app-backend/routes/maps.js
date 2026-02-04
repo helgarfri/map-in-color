@@ -5,6 +5,30 @@ const { supabaseAdmin } = require('../config/supabase'); // Use service_role key
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
 
+//helper
+function stripEmptyUpdateFields(obj) {
+  const clean = { ...obj };
+
+  // remove undefined / null
+  Object.keys(clean).forEach((k) => {
+    if (clean[k] === undefined || clean[k] === null) delete clean[k];
+  });
+
+  // IMPORTANT: don't overwrite stored arrays with empty arrays
+  // (MapDetail often sends [] by default)
+  if (Array.isArray(clean.custom_ranges) && clean.custom_ranges.length === 0) {
+    delete clean.custom_ranges;
+  }
+  if (Array.isArray(clean.groups) && clean.groups.length === 0) {
+    delete clean.groups;
+  }
+  if (Array.isArray(clean.data) && clean.data.length === 0) {
+    delete clean.data;
+  }
+
+  return clean;
+}
+
 /* --------------------------------------------
    GET /api/maps
    Fetch all maps for the logged-in user
@@ -217,16 +241,17 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user.id;
-    const updateData = { ...req.body };
 
     // Pull out the front-end fields
-    const { titleFontSize, legendFontSize, ...rest } =  req.body;
+    const { titleFontSize, legendFontSize, ...restRaw } = req.body;
 
-
-    // If tags is an array, normalize
-    if (Array.isArray(updateData.tags)) {
-      updateData.tags = updateData.tags.map((t) => t.toLowerCase());
+    // ✅ normalize tags on the actual object we will update
+    if (Array.isArray(restRaw.tags)) {
+      restRaw.tags = restRaw.tags.map((t) => t.toLowerCase());
     }
+
+    // ✅ remove undefined/null and remove [] overwrites
+    const rest = stripEmptyUpdateFields(restRaw);
 
     // 1) check if map belongs to this user
     const { data: existingMap } = await supabaseAdmin
@@ -243,18 +268,21 @@ router.put('/:id', auth, async (req, res) => {
     }
 
     // 2) update
+    const updatePayload = {
+      ...rest,
+      updated_at: new Date().toISOString(),
+    };
+
+    // only set font sizes if they were actually sent
+    if (titleFontSize !== undefined) updatePayload.title_font_size = titleFontSize;
+    if (legendFontSize !== undefined) updatePayload.legend_font_size = legendFontSize;
+
     const { data: updatedMap, error: updateErr } = await supabaseAdmin
       .from('maps')
-      .update({
-        ...rest,
-        title_font_size: titleFontSize,
-        legend_font_size: legendFontSize,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', mapId)
       .select('*')
       .single();
-
 
     if (updateErr) {
       console.error(updateErr);
@@ -267,6 +295,7 @@ router.put('/:id', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    DELETE /api/maps/:id

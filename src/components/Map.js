@@ -10,7 +10,7 @@ import cls from "./Map.module.css";
 
 /* ───────────────── helpers ─────────────────────────────────────────── */
 
-/** short‑scale formatter (k, m, b…) or passthrough for text */
+/** short-scale formatter (k, m, b…) or passthrough for text */
 function formatValue(num) {
   if (typeof num !== "number" || isNaN(num)) {
     return String(num);
@@ -42,64 +42,105 @@ const getCountryEls = (svg, code) =>
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
   );
 
-/** if you stored only custom_ranges, rebuild full groups here */
-const hydrateGroups = (rawGroups = [], ranges = [], data = []) =>
-  rawGroups.length
-    ? rawGroups
-    : ranges.map((r) => ({
-        color: r.color,
-        countries: data.filter(
-          (d) => d.value >= r.lowerBound && d.value < r.upperBound
-        ),
-      }));
-
 /* ───────────────── component ───────────────────────────────────────── */
 
 export default function Map({
-  /* palette / groups */
   groups: rawGroups = [],
   custom_ranges = [],
   ocean_color,
   unassigned_color = "#dedede",
   font_color = "black",
-  mapDataType = "choropleth",
+  mapDataType, // ✅ NO DEFAULT
 
-  /* data & meta */
   data: rawData = [], // [{ code, value }]
   mapTitleValue,
   selected_map,
 
-  /* layout flags */
   is_title_hidden = false,
   titleFontSize = 30,
   legendFontSize = 16,
 
-  /* sizing */
   isLargeMap = false,
+  viewBox, // (optional) if your parent passes it
 }) {
-  /* ── derived props ────────────────────────────────────────────────── */
-  const data = useMemo(
-    () => rawData.map((d) => ({ ...d, code: norm(d.code) })),
-    [rawData]
-  );
+  /* ───────────────────────────────
+   * 1) Parse props that may arrive as JSON strings
+   * ─────────────────────────────── */
 
-  // ✅ Back-compat: infer map type if not explicitly provided
+  const parsedRanges = useMemo(() => {
+    if (!custom_ranges) return [];
+    if (Array.isArray(custom_ranges)) return custom_ranges;
+    if (typeof custom_ranges === "string") {
+      try {
+        const parsed = JSON.parse(custom_ranges);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }, [custom_ranges]);
+
+  const parsedGroups = useMemo(() => {
+    if (!rawGroups) return [];
+    if (Array.isArray(rawGroups)) return rawGroups;
+    if (typeof rawGroups === "string") {
+      try {
+        const parsed = JSON.parse(rawGroups);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }, [rawGroups]);
+
+  /* ───────────────────────────────
+   * 2) Decide effective map type
+   * ─────────────────────────────── */
   const effectiveMapType = useMemo(() => {
     // if caller explicitly sets it, respect it
     if (mapDataType) return mapDataType;
 
     // if groups look categorical (named groups), assume categorical
     const looksCategorical =
-      Array.isArray(rawGroups) &&
-      rawGroups.some((g) => typeof g?.name === "string" && g.name.trim().length > 0);
+      Array.isArray(parsedGroups) &&
+      parsedGroups.some(
+        (g) => typeof g?.name === "string" && g.name.trim().length > 0
+      );
 
     if (looksCategorical) return "categorical";
 
     // otherwise default choropleth
     return "choropleth";
-  }, [mapDataType, rawGroups]);
+  }, [mapDataType, parsedGroups]);
 
-  // ✅ Back-compat: normalize old-style groups (ensure {code} objects + uppercase)
+  /* ───────────────────────────────
+   * 3) Normalize data depending on map type
+   * ─────────────────────────────── */
+  const data = useMemo(() => {
+    const toNumber = (x) => {
+      const n =
+        typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
+      return Number.isFinite(n) ? n : null;
+    };
+
+    return (rawData || []).map((d) => {
+      const code = norm(d.code);
+
+      // choropleth => numeric values
+      if (effectiveMapType === "choropleth") {
+        return { ...d, code, value: toNumber(d.value) };
+      }
+
+      // categorical => string values
+      return { ...d, code, value: d.value == null ? "" : String(d.value) };
+    });
+  }, [rawData, effectiveMapType]);
+
+  /* ───────────────────────────────
+   * 4) Normalize old groups (countries could be strings or objects)
+   * ─────────────────────────────── */
   const normalizeGroups = useCallback((groups = []) => {
     return (groups || [])
       .filter(Boolean)
@@ -107,7 +148,6 @@ export default function Map({
         ...g,
         countries: (g.countries || [])
           .map((c) => {
-            // c might be {code}, {countryCode}, or a string
             const code =
               typeof c === "string"
                 ? c
@@ -119,20 +159,24 @@ export default function Map({
       .filter((g) => g.countries.length > 0);
   }, []);
 
+  /* ───────────────────────────────
+   * 5) Build derivedGroups used for painting
+   * ─────────────────────────────── */
   const derivedGroups = useMemo(() => {
-    const hasRanges = Array.isArray(custom_ranges) && custom_ranges.length > 0;
+    const hasRanges = Array.isArray(parsedRanges) && parsedRanges.length > 0;
 
-    // ✅ If we have old groups with countries, that’s enough to paint.
     const hasOldGroups =
-      Array.isArray(rawGroups) &&
-      rawGroups.length > 0 &&
-      rawGroups.some((g) => Array.isArray(g?.countries) && g.countries.length > 0);
+      Array.isArray(parsedGroups) &&
+      parsedGroups.length > 0 &&
+      parsedGroups.some(
+        (g) => Array.isArray(g?.countries) && g.countries.length > 0
+      );
 
     // ------------------------
     // CHOROPLETH
     // ------------------------
     if (effectiveMapType === "choropleth") {
-      // NEW: derive from custom_ranges
+      // Prefer custom_ranges if present (this is the MapDetail fix)
       if (hasRanges) {
         const toNum = (x) => {
           const n =
@@ -140,7 +184,7 @@ export default function Map({
           return Number.isFinite(n) ? n : null;
         };
 
-        const ranges = custom_ranges
+        const ranges = parsedRanges
           .map((r) => ({
             ...r,
             lower: toNum(r.lowerBound),
@@ -161,26 +205,24 @@ export default function Map({
         }));
       }
 
-      // OLD: groups already contain countries -> use them directly
+      // Fallback: use stored groups if they include explicit membership
       if (hasOldGroups) {
-        return normalizeGroups(rawGroups);
+        return normalizeGroups(parsedGroups);
       }
 
-      // no way to derive colors
       return [];
     }
 
     // ------------------------
     // CATEGORICAL
     // ------------------------
-    // OLD: if groups have explicit membership, just use them
     if (hasOldGroups) {
-      return normalizeGroups(rawGroups);
+      return normalizeGroups(parsedGroups);
     }
 
-    // NEW-ish categorical fallback: derive categories from data, use rawGroups for colors if available
+    // derive categories from data (fallback)
     const colorByCategory = new Map(
-      (rawGroups || []).map((g) => [String(g?.name || "").trim(), g.color])
+      (parsedGroups || []).map((g) => [String(g?.name || "").trim(), g.color])
     );
 
     const categories = Array.from(
@@ -198,74 +240,83 @@ export default function Map({
         .filter((d) => String(d.value).trim() === cat)
         .map((d) => ({ code: d.code })),
     }));
-  }, [effectiveMapType, custom_ranges, rawGroups, data, normalizeGroups]);
+  }, [effectiveMapType, parsedRanges, parsedGroups, data, normalizeGroups]);
 
-
-
-  /* ── refs / state ─────────────────────────────────────────────────── */
+  /* ───────────────────────────────
+   * 6) refs / state
+   * ─────────────────────────────── */
   const svgRef = useRef(null);
   const wrapperRef = useRef(null);
-
-  /** current zoom factor of <TransformWrapper> (kept in sync via callbacks) */
   const currentScaleRef = useRef(1);
 
-  const selectedCode = useRef(null); // remember ISO code, not the element
-  const [tooltip, setTooltip] = useState(null); // {x,y,code,name,value}
-  const [selected, setSelected] = useState(null); // {code,name,value,bbox,color}
-    /* -------------------------------------------------------------
-  * Reset to the default view  (clear selection + zoom-out)
-   * ----------------------------------------------------------- */
-  const resetView = useCallback(() => {
-    /* 1 ▸ remove the hover stroke on the previously-selected country */
-    if (selectedCode.current) {
-      getCountryEls(svgRef.current, selectedCode.current)
-        .forEach(el => el.classList.remove(cls.hovered));
-    }
+  const selectedCode = useRef(null);
+  const [tooltip, setTooltip] = useState(null);
+  const [selected, setSelected] = useState(null);
 
-    /* 2 ▸ clear refs & state */
+  const resetView = useCallback(() => {
+    if (selectedCode.current) {
+      getCountryEls(svgRef.current, selectedCode.current).forEach((el) =>
+        el.classList.remove(cls.hovered)
+      );
+    }
     selectedCode.current = null;
     setSelected(null);
     setTooltip(null);
 
-    /* 3 ▸ zoom-out & centre */
-    wrapperRef.current?.resetTransform();   // react-zoom-pan-pinch helper
+    wrapperRef.current?.resetTransform();
     currentScaleRef.current = 1;
   }, []);
-  /* ── helpers ──────────────────────────────────────────────────────── */
+
   const findValue = useCallback(
     (code) => data.find((d) => d.code === norm(code))?.value ?? "No data",
     [data]
   );
 
-const findColor = useCallback(
-  (code) => {
-    for (const g of derivedGroups) {
-      if (g.countries.some((c) => c.code === code)) return g.color;
-    }
-    return unassigned_color;
-  },
-  [derivedGroups, unassigned_color]
-);
+  const findColor = useCallback(
+    (code) => {
+      for (const g of derivedGroups) {
+        if (g.countries?.some((c) => c.code === code)) return g.color;
+      }
+      return unassigned_color;
+    },
+    [derivedGroups, unassigned_color]
+  );
 
+  /* ───────────────────────────────
+   * 7) paint base map
+   * ─────────────────────────────── */
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
 
-  /* ── paint base map ──────────────────────────────────────────────── */
-useEffect(() => {
-  const svg = svgRef.current;
-  if (!svg) return;
-
-  // reset
-  svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
-    el.style.fill = unassigned_color;
-  });
-
-  // recolor
-  derivedGroups.forEach(({ countries = [], color }) => {
-    countries.forEach(({ code }) => {
-      getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
+    // reset
+    svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+      el.style.fill = unassigned_color;
     });
-  });
-}, [derivedGroups, unassigned_color]);
 
+    // recolor
+    derivedGroups.forEach(({ countries = [], color }) => {
+      countries.forEach(({ code }) => {
+        getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
+      });
+    });
+  }, [derivedGroups, unassigned_color]);
+
+  /* ───────────────────────────────
+   * 8) debug (optional)
+   * ─────────────────────────────── */
+useEffect(() => {
+  console.log("Map debug:", {
+    mapDataType,
+    effectiveMapType,
+    rawGroupsType: typeof rawGroups,
+    rawRangesType: typeof custom_ranges,
+    parsedGroupsLen: parsedGroups?.length,
+    parsedRangesLen: parsedRanges?.length,
+    dataLen: data?.length,
+    derivedGroupsLen: derivedGroups?.length,
+  });
+}, [mapDataType, effectiveMapType, rawGroups, custom_ranges, parsedGroups, parsedRanges, data, derivedGroups]);
 
   /* ── hover / click logic ─────────────────────────────────────────── */
   useEffect(() => {
@@ -432,6 +483,25 @@ useEffect(() => {
   </p>
 </aside>
     );
+
+useEffect(() => {
+  console.log("Map debug:", {
+    mapDataType,
+    effectiveMapType,
+    rawGroupsType: typeof rawGroups,
+    rawRangesType: typeof custom_ranges,
+    parsedGroupsLen: parsedGroups?.length,
+    parsedRangesLen: parsedRanges?.length,
+    dataLen: data?.length,
+    derivedGroupsLen: derivedGroups?.length,
+  });
+}, [mapDataType, effectiveMapType, rawGroups, custom_ranges, parsedGroups, parsedRanges, data, derivedGroups]);
+
+useEffect(() => {
+  console.log("custom_ranges raw value:", custom_ranges);
+}, [custom_ranges]);
+
+
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
   return (
