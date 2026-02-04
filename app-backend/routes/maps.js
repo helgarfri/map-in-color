@@ -249,10 +249,12 @@ router.put('/:id', auth, async (req, res) => {
         ...rest,
         title_font_size: titleFontSize,
         legend_font_size: legendFontSize,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', mapId)
+      .select('*')
       .single();
+
 
     if (updateErr) {
       console.error(updateErr);
