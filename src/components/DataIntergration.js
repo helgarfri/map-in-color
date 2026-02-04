@@ -27,6 +27,7 @@ import useWindowSize from "../hooks/useWindowSize";
 
 // “updateMap” and “createMap” API calls
 import { updateMap, createMap } from "../api";
+import Map from "./Map";
 
 /** Example Color Palettes **/
 const themes = [
@@ -394,7 +395,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
             <h4>Map Preview</h4>
             <div className={styles.mapPreview}>
               {selected_map === 'world' && (
-                <WorldMapSVG
+                <Map
                   groups={groups}
                   mapTitleValue={mapTitle}
                   ocean_color={ocean_color}

@@ -28,7 +28,7 @@ router.get('/:username/activity', async (req, res) => {
     // 1) Find the user by username in "users"
     const { data: foundUser, error: userErr } = await supabaseAdmin
       .from('users')
-      .select('id, username, first_name, profile_picture')
+      .select('id, username, first_name, profile_picture, status')
       .eq('username', username)
       .maybeSingle();
 
