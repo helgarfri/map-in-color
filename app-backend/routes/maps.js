@@ -52,19 +52,18 @@ router.post('/', auth, async (req, res) => {
     }
 
   
-    // Insert into "maps"
-    const { data: insertedMaps, error } = await supabaseAdmin
+    // Insert into "maps" (IMPORTANT: use .select() so Supabase returns the inserted row)
+    const { data: newMap, error } = await supabaseAdmin
       .from('maps')
-      .insert([
-        {
-          ...mapData,
-          title_font_size: titleFontSize,
-          legend_font_size: legendFontSize,
-          user_id: user_id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-      ])
+      .insert({
+        ...mapData,
+        title_font_size: titleFontSize,
+        legend_font_size: legendFontSize,
+        user_id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select('*')
       .single();
 
     if (error) {
@@ -72,7 +71,6 @@ router.post('/', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
-    const newMap = insertedMaps;
 
     // (optional) Insert an "Activity" row
     await supabaseAdmin.from('activities').insert([
