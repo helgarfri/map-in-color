@@ -1,6 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+// src/components/DashboardActivityFeed.js
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { fetchDashboardActivity, markNotificationAsRead, fetchMapById } from '../api';
+
 
 import {
   FaStar,
@@ -11,12 +14,106 @@ import {
   FaInfoCircle,
 } from 'react-icons/fa';
 
-import { fetchDashboardActivity, markNotificationAsRead } from '../api';
 
 import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
-
 import dashFeedStyles from './DashboardActivityFeed.module.css';
+
+/**
+ * Safe parsing helper:
+ * - Accepts arrays, JSON strings, or null/undefined
+ * - Returns [] if not valid
+ */
+function toArrayMaybeJson(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizeMapForPreview(mapObj) {
+  if (!mapObj) return null;
+
+  const title = mapObj.title || "Untitled";
+
+  const ocean_color = mapObj.ocean_color ?? "#ffffff";
+  const unassigned_color = mapObj.unassigned_color ?? "#c0c0c0";
+  const font_color = mapObj.font_color ?? "black";
+
+  const is_title_hidden = !!mapObj.is_title_hidden;
+  const showNoDataLegend = !!mapObj.show_no_data_legend;
+
+  const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
+  const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+
+  // ✅ these were missing in your version (caused eslint no-undef)
+  const data = toArrayMaybeJson(mapObj.data);
+  const selectedMap =
+    mapObj.selected_map ?? mapObj.selectedMap ?? mapObj.map ?? "world";
+
+  let groups = toArrayMaybeJson(mapObj.groups);
+
+  // 1) normal custom_ranges (preferred)
+  let customRanges =
+    Array.isArray(mapObj.custom_ranges)
+      ? mapObj.custom_ranges
+      : Array.isArray(mapObj.customRanges)
+      ? mapObj.customRanges
+      : toArrayMaybeJson(mapObj.custom_ranges);
+
+  // 2) If custom_ranges is missing BUT groups looks like ranges, treat groups as ranges
+  const groupsLookLikeRanges =
+    Array.isArray(groups) &&
+    groups.length > 0 &&
+    groups.every((g) => {
+      if (!g || typeof g !== "object") return false;
+
+      const hasLower = g.lowerBound != null || g.lower != null || g.min != null;
+      const hasUpper = g.upperBound != null || g.upper != null || g.max != null;
+      const hasColor = g.color != null;
+
+      // ranges usually DON'T have countries[]
+      const hasCountriesArray = Array.isArray(g.countries);
+
+      return hasLower && hasUpper && hasColor && !hasCountriesArray;
+    });
+
+  if (!customRanges.length && groupsLookLikeRanges) {
+    customRanges = groups; // 🔥 use these as custom_ranges
+    groups = [];           // prevent categorical path using them
+  }
+
+  // 3) decide type
+  const mapDataType =
+    mapObj.map_data_type ??
+    mapObj.mapDataType ??
+    mapObj.map_type ??
+    mapObj.type ??
+    (customRanges.length ? "choropleth" : "categorical");
+
+  return {
+    title,
+    ocean_color,
+    unassigned_color,
+    font_color,
+    is_title_hidden,
+    showNoDataLegend,
+    titleFontSize,
+    legendFontSize,
+    groups,
+    data,
+    selectedMap,
+    customRanges,
+    mapDataType,
+  };
+}
+
 
 export default function DashboardActivityFeed({ userProfile }) {
   const navigate = useNavigate();
@@ -31,39 +128,34 @@ export default function DashboardActivityFeed({ userProfile }) {
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  // We'll place a "sentinel" div at the bottom of the feed
+  const [mapCache, setMapCache] = useState({});
+
+
+
+  // sentinel for infinite scroll
   const sentinelRef = useRef(null);
 
-  // On mount/userProfile change => reset + load first page
-  useEffect(() => {
-    if (!userProfile) return;
-    setOffset(0);
-    setActivities([]);
-    setHasMore(true);
-    loadFirstPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile]);
-
-  async function loadFirstPage() {
+  const loadFirstPage = useCallback(async () => {
     try {
       setIsInitialLoading(true);
       const res = await fetchDashboardActivity(0, limit);
-      const newBatch = res.data;
+      const newBatch = res.data || [];
       setActivities(newBatch);
       setHasMore(newBatch.length === limit);
+      setOffset(0);
     } catch (err) {
       console.error('Error loading feed:', err);
     } finally {
       setIsInitialLoading(false);
     }
-  }
+  }, []);
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
     try {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
       const res = await fetchDashboardActivity(newOffset, limit);
-      const newBatch = res.data;
+      const newBatch = res.data || [];
 
       setActivities((prev) => [...prev, ...newBatch]);
       setOffset(newOffset);
@@ -76,11 +168,17 @@ export default function DashboardActivityFeed({ userProfile }) {
     } finally {
       setIsFetchingMore(false);
     }
-  }
+  }, [offset]);
 
-  /**
-   * IntersectionObserver to watch when the sentinel appears in viewport.
-   */
+  // reset + initial load
+  useEffect(() => {
+    if (!userProfile) return;
+    setActivities([]);
+    setHasMore(true);
+    loadFirstPage();
+  }, [userProfile, loadFirstPage]);
+
+  // IntersectionObserver for infinite scroll
   useEffect(() => {
     if (!sentinelRef.current) return;
     if (!hasMore) return;
@@ -94,11 +192,7 @@ export default function DashboardActivityFeed({ userProfile }) {
           }
         }
       },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1,
-      }
+      { root: null, rootMargin: '0px', threshold: 0.1 }
     );
 
     observer.observe(sentinelRef.current);
@@ -108,7 +202,7 @@ export default function DashboardActivityFeed({ userProfile }) {
         observer.unobserve(sentinelRef.current);
       }
     };
-  }, [hasMore, isFetchingMore, isInitialLoading, offset]);
+  }, [hasMore, isFetchingMore, isInitialLoading, loadMore]);
 
   // -----------
   // item click
@@ -135,17 +229,14 @@ export default function DashboardActivityFeed({ userProfile }) {
   }
 
   function getOverlayAvatarUrl(act) {
-    if (act.type.startsWith('notification_') && act.notificationData?.sender) {
-      return (
-        act.notificationData.sender.profile_picture ||
-        '/default-profile-picture.png'
-      );
+    if (act.type?.startsWith('notification_') && act.notificationData?.sender) {
+      return act.notificationData.sender.profile_picture || '/default-profile-picture.png';
     }
     return userProfile?.profile_picture || '/default-profile-picture.png';
   }
 
   function getOverlayAvatarUsername(act) {
-    if (act.type.startsWith('notification_') && act.notificationData?.sender) {
+    if (act.type?.startsWith('notification_') && act.notificationData?.sender) {
       return act.notificationData.sender.username || 'unknown';
     }
     return userProfile?.username || 'unknown';
@@ -170,13 +261,71 @@ export default function DashboardActivityFeed({ userProfile }) {
     }
   }
 
+
+
+  function mapNeedsHydration(map) {
+  if (!map?.id) return false;
+
+  // thumbnail coloring needs real payload:
+  // data + (custom_ranges OR groups)
+  const hasData = map.data != null;
+  const hasGroups = map.groups != null;
+  const hasRanges = map.custom_ranges != null || map.customRanges != null;
+
+  return !(hasData && (hasGroups || hasRanges));
+}
+
+useEffect(() => {
+  const idsToFetch = [];
+
+  for (const act of activities) {
+    const m = act?.map;
+    if (!m?.id) continue;
+    if (mapCache[m.id]) continue;
+    if (mapNeedsHydration(m)) idsToFetch.push(m.id);
+  }
+
+  if (idsToFetch.length === 0) return;
+
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const results = await Promise.allSettled(
+        idsToFetch.map((id) => fetchMapById(id))
+      );
+
+      if (cancelled) return;
+
+      setMapCache((prev) => {
+        const next = { ...prev };
+        for (const r of results) {
+          if (r.status !== 'fulfilled') continue;
+          const fullMap = r.value?.data;
+          if (fullMap?.id) next[fullMap.id] = fullMap;
+        }
+        return next;
+      });
+    } catch (e) {
+      console.error("Hydration failed:", e);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [activities, mapCache]);
+
+
   /**
    * Single-map thumbnail renderer:
    * - Always uses <Map />
-   * - Supports both snake_case and camelCase values returned from API
+   * - Fully normalized props
    */
   function renderMapThumbnail(mapObj, act) {
-    if (!mapObj) {
+const mapToRender = mapObj?.id && mapCache[mapObj.id] ? mapCache[mapObj.id] : mapObj;
+const normalized = normalizeMapForPreview(mapToRender);
+    if (!normalized) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
 
@@ -184,49 +333,31 @@ export default function DashboardActivityFeed({ userProfile }) {
     const overlayUsername = getOverlayAvatarUsername(act);
     const overlayIcon = getActivityIcon(act.type);
 
-    const title = mapObj.title || 'Untitled';
-
-    const ocean_color = mapObj.ocean_color ?? '#ffffff';
-    const unassigned_color = mapObj.unassigned_color ?? '#c0c0c0';
-    const font_color = mapObj.font_color ?? 'black';
-
-    const is_title_hidden = !!mapObj.is_title_hidden;
-    const showNoDataLegend = !!mapObj.show_no_data_legend;
-
-    // Handle both possible key styles
-    const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
-    const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
-
-    const groups = Array.isArray(mapObj.groups) ? mapObj.groups : [];
-    const data = Array.isArray(mapObj.data) ? mapObj.data : [];
-
     return (
       <div className={dashFeedStyles.thumbContainer}>
-        {/* Wrapper lets us crop/position the svg without touching Map component */}
         <div className={dashFeedStyles.thumbMapStage}>
           <Map
-            groups={groups}
-            mapTitleValue={title}
-            ocean_color={ocean_color}
-            unassigned_color={unassigned_color}
-            data={data}
-            selected_map="world"
-            font_color={font_color}
-            is_title_hidden={is_title_hidden}
+  groups={normalized.groups}
+  data={normalized.data}
+  selected_map={normalized.selectedMap}
+  mapDataType={normalized.mapDataType}
+  custom_ranges={normalized.customRanges}
+            mapTitleValue={normalized.title}
+            ocean_color={normalized.ocean_color}
+            unassigned_color={normalized.unassigned_color}
+            font_color={normalized.font_color}
+            is_title_hidden={normalized.is_title_hidden}
             isThumbnail={true}
-            showNoDataLegend={showNoDataLegend}
-            titleFontSize={titleFontSize}
-            legendFontSize={legendFontSize}
+            showNoDataLegend={normalized.showNoDataLegend}
+            titleFontSize={normalized.titleFontSize}
+            legendFontSize={normalized.legendFontSize}
           />
         </div>
 
-        {/* This blocks hover/zoom/pan + tooltip. Click still works on the row. */}
-        <div
-          className={dashFeedStyles.interactionBlocker}
-          aria-hidden="true"
-        />
+        {/* Blocks hover/zoom/pan/tooltips; row click still works */}
+        <div className={dashFeedStyles.interactionBlocker} aria-hidden="true" />
 
-        {/* Your existing overlay stays clickable */}
+        {/* Overlay stays clickable */}
         <div
           className={dashFeedStyles.activityOverlay}
           onClick={(e) => {
@@ -234,33 +365,22 @@ export default function DashboardActivityFeed({ userProfile }) {
             navigate(`/profile/${overlayUsername}`);
           }}
         >
-          <img
-            className={dashFeedStyles.activityAvatar}
-            src={overlayUrl}
-            alt="User"
-          />
+          <img className={dashFeedStyles.activityAvatar} src={overlayUrl} alt="User" />
           <div className={dashFeedStyles.activityIcon}>{overlayIcon}</div>
         </div>
       </div>
     );
-
   }
 
   function renderSenderName(act) {
-    if (!act.type.startsWith('notification_')) {
-      return <strong>You</strong>;
-    }
+    if (!act.type?.startsWith('notification_')) return <strong>You</strong>;
     const sender = act.notificationData?.sender;
     if (!sender) return <strong>Someone</strong>;
 
-    let displayName = '';
-    if (sender.first_name || sender.last_name) {
-      displayName = `${sender.first_name || ''} ${sender.last_name || ''}`.trim();
-    } else if (sender.username) {
-      displayName = sender.username;
-    } else {
-      displayName = 'Someone';
-    }
+    const displayName =
+      (sender.first_name || sender.last_name)
+        ? `${sender.first_name || ''} ${sender.last_name || ''}`.trim()
+        : (sender.username || 'Someone');
 
     return (
       <strong
@@ -291,20 +411,14 @@ export default function DashboardActivityFeed({ userProfile }) {
   }
 
   function getCommentAuthorAvatar(act) {
-    if (act.commentAuthor?.profile_picture) {
-      return act.commentAuthor.profile_picture;
-    }
-    if (act.type === 'commented' && userProfile?.profile_picture) {
-      return userProfile.profile_picture;
-    }
+    if (act.commentAuthor?.profile_picture) return act.commentAuthor.profile_picture;
+    if (act.type === 'commented' && userProfile?.profile_picture) return userProfile.profile_picture;
     return '/default-profile-picture.png';
   }
 
   function getCommentAuthorUsername(act) {
     if (act.commentAuthor?.username) return act.commentAuthor.username;
-    if (act.type === 'commented') {
-      return userProfile?.username || 'unknown';
-    }
+    if (act.type === 'commented') return userProfile?.username || 'unknown';
     return 'unknown';
   }
 
@@ -339,29 +453,13 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else if (type === 'commented') {
       mainText = <>You commented on {renderMapTitle(map)}</>;
     } else if (type === 'notification_star') {
-      mainText = (
-        <>
-          {renderSenderName(act)} starred your map {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} starred your map {renderMapTitle(map)}</>;
     } else if (type === 'notification_reply') {
-      mainText = (
-        <>
-          {renderSenderName(act)} replied to your comment on {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} replied to your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_like') {
-      mainText = (
-        <>
-          {renderSenderName(act)} liked your comment on {renderMapTitle(map)}{' '}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} liked your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_comment') {
-      mainText = (
-        <>
-          {renderSenderName(act)} commented on your map {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{renderSenderName(act)} commented on your map {renderMapTitle(map)}</>;
     } else {
       mainText = <>Activity: {type}</>;
     }
@@ -391,7 +489,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  // If first load => skeleton placeholders
+  // skeleton on first load
   if (isInitialLoading && activities.length === 0) {
     return (
       <div className={dashFeedStyles.dashActivityFeed}>
@@ -402,7 +500,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  // If done + no data
+  // no data
   if (!isInitialLoading && activities.length === 0) {
     return <p>No recent activity.</p>;
   }

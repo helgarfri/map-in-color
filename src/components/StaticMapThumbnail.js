@@ -34,23 +34,49 @@ export default function StaticMapThumbnail({
 
   const selectedMap = map.selected_map || map.selectedMap || 'world';
 
+  const custom_ranges = Array.isArray(map.custom_ranges)
+  ? map.custom_ranges
+  : Array.isArray(map.customRanges)
+  ? map.customRanges
+  : typeof map.custom_ranges === "string"
+  ? (() => {
+      try {
+        const parsed = JSON.parse(map.custom_ranges);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    })()
+  : [];
+
+const mapDataType =
+  map.mapDataType ??
+  map.map_data_type ??
+  map.map_type ??
+  map.type ??
+  undefined;
+
+
   return (
     <div className={`${styles.container} ${className}`} style={{ background }}>
       <div className={styles.stage}>
-        <Map
-          groups={groups}
-          mapTitleValue={title}
-          ocean_color={ocean_color}
-          unassigned_color={unassigned_color}
-          data={data}
-          selected_map={selectedMap}
-          font_color={font_color}
-          is_title_hidden={is_title_hidden}
-          isThumbnail={true}
-          showNoDataLegend={showNoDataLegend}
-          titleFontSize={titleFontSize}
-          legendFontSize={legendFontSize}
-        />
+     <Map
+  groups={groups}
+  custom_ranges={custom_ranges}
+  mapDataType={mapDataType}
+  mapTitleValue={title}
+  ocean_color={ocean_color}
+  unassigned_color={unassigned_color}
+  data={data}
+  selected_map={selectedMap}
+  font_color={font_color}
+  is_title_hidden={is_title_hidden}
+  isThumbnail={true}
+  showNoDataLegend={showNoDataLegend}
+  titleFontSize={titleFontSize}
+  legendFontSize={legendFontSize}
+/>
+
       </div>
 
       {/* ✅ Hard block ALL hover/zoom/pan/tooltips */}

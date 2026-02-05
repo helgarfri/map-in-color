@@ -1758,21 +1758,35 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 
 function mapDataProps() {
   return {
+    // ✅ critical for choropleth
+    custom_ranges: mapData.custom_ranges ?? mapData.customRanges ?? [],
+
+    // ✅ critical for correct mode selection
+    mapDataType:
+      mapData.mapDataType ??
+      mapData.map_data_type ??
+      mapData.map_type ??
+      mapData.type ??
+      undefined,
+
+    // existing props
     groups: mapData.groups,
     mapTitleValue: mapData.title,
     ocean_color: mapData.ocean_color,
     unassigned_color: mapData.unassigned_color,
-    show_top_high_values: mapData.show_top_high_values,
-    show_top_low_values: mapData.show_top_low_values,
-    showNoDataLegend: mapData.show_no_data_legend,
     data: mapData.data,
     selected_map: mapData.selected_map,
     font_color: mapData.font_color,
-    show_top_high_values: mapData.show_top_high_values,
-    top_low_values: mapData.top_low_values,
+
     is_title_hidden: mapData.is_title_hidden,
     titleFontSize: mapData.title_font_size,
-    legendFontSize: mapData.legend_font_size
+    legendFontSize: mapData.legend_font_size,
+
+    // optional flags you already had
+    show_top_high_values: mapData.show_top_high_values,
+    show_top_low_values: mapData.show_top_low_values,
+    showNoDataLegend: mapData.show_no_data_legend,
+    top_low_values: mapData.top_low_values,
   };
 }
 
