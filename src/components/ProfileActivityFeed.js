@@ -1,5 +1,5 @@
 // src/components/ProfileActivityFeed.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { FaStar, FaPlus, FaComment, FaInfoCircle } from 'react-icons/fa';
@@ -10,6 +10,108 @@ import SkeletonActivityRow from './SkeletonActivityRow';
 
 // ✅ Use the SAME CSS as DashboardActivityFeed
 import styles from './DashboardActivityFeed.module.css';
+
+/**
+ * Safe parsing helper:
+ * - Accepts arrays, JSON strings, or null/undefined
+ * - Returns [] if not valid
+ */
+function toArrayMaybeJson(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function looksLikeRanges(arr) {
+  return (
+    Array.isArray(arr) &&
+    arr.length > 0 &&
+    arr.every((g) => {
+      if (!g || typeof g !== 'object') return false;
+
+      const hasLower = g.lowerBound != null || g.lower != null || g.min != null;
+      const hasUpper = g.upperBound != null || g.upper != null || g.max != null;
+      const hasColor = g.color != null;
+
+      const hasCountriesArray = Array.isArray(g.countries);
+      return hasLower && hasUpper && hasColor && !hasCountriesArray;
+    })
+  );
+}
+
+/**
+ * Normalize map object coming from profile activity endpoint:
+ * - Supports snake_case + camelCase
+ * - Supports choropleth properly via: custom_ranges + map_data_type
+ * - Legacy fallback: if groups "look like ranges", treat them as custom_ranges
+ */
+function normalizeMapForPreview(mapObj) {
+  if (!mapObj) return null;
+
+  const title = mapObj.title || 'Untitled';
+
+  const ocean_color = mapObj.ocean_color ?? '#ffffff';
+  const unassigned_color = mapObj.unassigned_color ?? '#c0c0c0';
+  const font_color = mapObj.font_color ?? 'black';
+
+  const is_title_hidden = !!mapObj.is_title_hidden;
+  const showNoDataLegend = !!mapObj.show_no_data_legend;
+
+  const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
+  const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+
+  const data = toArrayMaybeJson(mapObj.data);
+
+  const selectedMap =
+    mapObj.selected_map ?? mapObj.selectedMap ?? mapObj.map ?? 'world';
+
+  let groups = toArrayMaybeJson(mapObj.groups);
+
+  // ✅ choropleth ranges (backend now sends this)
+  let customRanges =
+    Array.isArray(mapObj.custom_ranges)
+      ? mapObj.custom_ranges
+      : Array.isArray(mapObj.customRanges)
+      ? mapObj.customRanges
+      : toArrayMaybeJson(mapObj.custom_ranges);
+
+  // ✅ legacy: if custom_ranges missing but groups look like ranges
+  if (!customRanges.length && looksLikeRanges(groups)) {
+    customRanges = groups;
+    groups = [];
+  }
+
+  // ✅ map type (backend now sends map_data_type)
+  const mapDataType =
+    mapObj.map_data_type ??
+    mapObj.mapDataType ??
+    mapObj.map_type ??
+    mapObj.type ??
+    (customRanges.length ? 'choropleth' : 'categorical');
+
+  return {
+    title,
+    ocean_color,
+    unassigned_color,
+    font_color,
+    is_title_hidden,
+    showNoDataLegend,
+    titleFontSize,
+    legendFontSize,
+    groups,
+    data,
+    selectedMap,
+    customRanges,
+    mapDataType,
+  };
+}
 
 export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
@@ -27,22 +129,15 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   // Sentinel for infinite scrolling
   const sentinelRef = useRef(null);
 
-  // Reset + load first page when username changes
-  useEffect(() => {
+  const loadFirstPage = useCallback(async () => {
     if (!username) return;
-    setActivities([]);
-    setOffset(0);
-    setHasMore(true);
-    loadFirstPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
 
-  async function loadFirstPage() {
     try {
       setIsInitialLoading(true);
       const res = await fetchUserActivity(username, 0, limit);
       const newItems = res.data || [];
       setActivities(newItems);
+      setOffset(0);
       setHasMore(newItems.length === limit);
     } catch (err) {
       console.error('Error fetching user activity:', err);
@@ -50,9 +145,12 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     } finally {
       setIsInitialLoading(false);
     }
-  }
+  }, [username]);
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
+    if (!username) return;
+    if (isFetchingMore || isInitialLoading || !hasMore) return;
+
     try {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
@@ -69,22 +167,28 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     } finally {
       setIsFetchingMore(false);
     }
-  }
+  }, [username, offset, hasMore, isFetchingMore, isInitialLoading]);
+
+  // Reset + load first page when username changes
+  useEffect(() => {
+    if (!username) return;
+    setActivities([]);
+    setOffset(0);
+    setHasMore(true);
+    loadFirstPage();
+  }, [username, loadFirstPage]);
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (!sentinelRef.current) return;
-    if (!hasMore) return;
-
     const el = sentinelRef.current;
+    if (!el) return;
+    if (!hasMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const firstEntry = entries[0];
         if (firstEntry.isIntersecting) {
-          if (!isFetchingMore && !isInitialLoading && hasMore) {
-            loadMore();
-          }
+          loadMore();
         }
       },
       { root: null, rootMargin: '0px', threshold: 0.1 }
@@ -92,7 +196,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
 
     observer.observe(el);
     return () => observer.unobserve(el);
-  }, [hasMore, isFetchingMore, isInitialLoading, offset]); // offset ok
+  }, [hasMore, loadMore]);
 
   // Utils
   function timeAgo(dateString) {
@@ -151,66 +255,46 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   }
 
   /**
-   * ✅ SAME thumbnail approach as DashboardActivityFeed:
-   * - Always uses <Map />
-   * - Blocks interactions inside the map thumbnail
-   * - Keeps overlay with avatar + icon
+   * Thumbnail renderer (matches dashboard behavior)
    */
-  function renderMapThumbnail(mapObj, type) {
-    if (!mapObj) {
+  function renderMapThumbnail(mapObj, actType) {
+    const normalized = normalizeMapForPreview(mapObj);
+
+    if (!normalized) {
       return <div className={styles.defaultThumbnail}>No Map</div>;
     }
-
-    const title = mapObj.title || 'Untitled';
-
-    const ocean_color = mapObj.ocean_color ?? '#ffffff';
-    const unassigned_color = mapObj.unassigned_color ?? '#c0c0c0';
-    const font_color = mapObj.font_color ?? 'black';
-
-    const is_title_hidden = !!mapObj.is_title_hidden;
-    const showNoDataLegend = !!mapObj.show_no_data_legend;
-
-    const titleFontSize =
-      mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
-    const legendFontSize =
-      mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
-
-    const groups = Array.isArray(mapObj.groups) ? mapObj.groups : [];
-    const data = Array.isArray(mapObj.data) ? mapObj.data : [];
-
-    // IMPORTANT: use the map's selected_map (fallback to world)
-    const selected_map = mapObj.selected_map || 'world';
 
     return (
       <div className={styles.thumbContainer}>
         <div className={styles.thumbMapStage}>
           <Map
-            groups={groups}
-            mapTitleValue={title}
-            ocean_color={ocean_color}
-            unassigned_color={unassigned_color}
-            data={data}
-            selected_map={selected_map}
-            font_color={font_color}
-            is_title_hidden={is_title_hidden}
+            groups={normalized.groups}
+            data={normalized.data}
+            selected_map={normalized.selectedMap}
+            mapDataType={normalized.mapDataType}
+            customRanges={normalized.customRanges}   // ✅ camelCase
+            custom_ranges={normalized.customRanges}  // ✅ snake_case fallback
+            mapTitleValue={normalized.title}
+            ocean_color={normalized.ocean_color}
+            unassigned_color={normalized.unassigned_color}
+            font_color={normalized.font_color}
+            is_title_hidden={normalized.is_title_hidden}
             isThumbnail={true}
-            showNoDataLegend={showNoDataLegend}
-            titleFontSize={titleFontSize}
-            legendFontSize={legendFontSize}
+            showNoDataLegend={normalized.showNoDataLegend}
+            titleFontSize={normalized.titleFontSize}
+            legendFontSize={normalized.legendFontSize}
           />
         </div>
 
-        {/* ✅ blocks hover/zoom/pan/tooltip inside thumbnail */}
         <div className={styles.interactionBlocker} aria-hidden="true" />
 
-        {/* ✅ overlay: avatar + icon */}
         <div className={styles.activityOverlay} aria-hidden="true">
           <img
             className={styles.activityAvatar}
             src={profile_pictureUrl || '/default-profile-picture.png'}
             alt="User"
           />
-          <div className={styles.activityIcon}>{getActivityIcon(type)}</div>
+          <div className={styles.activityIcon}>{getActivityIcon(actType)}</div>
         </div>
       </div>
     );

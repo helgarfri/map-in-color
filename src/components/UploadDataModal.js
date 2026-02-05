@@ -31,6 +31,15 @@ import {
 
 import styles from './UploadDataModal.module.css';
 
+function toNum(x) {
+  const n =
+    typeof x === "number"
+      ? x
+      : parseFloat(String(x ?? "").trim().replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+
 /** ------------------- STATS HELPERS ------------------- **/
 
 function calculateMedian(values) {
@@ -279,8 +288,10 @@ function UploadDataModal({
       }
 
       foundItemCount++;
-      const valAsNum = parseFloat(secondRaw);
-      const isNum = !isNaN(valAsNum);
+
+      const valAsNum = toNum(secondRaw);
+      const isNum = valAsNum != null;
+
 
       if (isNum) numericCount++;
       totalDataRows++;
@@ -368,7 +379,7 @@ function UploadDataModal({
     const numericParsed = numericOnly.map(r => ({
       name: r.name,
       code: r.code,
-      numericValue: parseFloat(r.rawValue),
+      numericValue: toNum(r.rawValue),
     }));
     setParsedData(numericParsed);
     updateNumericStats(numericParsed);
@@ -572,10 +583,11 @@ function UploadDataModal({
   // Import
   const handleImportData = () => {
     if (mapDataType === 'choropleth') {
-      onImport(parsedData, numericStats);
+      onImport(parsedData, numericStats, 'choropleth');
     } else {
-      onImport(parsedData, categoricalStats);
+      onImport(parsedData, categoricalStats, 'categorical');
     }
+
     onClose();
   };
 

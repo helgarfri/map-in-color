@@ -27,7 +27,7 @@ import useWindowSize from "../hooks/useWindowSize";
 
 // “updateMap” and “createMap” API calls
 import { updateMap, createMap } from "../api";
-import Map from "./Map";
+import MapPreview from "./Map";
 
 /** Example Color Palettes **/
 const themes = [
@@ -140,6 +140,9 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 
   const [editingRangeId, setEditingRangeId] = useState(null);
 
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+
+
 
   // Collapse the main sidebar for small screens
   useEffect(() => {
@@ -195,10 +198,33 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const handleOpenUploadModal = () => {
     setShowUploadModal(true);
   };
-  const handleImportData = (parsedData, stats) => {
-    setData(parsedData);
-    setShowUploadModal(false);
-  };
+const handleImportData = (parsedData, stats, importedType) => {
+  // ✅ switch parent type to whatever the modal detected
+  if (importedType && importedType !== mapDataType) {
+    setMapDataType(importedType);
+  }
+
+  if (importedType === "choropleth") {
+    const next = parsedData.map((r) => ({
+      code: String(r.code).trim().toUpperCase(),
+      name: r.name,
+      value: r.numericValue, // number
+    }));
+    setData(next);
+    setFileStats(stats);
+  } else {
+    const next = parsedData.map((r) => ({
+      code: String(r.code).trim().toUpperCase(),
+      name: r.name,
+      value: String(r.categoryValue ?? "").trim(), // string
+    }));
+    setData(next);
+    setFileStats(stats);
+  }
+
+  setShowUploadModal(false);
+};
+
 
   // Palette
   const handlePaletteChange = (e) => {
@@ -273,41 +299,219 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   };
   const rangesValidation = getRangesValidationResult();
 
-  // Category freq table
-  const renderCategoryGroupsTable = () => {
-    const freqMap = {};
-    data.forEach(item => {
-      const cat = item.value.trim();
-      if (!cat) return;
-      freqMap[cat] = (freqMap[cat] || 0) + 1;
-    });
-    const categories = Object.keys(freqMap).sort();
-    return (
-      <div className={styles.section}>
-        <h3>Category Groups</h3>
-        {categories.length === 0 ? (
-          <p style={{ fontStyle: 'italic' }}>No categories assigned yet.</p>
-        ) : (
-          <table className={styles.rangeTable}>
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map(cat => (
-                <tr key={cat}>
-                  <td>{cat}</td>
-                  <td>{freqMap[cat]}</td>
+
+  //helpers for category
+
+  function safeTrim(v) {
+  return v == null ? "" : String(v).trim();
+}
+
+function countryLabel(d) {
+  const n = d.name ? String(d.name).trim() : "";
+  const c = d.code ? String(d.code).trim() : "";
+  return (n || c).toLowerCase();
+}
+
+function upsertCategoryGroup(categoryId, patch) {
+  setGroups((prev) => {
+    const arr = Array.isArray(prev) ? prev : [];
+    const idx = arr.findIndex((g) => String(g.id) === String(categoryId));
+
+    if (idx === -1) return arr;
+    const next = [...arr];
+    next[idx] = { ...next[idx], ...patch };
+    return next;
+  });
+}
+
+function removeCategoryGroup(categoryId) {
+  setGroups((prev) => {
+    const arr = Array.isArray(prev) ? prev : [];
+    return arr.filter((g) => String(g.id) !== String(categoryId));
+  });
+}
+
+
+const renderCategoryGroupsTable = () => {
+  const rows = categoryRows;
+
+  return (
+    <div className={styles.section}>
+      <h3>Category Groups</h3>
+
+      {rows.length === 0 ? (
+        <p style={{ fontStyle: "italic" }}>No categories assigned yet.</p>
+      ) : (
+        <table className={styles.rangeTable}>
+          <thead>
+            <tr>
+              <th>Countries</th>
+              <th>Category</th>
+              <th>Color</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.map((row) => {
+              const isEditingRow = String(editingCategoryId) === String(row.id);
+
+              return (
+                <tr key={row.id}>
+                  {/* Countries */}
+                  <td style={{ maxWidth: 380 }}>
+                    <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
+                      {row.count} countries
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 12,
+                        lineHeight: 1.3,
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {row.countries.join(", ")}
+                    </div>
+                  </td>
+
+                  {/* Category */}
+                  <td>
+                    {isEditingRow ? (
+                      <input
+                        type="text"
+                        className={styles.inputBox}
+                        value={row.category}
+                        disabled
+                        title="Category name comes from your data"
+                      />
+                    ) : (
+                      <span>{row.category}</span>
+                    )}
+                  </td>
+
+                  {/* Color */}
+                  <td>
+                    {isEditingRow ? (
+                      <input
+                        type="color"
+                        className={styles.inputBox}
+                        value={row.color || "#c0c0c0"}
+                        onChange={(e) => {
+                          const newColor = e.target.value;
+
+                          // Ensure group exists, then update it.
+                          // If no group exists yet for this category, create it.
+                          setGroups((prev) => {
+                            const arr = Array.isArray(prev) ? prev : [];
+                            const idx = arr.findIndex(
+                              (g) => safeTrim(g?.name ?? g?.category ?? g?.label) === row.category
+                            );
+
+                            if (idx === -1) {
+                              return [
+                                ...arr,
+                                {
+                                  id: Date.now(),
+                                  name: row.category,
+                                  color: newColor,
+                                  countries: [], // optional, Map can derive from data anyway
+                                },
+                              ];
+                            }
+
+                            const next = [...arr];
+                            next[idx] = { ...next[idx], color: newColor };
+                            return next;
+                          });
+                        }}
+                      />
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 4,
+                            background: row.color,
+                            border: "1px solid rgba(0,0,0,0.2)",
+                            display: "inline-block",
+                          }}
+                        />
+                        <span style={{ fontSize: 12, opacity: 0.8 }}>{row.color}</span>
+                      </div>
+                    )}
+                  </td>
+
+                  {/* Actions */}
+                  <td>
+                    {isEditingRow ? (
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          className={styles.secondaryButton}
+                          onClick={() => setEditingCategoryId(null)}
+                        >
+                          Done
+                        </button>
+
+                        <button
+                          className={styles.removeButton}
+                          onClick={() => {
+                            setEditingCategoryId(null);
+
+                            // remove just the group style (color), not the data values
+                            // i.e., category stays in the table as long as data has it
+                            setGroups((prev) => {
+                              const arr = Array.isArray(prev) ? prev : [];
+                              return arr.filter(
+                                (g) =>
+                                  safeTrim(g?.name ?? g?.category ?? g?.label) !== row.category
+                              );
+                            });
+                          }}
+                          title="Remove category styling (does not clear data)"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          className={styles.secondaryButton}
+                          onClick={() => setEditingCategoryId(row.id)}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          className={styles.removeButton}
+                          onClick={() => {
+                            // remove styling group
+                            setGroups((prev) => {
+                              const arr = Array.isArray(prev) ? prev : [];
+                              return arr.filter(
+                                (g) =>
+                                  safeTrim(g?.name ?? g?.category ?? g?.label) !== row.category
+                              );
+                            });
+                          }}
+                          title="Remove category styling (does not clear data)"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
+                  </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    );
-  };
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
+
 
   // Tags
   const handleTagInputKeyDown = (e) => {
@@ -405,11 +609,68 @@ const mapDataNormalized = useMemo(() => {
         ...d,
         code: code ? String(code).trim().toUpperCase() : "",
         name: name ? String(name) : undefined,
-        value: mapDataType === "choropleth" ? toNumber(valueRaw) : valueRaw,
+        value:
+          mapDataType === "choropleth"
+            ? toNumber(valueRaw)
+            : (valueRaw == null ? "" : String(valueRaw)),
       };
     })
-    .filter((d) => d.code); // drop broken rows
+    .filter((d) => d.code);
 }, [data, mapDataType]);
+
+const categoryRows = useMemo(() => {
+  // only makes sense in categorical mode
+  if (mapDataType !== "categorical") return [];
+
+  // 1) build category -> countries map from data
+  const catToCountries = new Map();
+
+  for (const d of mapDataNormalized || []) {
+    const cat = safeTrim(d.value);
+    if (!cat) continue;
+
+    const list = catToCountries.get(cat) || [];
+    list.push(countryLabel(d));
+    catToCountries.set(cat, list);
+  }
+
+  // 2) normalize groups into a usable color map
+  const groupsArr = Array.isArray(groups) ? groups : [];
+  const colorByCat = new Map();
+  for (const g of groupsArr) {
+    const key = safeTrim(g?.name ?? g?.category ?? g?.label);
+    if (!key) continue;
+    const col = safeTrim(g?.color ?? g?.hex ?? g?.fill) || "#c0c0c0";
+    colorByCat.set(key, col);
+  }
+
+  // 3) Create rows:
+  const rows = Array.from(catToCountries.entries()).map(([cat, countries]) => {
+    const sortedCountries = countries
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+
+    // find an existing group entry for this category (so we can edit/remove it)
+    const groupMatch =
+      groupsArr.find((g) => safeTrim(g?.name ?? g?.category ?? g?.label) === cat) || null;
+
+    return {
+      id: groupMatch?.id ?? cat, // stable key
+      category: cat,
+      color: groupMatch?.color || colorByCat.get(cat) || "#c0c0c0",
+      countries: sortedCountries,
+      count: sortedCountries.length,
+      hasGroup: !!groupMatch,
+      groupId: groupMatch?.id ?? null,
+    };
+  });
+
+  // sort alphabetically by category
+  rows.sort((a, b) => a.category.localeCompare(b.category));
+
+  return rows;
+}, [mapDataType, mapDataNormalized, groups]);
+
 
 const rangesWithCountries = useMemo(() => {
   const toNum = (x) => {
@@ -425,11 +686,12 @@ const rangesWithCountries = useMemo(() => {
   }));
 
   // helper: for display, use name if present else code
-  const countryLabel = (d) => {
-    const n = d.name ? String(d.name).trim() : "";
-    const c = d.code ? String(d.code).trim() : "";
-    return (n || c).toLowerCase();
-  };
+const rangeCountryLabel = (d) => {
+  const n = d.name ? String(d.name).trim() : "";
+  const c = d.code ? String(d.code).trim() : "";
+  return (n || c).toLowerCase();
+};
+
 
   // compute countries per range using normalized numeric data
   const rows = rangesClean.map((r) => {
@@ -438,7 +700,7 @@ const rangesWithCountries = useMemo(() => {
     const countries = valid
       ? (mapDataNormalized || [])
           .filter((d) => typeof d.value === "number" && d.value >= r.lower && d.value < r.upper)
-          .map(countryLabel)
+          .map(rangeCountryLabel)
           .filter(Boolean)
           .sort((a, b) => a.localeCompare(b))
       : [];
@@ -518,7 +780,6 @@ const handleSaveMap = async () => {
 };
 
 
-
   
 
   return (
@@ -536,7 +797,7 @@ const handleSaveMap = async () => {
           <div className={styles.mapBox}>
             <h4>Map Preview</h4>
             <div className={styles.mapPreview}>
-                <Map
+                <MapPreview
                   groups={groups}
                   mapTitleValue={mapTitle}
                   custom_ranges={custom_ranges}     
@@ -572,12 +833,7 @@ const handleSaveMap = async () => {
             >
               Data &amp; Ranges
             </div>
-            <div
-              className={`${styles.tabItem} ${activeTab === 'theme' ? styles.activeTab : ''}`}
-              onClick={() => setActiveTab('theme')}
-            >
-              Map Theme
-            </div>
+           
             <div
               className={`${styles.tabItem} ${activeTab === 'info' ? styles.activeTab : ''}`}
               onClick={() => setActiveTab('info')}

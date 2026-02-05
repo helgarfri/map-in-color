@@ -47,17 +47,7 @@
 		"Republic of Armenia"
 	  ]
 	},
-  
-	{
-	  "code": "NL",
-	  "name": "Netherlands",
-	  "aliases": [
-		"Netherlands",
-		"Holland",
-		"The Netherlands",
-		"Nederland"
-	  ]
-	},
+
   
 	{
 	  "code": "AO",
@@ -66,11 +56,7 @@
 		"Republic of Angola"
 	  ]
 	},
-	{
-	  "code": "AQ",
-	  "name": "Antarctica",
-	  "aliases": []
-	},
+
 	{
 	  "code": "AR",
 	  "name": "Argentina",
