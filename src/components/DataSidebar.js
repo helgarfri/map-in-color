@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { FaUpload } from 'react-icons/fa';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { FaUpload, FaPlus } from 'react-icons/fa';
 
 // Data sources
 import countryCodes from '../world-countries.json';
 import usStatesCodes from '../united-states.json';
 import euCodes from '../european-countries.json';
+
+import ConfirmModal from "./ConfirmModal";
+
 
 // CSS
 import styles from './DataSidebar.module.css';
@@ -42,31 +45,72 @@ export default function DataSidebar({
   dataEntries = [],
   setDataEntries,
   onOpenUploadModal,
+  hoveredCode = null,
+  selectedCode = null,
+  onHoverCode,
+  onSelectCode,
+  categoryOptions = [], 
+  placeholders = {},
+  onChangePlaceholder,
 }) {
   const [localData, setLocalData] = useState([]);
-  const [categories, setCategories] = useState([]);
 
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [pendingType, setPendingType] = useState(null);
 
-  const [newCategory, setNewCategory] = useState('');
 
 const SORT_MODES = {
-  NAME_AZ: "name_az",
-  NAME_ZA: "name_za",
+
   VALUE_HIGH_LOW: "value_high_low",   // choropleth only
   VALUE_LOW_HIGH: "value_low_high",   // choropleth only
+
   CAT_AZ: "cat_az",                   // categorical: value A→Z
   CAT_ZA: "cat_za",                   // categorical: value Z→A
+
+  NAME_AZ: "name_az",
+  NAME_ZA: "name_za",
 };
 
 
-const [sortMode, setSortMode] = useState(SORT_MODES.NAME_AZ);
+const defaultSortForType = (type) =>
+  type === "choropleth" ? SORT_MODES.VALUE_HIGH_LOW : SORT_MODES.CAT_AZ;
+
+const [sortMode, setSortMode] = useState(() => defaultSortForType(mapDataType));
 
 
 const [editingCode, setEditingCode] = useState(null);
 const [frozenCodes, setFrozenCodes] = useState(null); // array of codes or null
 const snapshotOrder = (rows) => rows.map((r) => r.code);
+
+
+const normCode = (c) => String(c || "").trim().toUpperCase();
+
+const rowRefs = useRef(new Map());
+const listRef = useRef(null);
+
+const [isPlaceholderOpen, setIsPlaceholderOpen] = useState(false);
+const [placeholderDraft, setPlaceholderDraft] = useState("");
+
+const selectedNorm = useMemo(() => (selectedCode ? normCode(selectedCode) : null), [selectedCode]);
+const selectedPlaceholderValue = selectedNorm ? (placeholders?.[selectedNorm] ?? "") : "";
+
+// When selection changes:
+// - if there is existing placeholder text -> open textarea
+// - else -> show plus button (closed)
+useEffect(() => {
+  if (!selectedNorm) {
+    setIsPlaceholderOpen(false);
+    setPlaceholderDraft("");
+    return;
+  }
+
+  const existing = String(placeholders?.[selectedNorm] ?? "");
+  setPlaceholderDraft(existing);
+  setIsPlaceholderOpen(existing.trim().length > 0);
+}, [selectedNorm]); // intentionally not depending on placeholders to avoid cursor jumps while typing
+
+
+
 
 
   // Decide which source to use
@@ -94,16 +138,6 @@ const snapshotOrder = (rows) => rows.map((r) => r.code);
 
     setLocalData(merged);
 
-    if (mapDataType === 'categorical') {
-      const uniqueCats = new Set();
-      for (const row of dataEntries) {
-        const v = safeTrim(row?.value);
-        if (v) uniqueCats.add(v);
-      }
-      setCategories(Array.from(uniqueCats));
-    } else {
-      setCategories([]);
-    }
   }, [dataSource, dataEntries, mapDataType]);
 
 
@@ -156,7 +190,6 @@ const snapshotOrder = (rows) => rows.map((r) => r.code);
       onChangeDataType(pendingType);
     }
 
-    setCategories([]);
     setPendingType(null);
     setShowWarningModal(false);
   };
@@ -165,6 +198,13 @@ const snapshotOrder = (rows) => rows.map((r) => r.code);
     setPendingType(null);
     setShowWarningModal(false);
   };
+
+  const commitPlaceholder = (code, text) => {
+  const C = normCode(code);
+  if (!C) return;
+  onChangePlaceholder?.(C, text);
+};
+
 
   /**
    * onChange => only update local
@@ -187,36 +227,8 @@ const handleValueChange = (code, newVal) => {
    */
 const handleBlur = () => setDataEntries((_) => localData);
 
-  /**
-   * Add category
-   */
-  const handleAddCategory = () => {
-    const cat = safeTrim(newCategory);
-    if (cat && !categories.includes(cat)) {
-      setCategories((prev) => [...prev, cat]);
-    }
-    setNewCategory('');
-  };
 
-  /**
-   * Remove category => also remove from any row that used it
-   */
-  const handleRemoveCategory = (catToRemove) => {
-    setCategories((prev) => prev.filter((c) => c !== catToRemove));
 
-    setLocalData((prev) => {
-      const updated = prev.map((row) => {
-        if (safeTrim(row.value) === catToRemove) {
-          return { ...row, value: '' };
-        }
-        return row;
-      });
-
-      // ✅ FIX: push the UPDATED rows, not stale localData
-      setDataEntries(updated);
-      return updated;
-    });
-  };
 
   const handleOpenUploadClick = () => {
     if (onOpenUploadModal) onOpenUploadModal();
@@ -296,6 +308,34 @@ const displayData = useMemo(() => {
 }, [localData, mapDataType, sortMode, frozenCodes]);
 
 
+useLayoutEffect(() => {
+  if (!selectedCode) return;
+
+  // wait one paint so refs for the selected row exist (especially after sorting)
+  const raf = requestAnimationFrame(() => {
+    const container = listRef.current;
+    if (!container) return;
+
+    const el = rowRefs.current.get(normCode(selectedCode));
+    if (!el) return;
+
+    // center the element inside the container
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+
+    const elTopInContainer = elRect.top - containerRect.top + container.scrollTop;
+    const elCenter = elTopInContainer + elRect.height / 2;
+
+    const targetScrollTop = elCenter - container.clientHeight / 2;
+
+    container.scrollTo({
+      top: Math.max(0, targetScrollTop),
+      behavior: "smooth",
+    });
+  });
+
+  return () => cancelAnimationFrame(raf);
+}, [selectedCode]);
 
 
 
@@ -322,11 +362,15 @@ const displayData = useMemo(() => {
         </div>
       </div>
 
-      {/* UPLOAD BUTTON */}
-      <button className={styles.uploadButtonAlt} onClick={handleOpenUploadClick}>
-        <FaUpload className={styles.uploadIcon} />
-        <span>Upload Data</span>
-      </button>
+  {/* UPLOAD BUTTON */}
+<div className={styles.uploadButtonWrap}>
+  <button className={styles.uploadCta} onClick={handleOpenUploadClick} type="button">
+    <span className={styles.uploadCtaIcon}>
+      <FaUpload />
+    </span>
+    <span className={styles.uploadCtaText}>Upload Data</span>
+  </button>
+</div>
 
       <div className={styles.sortRow}>
   <label className={styles.sortLabel}>Sort:</label>
@@ -336,10 +380,8 @@ const displayData = useMemo(() => {
   onChange={(e) => setSortMode(e.target.value)}
   disabled={!!editingCode}
 >
-  <option value={SORT_MODES.NAME_AZ}>Name: A → Z</option>
-  <option value={SORT_MODES.NAME_ZA}>Name: Z → A</option>
 
-  {mapDataType === "choropleth" ? (
+   {mapDataType === "choropleth" ? (
     <>
       <option value={SORT_MODES.VALUE_HIGH_LOW}>Value: high → low</option>
       <option value={SORT_MODES.VALUE_LOW_HIGH}>Value: low → high</option>
@@ -350,143 +392,186 @@ const displayData = useMemo(() => {
       <option value={SORT_MODES.CAT_ZA}>Category: Z → A</option>
     </>
   )}
+  <option value={SORT_MODES.NAME_AZ}>Name: A → Z</option>
+  <option value={SORT_MODES.NAME_ZA}>Name: Z → A</option>
+
+ 
 </select>
 
 </div>
 
 
-      {/* If in "categorical" => show category manager */}
-      {mapDataType === 'categorical' && (
-        <div className={styles.categoryManager}>
-          <h4>Categories</h4>
+     
+     {/* MAIN SCROLLABLE LIST */}
+<div ref={listRef} className={styles.scrollableList}>
+  {displayData.map((region) => {
+    const code = normCode(region.code);
+    const isHovered = hoveredCode && normCode(hoveredCode) === code;
+    const isSelected = selectedCode && normCode(selectedCode) === code;
 
-          <div className={styles.addCategoryRow}>
-            <input
-              type="text"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              placeholder="New category..."
-            />
-            <button onClick={handleAddCategory}>Add</button>
-          </div>
-
-          {categories.length === 0 ? (
-            <p style={{ fontStyle: 'italic', fontSize: '13px' }}>
-              No categories added yet.
-            </p>
-          ) : (
-            <ul className={styles.categoryList}>
-              {categories.map((cat) => (
-                <li key={cat}>
-                  {cat}
-                  <button
-                    className={styles.removeCatBtn}
-                    onClick={() => handleRemoveCategory(cat)}
-                  >
-                    &times;
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+    return (
+  <div key={region.code} className={styles.rowWrapper}>
+    <div
+      ref={(el) => {
+        if (!el) rowRefs.current.delete(code);
+        else rowRefs.current.set(code, el);
+      }}
+      className={[
+        styles.countryRow,
+        isHovered ? styles.rowHovered : "",
+        isSelected ? styles.rowSelected : "",
+      ].join(" ")}
+      onMouseEnter={() => onHoverCode?.(code)}
+      onMouseLeave={() => onHoverCode?.(null)}
+      onClick={(e) => {
+        const tag = e.target?.tagName?.toLowerCase();
+        if (tag === "input" || tag === "select" || tag === "option" || tag === "textarea" || tag === "button") return;
+        onSelectCode?.(code);
+      }}
+    >
+      <div className={styles.countryLeft} onClick={() => onSelectCode?.(code)}>
+        <img
+          className={styles.flag}
+          src={`https://flagcdn.com/w20/${region.code.toLowerCase()}.png`}
+          alt=""
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+        <div className={styles.countryLabel} title={region.name}>
+          {region.name}
         </div>
-      )}
-
-      {/* MAIN SCROLLABLE LIST */}
-      <div className={styles.scrollableList}>
-        {displayData.map((region, idx) => (
-          <div key={region.code} className={styles.countryRow}>
-            <div className={styles.countryLabel}>{region.name}</div>
-
-            {mapDataType === 'choropleth' ? (
-         <input
-            className={styles.countryInput}
-            value={region.value}
-            placeholder="Enter number..."
-            onFocus={() => {
-              setEditingCode(region.code);
-              if (!frozenCodes) setFrozenCodes(displayData.map((r) => r.code));
-            }}
-            onChange={(e) => handleValueChange(region.code, e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
-            }}
-            onBlur={() => {
-              setDataEntries(localData);
-              setEditingCode(null);
-              setFrozenCodes(null); // ✅ unfreeze immediately
-            }}
-          />
-
-
-
-
-            ) : (
-      <select
-  className={styles.countrySelect}
-  value={safeTrim(region.value)}
-  onFocus={() => {
-    setEditingCode(region.code);
-    if (!frozenCodes) setFrozenCodes(displayData.map((r) => r.code));
-  }}
-  onChange={(e) => {
-    const v = e.target.value;
-    setLocalData((prev) => {
-      const next = prev.map((row) =>
-        row.code === region.code ? { ...row, value: v } : row
-      );
-      setDataEntries(next);
-      return next;
-    });
-  }}
-  onBlur={() => {
-    setEditingCode(null);
-    setFrozenCodes(null);
-  }}
->
-
-
-
-                <option value="">(None)</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-        ))}
       </div>
 
-      {/* WARNING MODAL */}
-      {showWarningModal && (
-        <div className={styles.typeWarningOverlay} onClick={handleCancelSwitch}>
-          <div
-            className={styles.typeWarningModal}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className={styles.typeWarningCloseBtn}
-              onClick={handleCancelSwitch}
-            >
-              &times;
-            </button>
-            <div className={styles.typeWarningContent}>
-              <h2>Switch Data Type?</h2>
-              <p>
-                Are you sure you want to switch to <strong>{pendingType}</strong>?
-                <br />
-                This will erase all your current data.
-              </p>
-              <div className={styles.typeWarningActions}>
-                <button onClick={handleCancelSwitch}>Cancel</button>
-                <button onClick={handleConfirmSwitch}>Confirm</button>
-              </div>
+      {mapDataType === "choropleth" ? (
+        <input
+          className={styles.countryInput}
+          value={region.value}
+          placeholder="Enter number..."
+          onFocus={() => {
+            setEditingCode(region.code);
+            if (!frozenCodes) setFrozenCodes(displayData.map((r) => r.code));
+          }}
+          onChange={(e) => handleValueChange(region.code, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
+          }}
+          onBlur={() => {
+            setDataEntries(localData);
+            setEditingCode(null);
+            setFrozenCodes(null);
+          }}
+        />
+      ) : (
+        <select
+          className={styles.countrySelect}
+          value={safeTrim(region.value)}
+          onFocus={() => {
+            setEditingCode(region.code);
+            if (!frozenCodes) setFrozenCodes(displayData.map((r) => r.code));
+          }}
+          onChange={(e) => {
+            const v = e.target.value;
+            setLocalData((prev) => {
+              const next = prev.map((row) =>
+                row.code === region.code ? { ...row, value: v } : row
+              );
+              setDataEntries(next);
+              return next;
+            });
+          }}
+          onBlur={() => {
+            setEditingCode(null);
+            setFrozenCodes(null);
+          }}
+        >
+          <option value="">(None)</option>
+          {categoryOptions.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
+
+    {/* ✅ BELOW ROW: placeholder UI only for selected row */}
+    {isSelected && (
+      <div className={styles.placeholderArea}>
+        {isPlaceholderOpen || (placeholders?.[code] ?? "").trim() ? (
+          <div className={styles.placeholderEditor}>
+            <textarea
+              className={styles.placeholderTextarea}
+              value={placeholderDraft}
+              placeholder="Explain what this value means for this country…"
+              onChange={(e) => setPlaceholderDraft(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  commitPlaceholder(code, placeholderDraft);
+                  e.currentTarget.blur();
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  // revert draft and close (but keep stored value)
+                  const existing = String(placeholders?.[code] ?? "");
+                  setPlaceholderDraft(existing);
+                  setIsPlaceholderOpen(existing.trim().length > 0);
+                  e.currentTarget.blur();
+                }
+              }}
+              onBlur={() => {
+                commitPlaceholder(code, placeholderDraft);
+                // keep it open if there's text, otherwise collapse back to plus
+                const next = String(placeholderDraft ?? "");
+                setIsPlaceholderOpen(next.trim().length > 0);
+              }}
+            />
+            <div className={styles.placeholderHint}>
+              Ctrl/⌘ + Enter to save • Click away to close
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <button
+            type="button"
+            className={styles.addPlaceholderBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPlaceholderOpen(true);
+              // textarea will appear; user types; blur saves
+            }}
+          >
+            <FaPlus />
+            <span>Add description</span>
+          </button>
+        )}
+      </div>
+    )}
+  </div>
+);
+  })}
+</div>
+
+
+     <ConfirmModal
+      isOpen={showWarningModal}
+      title="Switch Data Type?"
+      message={
+        <>
+          Are you sure you want to switch to <strong>{pendingType}</strong>?
+          <br />
+          This will erase all your current data.
+        </>
+      }
+      cancelText="Cancel"
+      confirmText="Confirm"
+      danger
+      onCancel={handleCancelSwitch}
+      onConfirm={handleConfirmSwitch}
+    />
+
     </div>
   );
 }

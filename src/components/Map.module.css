@@ -8,7 +8,7 @@
 
 /* 1 ▸ hover highlight */
 .hovered {
-  stroke: #fff;
+  stroke: white;
   stroke-width: 1.5;
   filter: brightness(1.25);
   cursor: pointer;
@@ -19,7 +19,7 @@
   position: fixed;
   pointer-events: none;
   z-index: 999;
-  background: rgba(24, 24, 24, 0.9);
+  background: rgb(24, 24, 24);
   color: #fff;
   padding: 0.4rem 0.6rem;
   border-radius: 0.25rem;
@@ -37,10 +37,11 @@
   transform: translateY(-50%);
 
   max-width: 20rem;
+  width: 300px;
   max-height: 90%;           /* use % → stays inside map even when zoomed */
   overflow-y: auto;
 
-  background: #fff;
+  background: #ffffff63;
   color: #111;
   border-radius: 1rem;
   box-shadow: 0 6px 18px rgba(0,0,0,.35);
@@ -139,6 +140,23 @@
   height:100%;           /* inherits from the full-screen wrapper */
   overflow:hidden;       /* same behaviour you had before      */
 }
+
+.placeholderText {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0.85;
+  white-space: pre-wrap; /* ✅ preserve line breaks */
+}
+
+.placeholderEmpty {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0.6;
+  font-style: italic;
+}
+
 
 
 /* 4 ▸ fade/slide-in */

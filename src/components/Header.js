@@ -106,7 +106,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
         <div className={styles.logoWrapper}>
           <Link to="/dashboard" className={styles.logoLink}>
             <img
-              src="/assets/map-in-color-logo.png"
+              src="/assets/mic-logo-2-5.png"
               alt="App Logo"
               className={styles.logo}
             />

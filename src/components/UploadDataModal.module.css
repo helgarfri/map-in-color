@@ -34,24 +34,60 @@
 }
 
 /* The top row with dropzone + map side by side */
+/* Top row: dropzone + terminal */
 .topRow {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 16px;
   width: 100%;
 }
 
 .dropZone {
-  flex: 1;
-  border: 2px dashed #ccc;
-  padding: 108px;
-  text-align: center;
+  border: 2px dashed rgba(0,0,0,0.18);
+  border-radius: 12px;
+  padding: 26px 18px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  background: #fafafa;
+
+  /* ✅ center contents perfectly */
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* horizontal */
+  justify-content: center;  /* vertical */
+  text-align: center;
+
+  /* ✅ makes it match terminal height better */
+  min-height: 230px;
 }
+
 .dropZoneActive {
-  background-color: #f5f5f5;
-  border-color: #000;
+  background-color: #f1f1f1;
+  border-color: rgba(0,0,0,0.35);
 }
+
+.uploadIcon {
+  display: block;
+  font-size: 28px;
+  margin: 0 auto 10px;
+  opacity: 0.7;
+}
+
+.templateBtn {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.16);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.templateBtn:hover {
+  background: #f5f5f5;
+}
+
 .uploadIcon {
   display: block;
   font-size: 2rem;
@@ -262,10 +298,89 @@
 }
 
 /* Action buttons at bottom */
+/* Action row: left text link + right buttons */
 .actionsRow {
   display: flex;
-  gap: 0;
-  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.actionsRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* “Starter template” text link (left side) */
+.templateLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 12px;
+  color: #334155;
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+.templateLink:hover {
+  background: #f8fafc;
+}
+
+.templateLink:active {
+  transform: translateY(1px);
+}
+
+.templateLinkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.75;
+  font-size: 14px;
+}
+
+.templateLinkText {
+  line-height: 1.2;
+}
+
+.templateLinkUnderline {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: #0f172a;
+}
+
+
+.btn {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.16);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.btn:hover:not(:disabled) {
+  background: #f4f4f4;
+}
+
+.btnPrimary {
+  background: #55957b;
+  color: #fff;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #49816b;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .importDataBtn,
@@ -364,4 +479,174 @@
 }
 .mixedActions button:hover {
   background: #e7e7e7;
+}
+
+/* LIGHT MODE TERMINAL */
+
+.terminalCard {
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  min-height: 230px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.terminalDots {
+  display: inline-flex;
+  gap: 6px;
+}
+.terminalDots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.12);
+}
+
+.terminalTitle {
+  font-weight: 800;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.terminalStatus,
+.terminalStatusOk,
+.terminalStatusBad,
+.terminalStatusIdle {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.terminalStatus {
+  background: #eef2f7;
+  color: #334155;
+  border-color: rgba(0,0,0,0.06);
+}
+
+.terminalStatusIdle {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: rgba(0,0,0,0.06);
+}
+
+.terminalStatusOk {
+  background: rgba(46, 163, 106, 0.12);
+  color: #166534;
+  border-color: rgba(46, 163, 106, 0.25);
+}
+
+.terminalStatusBad {
+  background: rgba(217, 83, 79, 0.10);
+  color: #991b1b;
+  border-color: rgba(217, 83, 79, 0.25);
+}
+
+.terminalBody {
+  padding: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-y: auto;
+  max-height: 240px;
+  background: #ffffff;
+}
+
+.terminalHint {
+  color: #64748b;
+}
+
+.termLine {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.termPrompt {
+  color: #94a3b8;
+}
+
+.termText {
+  flex: 1;
+  color: #0f172a;
+}
+
+/* Colored log lines (light-mode friendly) */
+.termError { color: #b91c1c; }
+.termWarn { color: #b45309; }
+.termSuccess { color: #166534; }
+
+.termError .termText,
+.termWarn .termText,
+.termSuccess .termText {
+  color: inherit;
+  opacity: 0.95;
+}
+
+.inlineTypeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  background: #f8fafc;
+}
+
+.inlineTypeLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.inlineTypeSelect {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+  outline: none;
+}
+
+.inlineTypeSelect:focus {
+  border-color: rgba(85, 149, 123, 0.55);
+  box-shadow: 0 0 0 3px rgba(85, 149, 123, 0.18);
+}
+
+.inlineDetected {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  background: #f8fafc;
+  font-size: 12px;
+  color: #334155;
+}
+
+
+
+@media (max-width: 900px) {
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+  .terminalBody {
+    max-height: 200px;
+  }
 }

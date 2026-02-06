@@ -1,0 +1,73 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 6px;
+  width: 460px;
+  max-width: 90%;
+  padding: 20px;
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  margin-bottom: 8px;
+}
+
+.message {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.cancelBtn,
+.confirmBtn {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 1px solid #666;
+  border-radius: 4px;
+  background: #f1f1f1;
+  font-weight: 600;
+}
+
+.cancelBtn:hover,
+.confirmBtn:hover {
+  background: #e7e7e7;
+}
+
+.danger {
+  border-color: #b3261e;
+}
+
+.danger:hover {
+  background: rgba(179, 38, 30, 0.08);
+}

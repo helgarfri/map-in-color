@@ -1,38 +1,45 @@
-/* Layout.module.css */
 .layoutContainer {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
   width: 100vw;
   height: 100vh;
   background-color: #f7f7f7;
+
+  /* header height */
+  padding-top: 60px;
+
+  box-sizing: border-box;
+  overflow: hidden; /* prevents double scrollbars */
 }
 
-/* Left Sidebar with dynamic margin */
+/* NEW: DataSidebar + right panel are in one row */
+.contentRow {
+  height: calc(100vh - 60px);
+  display: flex;
+  min-width: 0;
+}
+
+/* LEFT: data sidebar wrapper */
 .leftSidebar {
-  grid-column: 1;
-  grid-row: 1 / span 2;
+  width: 410px;
+  flex: 0 0 435px;
   background-color: #fff;
   border-right: 1px solid #ccc;
   overflow-y: auto;
   padding: 16px;
-  margin-top: 60px;
-  margin-left: 250px; /* Default expanded margin */
+  box-sizing: border-box;
   transition: margin-left 0.3s ease; /* Smooth transition */
+
 }
 
-.leftSidebar.collapsed {
-  margin-left: 50px; /* Collapsed margin */
-}
-
-/* ------- RIGHT COLUMN ------- */
+/* RIGHT: main content */
 .rightPanel {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Changed from hidden to auto */
-  margin-top: 60px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
+
 
 /* Map preview (fixed height / not scrollable) */
 .mapSection {
@@ -209,9 +216,7 @@
 .settingItem, .settingItemRow {
   margin-bottom: 12px;
 }
-.hideTitleLabel {
-  margin-left: 16px;
-}
+
 .descriptionInput {
   height: 80px;
 }
@@ -369,19 +374,316 @@
   color: #333;
 }
 
-/* Responsive */
+/* Map Info */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+}
+
+.mapInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  min-width: 0;
+}
+
+.mapInfoLeft,
+.mapInfoRight {
+  min-width: 0;
+}
+
+.fieldBlock {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 12px;
+  background: #fafafa;
+  margin-bottom: 12px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.descriptionFixed {
+  height: 120px;
+  resize: none;
+  line-height: 1.4;
+  width: 100%;
+}
+
+.fieldBlock .inputBox {
+  width: 100%;
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.tagBoxLg {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 78px;
+  max-height: 130px;
+  border: 1px dashed rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow-y: auto;
+  align-content: flex-start;
+  background: #fff;
+}
+
+.mutedText {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.referencesListLg {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.referenceRowBtn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  padding: 10px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.referenceRowBtn:hover {
+  background: #f3f3f3;
+}
+
+.referenceTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.referenceMeta {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.customSelectWide {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  margin-top: 6px;
+  background: #fff;
+}
+
+.selectArrow {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.visibilityIcon {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.selectOptions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  z-index: 100;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.selectOption {
+  width: 100%;
+  padding: 10px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+}
+
+.selectOption:hover {
+  background-color: #f0f0f0;
+}
+
+.mapInfoActionsBottomCentered {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.primaryButtonBig {
+  padding: 10px 20px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  background-color: #55957b;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cancelButton {
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  background: #fff;
+}
+
+/* Saving modal */
+.saveModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.saveModalContent {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px 22px 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+.saveIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(85, 149, 123, 0.12);
+  margin: 0 auto 10px;
+}
+
+.saveUploadIcon {
+  font-size: 26px;
+  color: #55957b;
+}
+
+.saveSuccessIcon {
+  font-size: 44px;
+  color: #2ea36a;
+  margin-bottom: 8px;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.10);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: #55957b;
+  transition: width 180ms ease;
+}
+
+.progressMeta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .mapInfoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
 @media (max-width: 900px) {
   .layoutContainer {
-    display: flex;
-    flex-direction: column;
+    padding-left: 0 !important; /* main sidebar is off-canvas on mobile */
+    padding-top: 60px;
+    height: auto;
+    overflow: visible;
   }
+
+  .contentRow {
+    flex-direction: column;
+    height: auto;
+  }
+
   .leftSidebar {
     width: 100%;
+    flex: 0 0 auto;
     border-right: none;
     border-bottom: 1px solid #ccc;
   }
+
   .rightPanel {
     width: 100%;
-    margin-top: 0;
+    height: auto;
   }
 }

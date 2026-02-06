@@ -106,9 +106,11 @@ useEffect(() => {
 
       const res = await fetchMapById(id);
 
-      console.log("fetchMapById res.data keys:", Object.keys(res.data || {}));
-console.log("typeof custom_ranges:", typeof res.data?.custom_ranges, res.data?.custom_ranges);
-console.log("typeof map_data_type:", typeof res.data?.map_data_type, res.data?.map_data_type);
+      setMapData(res.data);
+
+      console.log("MapDetail res.data.placeholders raw:", res.data.placeholders, typeof res.data.placeholders);
+console.log("MapDetail res.data.is_title_hidden raw:", res.data.is_title_hidden, typeof res.data.is_title_hidden);
+
 
   
       setSaveCount(res.data.save_count || 0);
@@ -1641,24 +1643,60 @@ function parseJsonArray(x) {
   return [];
 }
 
+function parseJsonObject(x) {
+  if (!x) return {};
+  if (typeof x === "object") return x; // already object
+  if (typeof x === "string") {
+    try {
+      const parsed = JSON.parse(x);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+
+function toBool(v) {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "string") return v.toLowerCase() === "true";
+  return false;
+}
+
 function mapDataProps() {
   return {
     groups: parseJsonArray(mapData.groups),
     custom_ranges: parseJsonArray(mapData.custom_ranges),
     mapDataType: mapData.map_data_type || null,
 
+    // Give Map multiple title keys just in case it expects another name:
     mapTitleValue: mapData.title,
+    title: mapData.title,
+    mapTitle: mapData.title,
+
     ocean_color: mapData.ocean_color,
     unassigned_color: mapData.unassigned_color,
     data: parseJsonArray(mapData.data),
 
     selected_map: mapData.selected_map,
     font_color: mapData.font_color,
-    is_title_hidden: mapData.is_title_hidden,
-    titleFontSize: mapData.title_font_size,
-    legendFontSize: mapData.legend_font_size,
+
+    // ✅ force boolean
+    is_title_hidden: toBool(mapData.is_title_hidden),
+
+    // font sizes sometimes come back as strings → normalize
+    titleFontSize: Number(mapData.title_font_size) || 28,
+    legendFontSize: Number(mapData.legend_font_size) || 18,
+
+    // ✅ force object
+    placeholders: parseJsonObject(mapData.placeholders),
+
+    // also alias in case Map expects a different name:
+    customDescriptions: parseJsonObject(mapData.placeholders),
   };
 }
+
 
 
 

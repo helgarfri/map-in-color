@@ -12,11 +12,8 @@ const JSMap = window.Map;
 
 /* ───────────────── helpers ─────────────────────────────────────────── */
 
-/** short-scale formatter (k, m, b…) or passthrough for text */
 function formatValue(num) {
-  if (typeof num !== "number" || isNaN(num)) {
-    return String(num);
-  }
+  if (typeof num !== "number" || isNaN(num)) return String(num);
   const suffixes = [
     { value: 1e24, suffix: "y" },
     { value: 1e21, suffix: "z" },
@@ -35,10 +32,8 @@ function formatValue(num) {
   return num.toFixed(2);
 }
 
-/** " ao " → "AO"  */
-const norm = (c = "") => c.trim().toUpperCase();
+const norm = (c = "") => String(c || "").trim().toUpperCase();
 
-/** every SVG element whose id matches the ISO code */
 const getCountryEls = (svg, code) =>
   svg.querySelectorAll(
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
@@ -60,12 +55,19 @@ export default function Map({
   titleFontSize = 30,
   legendFontSize = 16,
   isLargeMap = false,
+
+  // ✅ NEW: controlled hover/selection from parent (DataIntegration)
+  hoveredCode = null,
+  selectedCode: externalSelectedCode = null,
+  onHoverCode,
+  onSelectCode,
+  placeholders = {},
   viewBox,
+
 } = {}) {
   /* ───────────────────────────────
    * 1) Parse props that may arrive as JSON strings
    * ─────────────────────────────── */
-
   const parsedRanges = useMemo(() => {
     if (!custom_ranges) return [];
     if (Array.isArray(custom_ranges)) return custom_ranges;
@@ -98,10 +100,8 @@ export default function Map({
    * 2) Decide effective map type
    * ─────────────────────────────── */
   const effectiveMapType = useMemo(() => {
-    // if caller explicitly sets it, respect it
     if (mapDataType) return mapDataType;
 
-    // if groups look categorical (named groups), assume categorical
     const looksCategorical =
       Array.isArray(parsedGroups) &&
       parsedGroups.some(
@@ -109,8 +109,6 @@ export default function Map({
       );
 
     if (looksCategorical) return "categorical";
-
-    // otherwise default choropleth
     return "choropleth";
   }, [mapDataType, parsedGroups]);
 
@@ -126,13 +124,9 @@ export default function Map({
 
     return (rawData || []).map((d) => {
       const code = norm(d.code);
-
-      // choropleth => numeric values
       if (effectiveMapType === "choropleth") {
         return { ...d, code, value: toNumber(d.value) };
       }
-
-      // categorical => string values
       return { ...d, code, value: d.value == null ? "" : String(d.value) };
     });
   }, [rawData, effectiveMapType]);
@@ -171,11 +165,8 @@ export default function Map({
         (g) => Array.isArray(g?.countries) && g.countries.length > 0
       );
 
-    // ------------------------
     // CHOROPLETH
-    // ------------------------
     if (effectiveMapType === "choropleth") {
-      // Prefer custom_ranges if present (this is the MapDetail fix)
       if (hasRanges) {
         const toNum = (x) => {
           const n =
@@ -204,43 +195,24 @@ export default function Map({
         }));
       }
 
-      // Fallback: use stored groups if they include explicit membership
-      if (hasOldGroups) {
-        return normalizeGroups(parsedGroups);
-      }
-
+      if (hasOldGroups) return normalizeGroups(parsedGroups);
       return [];
     }
 
-    // ------------------------
     // CATEGORICAL
-    // ------------------------
-    if (hasOldGroups) {
-      return normalizeGroups(parsedGroups);
-    }
+    if (hasOldGroups) return normalizeGroups(parsedGroups);
 
-    // derive categories from data (fallback)
- // derive categories from data (fallback)
-// ✅ ALWAYS produce a real Map, even if parsedGroups is junk
-const colorByCategory = (() => {
-  const m = new JSMap();
-
-
-  const arr = Array.isArray(parsedGroups) ? parsedGroups : [];
-  for (const g of arr) {
-    if (!g) continue;
-
-    const key =
-      (g.name ?? g.category ?? g.label ?? "").toString().trim();
-
-    const color =
-      (g.color ?? g.hex ?? g.fill ?? "").toString().trim();
-
-    if (key) m.set(key, color || "#c0c0c0");
-  }
-
-  return m;
-})();
+    const colorByCategory = (() => {
+      const m = new JSMap();
+      const arr = Array.isArray(parsedGroups) ? parsedGroups : [];
+      for (const g of arr) {
+        if (!g) continue;
+        const key = (g.name ?? g.category ?? g.label ?? "").toString().trim();
+        const color = (g.color ?? g.hex ?? g.fill ?? "").toString().trim();
+        if (key) m.set(key, color || "#c0c0c0");
+      }
+      return m;
+    })();
 
     const categories = Array.from(
       new Set(
@@ -266,28 +238,24 @@ const colorByCategory = (() => {
   const wrapperRef = useRef(null);
   const currentScaleRef = useRef(1);
 
-  const selectedCode = useRef(null);
+  // internal “selected” (used for info box)
+  const selectedCodeRef = useRef(null);
+
+  // track “sidebar-hover highlight” so we can remove it cleanly
+  const sidebarHoverRef = useRef(null);
+
   const [tooltip, setTooltip] = useState(null);
   const [selected, setSelected] = useState(null);
 
-  const resetView = useCallback(() => {
-    if (selectedCode.current) {
-      getCountryEls(svgRef.current, selectedCode.current).forEach((el) =>
-        el.classList.remove(cls.hovered)
-      );
-    }
-    selectedCode.current = null;
-    setSelected(null);
-    setTooltip(null);
+const findValue = useCallback((code) => {
+  const v = data.find((d) => d.code === norm(code))?.value;
 
-    wrapperRef.current?.resetTransform();
-    currentScaleRef.current = 1;
-  }, []);
+  if (v == null) return "No data";
+  if (typeof v === "string" && v.trim() === "") return "No data";
 
-  const findValue = useCallback(
-    (code) => data.find((d) => d.code === norm(code))?.value ?? "No data",
-    [data]
-  );
+  return v;
+}, [data]);
+
 
   const findColor = useCallback(
     (code) => {
@@ -299,6 +267,37 @@ const colorByCategory = (() => {
     [derivedGroups, unassigned_color]
   );
 
+  const resetView = useCallback(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    // remove selected highlight
+    if (selectedCodeRef.current) {
+      getCountryEls(svg, selectedCodeRef.current).forEach((el) =>
+        el.classList.remove(cls.hovered)
+      );
+    }
+
+    // remove sidebar-hover highlight (if different)
+    if (sidebarHoverRef.current) {
+      const c = sidebarHoverRef.current;
+      if (c !== selectedCodeRef.current) {
+        getCountryEls(svg, c).forEach((el) => el.classList.remove(cls.hovered));
+      }
+      sidebarHoverRef.current = null;
+    }
+
+    selectedCodeRef.current = null;
+    setSelected(null);
+    setTooltip(null);
+
+    wrapperRef.current?.resetTransform();
+    currentScaleRef.current = 1;
+
+    // optional: tell parent nothing is selected
+    onSelectCode?.(null);
+  }, [onSelectCode]);
+
   /* ───────────────────────────────
    * 7) paint base map
    * ─────────────────────────────── */
@@ -306,12 +305,10 @@ const colorByCategory = (() => {
     const svg = svgRef.current;
     if (!svg) return;
 
-    // reset
     svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
       el.style.fill = unassigned_color;
     });
 
-    // recolor
     derivedGroups.forEach(({ countries = [], color }) => {
       countries.forEach(({ code }) => {
         getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
@@ -319,9 +316,120 @@ const colorByCategory = (() => {
     });
   }, [derivedGroups, unassigned_color]);
 
+  /* ───────────────────────────────
+   * 8) ONE function to select by code (used by clicks AND external prop)
+   * ─────────────────────────────── */
+  const selectCountryByCode = useCallback(
+    (code, { zoom = true } = {}) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      const C = norm(code);
+      if (!C) return;
+
+      const els = getCountryEls(svg, C);
+      const el = els?.[0];
+      if (!el) return;
+
+      const name = el.getAttribute("name") || C;
+      const value = findValue(C);
+      const bbox = el.getBBox();
+      const color = findColor(C);
+      const placeholder = findPlaceholder(C);
 
 
-  /* ── hover / click logic ─────────────────────────────────────────── */
+      // clear old selected highlight
+      if (selectedCodeRef.current) {
+        getCountryEls(svg, selectedCodeRef.current).forEach((x) =>
+          x.classList.remove(cls.hovered)
+        );
+      }
+
+      selectedCodeRef.current = C;
+      getCountryEls(svg, C).forEach((x) => x.classList.add(cls.hovered));
+
+      setSelected({ code: C, name, value, bbox, color, placeholder });
+
+      if (!zoom) return;
+      if (!wrapperRef.current || !svgRef.current) return;
+
+      // zoom math (same as your click handler)
+      const svgEl = svgRef.current;
+      const vpW = svgEl.clientWidth;
+      const vpH = svgEl.clientHeight;
+      const vbW = 2000; // your viewBox width
+      const vbH = 857;  // your viewBox height
+
+      const scale0 = currentScaleRef.current || 1;
+      const fit = Math.min(vpW / vbW, vpH / vbH);
+      const pxPerUnit = fit;
+
+      const stripeXpx = (vpW - vbW * fit) * 0.5;
+      const stripeYpx = (vpH - vbH * fit) * 0.5;
+
+      const cx = stripeXpx / scale0 + (bbox.x + bbox.width * 0.5) * pxPerUnit;
+      const cy = stripeYpx / scale0 + (bbox.y + bbox.height * 0.5) * pxPerUnit;
+
+      const targetScale = Math.min(
+        4,
+        (vpW * 0.5) / (bbox.width * pxPerUnit),
+        (vpH * 0.6) / (bbox.height * pxPerUnit)
+      );
+
+      wrapperRef.current.setTransform(
+        vpW * 0.5 - cx * targetScale,
+        vpH * 0.5 - cy * targetScale,
+        targetScale,
+        250,
+        "easeOutQuart"
+      );
+      currentScaleRef.current = targetScale;
+    },
+    [findColor, findValue]
+  );
+
+  /* ───────────────────────────────
+   * 9) Sync: parent-selectedCode → internal select + zoom
+   * (this is what makes sidebar click select on map)
+   * ─────────────────────────────── */
+  useEffect(() => {
+    if (!externalSelectedCode) return;
+    const C = norm(externalSelectedCode);
+
+    // already selected internally
+    if (selectedCodeRef.current === C) return;
+
+    selectCountryByCode(C, { zoom: true });
+  }, [externalSelectedCode, selectCountryByCode]);
+
+  /* ───────────────────────────────
+   * 10) Sync: parent-hoveredCode → highlight on map (no tooltip)
+   * (this is what makes sidebar hover highlight on map)
+   * ─────────────────────────────── */
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    // remove previous sidebar hover highlight
+    if (sidebarHoverRef.current) {
+      const prev = sidebarHoverRef.current;
+      if (prev !== selectedCodeRef.current) {
+        getCountryEls(svg, prev).forEach((el) => el.classList.remove(cls.hovered));
+      }
+      sidebarHoverRef.current = null;
+    }
+
+    const C = norm(hoveredCode || "");
+    if (!C) return;
+
+    // don’t fight the selected highlight (but it’s fine if it’s the same)
+    sidebarHoverRef.current = C;
+    getCountryEls(svg, C).forEach((el) => el.classList.add(cls.hovered));
+  }, [hoveredCode]);
+
+  /* ───────────────────────────────
+   * 11) SVG listeners: hover tooltip + call onHoverCode
+   * ─────────────────────────────── */
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -329,6 +437,8 @@ const colorByCategory = (() => {
     const handleEnter = (e) => {
       const code = norm(e.target.id);
       if (!code) return;
+
+      onHoverCode?.(code);
 
       const name = e.target.getAttribute("name") || code;
       getCountryEls(svg, code).forEach((el) => el.classList.add(cls.hovered));
@@ -347,77 +457,31 @@ const colorByCategory = (() => {
 
     const handleLeave = (e) => {
       const code = norm(e.target.id);
-      if (code && selectedCode.current !== code) {
-        getCountryEls(svg, code).forEach((el) =>
-          el.classList.remove(cls.hovered)
-        );
+
+      onHoverCode?.(null);
+
+      // Only remove hover class if not selected and not sidebar-hovering it
+      if (
+        code &&
+        selectedCodeRef.current !== code &&
+        sidebarHoverRef.current !== code
+      ) {
+        getCountryEls(svg, code).forEach((el) => el.classList.remove(cls.hovered));
       }
       setTooltip(null);
     };
 
-    /* ---------- click handler with smart zoom & pan ----------------*/
     const handleClick = (e) => {
-      /* ---------- guard + identify country ------------------------ */
       const code = norm(e.target.id);
       if (!code) return;
 
-      const name = e.target.getAttribute("name") || code;
-      const value = findValue(code);
-      const bbox = e.target.getBBox(); // country in view-box units
-      const color = findColor(code);
+      // tell parent (sidebar) what is selected
+      onSelectCode?.(code);
 
-      /* ---------- highlight selection ----------------------------- */
-      if (selectedCode.current) {
-        getCountryEls(svg, selectedCode.current).forEach((el) =>
-          el.classList.remove(cls.hovered)
-        );
-      }
-      selectedCode.current = code;
-      getCountryEls(svg, code).forEach((el) => el.classList.add(cls.hovered));
-      setSelected({ code, name, value, bbox, color });
-
-      /* ---------- smart pan + zoom (always centred) --------------- */
-      if (!wrapperRef.current || !svgRef.current) return;
-
-      const svgEl = svgRef.current;
-      const vpW = svgEl.clientWidth; // viewport inside wrapper
-      const vpH = svgEl.clientHeight;
-      const vbW = 2000; // ⬅ your <svg viewBox>
-      const vbH = 857;
-
-      const scale0 = currentScaleRef.current || 1; // zoom *before* we click
-      const fit = Math.min(vpW / vbW, vpH / vbH); // scale that makes whole map fit
-
-      /* px that one *view-box unit* occupies with *no* extra zoom */
-      const pxPerUnit = fit;
-
-      /* thickness of the letter-box stripes *inside* the SVG (px) */
-      const stripeXpx = (vpW - vbW * fit) * 0.5;
-      const stripeYpx = (vpH - vbH * fit) * 0.5;
-
-      /* centre of the clicked country, expressed in “scale 0” pixels */
-      const cx = stripeXpx / scale0 + (bbox.x + bbox.width * 0.5) * pxPerUnit;
-      const cy = stripeYpx / scale0 + (bbox.y + bbox.height * 0.5) * pxPerUnit;
-
-      /* choose a target zoom that keeps the country nicely inside view */
-      const targetScale = Math.min(
-        4,
-        (vpW * 0.5) / (bbox.width * pxPerUnit),
-        (vpH * 0.6) / (bbox.height * pxPerUnit)
-      );
-
-      /* move & zoom so that cx / cy ends up dead‑centre */
-      wrapperRef.current.setTransform(
-        vpW * 0.5 - cx * targetScale,
-        vpH * 0.5 - cy * targetScale,
-        targetScale,
-        250,
-        "easeOutQuart"
-      );
-      currentScaleRef.current = targetScale; // keep ref in sync
+      // select internally + zoom
+      selectCountryByCode(code, { zoom: true });
     };
 
-    /* wire listeners */
     const all = svg.querySelectorAll("path[id], polygon[id], rect[id]");
     all.forEach((el) => {
       el.addEventListener("mouseenter", handleEnter);
@@ -425,14 +489,60 @@ const colorByCategory = (() => {
       el.addEventListener("mouseleave", handleLeave);
       el.addEventListener("click", handleClick);
     });
-    return () =>
+
+    return () => {
       all.forEach((el) => {
         el.removeEventListener("mouseenter", handleEnter);
         el.removeEventListener("mousemove", handleMove);
         el.removeEventListener("mouseleave", handleLeave);
         el.removeEventListener("click", handleClick);
       });
-  }, [findValue, findColor]);
+    };
+  }, [findValue, onHoverCode, onSelectCode, selectCountryByCode]);
+
+
+  const normalizedPlaceholders = useMemo(() => {
+  const out = {};
+  const src = placeholders && typeof placeholders === "object" ? placeholders : {};
+  for (const [k, v] of Object.entries(src)) {
+    const code = norm(k);
+    out[code] = v == null ? "" : String(v);
+  }
+  return out;
+}, [placeholders]);
+
+const findPlaceholder = useCallback(
+  (code) => normalizedPlaceholders[norm(code)] ?? "",
+  [normalizedPlaceholders]
+);
+
+useEffect(() => {
+  if (!selected?.code) return;
+  const next = findPlaceholder(selected.code);
+
+  // only update if changed (prevents rerenders)
+  if ((selected.placeholder ?? "") === next) return;
+
+  setSelected((prev) => (prev ? { ...prev, placeholder: next } : prev));
+}, [findPlaceholder, selected?.code, selected?.placeholder]);
+
+// ✅ Keep selected info box value (and color) in sync when data changes
+useEffect(() => {
+  if (!selected?.code) return;
+
+  const nextValue = findValue(selected.code);
+  const nextColor = findColor(selected.code);
+
+  // avoid pointless rerenders
+  if (selected.value === nextValue && selected.color === nextColor) return;
+
+  setSelected((prev) =>
+    prev ? { ...prev, value: nextValue, color: nextColor } : prev
+  );
+}, [findValue, findColor, selected?.code, selected?.value, selected?.color]);
+
+
+
 
   /* ── renders ─────────────────────────────────────────────────────── */
   const renderTooltip = () =>
@@ -481,9 +591,13 @@ const colorByCategory = (() => {
   </div>
 
   {/* description (placeholder) */}
-  <p className="text-xs mt-4 text-gray-600">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. (coming soon…)
+ {(selected.placeholder ?? "").trim() ? (
+  <p className={cls.placeholderText}>{selected.placeholder}</p>
+) : (
+  <p className={cls.placeholderEmpty}>
   </p>
+)}
+
 </aside>
     );
 

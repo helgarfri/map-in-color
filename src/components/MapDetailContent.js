@@ -1755,38 +1755,80 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
     </div>
   );
   
+function parseJsonArray(x) {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  if (typeof x === "string") {
+    try {
+      const parsed = JSON.parse(x);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function parseJsonObject(x) {
+  if (!x) return {};
+  if (typeof x === "object") return x;
+  if (typeof x === "string") {
+    try {
+      const parsed = JSON.parse(x);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+function toBool(v) {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "string") return v.toLowerCase() === "true";
+  return false;
+}
+
 
 function mapDataProps() {
   return {
-    // ✅ critical for choropleth
-    custom_ranges: mapData.custom_ranges ?? mapData.customRanges ?? [],
-
-    // ✅ critical for correct mode selection
+    // modes + data
     mapDataType:
       mapData.mapDataType ??
       mapData.map_data_type ??
       mapData.map_type ??
       mapData.type ??
-      undefined,
+      null,
 
-    // existing props
-    groups: mapData.groups,
-    mapTitleValue: mapData.title,
+    data: parseJsonArray(mapData.data),
+
+    // choropleth ranges / categorical groups
+    custom_ranges: parseJsonArray(mapData.custom_ranges ?? mapData.customRanges),
+    groups: parseJsonArray(mapData.groups),
+
+    // ✅ THIS is commonly what controls “text”
+    placeholders: parseJsonObject(mapData.placeholders),
+    customDescriptions: parseJsonObject(mapData.placeholders), // alias in case Map expects this
+
+    // styling
     ocean_color: mapData.ocean_color,
     unassigned_color: mapData.unassigned_color,
-    data: mapData.data,
-    selected_map: mapData.selected_map,
     font_color: mapData.font_color,
 
-    is_title_hidden: mapData.is_title_hidden,
-    titleFontSize: mapData.title_font_size,
-    legendFontSize: mapData.legend_font_size,
+    // title
+    mapTitleValue: mapData.title,
+    title: mapData.title,      // alias
+    mapTitle: mapData.title,   // alias
 
-    // optional flags you already had
-    show_top_high_values: mapData.show_top_high_values,
-    show_top_low_values: mapData.show_top_low_values,
-    showNoDataLegend: mapData.show_no_data_legend,
-    top_low_values: mapData.top_low_values,
+    is_title_hidden: toBool(mapData.is_title_hidden),
+    titleFontSize: Number(mapData.title_font_size) || 28,
+    legendFontSize: Number(mapData.legend_font_size) || 18,
+
+    // optional flags
+    show_top_high_values: toBool(mapData.show_top_high_values),
+    show_top_low_values: toBool(mapData.show_top_low_values),
+    showNoDataLegend: toBool(mapData.show_no_data_legend),
+    top_low_values: parseJsonArray(mapData.top_low_values),
   };
 }
 

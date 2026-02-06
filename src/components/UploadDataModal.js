@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { useDropzone } from 'react-dropzone';
 
@@ -7,10 +7,8 @@ import countryCodes from '../world-countries.json';
 import usStatesCodes from '../united-states.json';
 import euCodes from '../european-countries.json';
 
-// Example map components
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import { FaDownload } from 'react-icons/fa';
+
 
 // Icons
 import {
@@ -123,6 +121,28 @@ function UploadDataModal({
   // If there's a mixture, we let the user switch manually
   const [canManualSwitch, setCanManualSwitch] = useState(false);
 
+  // Fake terminal log
+const [terminalLines, setTerminalLines] = useState([]);
+const [isParsing, setIsParsing] = useState(false);
+
+const log = (msg, level = "info") => {
+  setTerminalLines((prev) => [
+    ...prev,
+    { id: `${Date.now()}-${Math.random()}`, ts: new Date(), level, msg },
+  ]);
+};
+
+const terminalRef = useRef(null);
+
+
+useEffect(() => {
+  const el = terminalRef.current;
+  if (!el) return;
+  el.scrollTop = el.scrollHeight;
+}, [terminalLines]);
+
+
+
   // Data source
   const dataSource =
     selectedMap === 'usa'
@@ -142,6 +162,8 @@ function UploadDataModal({
       setParsedData([]);
       setUniversalRows([]);
       setCanManualSwitch(false);
+      setTerminalLines([]);
+      setIsParsing(false);
 
       setNumericStats({
         lowestValue: null,
@@ -191,6 +213,11 @@ function UploadDataModal({
     setUniversalRows([]);
     setCanManualSwitch(false);
 
+
+  setTerminalLines([]);
+  setIsParsing(true);
+  log(`Reading file: ${file.name}`, "info");
+
     const ext = file.name.split('.').pop().toLowerCase();
     if (ext === 'csv' || ext === 'tsv' || ext === 'txt') {
       const reader = new FileReader();
@@ -211,7 +238,11 @@ function UploadDataModal({
       reader.readAsArrayBuffer(file);
     } else {
       setErrors([{ line: 0, type: 'Invalid File', message: 'Unsupported file type.' }]);
-      setFileIsValid(false);
+setFileIsValid(false);
+log(`❌ Unsupported file type. Use CSV/TSV/XLSX/XLS.`, "error");
+setIsParsing(false);
+return;
+
     }
   };
 
@@ -304,23 +335,37 @@ function UploadDataModal({
       });
     });
 
-    if (foundItemCount === 0 && errorList.length === 0) {
-      // no valid rows
-      errorList.push({
-        line: 0, type: 'No Data', message: 'File has no valid rows.'
-      });
-      setErrors(errorList);
-      setFileIsValid(false);
-      return;
-    }
+if (foundItemCount === 0 && errorList.length === 0) {
+  errorList.push({ line: 0, type: "No Data", message: "File has no valid rows." });
+  setErrors(errorList);
+  setFileIsValid(false);
 
-    if (errorList.length > 0) {
-      setFileIsValid(false);
-      setErrors(errorList);
-    } else {
-      setFileIsValid(true);
-      setErrors([]);
-    }
+  log("❌ No valid rows found in file.", "error");
+  setIsParsing(false);
+  return;
+}
+
+
+ if (errorList.length > 0) {
+  setFileIsValid(false);
+  setErrors(errorList);
+
+  log(`❌ Found ${errorList.length} error(s):`, "error");
+  errorList.slice(0, 200).forEach((err) => {
+    log(`Line ${err.line}: ${err.type} — ${err.message}`, "error");
+  });
+
+  setIsParsing(false);
+} else {
+  setFileIsValid(true);
+  setErrors([]);
+
+  log(`✅ File parsed successfully.`, "success");
+  log(`✅ Imported rows ready: ${allRows.length}`, "success");
+
+  setIsParsing(false);
+}
+
 
     setUniversalRows(allRows);
 
@@ -341,17 +386,29 @@ function UploadDataModal({
       // purely numeric
       deducedType = 'choropleth';
     } else if (mixture) {
-      // ratio check
-      const ratio = numericCount / totalDataRows;
-      if (ratio > 0.75) {
-        deducedType = 'choropleth';
-      } else if (ratio < 0.25) {
-        deducedType = 'categorical';
-      } else {
-        setShowMixedWarning(true);
-      }
-    }
+  const ratio = numericCount / totalDataRows;
+
+  // if strongly skewed, auto-pick and log it
+  if (ratio > 0.75) {
+    deducedType = "choropleth";
+  } else if (ratio < 0.25) {
+    deducedType = "categorical";
+  } else {
+    // mixed: default to choropleth but allow manual switch
+    deducedType = "choropleth";
+  }
+}
+
     setMapDataType(deducedType);
+
+    log(`Matched ${foundItemCount} row(s).`, "info");
+log(`Detected numeric rows: ${numericCount}/${totalDataRows}.`, "info");
+
+if (mixture) {
+  log(`⚠ Mixed data detected. You can switch type manually.`, "warn");
+}
+log(`Selected mode: ${deducedType}.`, "success");
+
 
     // finalize
     if (deducedType === 'choropleth') finalizeChoropleth(allRows);
@@ -640,327 +697,142 @@ function UploadDataModal({
         className={styles.modalContent}
         onClick={(e) => e.stopPropagation()}
       >
-        <button className={styles.closeButton} onClick={onClose}>
-          &times;
-        </button>
+        
 
         <div className={styles.modalBody}>
           {/* 1) DnD + Map */}
-          <div className={styles.topRow}>
-            <div
-              {...getRootProps()}
-              className={
-                isDragActive ? `${styles.dropZone} ${styles.dropZoneActive}` : styles.dropZone
-              }
-            >
-              <input {...getInputProps()} />
-              <FaUpload className={styles.uploadIcon} />
-              {isDragActive ? (
-                <p>Drop the file here...</p>
-              ) : (
-                <>
-                  <p>Drag & drop or click to browse</p>
-                  <small>Supports CSV, TSV, XLSX, XLS</small>
-                </>
-              )}
-            </div>
+        <div className={styles.topRow}>
+  {/* Dropzone */}
+  <div
+    {...getRootProps()}
+    className={
+      isDragActive ? `${styles.dropZone} ${styles.dropZoneActive}` : styles.dropZone
+    }
+  >
+    <input {...getInputProps()} />
+    <FaUpload className={styles.uploadIcon} />
+    {isDragActive ? (
+      <p>Drop the file here...</p>
+    ) : (
+      <>
+        <p>Drag & drop or click to browse</p>
+        <small>CSV, TSV, XLSX, XLS</small>
+      </>
+    )}
 
-            <div className={styles.mapWrapper}>
-              {selectedMap === 'world' && <WorldMapSVG />}
-              {selectedMap === 'usa' && <UsSVG />}
-              {selectedMap === 'europe' && <EuropeSVG />}
 
-              <div className={styles.mapOverlay}>
-                <div className={styles.mapName}>
-                  {selectedMap === 'world'
-                    ? 'World'
-                    : selectedMap === 'usa'
-                    ? 'USA'
-                    : 'Europe'}
-                </div>
-                <button
-                  className={styles.downloadBtn}
-                  onClick={downloadStarterTemplate}
-                >
-                  Download Starter Template
-                </button>
-              </div>
-            </div>
-          </div>
+  </div>
 
-          {/* 2) File panel */}
+  {/* Terminal */}
+  
+  <div className={styles.terminalCard}>
+    <div className={styles.terminalHeader}>
+      <div className={styles.terminalDots}>
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className={styles.terminalTitle}>Import log</div>
+
+      {isParsing ? (
+        <div className={styles.terminalStatus}>Reading…</div>
+      ) : fileIsValid === true ? (
+        <div className={styles.terminalStatusOk}>OK</div>
+      ) : fileIsValid === false ? (
+        <div className={styles.terminalStatusBad}>Errors</div>
+      ) : (
+        <div className={styles.terminalStatusIdle}>Idle</div>
+      )}
+    </div>
+
+<div ref={terminalRef} className={styles.terminalBody}>
+      {terminalLines.length === 0 ? (
+        <div className={styles.terminalHint}>
+          Drop a file to see parsing output here.
+        </div>
+      ) : (
+        terminalLines.map((l) => (
           <div
-            className={
-              fileName
-                ? fileIsValid
-                  ? `${styles.fileSection} ${styles.fileSectionValid}`
-                  : `${styles.fileSection} ${styles.fileSectionError}`
-                : styles.fileSection
-            }
+            key={l.id}
+            className={[
+              styles.termLine,
+              l.level === "error" ? styles.termError : "",
+              l.level === "warn" ? styles.termWarn : "",
+              l.level === "success" ? styles.termSuccess : "",
+            ].join(" ")}
           >
-            <FaFileAlt className={styles.fileIcon} />
-
-            <div className={styles.fileDetails}>
-              <div className={styles.fileName}>{fileName || 'No file selected'}</div>
-
-              {/* Always show the auto-detected type: */}
-              {mapDataType && !canManualSwitch && (
-                <div className={styles.detectedType}>
-                  <span>Detected Type: <strong>{mapDataType}</strong></span>
-                </div>
-)}
-
-
-              {/* Only show dropdown if there's a mixture => canManualSwitch */}
-              {universalRows.length > 0 && canManualSwitch && (
-                <div className={styles.dataTypeSelect}>
-                  <label>Change Type:</label>
-                  <select value={mapDataType || ''} onChange={handleManualTypeChange}>
-                    <option value="choropleth">Choropleth</option>
-                    <option value="categorical">Categorical</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {fileName && fileIsValid === true && (
-              <div className={styles.validBadge}>
-                <FaCheckCircle className={styles.checkIcon} />
-                <span>Valid File</span>
-              </div>
-            )}
-            {fileName && fileIsValid === false && (
-              <div className={styles.errorBadge}>
-                <FaExclamationTriangle className={styles.warnIcon} />
-                <span>{errors.length} error{errors.length > 1 ? 's' : ''}</span>
-                <div className={styles.errorTooltip}>
-                  <ul>
-                    {errors.map((err, i) => (
-                      <li key={i}>
-                        <strong>Line {err.line}:</strong> {err.message}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
+            <span className={styles.termPrompt}>$</span>
+            <span className={styles.termText}>{l.msg}</span>
           </div>
+        ))
+      )}
+    </div>
 
-          {/* 3) Stats & Table */}
-          {mapDataType === 'choropleth' && (
-            <div className={styles.statsAndTable}>
-              <div className={styles.statsGrid}>
-                {/*lowest*/}
-                <div className={styles.statItem}>
-                  <FaArrowDown className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Lowest Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.lowestValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaMapMarkerAlt className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>State (Lowest)</div>
-                    <div className={styles.statValue}>
-                      {numericStats.lowestCountry || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*highest*/}
-                <div className={styles.statItem}>
-                  <FaArrowUp className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Highest Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.highestValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaMapMarkerAlt className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>State (Highest)</div>
-                    <div className={styles.statValue}>
-                      {numericStats.highestCountry || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*average*/}
-                <div className={styles.statItem}>
-                  <FaCalculator className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Average Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.averageValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*median*/}
-                <div className={styles.statItem}>
-                  <FaRuler className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Median Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.medianValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*std dev*/}
-                <div className={styles.statItem}>
-                  <FaChartLine className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Std Dev</div>
-                    <div className={styles.statValue}>
-                      {numericStats.standardDeviation ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*count*/}
-                <div className={styles.statItem}>
-                  <FaListUl className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Values Count</div>
-                    <div className={styles.statValue}>
-                      {numericStats.numberOfValues}
-                    </div>
-                  </div>
-                </div>
-                {/*completeness*/}
-                <div className={styles.statItem}>
-                  <FaPercent className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Data %</div>
-                    <div className={styles.statValue}>
-                      {dataCompleteness}%
-                    </div>
-                  </div>
-                </div>
-              </div>
+    {/* Inline mixed-data switch (NO modal) */}
+    {universalRows.length > 0 && canManualSwitch && (
+      <div className={styles.inlineTypeRow}>
+        <span className={styles.inlineTypeLabel}>Interpret as:</span>
+        <select
+          className={styles.inlineTypeSelect}
+          value={mapDataType || ""}
+          onChange={(e) => {
+            handleManualTypeChange(e);
+            log(`Switched interpretation to: ${e.target.value}`, "warn");
+          }}
+        >
+          <option value="choropleth">Choropleth (numeric)</option>
+          <option value="categorical">Categorical (text)</option>
+        </select>
+      </div>
+    )}
 
-              {/* numeric table */}
-              <div className={styles.valuesTableWrapper}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>State/Country</th>
-                      <th>Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedNumericData.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.name}</td>
-                        <td>{item.numericValue}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+    {/* if not mixed, show detected type (quiet) */}
+    {mapDataType && !canManualSwitch && (
+      <div className={styles.inlineDetected}>
+        Detected: <strong>{mapDataType}</strong>
+      </div>
+    )}
+  </div>
+</div>
 
-          {mapDataType === 'categorical' && (
-            <div className={styles.statsAndTable}>
-              <div className={styles.statsGrid}>
-                <div className={styles.statItem}>
-                  <FaListUl className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}># Unique Categories</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.numberOfUniqueCategories}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaGlobe className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Total Countries</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.totalCountries}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaPercent className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Data %</div>
-                    <div className={styles.statValue}>
-                      {dataCompleteness}%
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaCalculator className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Assigned Values</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.totalAssigned}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaChartLine className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Most Frequent</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.mostFrequentCategory || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaListUl className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Count (Most Freq)</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.mostFrequentCount}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* cat table */}
-              <div className={styles.valuesTableWrapper}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th># Countries</th>
-                      <th>%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categoryFreq.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.category}</td>
-                        <td>{item.count}</td>
-                        <td>{item.percent.toFixed(1)}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+        
 
           {/* Action row */}
-          <div className={styles.actionsRow}>
-            <button
-              className={styles.importDataBtn}
-              disabled={!fileIsValid || !mapDataType || parsedData.length === 0}
-              onClick={handleImportData}
-            >
-              Import Data
-            </button>
-            <button
-              className={styles.closeModalBtn}
-              onClick={onClose}
-            >
-              Manually Adjust Values
-            </button>
-          </div>
+<div className={styles.actionsRow}>
+  <button
+    type="button"
+    className={styles.templateLink}
+    onClick={() => {
+      downloadStarterTemplate();
+      log("Downloaded starter template.", "info");
+    }}
+  >
+    <span className={styles.templateLinkIcon}>
+      <FaDownload />
+    </span>
+    <span className={styles.templateLinkText}>
+      Don’t have a file? <span className={styles.templateLinkUnderline}>See our starter template</span>
+    </span>
+  </button>
+
+  <div className={styles.actionsRight}>
+    <button className={styles.btn} type="button" onClick={onClose}>
+      Cancel
+    </button>
+
+    <button
+      className={`${styles.btn} ${styles.btnPrimary}`}
+      type="button"
+      disabled={!fileIsValid || !mapDataType || parsedData.length === 0}
+      onClick={handleImportData}
+    >
+      Import data
+    </button>
+  </div>
+</div>
+
+
         </div>
       </div>
     </div>
