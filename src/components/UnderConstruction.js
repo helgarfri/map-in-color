@@ -5,7 +5,7 @@ export default function UnderConstruction() {
     <div style={styles.page}>
       <div style={styles.card}>
         <img
-          src="/assets/logo-2.5.png"
+          src="/assets/mic-heading-2-5.png"
           alt="Map in Color logo"
           style={styles.logo}
         />
