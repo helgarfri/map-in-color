@@ -36,7 +36,7 @@ import PublicMapDetail from "./components/PublicMapDetail";
 import LoggedInMapDetail from "./components/LoggedInMapDetail";
 import Map from "./components/Map";
 import Explore from "./components/Explore";
-
+import ResetPasswordPage from "./components/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
 import { UserContext } from "./context/UserContext";
 
@@ -194,7 +194,10 @@ export default function App() {
 
         // (if you still use Explore somewhere else)
         { path: "/explore-old", element: <Explore /> },
+        { path: "/reset-password", element: <ResetPasswordPage /> },
+
       ],
+      
     },
   ]);
 

@@ -7,7 +7,7 @@ const { check, validationResult } = require('express-validator');
 const { supabaseAdmin } = require('../config/supabase'); 
 const { resend } = require('../config/resend');
 const crypto = require("crypto");
-
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 
 const saltRounds = 10;
@@ -153,7 +153,7 @@ router.post(
       );
 
       // Construct the verify link
-      const verifyLink = `https://mapincolor.com/api/auth/verify/${verifyToken}`;
+const verifyLink = `${FRONTEND_URL}/verify-account?token=${verifyToken}`;
 
       // 7) Send a verification email with the link
       try {
@@ -429,7 +429,7 @@ router.post("/request-password-reset", async (req, res) => {
     }
 
     // Link points to FRONTEND page
-    const resetLink = `https://mapincolor.com/reset-password?token=${rawToken}`;
+const resetLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
 
     await resend.emails.send({
       from: "no-reply@mapincolor.com",

@@ -164,7 +164,7 @@ export const banProfileReport = (reportId) => {
 };
 
 export const requestPasswordReset = (email) =>
-  axios.post(`/api/auth/request-password-reset`, { email });
+  API.post("/auth/request-password-reset", { email });
 
 export const resetPassword = ({ token, newPassword }) =>
-  axios.post(`/api/auth/reset-password`, { token, newPassword });
+  API.post("/auth/reset-password", { token, newPassword });
