@@ -249,9 +249,6 @@ export default function Login() {
   );
 }
 
-/* ---------------------------
-   Reset password request modal
----------------------------- */
 function ResetPasswordRequestModal({ onClose }) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -261,12 +258,14 @@ function ResetPasswordRequestModal({ onClose }) {
   const handleSend = async (e) => {
     e.preventDefault();
     setErr("");
+
     setSending(true);
     try {
-      await requestPasswordReset(email);
+      await requestPasswordReset(email); // expects backend to validate if you want errors
       setDone(true);
     } catch (e) {
-      setErr("Something went wrong. Please try again.");
+      const msg = e?.response?.data?.msg || "Something went wrong. Please try again.";
+      setErr(msg);
     } finally {
       setSending(false);
     }
@@ -281,7 +280,7 @@ function ResetPasswordRequestModal({ onClose }) {
         aria-modal="true"
         aria-labelledby="reset-title"
       >
-        <div className={styles.micModalHeader}>
+        <div className={`${styles.micModalHeader} ${done ? styles.micModalHeaderTight : ""}`}>
           <div>
             <div className={styles.micModalEyebrow}>Password</div>
             <h2 id="reset-title" className={styles.micModalTitle}>
@@ -293,14 +292,22 @@ function ResetPasswordRequestModal({ onClose }) {
                 : "Enter your email and we’ll send a reset link."}
             </p>
           </div>
+
+          {/* clean close button (instead of OK) */}
+          {!done && (
+            <button type="button" className={styles.modalX} onClick={onClose} aria-label="Close">
+              ×
+            </button>
+          )}
         </div>
 
         <div className={styles.micModalBody}>
           {done ? null : (
             <form onSubmit={handleSend} className={styles.loginForm}>
               <div className={styles.formGroup}>
-                <label>Email</label>
+                <label htmlFor="resetEmail">Email</label>
                 <input
+                  id="resetEmail"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -313,20 +320,30 @@ function ResetPasswordRequestModal({ onClose }) {
               <button type="submit" className={styles.loginButton} disabled={sending}>
                 {sending ? "Sending…" : "Send reset link"}
               </button>
+
+              {/* optional tiny cancel link under the button */}
+              <button type="button" className={styles.forgotLink} onClick={onClose}>
+                Cancel
+              </button>
             </form>
           )}
         </div>
 
-        <div className={styles.micModalFooter}>
-          <button
-            type="button"
-            className={`${styles.actionPill} ${styles.primaryPill}`}
-            onClick={onClose}
-          >
-            OK
-          </button>
-        </div>
+        {/* Only show footer button on DONE state */}
+        {done && (
+          <div className={styles.micModalFooter}>
+            <button
+              type="button"
+              className={`${styles.actionPill} ${styles.primaryPill}`}
+              onClick={onClose}
+            >
+              OK
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+

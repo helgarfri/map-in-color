@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
 
     // show specific guidance instead of generic error
     if (!isLongEnough || !hasUpperCase || !hasNumber || !hasSpecial) {
-      return setErr("Password does not meet the requirements below.");
+      return setErr("Password does not meet the requirements above.");
     }
     if (!passwordsMatch) return setErr("Passwords do not match.");
 

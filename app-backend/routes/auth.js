@@ -393,28 +393,36 @@ router.post('/resend-verification', async (req, res) => {
 router.post("/request-password-reset", async (req, res) => {
   const { email } = req.body;
 
-  // Always respond success (security)
-  const genericMsg =
-    "If an account with that email exists, we sent a password reset link.";
-
   try {
-    if (!email) return res.status(200).json({ msg: genericMsg });
+    const cleanEmail = String(email || "").trim();
 
-    // Find user
+    if (!cleanEmail) {
+      return res.status(400).json({ msg: "Email is required." });
+    }
+
+    // basic email validation
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
+    if (!emailOk) {
+      return res.status(400).json({ msg: "Please enter a valid email address." });
+    }
+
     const { data: user, error } = await supabaseAdmin
       .from("users")
       .select("id, email, first_name, status")
-      .ilike("email", email.trim())
+      .ilike("email", cleanEmail)
       .maybeSingle();
 
     if (error) {
       console.error("request-password-reset lookup error:", error);
-      return res.status(200).json({ msg: genericMsg });
+      return res.status(500).json({ msg: "Server error. Please try again." });
     }
 
-    // Only allow if user exists and is active (optional rule)
-    if (!user || user.status !== "active") {
-      return res.status(200).json({ msg: genericMsg });
+    if (!user) {
+      return res.status(404).json({ msg: "No account found with that email." });
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({ msg: "This account is not eligible for password reset." });
     }
 
     // Create random token (sent to user), but store only HASH in DB
