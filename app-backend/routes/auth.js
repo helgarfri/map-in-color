@@ -389,18 +389,14 @@ router.post('/resend-verification', async (req, res) => {
   }
 });
 
-// REQUEST PASSWORD RESET
 router.post("/request-password-reset", async (req, res) => {
-  const { email } = req.body;
-
   try {
-    const cleanEmail = String(email || "").trim();
+    const cleanEmail = String(req.body?.email || "").trim();
 
     if (!cleanEmail) {
       return res.status(400).json({ msg: "Email is required." });
     }
 
-    // basic email validation
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
     if (!emailOk) {
       return res.status(400).json({ msg: "Please enter a valid email address." });
@@ -425,50 +421,52 @@ router.post("/request-password-reset", async (req, res) => {
       return res.status(403).json({ msg: "This account is not eligible for password reset." });
     }
 
-    // Create random token (sent to user), but store only HASH in DB
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-
-    // expire in 30 minutes
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
-    // Store hash + expiry on user row (simplest approach)
     const { error: updErr } = await supabaseAdmin
       .from("users")
       .update({
         reset_token_hash: tokenHash,
         reset_token_expires_at: expiresAt,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
 
     if (updErr) {
       console.error("request-password-reset update error:", updErr);
-      return res.status(200).json({ msg: genericMsg });
+      return res.status(500).json({ msg: "Could not create reset link. Please try again." });
     }
 
-    // Link points to FRONTEND page
-const resetLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
+    const resetLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
 
-    await resend.emails.send({
-      from: "no-reply@mapincolor.com",
-      to: user.email,
-      subject: "Reset your password - Map in Color",
-      html: `
-        <p>Hello ${user.first_name || ""},</p>
-        <p>We received a request to reset your password.</p>
-        <p><a href="${resetLink}">Reset password</a></p>
-        <p>This link expires in 30 minutes.</p>
-        <p>If you didn't request this, you can ignore this email.</p>
-        <p>Cheers,<br/>Helgi</p>
-      `,
-    });
+    try {
+      await resend.emails.send({
+        from: "no-reply@mapincolor.com",
+        to: user.email,
+        subject: "Reset your password - Map in Color",
+        html: `
+          <p>Hello ${user.first_name || ""},</p>
+          <p>We received a request to reset your password.</p>
+          <p><a href="${resetLink}">Reset password</a></p>
+          <p>This link expires in 30 minutes.</p>
+          <p>If you didn't request this, you can ignore this email.</p>
+          <p>Cheers,<br/>Helgi</p>
+        `,
+      });
+    } catch (mailErr) {
+      console.error("request-password-reset email send error:", mailErr);
+      return res.status(500).json({ msg: "We couldn't send the email. Please try again." });
+    }
 
-    return res.json({ msg: genericMsg });
+    return res.json({ msg: "Reset link sent. Check your email." });
   } catch (err) {
     console.error("request-password-reset server error:", err);
-    return res.status(200).json({ msg: genericMsg });
+    return res.status(500).json({ msg: "Server error. Please try again." });
   }
 });
+
 
 router.post("/reset-password", async (req, res) => {
   try {

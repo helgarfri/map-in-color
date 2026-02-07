@@ -261,7 +261,7 @@ function ResetPasswordRequestModal({ onClose }) {
 
     setSending(true);
     try {
-      await requestPasswordReset(email); // expects backend to validate if you want errors
+    await requestPasswordReset({ email });
       setDone(true);
     } catch (e) {
       const msg = e?.response?.data?.msg || "Something went wrong. Please try again.";
@@ -321,10 +321,7 @@ function ResetPasswordRequestModal({ onClose }) {
                 {sending ? "Sending…" : "Send reset link"}
               </button>
 
-              {/* optional tiny cancel link under the button */}
-              <button type="button" className={styles.forgotLink} onClick={onClose}>
-                Cancel
-              </button>
+       
             </form>
           )}
         </div>
