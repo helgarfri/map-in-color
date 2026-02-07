@@ -100,7 +100,7 @@
 
 .typeIcon {
   font-size: 20px;
-  color: #79a6b7;
+  color: #28a8e1;
 }
 
 /* Profile picture */
@@ -158,6 +158,14 @@
 .actionButton:hover {
   color: #000;
 }
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 
 /* No notifications text */
 .noNotifications {

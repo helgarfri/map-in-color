@@ -370,12 +370,12 @@
 }
 
 .btnPrimary {
-  background: #55957b;
+  background: #14a9af;
   color: #fff;
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background: #49816b;
+  background: #13999e;
 }
 
 .btn:disabled {
@@ -638,6 +638,71 @@
   background: #f8fafc;
   font-size: 12px;
   color: #334155;
+}
+
+/* Header matching Reference modal style */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.modalEyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(0,0,0,0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+}
+
+.modalSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+}
+
+.modalClose {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.modalClose:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+/* Optional: make body padding align with header padding */
+.modalContent {
+  padding: 0;              /* remove old 20px padding */
+  overflow: hidden;
+}
+
+.modalBody {
+  padding: 16px;           /* replace with consistent padding */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 

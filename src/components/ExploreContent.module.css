@@ -1,776 +1,653 @@
-/* ExploreContent.module.css */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
 
-/* ----------------------------------------------------
-   1) TOP-LEVEL CONTAINER (renamed from .explorePageContainer)
------------------------------------------------------ */
+  --bg: #f7f7f7;
+  --card: #ffffff;
+  --text: rgba(0,0,0,0.78);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
 
-.exploreContentContainer {
-    /* This is the main container that wraps our ExploreContent.
-       We remove the old flex-based layout (with sidebar, etc.)
-       because that’s now the parent's job (LoggedInExplore, etc.) */
-    min-height: 100vh;
-    color: black;
-    background-color: #f7f7f7;
-    padding: 30px;
-    box-sizing: border-box;
-  }
-  
-  /* ----------------------------------------------------
-     2) TOP BAR (SORT + SEARCH)
-  ----------------------------------------------------- */
-  .topBar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  /* Sort Tabs */
-  .sortTabs {
-    display: flex;
-    align-items: center;
-  }
-  
-  .sortByLabel {
-    font-weight: 500;
-    margin-right: 8px;
-    font-size: 0.9rem;
-    color: #555;
-  }
-  
-  .tabButton {
-    background-color: transparent;
-    border: none;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-right: 6px;
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.2s ease;
-  }
-  
-  .tabButton:hover {
-    border-bottom: 2px solid #aaa;
-  }
-  
-  .activeTab {
-    border-bottom-color: #333;
-    font-weight: 600;
-  }
-  
-  /* Search Form */
-  .searchForm {
-    display: flex;
-    align-items: center;
-  }
-  
-  .searchInputContainer {
-    display: flex;
-    align-items: center;
-  }
-  
-  .searchInputContainer input {
-    padding: 6px;
-    font-size: 0.9rem;
-    border: 1px solid #ccc;
-    border-right: none;
-    border-radius: 4px 0 0 4px;
-    width: 220px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .searchInputContainer input:focus {
-    border-color: #79a6b7;
-    outline: none;
-  }
-  
-  .searchButton {
-    background-color: #ccc;
-    border: 1px solid #ccc;
-    border-left: none;
-    padding: 6px 10px;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: #555;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .searchButton:hover {
-    background-color: #bbb;
-  }
-  
-  /* "Clear Search" - smaller label & padding */
-  .clearSearchButton {
-    background-color: #ccc;
-    border: 1px solid #ccc;
-    padding: 4px 6px;
-    border-radius: 4px 0 0 4px;
-    margin-right: 8px;
-    cursor: pointer;
-    font-size: 0.75rem;
-    color: #555;
-    transition: background-color 0.3s ease;
-  }
-  
-  .clearSearchButton:hover {
-    background-color: #bbb;
-  }
-  
-  /* ----------------------------------------------------
-     3) RESULTS ROW
-  ----------------------------------------------------- */
-  .resultsRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .totalResults {
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: #444;
-  }
-  
-  .selectedTagsRow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .selectedTagsList {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  
-  .selectedTagBox {
-    display: flex;
-    align-items: center;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 3px 6px;
-    font-size: 0.8rem;
-  }
-  
-  .selectedTagText {
-    margin-right: 6px;
-  }
-  
-  .removeTagButton {
-    background: none;
-    border: none;
-    font-size: 0.8rem;
-    color: #555;
-    cursor: pointer;
-    padding: 0;
-  }
-  
-  .removeTagButton:hover {
-    color: #333;
-    font-weight: bold;
-  }
-  
-  /* ----------------------------------------------------
-     4) MAIN CONTENT (MAPS + TAG SIDEBAR)
-  ----------------------------------------------------- */
-  .mainContent {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .mapsSection {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Grid of map cards => min 220px to match skeleton */
-  .mapsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 15px;
-  }
-  
-  /* ----------------------------------------------------
-     5) MAP CARD
-  ----------------------------------------------------- */
-  .mapCard {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .mapCard:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* thumbnail => fix a certain height */
-.thumbnail {
-  width: 100%;
-  height: 140px;
-  overflow: hidden;
-  background: #fafafa;
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
 
-  position: relative;   /* ✅ REQUIRED */
-  isolation: isolate;   /* ✅ strongly recommended */
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
 }
 
-  
-  .thumbnail svg {
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* Title + map info => smaller font, margins */
-  .mapTitle {
-    font-size: 1rem;
-    margin: 8px;
-    margin-bottom: 4px;
-    color: #333;
-  }
-  
-  .mapInfoRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0 8px 8px 8px;
-    font-size: 0.8rem;
-    color: #555;
-  }
-  
-  .starCountContainer {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-  
-  /* Tag chips in the card => smaller */
-  .tags {
-    margin: 0 8px 8px 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  
-  .tag {
-    display: inline-block;
-    background-color: #e0e0e0;
-    color: #333;
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-  }
-  
-  /* ----------------------------------------------------
-     6) PAGINATION
-  ----------------------------------------------------- */
-  .pagination {
-    display: flex;
-    gap: 5px;
-    margin-top: 15px;
-    justify-content: center;
-  }
-  
-  .pagination button {
-    padding: 5px 8px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  .pagination button:hover:not(:disabled) {
-    background-color: #ccc;
-  }
-  
-  .pagination button:disabled {
-    background-color: #f2f2f2;
-    cursor: not-allowed;
-  }
-  
-  .activePage {
-    background: #333;
-    color: #fff;
-  }
-  
-  /* ----------------------------------------------------
-     7) TAG SIDEBAR
-  ----------------------------------------------------- */
-  .tagsSidebar {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 8px;
-    flex-shrink: 0;
-    width: 200px;
-    min-width: 200px;
-    height: auto;
-    align-self: flex-start;
-  }
-  
-  .tagsSidebar h2 {
-    margin: 0 0 8px 0;
-    font-size: 1rem;
-  }
-  
-  .tagsList {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .tagCheckbox {
-    display: flex;
-    align-items: center;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-  
-  .tagCheckbox input {
-    margin-right: 6px;
-  }
-  
-  .checkboxTag {
-    display: inline-flex;
-    align-items: center;
-  }
-  
-  /* ----------------------------------------------------
-     8) SHIMMER ANIMATION (SKELETON)
-  ----------------------------------------------------- */
-  @keyframes shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
-  
-  /* Reusable shimmer pattern */
-  .skeletonShimmer {
-    position: relative;
-    overflow: hidden;
-    background-color: #eee;
-  }
-  
-  .skeletonShimmer::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255, 255, 255, 0.4) 50%,
-      transparent 100%
-    );
-    transform: translateX(-100%);
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* ----------------------------------------------------
-     9) SKELETON COMPONENTS
-  ----------------------------------------------------- */
-  .skeletonTopBar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .skeletonSortTabs {
-    display: flex;
-    gap: 8px;
-  }
-  .skeletonSortTab {
-    width: 50px;
-    height: 20px;
-    border-radius: 4px;
-    background-color: #eee;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonSortTab::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* Skeleton search form */
-  .skeletonSearchForm {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .skeletonSearchInput {
-    width: 150px;
-    height: 20px;
-    border-radius: 4px;
-    background-color: #eee;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonSearchInput::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  .skeletonSearchButton {
-    width: 30px;
-    height: 20px;
-    border-radius: 4px;
-    background-color: #eee;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonSearchButton::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* skeleton results row */
-  .skeletonResultsRow {
-    margin-bottom: 10px;
-  }
-  .skeletonResultsText {
-    width: 120px;
-    height: 14px;
-    border-radius: 4px;
-    background-color: #eee;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonResultsText::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* skeleton main content area */
-  .skeletonMainContent {
-    display: flex;
-    gap: 15px;
-  }
-  
-  /* skeleton map cards area => 220px min, same as real */
-  .skeletonMapsGrid {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 15px;
-  }
-  .skeletonMapCard {
-    background-color: #eee;
-    position: relative;
-    border-radius: 6px;
-    padding: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .skeletonMapCard::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* skeleton card thumbnail => 140px tall to match .thumbnail above */
-  .skeletonThumb {
-    width: 100%;
-    height: 140px;
-    border-radius: 4px;
-    background-color: #ddd;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonThumb::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* skeleton lines for text in card => 12px */
-  .skeletonLine {
-    width: 100%;
-    height: 12px;
-    background-color: #eee;
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonLine::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* skeleton right sidebar => 200px wide */
-  .skeletonTagsSidebar {
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .skeletonTagTitle {
-    width: 100px;
-    height: 14px;
-    background-color: #eee;
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonTagTitle::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    transform: translateX(-100%);
-    animation: shimmer 1.2s infinite;
-  }
-  .skeletonTagLine {
-    width: 100%;
-    height: 12px;
-    background-color: #eee;
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonTagLine::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    transform: translateX(-100%);
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* skeleton pagination */
-  .skeletonPagination {
-    margin-top: 15px;
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-  }
-  .skeletonPageBtn {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    background-color: #eee;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeletonPageBtn::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(255,255,255,0.4) 50%,
-      transparent 100%
-    );
-    animation: shimmer 1.2s infinite;
-  }
-  
-  /* ----------------------------------------------------
-     10) RESPONSIVE BREAKPOINTS
-  ----------------------------------------------------- */
-  @media (max-width: 1000px) {
-    .mainContent {
-      flex-direction: column;
-    }
-    .mapsSection {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-    .tagsSidebar {
-      width: 100%;
-      min-width: auto;
-    }
-    .sortByLabel {
-      font-size: 0.8rem;
-    }
-    .tabButton {
-      padding: 6px;
-      font-size: 0.8rem;
-    }
-    .sortTabs {
-      margin-bottom: 10px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .searchInputContainer input {
-      width: 150px;
-    }
-    .topBar {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .searchForm {
-      width: 100%;
-    }
-    .searchInputContainer {
-      width: 100%;
-      display: flex;
-      flex-wrap: nowrap;
-    }
-    .searchInputContainer input {
-      flex: 1;
-      width: auto;
-    }
-    .searchButton {
-      flex-shrink: 0;
-    }
-    .thumbnail {
-      height: 100%;
-    }
-  }
-  
-  @media (max-width: 400px) {
+/* ===== Page ===== */
+.exploreContentContainer {
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg);
+  padding: 26px;
+  box-sizing: border-box;
+}
 
- 
-  
-    .searchInputContainer input {
-      width: 120px;
-      font-size: 0.8rem;
-      height: 20px;
-    }
-    .searchButton {
-      height: 34px;
-    }
-    /* Make map cards a single column if you want */
-    .mapsGrid {
-      grid-template-columns: 1fr;
-    }
-    /* Even smaller card fonts */
-    .mapCard {
-      font-size: 0.8rem;
-    }
-    .mapTitle {
-      font-size: 0.9rem;
-      margin: 6px;
-    }
-    .mapInfoRow {
-      font-size: 0.75rem;
-      margin: 0 6px 6px 6px;
-    }
-    .tagsList {
-      gap: 0px;
-    }
+/* ===== Top Bar ===== */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sortTabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sortByLabel {
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+/* Tabs as pills */
+.tabButton {
+  all: unset;
+  cursor: pointer;
+
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.70);
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.85);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.tabButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(20,169,175,0.20);
+}
+
+.activeTab {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
+  box-shadow: 0 14px 30px rgba(40,168,225,0.18);
+}
+
+/* ===== Search ===== */
+.searchForm {
+  display: flex;
+  align-items: center;
+}
+
+.searchInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clearSearchButton {
+  all: unset;
+  cursor: pointer;
+
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.66);
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.clearSearchButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  background: rgba(20,169,175,0.06);
+  border-color: rgba(20,169,175,0.18);
+}
+
+.searchInputContainer input {
+  height: 36px;
+  width: 260px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.75);
+
+  outline: none;
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.searchInputContainer input:focus {
+  border-color: rgba(40,168,225,0.55);
+  box-shadow: 0 0 0 4px rgba(40,168,225,0.15);
+}
+
+.searchButton {
+  all: unset;
+  cursor: pointer;
+
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  color: #fff;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
+  box-shadow: 0 14px 30px rgba(40,168,225,0.18);
+
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.searchButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+  box-shadow: 0 18px 34px rgba(40,168,225,0.22);
+}
+
+/* ===== Results row ===== */
+.resultsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.totalResults {
+  font-weight: 900;
+  font-size: 12px;
+  color: rgba(0,0,0,0.62);
+
+  padding: 8px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.85);
+}
+
+.selectedTagsRow {
+  display: flex;
+  align-items: center;
+}
+
+.selectedTagsList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* selected tag chips */
+.selectedTagBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 7px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(20,169,175,0.18);
+  background: rgba(20,169,175,0.08);
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.70);
+}
+
+.selectedTagText {
+  line-height: 1;
+}
+
+.removeTagButton {
+  all: unset;
+  cursor: pointer;
+
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.removeTagButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+/* ===== Main layout ===== */
+.mainContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.mapsSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Grid */
+.mapsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+/* ===== Map card ===== */
+.mapCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.mapCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: var(--shadow);
+}
+
+.thumbnail {
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+
+  position: relative;
+  isolation: isolate;
+
+  background: linear-gradient(135deg, rgba(40,168,225,0.18), rgba(20,169,175,0.14));
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.thumbnail svg,
+.thumbnail canvas,
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Title */
+.mapTitle {
+  font-size: 14px;
+  margin: 10px 12px 6px;
+  color: rgba(0,0,0,0.80);
+  font-weight: 900;
+  letter-spacing: -0.1px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* author + stars */
+.mapInfoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin: 0 12px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.60);
+}
+
+.starCountContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+  color: rgba(0,0,0,0.62);
+  font-weight: 900;
+}
+
+/* Tag chips in card */
+.tags {
+  margin: 0 12px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.85);
+  color: rgba(0,0,0,0.66);
+}
+
+/* ===== Pagination ===== */
+.pagination {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  all: unset;
+  cursor: pointer;
+
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+
+  border-radius: 999px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.85);
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.72);
+
+  display: grid;
+  place-items: center;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(20,169,175,0.18);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.activePage {
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan)) !important;
+}
+
+/* ===== Tags sidebar ===== */
+.tagsSidebar {
+  width: 240px;
+  min-width: 240px;
+  flex-shrink: 0;
+
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+
+  padding: 12px;
+  align-self: flex-start;
+}
+
+.tagsSidebar h2 {
+  margin: 4px 6px 10px;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.78);
+  letter-spacing: -0.1px;
+}
+
+.tagsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 70vh;
+  overflow: auto;
+  padding: 6px;
+}
+
+/* Checkbox rows become pill cards */
+.tagCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 10px;
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.02);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.tagCheckbox:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.07);
+  border-color: rgba(20,169,175,0.18);
+  background: rgba(20,169,175,0.05);
+}
+
+.tagCheckbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--mic-cyan);
+}
+
+.checkboxTag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.70);
+}
+
+/* ===== Skeleton (keep your existing structure, but make it match) ===== */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.skeletonTopBar,
+.skeletonResultsRow,
+.skeletonMainContent,
+.skeletonPagination {
+  margin-bottom: 14px;
+}
+
+.skeletonSortTabs {
+  display: flex;
+  gap: 8px;
+}
+
+.skeletonSortTab,
+.skeletonSearchInput,
+.skeletonSearchButton,
+.skeletonResultsText,
+.skeletonMapCard,
+.skeletonThumb,
+.skeletonLine,
+.skeletonTagTitle,
+.skeletonTagLine,
+.skeletonPageBtn {
+  background: rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.skeletonSortTab { width: 70px; height: 18px; }
+.skeletonSearchInput { width: 220px; height: 36px; border-radius: 999px; }
+.skeletonSearchButton { width: 38px; height: 38px; border-radius: 999px; }
+.skeletonResultsText { width: 160px; height: 18px; border-radius: 999px; }
+
+.skeletonMainContent {
+  display: flex;
+  gap: 16px;
+}
+
+.skeletonMapsGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.skeletonMapCard {
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonThumb {
+  width: 100%;
+  height: 150px;
+  border-radius: 14px;
+}
+
+.skeletonLine {
+  width: 100%;
+  height: 12px;
+  border-radius: 10px;
+}
+
+.skeletonTagsSidebar {
+  width: 240px;
+  min-width: 240px;
+  border-radius: var(--radius-lg);
+}
+
+.skeletonTagTitle { width: 120px; height: 16px; margin-bottom: 10px; }
+.skeletonTagLine { width: 100%; height: 12px; border-radius: 10px; }
+
+.skeletonPagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.skeletonPageBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+}
+
+.skeletonSortTab::after,
+.skeletonSearchInput::after,
+.skeletonSearchButton::after,
+.skeletonResultsText::after,
+.skeletonMapCard::after,
+.skeletonThumb::after,
+.skeletonLine::after,
+.skeletonTagTitle::after,
+.skeletonTagLine::after,
+.skeletonPageBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.60) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.15s infinite;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1000px) {
+  .mainContent {
+    flex-direction: column;
   }
-  
+
+  .tagsSidebar,
+  .skeletonTagsSidebar {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tagsList {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .exploreContentContainer {
+    padding: 18px;
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchForm {
+    width: 100%;
+  }
+
+  .searchInputContainer {
+    width: 100%;
+  }
+
+  .searchInputContainer input {
+    flex: 1;
+    width: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .mapsGrid,
+  .skeletonMapsGrid {
+    grid-template-columns: 1fr;
+  }
+}

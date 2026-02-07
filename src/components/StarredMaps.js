@@ -104,6 +104,12 @@ export default function StarredMaps() {
             setIsCollapsed={setIsCollapsed}
           />
 
+
+          
+                  <div className={styles.skeletonStatsBar}>
+            <div className={styles.skeletonStatBox} />
+          </div>
+
           <div className={styles.skeletonMapsGrid}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={styles.skeletonMapCard}>
@@ -145,6 +151,16 @@ export default function StarredMaps() {
           setIsCollapsed={setIsCollapsed}
           title="Starred Maps"
         />
+
+                {/* ✅ Stats bar (like YourMaps) */}
+        <div className={styles.statsBar}>
+          <div className={styles.statBox}>
+            <FaStar className={styles.statIcon} />
+            <div className={styles.statValue}>{maps.length}</div>
+            <div className={styles.statLabel}>Starred Maps</div>
+          </div>
+        </div>
+
 
         {error ? (
           <p>Error fetching starred maps. Please try again later.</p>

@@ -1,744 +1,768 @@
-/* Container */
-.profilePageContainer {
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+
+  --bg: #f6f7fb;
+  --card: rgba(255, 255, 255, 0.92);
+  --card2: #fbfbfd;
+
+  --text: #0f172a;
+  --muted: rgba(15, 23, 42, 0.65);
+  --border: rgba(20, 24, 40, 0.12);
+
+  --shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
+  --shadowSm: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+  --r: 18px;
+  --r2: 14px;
+}
+
+/* ===== layout sanity ===== */
+.page,
+.shell,
+.main,
+.stack,
+.card,
+.heroCard,
+.modalContent {
+  min-width: 0;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.page {
   display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+.shell {
+  flex: 1;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+  width: 100%;
+}
+
+.shellCollapsed {
+  margin-left: 70px;
+}
+
+.main {
   margin-top: 60px;
-  background-color: #f7f7f7;
-  min-height: auto; /* or comment out if you need 1000px */
-  overflow-x: hidden; 
+  padding: 16px 22px 30px;
 }
 
-/* Main content (beside sidebar) */
-.profileContent {
-  flex: 1;
-  padding: 20px 40px;
-  margin-left: 250px; /* Default expanded sidebar width */
-  min-height: 100rem;
-}
-
-.contentCollapsed {
-  margin-left: 80px; /* Collapsed sidebar width */
-}
-
-/* Main Container: holds leftColumn + rightColumn */
-.mainContainer {
+/* ===== hero ===== */
+.heroCard {
+  max-width: 1100px;
+  margin: 0 auto 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 168, 225, 0.10),
+    rgba(20, 169, 175, 0.08),
+    rgba(255, 255, 255, 0.85)
+  );
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: var(--r);
+  box-shadow: var(--shadowSm);
+  padding: 14px;
   display: flex;
-  gap: 20px;
-  margin: 20px auto;
-  width: 90%;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
 }
 
-/* Left Column - Profile Info */
-.leftColumn {
-  width: 380px;
-}
-
-/* Profile Info Box */
-.profileInfoBox {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  text-align: center;
-}
-
-.profilePictureWrapper {
+.heroLeft {
   display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
 }
 
-.profilePicture {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
+.avatarWrap {
+  width: 82px;
+  height: 82px;
+  flex: 0 0 auto;
+}
+
+.avatar {
+  width: 82px;
+  height: 82px;
+  border-radius: 999px;
   object-fit: cover;
+  border: 2px solid rgba(40, 168, 225, 0.30);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.username {
-  font-size: 1.6rem;
-  color: gray;
-  margin: 0;
+.heroText {
+  min-width: 0;
 }
 
-.fullName {
-  font-size: 2.2rem;
-  margin: 5px 0 10px;
-}
-
-.infoRow {
+.heroNameRow {
   display: flex;
-  justify-content: center;
   gap: 10px;
-  margin-bottom: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
 }
 
-.infoItem {
+.heroName {
+  font-size: 18px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.88);
+  line-height: 1.1;
+}
+
+.heroHandle {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.heroMetaRow {
+  margin-top: 8px;
   display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip,
+.chipMuted,
+.chipDanger {
+  display: inline-flex;
   align-items: center;
-  font-size: 1rem;
-  color: #666;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255, 255, 255, 0.80);
+  max-width: 100%;
 }
 
-.icon {
-  margin-right: 5px;
-  color: #888;
+.chipMuted {
+  background: rgba(255, 255, 255, 0.70);
+  color: rgba(15, 23, 42, 0.65);
 }
 
-.statsRowInfo {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 10px 0;
+.chipDanger {
+  border-color: rgba(180, 35, 24, 0.20);
+  background: rgba(180, 35, 24, 0.10);
+  color: rgba(15, 23, 42, 0.78);
 }
 
-.statsItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 1rem;
-  color: #333;
-}
-
-.bio {
+.heroBio {
   margin-top: 10px;
-  font-size: 1.05rem;
-  color: #444;
-  width: fit-content;
-  margin: 10px auto;
-  text-align: left;
-
-
+  font-size: 13px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.70);
+  max-width: 760px;
+  line-height: 1.45;
 }
 
-.editProfileButton {
-  margin-top: 20px;
-  padding: 10px 16px;
-  background-color: #55957b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
+.heroStatsRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.statPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255, 255, 255, 0.80);
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.statLabel {
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.heroRight {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.pillBtn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(255, 255, 255, 0.85);
+  font-weight: 1000;
+  font-size: 13px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.editProfileButton:hover {
-  background-color: #4a846d;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
-.privateLabel {
+.pillBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+}
+
+.pillPrimary {
+  border-color: rgba(20, 169, 175, 0.25);
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.92), rgba(20, 169, 175, 0.88));
+  color: rgba(255, 255, 255, 0.96);
+}
+
+/* ===== stacked sections ===== */
+.stack {
+  max-width: 1100px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
- 
+  gap: 14px;
 }
 
-.privateLabel {
+.card {
+  background: var(--card);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: var(--r);
+  box-shadow: var(--shadowSm);
+  padding: 14px;
+}
+
+.cardHeaderRow {
   display: flex;
-  flex-direction: row;
-  margin-top: 10px;
-  justify-content: center;
-  color: #333;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.cardHeaderLeft {
+  min-width: 0;
+}
+
+.cardTitleRow {
+  display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.lockIconSmall {
-  margin: 0 3px;
-}
-/* Right Column - Tabs */
-.rightColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.cardIcon {
+  opacity: 0.8;
 }
 
-/* This row for the tab's top bar */
-.topBarRow {
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.86);
+}
+
+.cardSub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.60);
+}
+
+.cardHeaderRight {
   display: flex;
-  justify-content: space-between; 
+  gap: 10px;
   align-items: center;
-  margin-bottom: 10px; /* optional spacing */
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-/* Left side: "sortRowLeft" */
-.sortRowLeft {
-  display: flex;
+.controlRow {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Right side: "pageCountRight" */
-.pageCountRight {
-  font-weight: 500; 
-  /* or whatever style you want */
+.controlLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.60);
 }
 
-.tabs {
-  display: flex;
-  gap: 10px;
-}
-
-.tabButton {
-  background: none;
-  border: 2px solid transparent;
+.pagePill {
   padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  color: #444;
-  transition: 0.2s, border-color 0.2s;
-  display: flex;
-  align-items: center;
-
-}
-.tabButton:hover {
-  background: #f0f0f0;
-}
-.activeTab {
-  background: #eaeaea;
-  border-color: #ccc;
-  font-weight: bold;
-  color: #000;
-
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.65);
 }
 
-.tabIcon {
-  font-size: 1.2rem;
-  margin-right: 6px;
+/* controls */
+.select,
+.textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(15, 23, 42, 0.78);
+  font-size: 13px;
+  font-weight: 900;
+  outline: none;
 }
 
-.tabContent {
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  flex: 1;
+.select:focus,
+.textarea:focus {
+  border-color: rgba(40, 168, 225, 0.35);
+  box-shadow: 0 0 0 4px rgba(40, 168, 225, 0.12);
 }
 
-/* Sort row above the grid */
-.sortRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.95rem;
-  margin-bottom: 20px;
-}
-.sortSelect {
-  padding: 5px 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  cursor: pointer;
+.textarea {
+  resize: vertical;
+  min-height: 90px;
 }
 
-/* Cards Grid */
-.cardsGrid {
+.gridCards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
 }
 
-/* Map Card */
-.card {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+/* map card */
+.mapCard {
+  border-radius: var(--r2);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: var(--card2);
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  min-width: 0;
 }
 
-.card:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+.mapCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
 }
 
-
-.cardThumbnail {
+.mapThumb {
   width: 100%;
-  height: 180px;
-  background: #fafafa;
+  height: 170px;
+  background: rgba(15, 23, 42, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  position: relative; /* ✅ keeps the StaticMapThumbnail blocker contained */
+  position: relative;
 }
 
-.cardBody {
-  padding: 10px 15px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+.mapBody {
+  padding: 12px;
+  min-width: 0;
 }
 
-.cardTitle {
-  font-size: 1.2rem;
-  margin: 0 0 5px;
-  color: #333;
-  text-overflow: ellipsis;
-  overflow: hidden;
+.mapTitle {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.86);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.detailsRow {
+.mapMetaRow {
+  margin-top: 8px;
   display: flex;
   justify-content: space-between;
+  gap: 10px;
   align-items: center;
-  font-size: 0.9rem;
-  color: #666;
 }
 
-.modified {
-  font-style: italic;
+.mapMetaMuted {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.55);
 }
 
-.starDisplay {
-  display: flex;
-  font-weight: bold;
-  color: #333;
-}
-
-.starIcon {
-  margin-right: 4px;
-  color: #333;
-}
-
-/* Activity Tab */
-.activityTabContent {
-  padding: 20px;
-}
-
-/* Loading Container */
-.loadingContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
-
-/* Error message (optional) */
-.error {
-  color: #ff3333;
-  font-weight: bold;
-}
-
-.reportProfileButton {
+.mapMetaStars {
   display: inline-flex;
   align-items: center;
-  background: #f0f0f0;
-  border: none;
-  border-radius: 4px;
-  color: #555;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+/* empty / locked states */
+.emptyState {
+  padding: 16px;
+  border-radius: var(--r2);
+  border: 1px dashed rgba(20, 24, 40, 0.14);
+  color: rgba(15, 23, 42, 0.60);
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.lockedState {
+  padding: 16px;
+  border-radius: var(--r2);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+/* activity container */
+.activityWrap {
+  margin-top: 6px;
+}
+
+/* pagination */
+.pagination {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.pageBtn {
+  height: 36px;
+  min-width: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(255, 255, 255, 0.85);
   cursor: pointer;
-  margin-right: 10px;
-  margin-top: 10px;
-  padding: 4px 8px;
-  transition: background-color 0.2s, color 0.2s;
-
-}
-.reportProfileButton:hover {
-  background-color: #e0e0e0;
-}
-.reportProfileButton.active {
-  background-color: #79a6b7;
-  color: #fff;
-}
-.icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-  fill: currentColor;
+  font-weight: 1000;
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
+.pageBtn:hover:enabled {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageActive {
+  border-color: rgba(20, 169, 175, 0.25);
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.92), rgba(20, 169, 175, 0.88));
+  color: rgba(255, 255, 255, 0.96);
+}
+
+/* private gate */
+.privateCard {
+  max-width: 520px;
+  margin: 40px auto 0;
+  background: var(--card);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: var(--r);
+  box-shadow: var(--shadowSm);
+  padding: 18px;
+  text-align: center;
+}
+
+.privateIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+}
+
+.privateTitle {
+  margin: 8px 0 4px;
+  font-size: 16px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.86);
+}
+
+.privateText {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.60);
+}
+
+.errorCard {
+  max-width: 520px;
+  margin: 40px auto 0;
+  padding: 16px;
+  border-radius: var(--r);
+  border: 1px solid rgba(210, 75, 76, 0.22);
+  background: rgba(210, 75, 76, 0.08);
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+/* ===== modal (MIC style) ===== */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
   z-index: 9999;
+  background: rgba(2, 6, 23, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.modalOverlayBlur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .modalContent {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 560px;
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  max-height: 86vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.modalSub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.60);
+}
+
+.modalX {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(15, 23, 42, 0.70);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.modalX:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+}
+
+.modalButtons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.primaryBtn,
+.cancelBtn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(255, 255, 255, 0.85);
+  font-weight: 1000;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.primaryBtn {
+  border-color: rgba(20, 169, 175, 0.25);
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.92), rgba(20, 169, 175, 0.88));
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.primaryBtn:hover:enabled,
+.cancelBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
 }
 
 .reportOptions {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
-}
-
-.reportOption {
-  margin-bottom: 0.5rem;
-}
-
-.reportDetails textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-}
-
-.modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.modalActions button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: #ccc;
-}
-
-.modalActions button:first-child {
-  background-color: #79a6b7;
-  color: #fff;
-}
-
-.disabledSection {
-  display: flex;
-  align-items: center;
-}
-
-.lockIcon {
-  width: 15px;
-  height: 15px;
-  margin-right: 5px;
-  fill: currentColor;
-}
-
-/* Loading states, success container, etc. */
-.loadingContainer,
-.successContainer {
-  text-align: center;
-  padding: 2rem;
-}
-
-.pagination {
-  display: flex;
-  gap: 5px;
-  margin-top: 20px;
-  justify-content: center;
-}
-
-.pagination button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.pagination button:hover:not(:disabled) {
-  background-color: #ccc;
-}
-
-.pagination button:disabled {
-  background-color: #f2f2f2;
-  cursor: not-allowed;
-}
-
-.activePage {
-  background-color: #999; /* or any highlight color you want */
-  color: #fff;
-}
-
-
-
-/* RESPONSIVE RULES */
-
-/* 1) Remove left margin below 1000px */
-@media (max-width: 1000px) {
-  .profileContent {
-    margin-left: 0 !important;
-    width: 100%;
-  }
-  .contentCollapsed {
-    margin-left: 0 !important;
-  }
-}
-
-/* 2) Stack columns below 768px */
-@media (max-width: 768px) {
-  .mainContainer {
-    flex-direction: column;
-  }
-  .leftColumn {
-    width: 100%;
-  }
-  .rightColumn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 600px) {
-  .profileContent {
-    padding: 0px;
-  }
-
-  .activityTabContent {
-    padding: 0px;
-  }
-
-  .tabContent {
-    padding: 10px;
-  }
-
-  .cardThumbnail {
-    height: 100%; /* smaller */
-  }
-}
-
-/* 3) Further shrink for very small ~400px screens */
-@media (max-width: 400px) {
-  .fullName {
-    font-size: 1.6rem;
-  }
-  .bio {
-    font-size: 0.95rem;
-  }
-  .cardsGrid {
-    grid-template-columns: 1fr; /* single column */
-  }
-  
-  .tabButton {
-    font-size: 0.9rem;
-    padding: 6px 8px;
-  }
-  .cardTitle {
-    font-size: 1rem;
-  }
-  .infoItem {
-    font-size: 0.9rem;
-  }
-  .statsItem {
-    font-size: 0.9rem;
-  }
-}
-
-
-/* --------------------------------------------------------------------- */
-/* -- SKELETON SECTION (new) ------------------------------------------- */
-/* --------------------------------------------------------------------- */
-
-/* Basic shimmer keyframe used for all skeleton placeholders */
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-.skeletonShimmer {
-  position: relative;
-  overflow: hidden;
-  background-color: #eee; /* base color of skeleton */
-}
-.skeletonShimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 50%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255,255,255,0.4) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
-}
-
-/* The container that mimics .mainContainer layout during skeleton */
-.skeletonProfileContainer {
-  display: flex;
-  gap: 20px;
-  margin: 20px auto;
-  width: 90%;
-}
-
-/* Left column skeleton: matches the size of .leftColumn & .profileInfoBox */
-.skeletonProfileLeftColumn {
-  width: 320px;
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-
-/* 2) Apply box-sizing to skeleton columns so padding doesn't make them exceed 100% */
-.skeletonProfileLeftColumn,
-.skeletonProfileRightColumn {
-  box-sizing: border-box;
-}
-
-
-.skeletonProfilePic {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background-color: #ddd;
-  margin-bottom: 15px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Generic skeleton line (like a text line). Adjust width/height inline. */
-.skeletonLine {
-  width: 100%;
-  height: 12px;
-  border-radius: 4px;
-  background-color: #eee;
-  margin: 8px 0;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Right column skeleton: matches the size of .rightColumn & .tabContent */
-.skeletonProfileRightColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Skeleton placeholders for the tabs row */
-.skeletonTabs {
-  display: flex;
   gap: 10px;
-}
-
-.skeletonTab {
-  border-radius: 4px;
-  background-color: #ddd;
-}
-
-/* The skeleton grid for map cards or starred cards */
-.skeletonCardsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
   margin-top: 10px;
 }
 
-/* Skeleton card that mimics .card structure */
-.skeletonCard {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  overflow: hidden;
+.reportOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.78);
 }
 
-/* The "thumbnail" area on the card */
-.skeletonCardThumbnail {
-  width: 100%;
-  height: 180px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  background-color: #eee;
-  position: relative;
-  overflow: hidden;
+.reportOption input {
+  margin: 0;
 }
 
-/* Skeleton lines within the card body */
-.skeletonCardText {
-  width: 80%;
-  height: 14px;
+.reportDetails {
+  margin-top: 12px;
+}
+
+.reportLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.70);
   margin-bottom: 6px;
-  border-radius: 4px;
-  background-color: #eee;
-  position: relative;
-  overflow: hidden;
 }
 
-.skeletonCardTextShort {
-  width: 40%;
-  height: 14px;
-  border-radius: 4px;
-  background-color: #eee;
-  position: relative;
-  overflow: hidden;
-}
-
-/* For the private profile box in skeleton if needed (not used here) */
-.privateProfileBox {
+.modalState {
   text-align: center;
+  padding: 16px 6px;
 }
 
-/* ------------------------------------------
-   SKELETON RESPONSIVE STYLES
-   Matches .mainContainer breakpoints
-------------------------------------------- */
-/* 3) On smaller screens, reduce default widths/padding for skeleton columns */
-@media (max-width: 768px) {
-  .skeletonProfileContainer {
-    flex-direction: column;       /* already present, ensure it's applied */
-    width: 95%;                   /* narrower container so it fits more snugly */
-    margin: 10px auto;           /* reduce margin */
-  }
-  
-  .skeletonProfileLeftColumn {
-    width: 100% !important;      /* override the 320px for mobile */
-    margin-bottom: 20px;
-    padding: 20px;               /* reduce from 30px if needed */
-  }
-  
-  .skeletonProfilePic {
-    width: 120px;                /* scale down the skeleton pic */
-    height: 120px;
-  }
-  
-  .skeletonProfileRightColumn {
-    width: 100% !important;
-    padding: 0 10px;             /* optional padding if you want some space */
+/* ===== skeleton ===== */
+@keyframes shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 14px;
+}
+
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 60%;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.70), transparent);
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.skeletonWrap {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.skeletonHero {
+  background: var(--card);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: var(--r);
+  box-shadow: var(--shadowSm);
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.skelCircle {
+  width: 82px;
+  height: 82px;
+  border-radius: 999px;
+}
+
+.skelCol {
+  flex: 1;
+}
+
+.skelLineLg { height: 18px; width: 45%; margin-bottom: 10px; }
+.skelLineMd { height: 14px; width: 35%; margin-bottom: 10px; }
+.skelLineSm { height: 12px; width: 55%; margin-bottom: 8px; }
+.skelLineXs { height: 12px; width: 30%; margin-bottom: 0; }
+
+.skeletonCard {
+  margin-top: 14px;
+  background: var(--card);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: var(--r);
+  box-shadow: var(--shadowSm);
+  padding: 14px;
+}
+
+.skelGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.skelCardMini {
+  border-radius: var(--r2);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: var(--card2);
+  overflow: hidden;
+  padding-bottom: 12px;
+}
+
+.skelThumb {
+  width: 100%;
+  height: 170px;
+  border-radius: 0;
+}
+
+/* ===== responsive ===== */
+@media (max-width: 1050px) {
+  .shell,
+  .shellCollapsed {
+    margin-left: 0 !important;
   }
 }
 
-/* 4) On very small screens (under 400px), shrink things further */
-@media (max-width: 400px) {
-  /* Force the skeleton container narrower if needed */
-  .skeletonProfileContainer {
-    width: 90%;
-    margin: 10px auto;
+@media (max-width: 800px) {
+  .heroCard {
+    flex-direction: column;
+    align-items: stretch;
   }
-
-  .skeletonProfileLeftColumn {
-    padding: 15px;       /* even smaller padding if needed */
-  }
-  
-  .skeletonProfilePic {
-    width: 90px;         /* scale the circle down more */
-    height: 90px;
-  }
-
-  /* Also ensure the skeleton grid on the right side remains single column */
-  .skeletonCardsGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  /* If your "thumbnail" is too tall, reduce again */
-  .skeletonCardThumbnail {
-    height: 140px;
+  .heroRight {
+    justify-content: flex-end;
   }
 }

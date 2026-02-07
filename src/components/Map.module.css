@@ -1,172 +1,432 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* --------------------------------------------------
- * Map.module.css  ◆ 2 Jun 2025
- * -------------------------------------------------- */
+/* =========================
+   MIC TOKENS (local)
+   ========================= */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+  --mic-orange: #fc861d;
 
-/* 1 ▸ hover highlight */
+  --text: rgba(0,0,0,0.82);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+}
+
+
+/* =========================
+   MAP SHELL
+   ========================= */
+.mapRoot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mapCanvas {
+  width: 100%;
+  height: auto;
+  max-height: 100dvh;
+  display: block;
+}
+
+
+/* base */
+.mapCanvas path,
+.mapCanvas polygon,
+.mapCanvas rect {
+  stroke: rgba(0,0,0,0.22);
+  stroke-width: var(--stroke-w, 0.7);
+  vector-effect: non-scaling-stroke;
+  transition: filter 120ms ease, stroke 120ms ease, stroke-width 120ms ease;
+}
+
+/* hover: keep fill, just brighten/saturate a bit */
+.mapCanvas .hovered {
+  stroke: rgba(20,169,175,0.55) !important;
+  stroke-width: 1.3 !important;
+  filter: brightness(1.12) saturate(1.10);
+  stroke-width: var(--stroke-hover-w, 1.0) !important;
+}
+
+/* active: slightly stronger + subtle glow */
+.mapCanvas .active {
+  stroke: var(--mic-cyan) !important;
+  stroke-width: var(--stroke-active-w, 1.4) !important;
+  filter:
+    brightness(1.18) saturate(1.15)
+    drop-shadow(0 0 2px rgba(20,169,175,0.40))
+    drop-shadow(0 0 6px rgba(20,169,175,0.22));
+}
+
+/* default anti-flash fill ONLY while painting */
+.mapCanvas.isPainting path[id],
+.mapCanvas.isPainting polygon[id],
+.mapCanvas.isPainting rect[id] {
+  fill: var(--unassigned, #dedede) !important;
+}
+
+/* once ready, don't force fill — let inline styles from JS win */
+.mapCanvas.isReady path[id],
+.mapCanvas.isReady polygon[id],
+.mapCanvas.isReady rect[id] {
+  fill: unset;
+}
+
+/* default: thin (dashboard/explore/etc) */
+.mapCanvas[data-stroke="thin"]{
+  --stroke-w: 0.1;
+  --stroke-hover-w: 0.95;
+  --stroke-active-w: 1.25;
+}
+
+/* big map: thick (DataIntegration/MapDetail) */
+.mapCanvas[data-stroke="thick"]{
+  --stroke-w: 0.9;
+  --stroke-hover-w: 1.35;
+  --stroke-active-w: 1.7;
+}
+
+
+/* =========================
+   HOVER / SELECT HIGHLIGHT
+   ========================= */
+/* This is applied via el.classList.add(cls.hovered) */
+/* FAST hover highlight (no filters) */
+
+
+
+/* Hover = crisp outline */
 .hovered {
-  stroke: white;
-  stroke-width: 1.5;
-  filter: brightness(1.25);
   cursor: pointer;
+  stroke: var(--mic-cyan); /* or --mic-cyan */
+  stroke-width: 1.6;
+  opacity: 1;
+  vector-effect: non-scaling-stroke;
+  transition: opacity 120ms ease, stroke 120ms ease, stroke-width 120ms ease;
 }
 
-/* 2 ▸ tooltip that never steals the pointer */
-.tooltip {
-  position: fixed;
-  pointer-events: none;
-  z-index: 999;
-  background: rgb(24, 24, 24);
-  color: #fff;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  font-size: 0.875rem;
-  white-space: nowrap;
+/* Selected/active = outline + subtle glow */
+.active {
+  cursor: pointer;
+  stroke: var(--mic-cyan);
+  stroke-width: 2.2;
+  opacity: 1;
+  vector-effect: non-scaling-stroke;
+  filter:
+    brightness(1.12) saturate(0.95)
+    drop-shadow(0 0 2px rgba(20,169,175,0.55))
+    drop-shadow(0 0 6px rgba(20,169,175,0.25));
 }
 
-/* 3 ▸ info-box ----------------------------------------------------- */
-/* ▼ replace the whole .infoBox rule */
-.infoBox {
-  position: absolute;        /* ⟵ from fixed → absolute (relative to .mapRoot) */
-  top: 50%;                  /* centre vertically */
-  right: 1rem;
-  transform: translateY(-50%);
 
-  max-width: 20rem;
-  width: 300px;
-  max-height: 90%;           /* use % → stays inside map even when zoomed */
-  overflow-y: auto;
-
-  background: #ffffff63;
-  color: #111;
-  border-radius: 1rem;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35);
-  padding: 1.25rem 1rem 1.5rem;
-
-  z-index: 10;               /* no pointer-locking problems */
-  animation: slideIn 250ms ease-out;
+/* If active + hovered both happen, active wins */
+.active.hovered {
+  stroke-width: 2.2;
+  opacity: 1;
+  filter:
+    brightness(1.18) saturate(0.92)
+    drop-shadow(0 0 2px rgba(255,255,255,0.55))
+    drop-shadow(0 0 6px rgba(255,255,255,0.25));
 }
 
-/* optional: on small screens pin it lower so fat fingers reach it */
-@media (max-width: 640px) {
-  .infoBox {
-    top: auto;
-    bottom: 1rem;
-    transform: none;
+
+/* If active, ignore hover styling */
+.active.hovered {
+  stroke-width: 2.2;
+  opacity: 1;
+}
+
+/* optional: if some paths get too thick on zoom */
+@media (max-width: 700px) {
+  .hovered {
+    stroke-width: 1.4;
   }
 }
 
+/* =========================
+   TOOLTIP (MIC GLASS)
+   ========================= */
+@keyframes popInSoft {
+  from { transform: translateY(-6px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0)   scale(1);    opacity: 1; }
+}
 
-/* ── header row (flag · name · ×) ---------------------------------- */
+.tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 999;
+
+  /* NO backdrop-filter here */
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.10);
+
+  padding: 10px 12px;
+
+  color: rgba(0,0,0,0.82);
+  font-size: 12px;
+  font-weight: 900;
+
+  will-change: transform;
+}
+
+
+/* Make your inner bits (strong + value line) fit */
+.tooltip strong {
+  font-weight: 1000;
+  color: rgba(0,0,0,0.84);
+}
+
+.tooltip div {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
+}
+
+/* If you want the flag to look nicer */
+.tooltip img {
+  width: 20px;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.10);
+  margin-right: 8px;
+  vertical-align: -4px;
+}
+
+/* =========================
+   INFO BOX (MIC CARD)
+   ========================= */
+.infoBox {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+
+  width: 320px;
+  max-width: min(360px, calc(100vw - 24px));
+  max-height: min(78vh, calc(100vh - 120px));
+  overflow: hidden;
+
+  
+
+  /* glass card like notifications */
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+
+  padding: 14px;
+  z-index: 10;
+
+  transform-origin: right center;
+  animation: popInSoft 140ms ease-out;
+}
+
+/* small premium arrow */
+.infoBox::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+
+  background: rgba(255,255,255,0.90);
+  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+/* header with accent bar */
 .infoBoxHeader {
-  position: relative;       /* so the × can sit absolutely inside */
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 10px;
+  height: 28px;
+
+  overflow-y: hidden;
+  overflow-x: hidden;
+
+  padding: 12px 12px;
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.12),
+    rgba(20,169,175,0.10)
+  );
+
+  border: 1px solid rgba(0,0,0,0.06);
+  margin-bottom: 12px;
+}
+
+/* left accent like notifications unread bar */
+.infoBoxHeader::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(40,168,225,0.95), rgba(20,169,175,0.85));
+  opacity: 0.95;
 }
 
 .infoBoxHeader img {
-  width: 1.75rem;           /* 28 px flag */
+  width: 34px;
   height: auto;
-  border-radius: 0.1875rem;
+  border-radius: 8px;
   flex-shrink: 0;
+
+  border: 2px solid rgba(255,255,255,0.95);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.04);
 }
 
 .infoBoxHeader h2 {
-  font-size: 1.125rem;      /* text-lg */
-  font-weight: 600;
-  line-height: 1.2;
-  flex: 1 1 auto;           /* take the remaining width */
-  white-space: nowrap;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  color: rgba(0,0,0,0.84);
+
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 42px; /* room for close btn */
 }
 
-/* ── close button --------------------------------------------------- */
+/* Close button */
 .closeBtn {
+  all: unset;
   position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
+  top: 10px;
+  right: 10px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
 
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.25rem;       /* nicer glyph size */
-  line-height: 1;
-  border: none;
-  background: transparent;
-  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+
   cursor: pointer;
-  transition: background 120ms ease-in-out;
-}
-.closeBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
+  font-size: 18px;
+  font-weight: 1000;
+  line-height: 1;
+
+  color: rgba(0,0,0,0.70);
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.70);
+
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  transition: transform 120ms ease, filter 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
-/* ── value row with colour swatch ---------------------------------- */
+.closeBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  filter: brightness(0.99);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+}
+
+.closeBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+/* Value row */
 .valueRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;      /* text-sm */
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.78);
 }
 
-.valueRow .swatch {
-  width: 0.875rem;          /* 14 px */
-  height: 0.875rem;
-  border-radius: 9999px;
-  border: 1px solid #0003;
+/* Swatch */
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.18);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
   flex-shrink: 0;
 }
-/* Map.module.css */
-.mapCanvas{
-  width:100%;
-  height:auto;          /* keep aspect ratio */
-  max-height:100dvh;    /* never spill over on phones */
-  display:block;        /* remove inline-gap */
-}
 
-.mapRoot{
-  position:relative;     /* not fixed any more                 */
-  width:100%;
-  height:100%;           /* inherits from the full-screen wrapper */
-  overflow:hidden;       /* same behaviour you had before      */
-}
-
+/* Description */
 .placeholderText {
-  margin-top: 14px;
+  margin-top: 12px;
+  padding: 10px 12px;
+
+  border-radius: 14px;
+  background: rgba(20,169,175,0.06);
+  border: 1px solid rgba(20,169,175,0.18);
+
   font-size: 12px;
+  font-weight: 850;
+  color: rgba(0,0,0,0.72);
   line-height: 1.35;
-  opacity: 0.85;
-  white-space: pre-wrap; /* ✅ preserve line breaks */
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .placeholderEmpty {
-  margin-top: 14px;
+  margin-top: 12px;
+  padding: 10px 12px;
+
+  border-radius: 14px;
+  background: rgba(0,0,0,0.03);
+  border: 1px dashed rgba(0,0,0,0.12);
+
   font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.52);
   line-height: 1.35;
-  opacity: 0.6;
   font-style: italic;
 }
 
-
-
-/* 4 ▸ fade/slide-in */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translate(1rem, -50%);
+/* =========================
+   RESPONSIVE: mobile dock
+   ========================= */
+@media (max-width: 700px) {
+  .infoBox {
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    max-height: 45vh;
   }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
+
+  .infoBox::before {
+    display: none;
   }
 }

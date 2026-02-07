@@ -343,24 +343,26 @@ useLayoutEffect(() => {
   return (
     <div className={styles.sidebarContainer}>
       {/* TAB ROW */}
-      <div className={styles.tabRow}>
-        <div
-          className={`${styles.tabItem} ${
-            mapDataType === 'choropleth' ? styles.activeTab : ''
-          }`}
-          onClick={() => handleTabClick('choropleth')}
-        >
-          Choropleth
-        </div>
-        <div
-          className={`${styles.tabItem} ${
-            mapDataType === 'categorical' ? styles.activeTab : ''
-          }`}
-          onClick={() => handleTabClick('categorical')}
-        >
-          Categorical
-        </div>
-      </div>
+<div className={styles.tabRow}>
+  <button
+    type="button"
+    className={`${styles.tabBtn} ${mapDataType === "choropleth" ? styles.tabActive : ""}`}
+    onClick={() => handleTabClick("choropleth")}
+  >
+    <span className={styles.tabIcon}>▦</span>
+    <span>Choropleth</span>
+  </button>
+
+  <button
+    type="button"
+    className={`${styles.tabBtn} ${mapDataType === "categorical" ? styles.tabActive : ""}`}
+    onClick={() => handleTabClick("categorical")}
+  >
+    <span className={styles.tabIcon}>🏷️</span>
+    <span>Categorical</span>
+  </button>
+</div>
+
 
   {/* UPLOAD BUTTON */}
 <div className={styles.uploadButtonWrap}>
@@ -371,7 +373,7 @@ useLayoutEffect(() => {
     <span className={styles.uploadCtaText}>Upload Data</span>
   </button>
 </div>
-
+<div className={styles.sortCard}>
       <div className={styles.sortRow}>
   <label className={styles.sortLabel}>Sort:</label>
 <select
@@ -399,7 +401,7 @@ useLayoutEffect(() => {
 </select>
 
 </div>
-
+</div>
 
      
      {/* MAIN SCROLLABLE LIST */}

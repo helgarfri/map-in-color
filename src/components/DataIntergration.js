@@ -18,7 +18,15 @@ import useUnsavedChangesPrompt from "../hooks/useUnsavedChangesPrompt";
 
 // Icons, contexts, etc.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGlobe, faLock, faCaretDown, faSave, faCheckCircle, faCloudArrowUp, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
+import {
+  faGlobe,
+  faLock,
+  faCaretDown,
+  faSave,
+  faCheckCircle,
+  faCloudArrowUp,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
 
@@ -30,7 +38,7 @@ import MapPreview from "./Map";
 
 /** Example Color Palettes **/
 const themes = [
-  { name: "None", colors: Array(10).fill("#c3c3c3") },
+  { name: "None", colors: Array(10).fill("#c0c0c0") },
   {
     name: "Mic Blues",
     colors: [
@@ -65,7 +73,7 @@ const themes = [
 
 /** Example Map Themes **/
 const map_themes = [
-  { name: "Default", ocean_color: "#ffffff", font_color: "black", unassigned_color: "#c0c0c0" },
+  { name: "Default", ocean_color: "#c0c0c0", font_color: "black", unassigned_color: "c0c0c0" },
   { name: "Muted Twilight", ocean_color: "#3D3846", font_color: "white", unassigned_color: "#5E5C64" },
 ];
 
@@ -81,7 +89,129 @@ const defaultFileStats = {
   totalCountries: 0,
 };
 
-export default function DataIntegration({ existingMapData = null, isEditing = false }) {
+const DEFAULT_RANGES = () => [
+  { id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }
+];
+
+const DEFAULT_GROUPS = () => [
+  { id: Date.now() + Math.random(), name: "", color: "#c0c0c0" },
+];
+
+
+const DEFAULT_COLOR = "#c0c0c0";
+
+function isValidHex6(v) {
+  return /^#[0-9a-f]{6}$/i.test(String(v ?? ""));
+}
+
+function clampHexInput(raw) {
+  let s = String(raw ?? "");
+  s = s.replace(/^#/, "");
+  s = s.replace(/[^0-9a-fA-F]/g, "");
+  s = s.slice(0, 6);
+  return "#" + s;
+}
+
+function ColorCell({ color, onChange, styles }) {
+  const colorRef = React.useRef(null);
+
+  const [draft, setDraft] = React.useState(
+    isValidHex6(color) ? color.toLowerCase() : DEFAULT_COLOR
+  );
+
+  const lastValidRef = React.useRef(
+    isValidHex6(color) ? color.toLowerCase() : DEFAULT_COLOR
+  );
+
+  const isEditingRef = React.useRef(false);
+
+  useEffect(() => {
+  document.body.classList.add("scrollLocked");
+  return () => document.body.classList.remove("scrollLocked");
+}, []);
+
+
+  React.useEffect(() => {
+    const nextValid = isValidHex6(color) ? String(color).toLowerCase() : null;
+    if (nextValid) lastValidRef.current = nextValid;
+
+    if (!isEditingRef.current) {
+      setDraft(nextValid || lastValidRef.current);
+    }
+  }, [color]);
+
+  
+
+  const applyLiveFromDraft = (nextDraft) => {
+    const digits = nextDraft.slice(1).toLowerCase();
+    if (digits.length === 0) return;
+
+    const base = lastValidRef.current.slice(1).toLowerCase();
+    const combined = (digits + "000000").slice(0, 6);
+
+    onChange("#" + combined);
+  };
+
+  const swatchColor = isValidHex6(color)
+    ? color.toLowerCase()
+    : lastValidRef.current;
+
+  return (
+    <div className={styles.colorCell}>
+      <input
+        ref={colorRef}
+        type="color"
+        value={swatchColor}
+        onChange={(e) => {
+          const picked = String(e.target.value).toLowerCase();
+          lastValidRef.current = picked;
+          onChange(picked);
+          setDraft(picked);
+        }}
+        className={styles.hiddenColorInput}
+        aria-label="Pick color"
+      />
+
+      <button
+        type="button"
+        className={styles.swatchButton}
+        onClick={() => colorRef.current?.click()}
+        aria-label="Pick color"
+        title="Pick color"
+        style={{ background: swatchColor }}
+      />
+
+      <input
+        type="text"
+        className={styles.hexInput}
+        value={draft}
+        onFocus={() => {
+          isEditingRef.current = true;
+        }}
+        onBlur={() => {
+          isEditingRef.current = false;
+          const committed = isValidHex6(color)
+            ? String(color).toLowerCase()
+            : lastValidRef.current;
+          lastValidRef.current = committed;
+          setDraft(committed);
+        }}
+        onChange={(e) => {
+          const nextDraft = clampHexInput(e.target.value);
+          setDraft(nextDraft);
+          applyLiveFromDraft(nextDraft);
+        }}
+        maxLength={7}
+        placeholder="#RRGGBB"
+        spellCheck={false}
+        inputMode="text"
+      />
+    </div>
+  );
+}
+
+
+export default function DataIntegration({ existingMapData = null, isEditing = false , externalLoading = false,}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
@@ -109,7 +239,13 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const [custom_ranges, setCustomRanges] = useState(
     existingMapData?.custom_ranges || [{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]
   );
-  const [groups, setGroups] = useState(existingMapData?.groups || []);
+  const DEFAULT_GROUP = { id: Date.now(), name: "", color: "#c0c0c0" };
+
+  const [groups, setGroups] = useState(
+    (existingMapData?.groups && existingMapData.groups.length > 0)
+      ? existingMapData.groups
+      : [DEFAULT_GROUP]
+  );
 
   // theme/colors
   const [ocean_color, setOceanColor] = useState(existingMapData?.ocean_color || "#ffffff");
@@ -137,9 +273,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   // upload modal
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  // UI
-  const [editingRangeId, setEditingRangeId] = useState(null);
-  const [editingCategoryId, setEditingCategoryId] = useState(null);
+
 
   // leave confirm modal
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -157,10 +291,24 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const [saveProgress, setSaveProgress] = useState(0);
 
 
+  const nextGroupIdRef = useRef(1);
+
+const [loading, setLoading] = useState(true);
+
+  const makeGroupId = () => `group_${nextGroupIdRef.current++}`;
+
+  const normalizeGroup = (g) => ({
+    id: g?.id ?? makeGroupId(),
+    name: String(g?.name ?? "").trim(),
+    color: (g?.color ?? "#c0c0c0").toLowerCase(),
+  });
 
 
   const normCode = (c) => (c == null ? null : String(c).trim().toUpperCase());
 
+useEffect(() => {
+  setLoading(externalLoading);
+}, [externalLoading]);
 
 
   // Collapse the main sidebar for small screens
@@ -185,7 +333,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
       setTags([]);
       setIsPublic(true);
       setCustomRanges([{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
-      setGroups([]);
+      setGroups([normalizeGroup(DEFAULT_GROUP)]);
       setOceanColor("#ffffff");
       setUnassignedColor("#c0c0c0");
       setFontColor("black");
@@ -211,7 +359,10 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
       existingMapData.custom_ranges || [{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]
     );
 
-    setGroups(existingMapData.groups || []);
+const hydrated = (existingMapData.groups || []).map(normalizeGroup);
+setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
+
+
     setOceanColor(existingMapData.ocean_color || "#ffffff");
     setUnassignedColor(existingMapData.unassigned_color || "#c0c0c0");
     setFontColor(existingMapData.font_color || "black");
@@ -232,7 +383,10 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const handleOpenUploadModal = () => setShowUploadModal(true);
 
   const handleImportData = (parsedData, stats, importedType) => {
-    if (importedType && importedType !== mapDataType) setMapDataType(importedType);
+    if (importedType && importedType !== mapDataType) {
+        handleChangeDataType(importedType);
+      }
+
 
     if (importedType === "choropleth") {
       const next = parsedData.map((r) => ({
@@ -257,28 +411,59 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
     new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b));
 
-  setGroups((prev) => {
-    const prevArr = Array.isArray(prev) ? prev : [];
-    const byName = new Map(
-      prevArr.map((g) => [String(g?.name ?? "").trim(), ensureGroupShape(g)])
-    );
+setGroups((prev) => {
+  const prevArr = (Array.isArray(prev) ? prev : []).map(normalizeGroup);
 
-    const merged = [...prevArr.map(ensureGroupShape)];
+  const byName = new Map(prevArr.map((g) => [g.name, g]));
 
-    for (const cat of importedCats) {
-      if (!byName.has(cat)) {
-        merged.push({ id: Date.now() + Math.random(), name: cat, color: "#c0c0c0" });
-      }
+  const merged = [...prevArr];
+
+  for (const cat of importedCats) {
+    if (!byName.has(cat)) {
+      merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
     }
+  }
 
-    // optional: keep table stable alphabetical
-    merged.sort((a, b) => String(a.name).localeCompare(String(b.name)));
-    return merged;
-  });
+  merged.sort((a, b) => a.name.localeCompare(b.name));
+  return merged;
+});
+
 }
 
     setShowUploadModal(false);
   };
+
+
+  const handleChangeDataType = (nextTypeRaw) => {
+  const nextType = String(nextTypeRaw || "").toLowerCase();
+  if (nextType !== "choropleth" && nextType !== "categorical") return;
+
+  setMapDataType((prevType) => {
+    if (prevType === nextType) return prevType;
+
+    // ✅ clear the "other table" so it doesn't come back with old values
+    if (nextType === "categorical") {
+      setCustomRanges(DEFAULT_RANGES());
+      // optional but recommended: clear numeric values (so categories start clean)
+      setData((prev) =>
+        (Array.isArray(prev) ? prev : []).map((d) => ({
+          ...d,
+          value: "", // categorical expects string
+        }))
+      );
+    }  else {
+      // ✅ don't clear groups; keep them so switching back doesn't feel destructive
+      setData((prev) =>
+        (Array.isArray(prev) ? prev : []).map((d) => ({ ...d, value: null }))
+      );
+      setFileStats(defaultFileStats);
+    }
+
+
+        return nextType;
+      });
+    };
+
 
   // Palette helpers
   function applyPalette(ranges, paletteColors) {
@@ -349,18 +534,16 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 // each group: { id, name, color }
 // ============================
 
-const ensureGroupShape = (g) => ({
-  id: g?.id ?? Date.now(),
-  name: String(g?.name ?? "").trim(),
-  color: (g?.color ?? "#c0c0c0").toLowerCase(),
-});
+const ensureGroupShape = (g) => normalizeGroup(g);
+
 
 const addCategory = () => {
   setGroups((prev) => [
     ...(Array.isArray(prev) ? prev : []),
-    { id: Date.now(), name: "", color: "#c0c0c0" },
+    normalizeGroup({ name: "", color: "#c0c0c0" }),
   ]);
 };
+
 
 const updateCategory = (id, field, value) => {
   setGroups((prev) =>
@@ -403,15 +586,16 @@ const renameCategory = (id, newNameRaw) => {
 
 
 const removeCategory = (id) => {
+  // ✅ block removing the last category
+  if ((Array.isArray(groups) ? groups : []).length <= 1) return;
+
   const removedName = (() => {
     const g = (Array.isArray(groups) ? groups : []).find((x) => x.id === id);
     return String(g?.name ?? "").trim();
   })();
 
-  // remove from groups
   setGroups((prev) => (Array.isArray(prev) ? prev.filter((g) => g.id !== id) : []));
 
-  // optional (recommended): clear any countries that used that category
   if (removedName) {
     setData((prev) =>
       (Array.isArray(prev) ? prev : []).map((d) => {
@@ -521,10 +705,11 @@ const removeCategory = (id) => {
     return v == null ? "" : String(v).trim();
   }
   function countryLabel(d) {
-    const n = d.name ? String(d.name).trim() : "";
-    const c = d.code ? String(d.code).trim() : "";
-    return (n || c).toLowerCase();
-  }
+  const n = d.name ? String(d.name).trim() : "";
+  const c = d.code ? String(d.code).trim() : "";
+  return n || c; // ✅ keep original form
+}
+
 
 const categoryRows = useMemo(() => {
   if (mapDataType !== "categorical") return [];
@@ -576,6 +761,8 @@ const categoryRows = useMemo(() => {
 }, [mapDataType, groups, mapDataNormalized]);
 
 
+
+
   const categoryOptions = useMemo(() => {
   const arr = Array.isArray(groups) ? groups : [];
   return arr
@@ -584,15 +771,17 @@ const categoryRows = useMemo(() => {
 }, [groups]);
 
 
- const renderCategoriesTable = () => {
+
+
+
+
+const renderCategoriesTable = () => {
   const rows = categoryRows;
 
   return (
-    <div className={styles.section}>
-      <h3>Categories</h3>
-
+    <>
       {rows.length === 0 ? (
-        <p style={{ fontStyle: "italic" }}>No categories defined or assigned yet.</p>
+        <p className={styles.mutedText}>No categories yet.</p>
       ) : (
         <table className={styles.rangeTable}>
           <thead>
@@ -606,53 +795,50 @@ const categoryRows = useMemo(() => {
 
           <tbody>
             {rows.map((row) => {
-              const isEditingRow = String(editingCategoryId) === String(row.id);
-              const canEdit = row.isDefined; // only editable if it’s an actual group
+              const canEdit = row.isDefined;
 
               return (
                 <tr key={row.id}>
-                  <td style={{ maxWidth: 380 }}>
+                  <td className={styles.countriesCell}>
                     {row.count ? (
                       <>
                         <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
                           {row.count} countries
                         </div>
-                        <div style={{ fontSize: 12, lineHeight: 1.3, wordBreak: "break-word" }}>
+                        <div className={styles.countriesList}>
                           {row.countries.join(", ")}
                         </div>
                       </>
                     ) : (
-                      <span style={{ fontStyle: "italic", opacity: 0.7 }}>No countries assigned</span>
+                      <span className={styles.mutedText}>No countries assigned yet.</span>
                     )}
                   </td>
 
                   <td>
-                    {isEditingRow && canEdit ? (
+                    {canEdit ? (
                       <input
-                        className={styles.inputBox}
+                        className={styles.tableInputText}
                         value={row.name}
                         onChange={(e) => updateCategory(row.id, "name", e.target.value)}
+                        onBlur={(e) => renameCategory(row.id, e.target.value)}
                         placeholder="Category name"
                       />
                     ) : (
                       <span>
                         {row.name}
-                        {!row.isDefined && (
-                          <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>
-                            (from data)
-                          </span>
-                        )}
+                        <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>
+                          (from data)
+                        </span>
                       </span>
                     )}
                   </td>
 
                   <td>
-                    {isEditingRow && canEdit ? (
-                      <input
-                        type="color"
-                        className={styles.inputBox}
-                        value={row.color || "#c0c0c0"}
-                        onChange={(e) => updateCategory(row.id, "color", e.target.value)}
+                    {canEdit ? (
+                      <ColorCell
+                        styles={styles}
+                        color={row.color || "#c0c0c0"}
+                        onChange={(next) => updateCategory(row.id, "color", next)}
                       />
                     ) : (
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -672,45 +858,32 @@ const categoryRows = useMemo(() => {
 
                   <td>
                     {canEdit ? (
-                      isEditingRow ? (
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <button
-                            className={styles.secondaryButton}
-                            onClick={() => {
-                              renameCategory(row.id, row.name);
-                              setEditingCategoryId(null);
-                            }}
-                          >
-                            Done
-                          </button>
-                          <button
-                            className={styles.removeButton}
-                            onClick={() => {
-                              setEditingCategoryId(null);
-                              removeCategory(row.id);
-                            }}
-                          >
-                            &times;
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <button className={styles.secondaryButton} onClick={() => setEditingCategoryId(row.id)}>
-                            Edit
-                          </button>
-                          <button className={styles.removeButton} onClick={() => removeCategory(row.id)}>
-                            &times;
-                          </button>
-                        </div>
-                      )
+                      <button
+                        className={styles.removeButton}
+                        onClick={() => removeCategory(row.id)}
+                        disabled={(Array.isArray(groups) ? groups : []).length <= 1}
+                        type="button"
+                        aria-label="Remove category"
+                        title={
+                          (Array.isArray(groups) ? groups : []).length <= 1
+                            ? "At least one category is required"
+                            : "Remove"
+                        }
+                      >
+                        &times;
+                      </button>
                     ) : (
                       <button
-                        className={styles.secondaryButton}
+                        className={styles.addRangeButton}
+                        type="button"
                         onClick={() => {
-                          // convert “from data” category into a real group
                           setGroups((prev) => [
                             ...(Array.isArray(prev) ? prev : []),
-                            { id: Date.now() + Math.random(), name: row.name, color: "#c0c0c0" },
+                            {
+                              id: `group_${Date.now()}_${Math.random()}`,
+                              name: row.name,
+                              color: "#c0c0c0",
+                            },
                           ]);
                         }}
                       >
@@ -726,13 +899,18 @@ const categoryRows = useMemo(() => {
       )}
 
       <div className={styles.rangeControls}>
-        <button className={styles.secondaryButton} onClick={addCategory}>
-          Add Category
+        <button className={styles.addRangeButton} onClick={addCategory} type="button">
+                      <FontAwesomeIcon icon={faPlus} />
+
+          Add category
         </button>
       </div>
-    </div>
+    </>
   );
 };
+
+
+
 
 
   // ===== Ranges with countries (choropleth) =====
@@ -748,11 +926,12 @@ const categoryRows = useMemo(() => {
       upper: toNumLocal(r.upperBound),
     }));
 
-    const rangeCountryLabel = (d) => {
-      const n = d.name ? String(d.name).trim() : "";
-      const c = d.code ? String(d.code).trim() : "";
-      return (n || c).toLowerCase();
-    };
+ const rangeCountryLabel = (d) => {
+  const n = d.name ? String(d.name).trim() : "";
+  const c = d.code ? String(d.code).trim() : "";
+  return n || c; // ✅ keep original form
+};
+
 
     const rows = rangesClean.map((r) => {
       const valid = r.lower != null && r.upper != null;
@@ -928,14 +1107,40 @@ const categoryRows = useMemo(() => {
     placeholders
   ]);
 
+  useEffect(() => {
+  if (mapDataType !== "categorical") return;
+
+  setGroups((prev) => {
+    const arr = Array.isArray(prev) ? prev : [];
+    return arr.length ? arr : [normalizeGroup({ name: "", color: "#c0c0c0" })];
+  });
+}, [mapDataType]);
+
+
   // reset hydration when switching maps/create-edit
 useEffect(() => {
-  suppressPromptRef.current = false;   // ✅ reset suppression on entry
+  suppressPromptRef.current = false;
   initialSnapshotRef.current = null;
   setIsHydrated(false);
-  const t = setTimeout(() => setIsHydrated(true), 0);
-  return () => clearTimeout(t);
-}, [existingMapData?.id]);
+
+  // ✅ Always start in skeleton when entering create/edit
+  setLoading(true);
+
+  // ✅ After data is ready (or immediately in create mode), end skeleton AFTER a short beat
+  // so it actually shows.
+  const MIN_SKELETON_MS = 150;
+
+  const t1 = setTimeout(() => {
+    setIsHydrated(true);
+
+    // If parent is still loading (EditMap fetch), keep skeleton on.
+    if (!externalLoading) setLoading(false);
+  }, MIN_SKELETON_MS);
+
+  return () => clearTimeout(t1);
+}, [existingMapData?.id, externalLoading]);
+
+
 
 
   // set baseline once hydrated
@@ -1061,6 +1266,54 @@ const handleSaveMap = async () => {
   // ============================
   // Render
   // ============================
+  if (loading) {
+  return (
+    <div className={styles.layoutContainer} style={{ paddingLeft: isCollapsed ? "70px" : "250px" }}>
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+      <div className={styles.contentRow}>
+        <div className={styles.leftSidebar}>
+          <div className={styles.skelBlock} style={{ height: 18, width: 160, marginBottom: 12 }} />
+          <div className={styles.skelCard}>
+            <div className={styles.skelLine} style={{ width: "70%" }} />
+            <div className={styles.skelLine} style={{ width: "90%" }} />
+            <div className={styles.skelLine} style={{ width: "85%" }} />
+            <div className={styles.skelLine} style={{ width: "60%" }} />
+          </div>
+
+          <div className={styles.skelCard} style={{ marginTop: 12 }}>
+            <div className={styles.skelLine} style={{ width: "50%" }} />
+            <div className={styles.skelLine} style={{ width: "88%" }} />
+            <div className={styles.skelLine} style={{ width: "76%" }} />
+          </div>
+        </div>
+
+        <div className={styles.rightPanel}>
+          <div className={styles.mapBox}>
+            <div className={styles.skelBlock} style={{ height: 16, width: 120, marginBottom: 12 }} />
+            <div className={styles.skelMap} />
+          </div>
+
+          <div className={styles.section}>
+            <div className={styles.skelBlock} style={{ height: 16, width: 140, marginBottom: 12 }} />
+            <div className={styles.skelTableRow} />
+            <div className={styles.skelTableRow} />
+            <div className={styles.skelTableRow} />
+          </div>
+
+          <div className={styles.section}>
+            <div className={styles.skelBlock} style={{ height: 16, width: 120, marginBottom: 12 }} />
+            <div className={styles.skelLine} style={{ width: "65%" }} />
+            <div className={styles.skelLine} style={{ width: "95%" }} />
+            <div className={styles.skelLine} style={{ width: "85%" }} />
+            <div className={styles.skelLine} style={{ width: "70%" }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
   return (
     <div className={styles.layoutContainer} style={{ paddingLeft: isCollapsed ? "70px" : "250px" }}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -1070,7 +1323,7 @@ const handleSaveMap = async () => {
           <DataSidebar
             selectedMap={selected_map}
             mapDataType={mapDataType}
-            onChangeDataType={setMapDataType}
+            onChangeDataType={handleChangeDataType}
             dataEntries={data}
             setDataEntries={setData}
             onOpenUploadModal={handleOpenUploadModal}
@@ -1109,6 +1362,7 @@ const handleSaveMap = async () => {
                   onHoverCode={(code) => setHoveredCode(normCode(code))}
                   onSelectCode={(code) => setSelectedCode(normCode(code))}
                   placeholders={placeholders}
+                  strokeMode="thick"
                 />
               </div>
             </div>
@@ -1118,144 +1372,145 @@ const handleSaveMap = async () => {
           <div className={styles.navSection}>
             <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={isEditing ? `Edit ${mapTitle}` : "Create Map"} />
 
-            {/* Data & Ranges */}
-            <div className={styles.section}>
+{/* Data & Ranges */}
+<div className={styles.section}>
+  {mapDataType === "choropleth" ? (
+    <>
+      {/* header OUTSIDE the table box */}
+      <h3 className={styles.sectionTitle}>Ranges</h3>
 
-              {mapDataType === "choropleth" ? (
-                <>
-                  <h3 className={styles.sectionTitle}>Ranges</h3>
+      {/* table box ONLY wraps table + controls */}
+      <div className={styles.tableBox}>
+        <table className={styles.rangeTable}>
+          <thead>
+            <tr>
+              <th>Countries</th>
+              <th>Lower</th>
+              <th>Upper</th>
+              <th>Name</th>
+              <th>Color</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-                  <table className={styles.rangeTable}>
-                    <thead>
-                      <tr>
-                        <th>Countries</th>
-                        <th>Lower</th>
-                        <th>Upper</th>
-                        <th>Name</th>
-                        <th>Color</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
+          <tbody>
+            {rangesWithCountries.map((range) => (
+              <tr key={range.id}>
+                <td style={{ maxWidth: 380 }}>
+                  {range.isValidRange ? (
+                    <>
+                      <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
+                        {range.count} countries
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          lineHeight: 1.3,
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {range.countries.join(", ")}
+                      </div>
+                    </>
+                  ) : (
+                    <span className={styles.mutedText}>
+                      Add lower/upper to see countries.
+                    </span>
+                  )}
+                </td>
 
-                    <tbody>
-                      {rangesWithCountries.map((range) => {
-                        const isEditingRow = editingRangeId === range.id;
+                <td>
+                  <input
+                    type="number"
+                    className={styles.tableInputNumber}
+                    value={range.lowerBound}
+                    onChange={(e) =>
+                      handleRangeChange(range.id, "lowerBound", e.target.value)
+                    }
+                    placeholder="Min"
+                    inputMode="decimal"
+                  />
+                </td>
 
-                        return (
-                          <tr key={range.id}>
-                            <td style={{ maxWidth: 380 }}>
-                              {range.isValidRange ? (
-                                <>
-                                  <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>{range.count} countries</div>
-                                  <div style={{ fontSize: 12, lineHeight: 1.3, wordBreak: "break-word" }}>{range.countries.join(", ")}</div>
-                                </>
-                              ) : (
-                                <span style={{ fontStyle: "italic", opacity: 0.7 }}>Add lower/upper to see countries</span>
-                              )}
-                            </td>
+                <td>
+                  <input
+                    type="number"
+                    className={styles.tableInputNumber}
+                    value={range.upperBound}
+                    onChange={(e) =>
+                      handleRangeChange(range.id, "upperBound", e.target.value)
+                    }
+                    placeholder="Max"
+                    inputMode="decimal"
+                  />
+                </td>
 
-                            <td>
-                              {isEditingRow ? (
-                                <input
-                                  type="number"
-                                  className={styles.inputBox}
-                                  value={range.lowerBound}
-                                  onChange={(e) => handleRangeChange(range.id, "lowerBound", e.target.value)}
-                                  placeholder="Min"
-                                />
-                              ) : (
-                                <span>{range.lower ?? ""}</span>
-                              )}
-                            </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.tableInputText}
+                    value={range.name}
+                    onChange={(e) =>
+                      handleRangeChange(range.id, "name", e.target.value)
+                    }
+                    placeholder="Range name"
+                  />
+                </td>
 
-                            <td>
-                              {isEditingRow ? (
-                                <input
-                                  type="number"
-                                  className={styles.inputBox}
-                                  value={range.upperBound}
-                                  onChange={(e) => handleRangeChange(range.id, "upperBound", e.target.value)}
-                                  placeholder="Max"
-                                />
-                              ) : (
-                                <span>{range.upper ?? ""}</span>
-                              )}
-                            </td>
+                <td>
+                  <ColorCell
+                    styles={styles}
+                    color={range.color}
+                    onChange={(next) =>
+                      handleRangeChange(range.id, "color", next)
+                    }
+                  />
+                </td>
 
-                            <td>
-                              {isEditingRow ? (
-                                <input
-                                  type="text"
-                                  className={styles.inputBox}
-                                  value={range.name}
-                                  onChange={(e) => handleRangeChange(range.id, "name", e.target.value)}
-                                  placeholder="Range Name"
-                                />
-                              ) : (
-                                <span>{range.name || <span style={{ opacity: 0.6 }}>(unnamed)</span>}</span>
-                              )}
-                            </td>
+                <td>
+                  <button
+                    className={styles.removeButton}
+                    onClick={() => removeRange(range.id)}
+                    disabled={custom_ranges.length <= 1}
+                    type="button"
+                    aria-label="Remove range"
+                    title={
+                      custom_ranges.length <= 1
+                        ? "At least one range is required"
+                        : "Remove"
+                    }
+                  >
+                    &times;
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-                            <td>
-                              {isEditingRow ? (
-                                <input
-                                  type="color"
-                                  className={styles.inputBox}
-                                  value={range.color}
-                                  onChange={(e) => handleRangeChange(range.id, "color", e.target.value)}
-                                />
-                              ) : (
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  <span style={{ width: 18, height: 18, borderRadius: 4, background: range.color, border: "1px solid rgba(0,0,0,0.2)" }} />
-                                  <span style={{ fontSize: 12, opacity: 0.8 }}>{range.color}</span>
-                                </div>
-                              )}
-                            </td>
+        <div className={styles.rangeControls}>
+          <button
+            className={styles.addRangeButton}
+            onClick={addRange}
+            type="button"
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Add range
+          </button>
+        </div>
+      </div>
+    </>
+  ) : (
+    <>
+      {/* header OUTSIDE the table box */}
+      <h3 className={styles.sectionTitle}>Categories</h3>
 
-                            <td>
-                              {isEditingRow ? (
-                                <div style={{ display: "flex", gap: 8 }}>
-                                  <button className={styles.secondaryButton} onClick={() => setEditingRangeId(null)}>
-                                    Done
-                                  </button>
-                                  <button
-                                    className={styles.removeButton}
-                                    onClick={() => {
-                                      setEditingRangeId(null);
-                                      removeRange(range.id);
-                                    }}
-                                    disabled={custom_ranges.length <= 1}
-                                  >
-                                    &times;
-                                  </button>
-                                </div>
-                              ) : (
-                                <div style={{ display: "flex", gap: 8 }}>
-                                  <button className={styles.secondaryButton} onClick={() => setEditingRangeId(range.id)}>
-                                    Edit
-                                  </button>
-                                  <button className={styles.removeButton} onClick={() => removeRange(range.id)} disabled={custom_ranges.length <= 1}>
-                                    &times;
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+      {/* table box ONLY wraps table + controls */}
+      <div className={styles.tableBox}>{renderCategoriesTable()}</div>
+    </>
+  )}
+</div>
 
-                  <div className={styles.rangeControls}>
-                    <button className={styles.secondaryButton} onClick={addRange}>
-                      Add Range
-                    </button>
-                  </div>
-                </>
-              ) : (
-                renderCategoriesTable()
-              )}
-            </div>
 
 {/* Map Info */}
 <div className={styles.section}>
@@ -1386,34 +1641,48 @@ const handleSaveMap = async () => {
         </div>
       </div>
 
-      {/* References */}
-      <div className={styles.fieldBlock}>
-        <div className={styles.rowBetween}>
-          <label className={styles.fieldLabel}>References</label>
-          <button
-            className={styles.secondaryButton}
-            onClick={handleAddReference}
-            type="button"
-          >
-            + Add
-          </button>
-        </div>
+{/* References */}
+<div className={styles.fieldBlock}>
+  <div className={styles.rowBetween}>
+    <label className={styles.fieldLabel}>References</label>
+
+    <button
+      className={`${styles.actionPill} ${styles.addRefPill}`}
+      onClick={handleAddReference}
+      type="button"
+    >
+      <FontAwesomeIcon icon={faPlus} />
+      Add
+    </button>
+  </div>
+
 
         <div className={styles.referencesListLg}>
           {references.length === 0 ? (
             <p className={styles.mutedText}>No references added.</p>
           ) : (
             references.map((ref) => (
-              <button
-                key={ref.id}
-                className={styles.referenceRowBtn}
-                onClick={() => handleEditReference(ref)}
-                type="button"
-                title="Click to edit"
-              >
-                <span className={styles.referenceTitle}>{ref.sourceName}</span>
-                <span className={styles.referenceMeta}>{ref.publicationYear}</span>
-              </button>
+           <button
+              key={ref.id}
+              className={styles.referenceRowBtn}
+              onClick={() => handleEditReference(ref)}
+              type="button"
+              title="Click to edit"
+            >
+              <span className={styles.referenceTitle}>{ref.sourceName}</span>
+
+              <span className={styles.referenceMetaLine}>
+                <span className={styles.referenceYear}>{ref.publicationYear}</span>
+                {ref.publicator ? (
+                  <>
+                    <span className={styles.referenceDot}>·</span>
+                    <span className={styles.referencePublisher}>{ref.publicator}</span>
+                  </>
+                ) : null}
+              </span>
+            </button>
+
+
             ))
           )}
         </div>
@@ -1422,24 +1691,25 @@ const handleSaveMap = async () => {
   </div>
 
   {/* Bottom actions (centered + save icon) */}
-  <div className={styles.mapInfoActionsBottomCentered}>
-    <button
-      className={styles.cancelButton}
-      type="button"
-      onClick={() => navigate(-1)}
-    >
-      Cancel
-    </button>
+<div className={styles.mapInfoActionsBottomCentered}>
+  <button
+    className={`${styles.actionPill} ${styles.cancelPill}`}
+    type="button"
+    onClick={() => navigate(-1)}
+  >
+    Cancel
+  </button>
 
-    <button
-      className={styles.primaryButtonBig}
-      type="button"
-      onClick={handleSaveMap}
-    >
-      <FontAwesomeIcon icon={faSave} className={styles.saveIcon} />
-      Save Map
-    </button>
-  </div>
+  <button
+    className={`${styles.actionPill} ${styles.savePill}`}
+    type="button"
+    onClick={handleSaveMap}
+  >
+    <FontAwesomeIcon icon={faSave} />
+    Save Map
+  </button>
+</div>
+
 </div>
 
 
@@ -1448,67 +1718,147 @@ const handleSaveMap = async () => {
         </div>
       </div>
 
-      {/* Reference Modal */}
-      {isReferenceModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsReferenceModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeButton} onClick={() => setIsReferenceModalOpen(false)}>
-              &times;
-            </button>
+     {/* Reference Modal (redesigned) */}
+{isReferenceModalOpen && (
+  <div
+    className={styles.refModalOverlay}
+    onClick={() => setIsReferenceModalOpen(false)}
+    role="presentation"
+  >
+    <div
+      className={styles.refModalCard}
+      onClick={(e) => e.stopPropagation()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ref-modal-title"
+    >
+      {/* Header */}
+      <div className={styles.refModalHeader}>
+        <div>
+          <div className={styles.refModalEyebrow}>References</div>
+          <h2 id="ref-modal-title" className={styles.refModalTitle}>
+            {selectedReference ? "Edit reference" : "Add reference"}
+          </h2>
+          <p className={styles.refModalSubtitle}>
+            Add a source so people know where the data comes from.
+          </p>
+        </div>
 
-            <h2>{selectedReference ? "Edit Reference" : "Add Reference"}</h2>
+        <button
+          type="button"
+          className={styles.refModalClose}
+          onClick={() => setIsReferenceModalOpen(false)}
+          aria-label="Close"
+          title="Close"
+        >
+          &times;
+        </button>
+      </div>
 
-            <div className={styles.modalFormRow}>
-              <label>Source Name:</label>
-              <input type="text" value={tempSourceName} onChange={(e) => setTempSourceName(e.target.value)} />
-            </div>
+      {/* Body */}
+      <div className={styles.refModalBody}>
+        <div className={styles.refModalGrid}>
+          <div className={styles.fieldBlock}>
+            <label className={styles.fieldLabel}>Source Name</label>
+            <input
+              type="text"
+              className={styles.inputBox}
+              value={tempSourceName}
+              onChange={(e) => setTempSourceName(e.target.value)}
+              placeholder="e.g. World Bank"
+              autoFocus
+            />
+          </div>
 
-            <div className={styles.modalFormRow}>
-              <label>Publication Year:</label>
-              <input type="text" value={tempYear} onChange={(e) => setTempYear(e.target.value)} />
-            </div>
+          <div className={styles.fieldBlock}>
+            <label className={styles.fieldLabel}>Publication Year</label>
+            <input
+              type="text"
+              className={styles.inputBox}
+              value={tempYear}
+              onChange={(e) => setTempYear(e.target.value)}
+              placeholder="e.g. 2024"
+              inputMode="numeric"
+            />
+          </div>
 
-            <div className={styles.modalFormRow}>
-              <label>Publisher:</label>
-              <input type="text" value={tempPublicator} onChange={(e) => setTempPublicator(e.target.value)} />
-            </div>
+          <div className={styles.fieldBlock}>
+            <label className={styles.fieldLabel}>Publisher</label>
+            <input
+              type="text"
+              className={styles.inputBox}
+              value={tempPublicator}
+              onChange={(e) => setTempPublicator(e.target.value)}
+              placeholder="Optional"
+            />
+          </div>
 
-            <div className={styles.modalFormRow}>
-              <label>URL or Link:</label>
-              <input
-                type="text"
-                value={tempUrl}
-                onChange={(e) => setTempUrl(e.target.value)}
-                onBlur={() => {
-                  if (tempUrl && !/^https?:\/\//i.test(tempUrl)) setTempUrl(`https://www.${tempUrl}`);
-                }}
-              />
-            </div>
-
-            <div className={styles.modalFormRow}>
-              <label>Description/Notes:</label>
-              <textarea rows={3} value={tempNotes} onChange={(e) => setTempNotes(e.target.value)} />
-            </div>
-
-            <div className={styles.modalBottomRow}>
-              {selectedReference && (
-                <span className={styles.deleteRefLink} onClick={handleDeleteReference}>
-                  Delete Reference
-                </span>
-              )}
-             <button
-                className={`${styles.primaryButton} ${styles.savePrimary}`}
-                type="button"
-                onClick={handleSaveReference}
-                disabled={isSaving}
-              >
-                Add reference 
-              </button>
-
-            </div>
+          <div className={styles.fieldBlock}>
+            <label className={styles.fieldLabel}>URL</label>
+            <input
+              type="text"
+              className={styles.inputBox}
+              value={tempUrl}
+              onChange={(e) => setTempUrl(e.target.value)}
+              placeholder="https://..."
+              onBlur={() => {
+                if (tempUrl && !/^https?:\/\//i.test(tempUrl)) {
+                  setTempUrl(`https://www.${tempUrl}`);
+                }
+              }}
+            />
           </div>
         </div>
-      )}
+
+        <div className={styles.fieldBlock} style={{ marginBottom: 0 }}>
+          <label className={styles.fieldLabel}>Notes</label>
+          <textarea
+            className={`${styles.inputBox} ${styles.refModalTextarea}`}
+            rows={4}
+            value={tempNotes}
+            onChange={(e) => setTempNotes(e.target.value)}
+            placeholder="Optional context, methodology, caveats…"
+          />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className={styles.refModalFooter}>
+        {selectedReference ? (
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.dangerPill}`}
+            onClick={handleDeleteReference}
+          >
+            Delete
+          </button>
+        ) : (
+          <span />
+        )}
+
+        <div className={styles.refModalFooterRight}>
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.cancelPill}`}
+            onClick={() => setIsReferenceModalOpen(false)}
+          >
+            Cancel
+          </button>
+
+          <button
+            className={`${styles.actionPill} ${styles.primaryPill}`}
+            type="button"
+            onClick={handleSaveReference}
+            disabled={isSaving}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            {selectedReference ? "Save reference" : "Add reference"}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Upload Data Modal */}
       <UploadDataModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} selectedMap={selected_map} onImport={handleImportData} />
@@ -1533,40 +1883,65 @@ const handleSaveMap = async () => {
         }}
       />
 
-      {/* Saving modal */}
+{/* Saving modal */}
 {isSaving && (
-  <div className={styles.saveModalOverlay}>
-    <div className={styles.saveModalContent} onClick={(e) => e.stopPropagation()}>
-      {saveSuccess ? (
-        <>
-          <FontAwesomeIcon icon={faCheckCircle} className={styles.saveSuccessIcon} />
-          <h3 className={styles.saveModalTitle}>Map saved!</h3>
-          <p className={styles.saveModalText}>Redirecting to your dashboard…</p>
-        </>
-      ) : (
-        <>
+  <div className={styles.saveModalOverlay} role="presentation">
+    <div
+      className={styles.saveModalCard}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-modal-title"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className={styles.saveModalHeader}>
+        <div>
+          <div className={styles.saveModalEyebrow}>Saving</div>
+          <h2 id="save-modal-title" className={styles.saveModalTitle}>
+            {saveSuccess ? "Map saved!" : "Saving your map…"}
+          </h2>
+          <p className={styles.saveModalSubtitle}>
+            {saveSuccess ? "Redirecting to your dashboard…" : "This can take a few seconds."}
+          </p>
+        </div>
+
+        {/* optional close (only if you want cancel) */}
+        {/* <button type="button" className={styles.saveModalClose} onClick={() => {}} aria-label="Close">
+          &times;
+        </button> */}
+      </div>
+
+      {/* Body */}
+      <div className={styles.saveModalBody}>
+        {saveSuccess ? (
+          <div className={styles.saveSuccessWrap}>
+            <FontAwesomeIcon icon={faCheckCircle} className={styles.saveSuccessIcon} />
+          </div>
+        ) : (
           <div className={styles.saveIconWrap}>
             <FontAwesomeIcon icon={faCloudArrowUp} className={styles.saveUploadIcon} />
           </div>
+        )}
 
-          <h3 className={styles.saveModalTitle}>Saving your map…</h3>
-          <p className={styles.saveModalText}>This can take a few seconds.</p>
+        {!saveSuccess && (
+          <>
+            <div className={styles.progressTrack}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${saveProgress}%` }}
+              />
+            </div>
 
-          <div className={styles.progressTrack}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${saveProgress}%` }}
-            />
-          </div>
-
-          <div className={styles.progressMeta}>
-            <span>{saveProgress}%</span>
-          </div>
-        </>
-      )}
+            <div className={styles.progressMeta}>
+              <span>{saveProgress}%</span>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   </div>
 )}
+
 
     </div>
   );

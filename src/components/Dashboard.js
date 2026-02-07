@@ -1,28 +1,28 @@
 // src/components/Dashboard.js
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   fetchMaps,
   deleteMap,
   fetchNotifications,
   markNotificationAsRead,
   fetchSavedMaps,
-} from '../api';
-import { differenceInDays, formatDistanceToNow } from 'date-fns';
-import { UserContext } from '../context/UserContext';
+} from "../api";
+import { differenceInDays, formatDistanceToNow } from "date-fns";
+import { UserContext } from "../context/UserContext";
 
 // Icons
-import { FaStar, FaMap, FaCalendarAlt, FaEdit } from 'react-icons/fa';
+import { FaStar, FaMap, FaCalendarAlt, FaEdit } from "react-icons/fa";
 
-import Sidebar from './Sidebar';
-import Header from './Header';
-import DashboardActivityFeed from './DashboardActivityFeed';
-import StaticMapThumbnail from './StaticMapThumbnail';
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+import DashboardActivityFeed from "./DashboardActivityFeed";
+import StaticMapThumbnail from "./StaticMapThumbnail";
 
-import { SidebarContext } from '../context/SidebarContext';
-import useWindowSize from '../hooks/useWindowSize';
+import { SidebarContext } from "../context/SidebarContext";
+import useWindowSize from "../hooks/useWindowSize";
 
-import styles from './Dashboard.module.css';
+import styles from "./Dashboard.module.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -40,7 +40,17 @@ export default function Dashboard() {
 
   const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const showOverlay = !isCollapsed && width < 1000;
+
+  // Overlay only matters on small screens
+  const isMobile = width < 1000;
+  const showOverlay = isMobile && !isCollapsed;
+
+  // ✅ IMPORTANT: remove this effect entirely
+  // It was overwriting your global state on every route change.
+  // useEffect(() => {
+  //   if (width < 1000) setIsCollapsed(true);
+  //   else setIsCollapsed(false);
+  // }, [width, setIsCollapsed]);
 
   // Basic Stats
   const totalMapsCreated = maps.length;
@@ -48,12 +58,6 @@ export default function Dashboard() {
   const profileAgeDays = profile?.created_at
     ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
-
-  // Collapse sidebar on smaller widths
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -82,7 +86,7 @@ export default function Dashboard() {
         // Saved (starred) maps
         setSavedMaps(savedMapsRes.data || []);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -92,7 +96,8 @@ export default function Dashboard() {
   }, [profile]);
 
   // Recently modified maps
-  const recentMaps = maps.slice(0, 4);
+  const recentMaps = maps.slice(0, 2);
+  const recentStarred = savedMaps.slice(0, 3);
 
   // Handlers
   const handleMapClick = (mapId) => {
@@ -117,7 +122,7 @@ export default function Dashboard() {
       await deleteMap(mapToDelete.id);
       setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
     } catch (err) {
-      console.error('Error deleting map:', err);
+      console.error("Error deleting map:", err);
     } finally {
       setShowDeleteModal(false);
       setMapToDelete(null);
@@ -135,11 +140,9 @@ export default function Dashboard() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
-      if (notif.map_id) {
-        navigate(`/map/${notif.map_id}`);
-      }
+      if (notif.map_id) navigate(`/map/${notif.map_id}`);
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      console.error("Error marking notification as read:", err);
     }
   };
 
@@ -149,33 +152,40 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className={styles.dashboardContainer}>
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        {/* ✅ Sidebar reads collapse state from context internally now */}
+        <Sidebar />
 
         {showOverlay && (
-          <div className={styles.sidebarOverlay} onClick={() => setIsCollapsed(true)} />
+          <div
+            className={styles.sidebarOverlay}
+            onClick={() => setIsCollapsed(true)}
+          />
         )}
 
         <div
           className={`${styles.dashboardContent} ${
-            isCollapsed ? styles.contentCollapsed : ''
+            isCollapsed ? styles.contentCollapsed : ""
           }`}
         >
-          <Header
-            title="Dashboard"
-            notifications={[]}
-            onNotificationClick={() => {}}
-            onMarkAllAsRead={() => {}}
-            profile_picture=""
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />
+          {/* ✅ Header reads collapse state from context internally now */}
+          <Header title="Dashboard" />
 
           <div className={styles.mainWrapper}>
             <div className={styles.centerColumn}>
-              <div className={styles.statsContainer}>
-                <div className={styles.skeletonStatItem} />
-                <div className={styles.skeletonStatItem} />
-                <div className={styles.skeletonStatItem} />
+              <div className={styles.topRow}>
+                <div className={styles.welcomeBlock}>
+                  <div className={styles.welcomeLeft}>
+                    <div className={styles.skeletonWelcomeKicker} />
+                    <div className={styles.skeletonWelcomeName} />
+                    <div className={styles.skeletonWelcomeSub} />
+                  </div>
+
+                  <div className={styles.welcomeStats}>
+                    <div className={styles.skeletonChip} />
+                    <div className={styles.skeletonChip} />
+                    <div className={styles.skeletonChip} />
+                  </div>
+                </div>
               </div>
 
               <section className={styles.activityFeedSection}>
@@ -234,154 +244,225 @@ export default function Dashboard() {
   // -----------------------
   return (
     <div className={styles.dashboardContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar />
 
       {showOverlay && (
-        <div className={styles.sidebarOverlay} onClick={() => setIsCollapsed(true)} />
+        <div
+          className={styles.sidebarOverlay}
+          onClick={() => setIsCollapsed(true)}
+        />
       )}
 
       <div
-        className={`${styles.dashboardContent} ${isCollapsed ? styles.contentCollapsed : ''}`}
+        className={`${styles.dashboardContent} ${
+          isCollapsed ? styles.contentCollapsed : ""
+        }`}
       >
-        <Header
-          title="Dashboard"
-          notifications={notifications}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={() => {}}
-          profile_picture={profile?.profile_picture}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
+        <Header title="Dashboard" />
 
         <div className={styles.mainWrapper}>
           {/* CENTER COLUMN */}
           <div className={styles.centerColumn}>
-            <div className={styles.statsContainer}>
-              <div className={styles.statItem}>
-                <FaMap className={styles.statIcon} />
-                <span className={styles.statLabel}>Maps Created:</span>
-                <span className={styles.statValue}>{totalMapsCreated}</span>
-              </div>
+            <div className={styles.topRow}>
+              <div className={styles.welcomeBlock}>
+                <div className={styles.welcomeLeft}>
+                  <div className={styles.welcomeKicker}>
+                    {profileAgeDays <= 2 ? "Welcome to Map in Color" : "Welcome back"}
+                  </div>
 
-              <div className={styles.statItem}>
-                <FaStar className={styles.statIcon} />
-                <span className={styles.statLabel}>Stars Received:</span>
-                <span className={styles.statValue}>{totalStarsReceived}</span>
-              </div>
+                  <div className={styles.welcomeName}>
+                    {profile?.first_name || profile?.username || "there"} 👋
+                  </div>
 
-              <div className={styles.statItem}>
-                <FaCalendarAlt className={styles.statIcon} />
-                <span className={styles.statLabel}>Profile Age:</span>
-                <span className={styles.statValue}>{profileAgeDays} days</span>
+                  <div className={styles.welcomeSub}>
+                    {profileAgeDays <= 2
+                      ? "Create your first map and make it yours."
+                      : "Here’s what’s mappening."}
+                  </div>
+                </div>
+
+                <div className={styles.welcomeStats}>
+                  <div className={styles.statChip}>
+                    <div className={styles.chipTop}>
+                      <FaMap className={styles.chipIcon} />
+                      <div className={styles.chipNum}>{totalMapsCreated}</div>
+                    </div>
+                    <div className={styles.chipLabel}>Maps</div>
+                  </div>
+
+                  <div className={styles.statChip}>
+                    <div className={styles.chipTop}>
+                      <FaStar className={styles.chipIcon} />
+                      <div className={styles.chipNum}>{totalStarsReceived}</div>
+                    </div>
+                    <div className={styles.chipLabel}>Stars</div>
+                  </div>
+
+                  <div className={styles.statChip}>
+                    <div className={styles.chipTop}>
+                      <FaCalendarAlt className={styles.chipIcon} />
+                      <div className={styles.chipNum}>{profileAgeDays}</div>
+                    </div>
+                    <div className={styles.chipLabel}>Days</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <section className={styles.activityFeedSection}>
-              <DashboardActivityFeed userProfile={profile} />
+            <section className={styles.sectionCard}>
+              <div className={styles.cardHeaderRow}>
+                <h2 className={styles.cardTitle}>
+                  <FaCalendarAlt className={styles.cardTitleIcon} />
+                  Activity
+                </h2>
+              </div>
+
+              <div className={styles.activityScroll}>
+                <DashboardActivityFeed userProfile={profile} />
+              </div>
             </section>
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT COLUMN (sticky) */}
           <div className={styles.sideColumn}>
-            {/* Recently Modified */}
-            <div className={styles.sectionCard}>
-              <h2>Recently Modified Maps</h2>
+            <div className={styles.sideScroll}>
+              {/* Recently Modified */}
+              <div className={styles.sectionCard}>
+                <div className={styles.cardHeaderRow}>
+                  <h2 className={styles.cardTitle}>
+                    <FaMap className={styles.cardTitleIcon} />
+                    Recently Modified
+                  </h2>
 
-              {recentMaps.length === 0 ? (
-                <p>No maps found.</p>
-              ) : (
-                <div className={styles.mapCardsList}>
-                  {recentMaps.map((map) => (
-                    <div
-                      key={map.id}
-                      className={styles.mapCard}
-                      onClick={() => handleMapClick(map.id)}
-                    >
-                      <div className={styles.mapCardThumb}>
-                        <StaticMapThumbnail map={map} background="#dddddd" />
-                      </div>
-
-                      <div className={styles.mapCardDetails}>
-                        <h3 className={styles.mapCardTitle}>
-                          {map.title || 'Untitled Map'}
-                        </h3>
-
-                        <p className={styles.mapCardTimestamp}>
-                          Last modified{' '}
-                          {map.updated_at
-                            ? formatDistanceToNow(new Date(map.updated_at), {
-                                addSuffix: true,
-                              })
-                            : 'Unknown'}
-                        </p>
-
-                        <div className={styles.editContainer}>
-                          <FaEdit
-                            onClick={(e) => handleEdit(e, map.id)}
-                            className={styles.editIcon}
-                          />
-                          <button
-                            className={styles.editBtn}
-                            onClick={(e) => handleEdit(e, map.id)}
-                          >
-                            Edit Map
-                          </button>
-
-                          {/* Optional delete hook if you want it on the card
-                              (you had the handler already) */}
-                          {/* <button onClick={(e) => handleDelete(e, map.id)}>Delete</button> */}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <button
+                    className={styles.seeAllLink}
+                    onClick={() => navigate("/your-maps")}
+                    type="button"
+                  >
+                    See all
+                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* Starred Maps */}
-            <div className={styles.sectionCard}>
-              <h2>Starred Maps</h2>
-
-              {savedMaps.length === 0 ? (
-                <p>You haven't saved any maps yet.</p>
-              ) : (
-                <div className={styles.mapCardsList}>
-                  {savedMaps.slice(0, 4).map((map) => {
-                    const userObj = map.user;
-                    const displayName = userObj?.username || 'Unknown';
-                    const mapTitle = map.title || 'Untitled Map';
-
-                    return (
+                {recentMaps.length === 0 ? (
+                  <p className={styles.emptyText}>No maps yet.</p>
+                ) : (
+                  <div className={styles.mapCardsList}>
+                    {recentMaps.map((map) => (
                       <div
                         key={map.id}
                         className={styles.mapCard}
-                        onClick={() => navigate(`/map/${map.id}`)}
+                        onClick={() => handleMapClick(map.id)}
                       >
                         <div className={styles.mapCardThumb}>
                           <StaticMapThumbnail map={map} background="#dddddd" />
                         </div>
 
                         <div className={styles.mapCardDetails}>
-                          <h3 className={styles.mapCardTitle}>{mapTitle}</h3>
-                          <p className={styles.mapCardTimestamp}>by {displayName}</p>
-                          <p className={styles.starCount}>
-                            <FaStar /> {map.save_count || 0}
+                          <h3 className={styles.mapCardTitle}>
+                            {map.title || "Untitled Map"}
+                          </h3>
+
+                          <p className={styles.mapCardTimestamp}>
+                            {map.updated_at
+                              ? `Modified ${formatDistanceToNow(new Date(map.updated_at), {
+                                  addSuffix: true,
+                                })}`
+                              : "Modified unknown"}
                           </p>
+
+                          <div className={styles.mapCardMetaRow}>
+                            <span className={styles.metaPill}>
+                              <FaStar className={styles.metaIcon} />
+                              {map.save_count || 0}
+                            </span>
+
+                            <button
+                              className={styles.quickAction}
+                              onClick={(e) => handleEdit(e, map.id)}
+                              type="button"
+                            >
+                              <FaEdit />
+                              Edit
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
 
-              {savedMaps.length > 4 && (
                 <button
-                  className={styles.viewAllSavedBtn}
-                  onClick={() => navigate('/starred-maps')}
+                  className={styles.primaryMiniBtn}
+                  onClick={() => navigate("/your-maps")}
+                  type="button"
                 >
-                  View All Starred Maps
+                  See all your maps
                 </button>
-              )}
+              </div>
+
+              {/* Starred Maps */}
+              <div className={styles.sectionCard}>
+                <div className={styles.cardHeaderRow}>
+                  <h2 className={styles.cardTitle}>
+                    <FaStar className={styles.cardTitleIcon} />
+                    Starred
+                  </h2>
+
+                  <button
+                    className={styles.seeAllLink}
+                    onClick={() => navigate("/starred-maps")}
+                    type="button"
+                  >
+                    See all
+                  </button>
+                </div>
+
+                {savedMaps.length === 0 ? (
+                  <p className={styles.emptyText}>No starred maps yet.</p>
+                ) : (
+                  <div className={styles.mapCardsList}>
+                    {recentStarred.map((map) => {
+                      const userObj = map.user;
+                      const displayName = userObj?.username || "Unknown";
+
+                      return (
+                        <div
+                          key={map.id}
+                          className={styles.mapCard}
+                          onClick={() => navigate(`/map/${map.id}`)}
+                        >
+                          <div className={styles.mapCardThumb}>
+                            <StaticMapThumbnail map={map} background="#dddddd" />
+                          </div>
+
+                          <div className={styles.mapCardDetails}>
+                            <h3 className={styles.mapCardTitle}>
+                              {map.title || "Untitled Map"}
+                            </h3>
+
+                            <p className={styles.mapCardTimestamp}>by {displayName}</p>
+
+                            <div className={styles.mapCardMetaRow}>
+                              <span className={styles.metaPill}>
+                                <FaStar className={styles.metaIcon} />
+                                {map.save_count || 0}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <button
+                  className={styles.primaryMiniBtn}
+                  onClick={() => navigate("/starred-maps")}
+                  type="button"
+                >
+                  See all your starred maps
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -392,8 +473,7 @@ export default function Dashboard() {
             <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
               <h2>Confirm Deletion</h2>
               <p>
-                Are you sure you want to delete "<strong>{mapToDelete?.title}</strong>
-                "?
+                Are you sure you want to delete "<strong>{mapToDelete?.title}</strong>"?
               </p>
               <div className={styles.modalButtons}>
                 <button className={styles.confirmDelete} onClick={confirmDelete}>

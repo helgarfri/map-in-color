@@ -697,7 +697,25 @@ log(`Selected mode: ${deducedType}.`, "success");
         className={styles.modalContent}
         onClick={(e) => e.stopPropagation()}
       >
-        
+         <div className={styles.modalHeader}>
+    <div>
+      <div className={styles.modalEyebrow}>Data Import</div>
+      <h2 className={styles.modalTitle}>Upload data</h2>
+      <p className={styles.modalSubtitle}>
+        Drop a file and we’ll match rows to {selectedMap === "usa" ? "US states" : selectedMap === "europe" ? "Europe" : "countries"}.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      className={styles.modalClose}
+      onClick={onClose}
+      aria-label="Close"
+      title="Close"
+    >
+      &times;
+    </button>
+  </div>
 
         <div className={styles.modalBody}>
           {/* 1) DnD + Map */}

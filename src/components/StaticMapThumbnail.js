@@ -75,6 +75,7 @@ const mapDataType =
   showNoDataLegend={showNoDataLegend}
   titleFontSize={titleFontSize}
   legendFontSize={legendFontSize}
+  strokeMode='thin'
 />
 
       </div>

@@ -65,7 +65,7 @@
 
 /* Headings */
 .docsMain h1 {
-    color: #55957b; /* Green heading */
+    color: #14a9af; /* Green heading */
     margin-bottom: 1rem;
     font-size: 2rem;
 }
@@ -154,7 +154,7 @@
     content: "-";
     position: absolute;
     left: 0;
-    color: #55957b; /* Green dash */
+    color: #14a9af; /* Green dash */
     font-weight: bold;
 }
 

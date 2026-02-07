@@ -1,21 +1,22 @@
 // src/components/ProfileActivityFeed.js
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { FaStar, FaPlus, FaComment, FaInfoCircle } from 'react-icons/fa';
+import {
+  FaStar,
+  FaPlus,
+  FaComment,
+  FaInfoCircle,
+} from 'react-icons/fa';
 
 import { fetchUserActivity } from '../api';
 import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
 
-// ✅ Use the SAME CSS as DashboardActivityFeed
+// ✅ reuse the exact same CSS as dashboard
 import styles from './DashboardActivityFeed.module.css';
 
-/**
- * Safe parsing helper:
- * - Accepts arrays, JSON strings, or null/undefined
- * - Returns [] if not valid
- */
+/* ---------- helpers (same as you have) ---------- */
 function toArrayMaybeJson(value) {
   if (Array.isArray(value)) return value;
   if (typeof value === 'string') {
@@ -35,28 +36,19 @@ function looksLikeRanges(arr) {
     arr.length > 0 &&
     arr.every((g) => {
       if (!g || typeof g !== 'object') return false;
-
       const hasLower = g.lowerBound != null || g.lower != null || g.min != null;
       const hasUpper = g.upperBound != null || g.upper != null || g.max != null;
       const hasColor = g.color != null;
-
       const hasCountriesArray = Array.isArray(g.countries);
       return hasLower && hasUpper && hasColor && !hasCountriesArray;
     })
   );
 }
 
-/**
- * Normalize map object coming from profile activity endpoint:
- * - Supports snake_case + camelCase
- * - Supports choropleth properly via: custom_ranges + map_data_type
- * - Legacy fallback: if groups "look like ranges", treat them as custom_ranges
- */
 function normalizeMapForPreview(mapObj) {
   if (!mapObj) return null;
 
   const title = mapObj.title || 'Untitled';
-
   const ocean_color = mapObj.ocean_color ?? '#ffffff';
   const unassigned_color = mapObj.unassigned_color ?? '#c0c0c0';
   const font_color = mapObj.font_color ?? 'black';
@@ -74,7 +66,6 @@ function normalizeMapForPreview(mapObj) {
 
   let groups = toArrayMaybeJson(mapObj.groups);
 
-  // ✅ choropleth ranges (backend now sends this)
   let customRanges =
     Array.isArray(mapObj.custom_ranges)
       ? mapObj.custom_ranges
@@ -82,13 +73,11 @@ function normalizeMapForPreview(mapObj) {
       ? mapObj.customRanges
       : toArrayMaybeJson(mapObj.custom_ranges);
 
-  // ✅ legacy: if custom_ranges missing but groups look like ranges
   if (!customRanges.length && looksLikeRanges(groups)) {
     customRanges = groups;
     groups = [];
   }
 
-  // ✅ map type (backend now sends map_data_type)
   const mapDataType =
     mapObj.map_data_type ??
     mapObj.mapDataType ??
@@ -113,6 +102,7 @@ function normalizeMapForPreview(mapObj) {
   };
 }
 
+/* ---------- component ---------- */
 export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
 
@@ -126,7 +116,6 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  // Sentinel for infinite scrolling
   const sentinelRef = useRef(null);
 
   const loadFirstPage = useCallback(async () => {
@@ -136,6 +125,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
       setIsInitialLoading(true);
       const res = await fetchUserActivity(username, 0, limit);
       const newItems = res.data || [];
+
       setActivities(newItems);
       setOffset(0);
       setHasMore(newItems.length === limit);
@@ -169,7 +159,6 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     }
   }, [username, offset, hasMore, isFetchingMore, isInitialLoading]);
 
-  // Reset + load first page when username changes
   useEffect(() => {
     if (!username) return;
     setActivities([]);
@@ -178,7 +167,6 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     loadFirstPage();
   }, [username, loadFirstPage]);
 
-  // IntersectionObserver for infinite scroll
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -186,10 +174,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const firstEntry = entries[0];
-        if (firstEntry.isIntersecting) {
-          loadMore();
-        }
+        if (entries[0]?.isIntersecting) loadMore();
       },
       { root: null, rootMargin: '0px', threshold: 0.1 }
     );
@@ -198,7 +183,6 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     return () => observer.unobserve(el);
   }, [hasMore, loadMore]);
 
-  // Utils
   function timeAgo(dateString) {
     if (!dateString) return '';
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
@@ -232,37 +216,56 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
     );
   }
 
-  function renderCommentBox(act) {
-    const commentAvatarUrl =
-      act.commentAuthor?.profile_picture || '/default-profile-picture.png';
+  // ✅ matches dashboard meta row (avatar + label + icon pill)
+  function renderMetaRow(act) {
+    const avatarUrl = profile_pictureUrl || '/default-profile-picture.png';
+    const icon = getActivityIcon(act.type);
 
     return (
-      <div className={styles.commentBox}>
+      <div className={styles.metaRow}>
         <img
-          className={styles.commentAuthorAvatar}
-          src={commentAvatarUrl}
-          alt="Comment Author"
+          className={styles.metaAvatar}
+          src={avatarUrl}
+          alt="User"
           onClick={(e) => {
             e.stopPropagation();
-            if (act.commentAuthor?.username) {
-              navigate(`/profile/${act.commentAuthor.username}`);
-            }
+            navigate(`/profile/${username}`);
           }}
         />
+
+        <div className={styles.metaMiddle}>
+          <div
+            className={styles.metaName}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/profile/${username}`);
+            }}
+            title={username}
+          >
+            {username}
+          </div>
+        </div>
+
+        <div className={styles.metaIconPill} aria-hidden="true">
+          {icon}
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ no avatar in comment box
+  function renderCommentBox(act) {
+    return (
+      <div className={styles.commentBox}>
         <div className={styles.commentBody}>{act.commentContent}</div>
       </div>
     );
   }
 
-  /**
-   * Thumbnail renderer (matches dashboard behavior)
-   */
-  function renderMapThumbnail(mapObj, actType) {
+  function renderMapThumbnail(mapObj) {
     const normalized = normalizeMapForPreview(mapObj);
 
-    if (!normalized) {
-      return <div className={styles.defaultThumbnail}>No Map</div>;
-    }
+    if (!normalized) return <div className={styles.defaultThumbnail}>No Map</div>;
 
     return (
       <div className={styles.thumbContainer}>
@@ -272,8 +275,7 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
             data={normalized.data}
             selected_map={normalized.selectedMap}
             mapDataType={normalized.mapDataType}
-            customRanges={normalized.customRanges}   // ✅ camelCase
-            custom_ranges={normalized.customRanges}  // ✅ snake_case fallback
+            custom_ranges={normalized.customRanges}
             mapTitleValue={normalized.title}
             ocean_color={normalized.ocean_color}
             unassigned_color={normalized.unassigned_color}
@@ -286,46 +288,27 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
           />
         </div>
 
+        {/* Blocks hover/zoom/pan/tooltips; row click still works */}
         <div className={styles.interactionBlocker} aria-hidden="true" />
-
-        <div className={styles.activityOverlay} aria-hidden="true">
-          <img
-            className={styles.activityAvatar}
-            src={profile_pictureUrl || '/default-profile-picture.png'}
-            alt="User"
-          />
-          <div className={styles.activityIcon}>{getActivityIcon(actType)}</div>
-        </div>
       </div>
     );
   }
 
   function renderActivityItem(act, idx) {
     const { type, map, commentContent, created_at } = act;
-    const mapThumb = renderMapThumbnail(map, type);
 
     let mainText;
     if (type === 'createdMap') {
-      mainText = (
-        <>
-          {username} created map {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{username} created map {renderMapTitle(map)}</>;
     } else if (type === 'starredMap') {
-      mainText = (
-        <>
-          {username} starred map {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{username} starred map {renderMapTitle(map)}</>;
     } else if (type === 'commented') {
-      mainText = (
-        <>
-          {username} commented on {renderMapTitle(map)}
-        </>
-      );
+      mainText = <>{username} commented on {renderMapTitle(map)}</>;
     } else {
       mainText = <>Activity: {type}</>;
     }
+
+    const shouldShowCommentBox = type === 'commented' && commentContent;
 
     return (
       <div
@@ -335,18 +318,18 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
           if (map?.id) navigate(`/map/${map.id}`);
         }}
       >
-        {mapThumb}
+        {renderMapThumbnail(map)}
 
         <div className={styles.activityDetails}>
+          {renderMetaRow(act)}
           <p className={styles.mainText}>{mainText}</p>
-          {commentContent && renderCommentBox(act)}
+          {shouldShowCommentBox && renderCommentBox(act)}
           <div className={styles.timestampBox}>{timeAgo(created_at)}</div>
         </div>
       </div>
     );
   }
 
-  // Initial load skeletons
   if (isInitialLoading && activities.length === 0) {
     return (
       <div className={styles.dashActivityFeed}>

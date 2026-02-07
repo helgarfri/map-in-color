@@ -265,10 +265,12 @@ export default function NotificationList() {
                     <button
                       className={styles.actionButton}
                       onClick={(e) => handleMarkAsRead(e, notification)}
-                      title="Mark as read"
+                      title={notification.is_read ? "Already read" : "Mark as read"}
+                      disabled={notification.is_read}
                     >
                       <FaCheck />
                     </button>
+
                     <button
                       className={styles.actionButton}
                       onClick={(e) => handleDeleteNotification(e, notification)}

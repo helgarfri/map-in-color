@@ -1,68 +1,120 @@
+/* DataIntergration.module.css — MIC Theme v2.5 (clean + bright) */
+
+/* ============================
+   Theme tokens
+   ============================ */
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --card2: #fbfbfd;
+
+  --border: rgba(20, 24, 40, 0.10);
+  --border2: rgba(20, 24, 40, 0.16);
+
+  --text: #0f172a;
+  --muted: rgba(15, 23, 42, 0.65);
+
+  --brand: #28a8e1;  /* mic blue */
+  --brand2: #14a9af; /* mic teal */
+
+  --danger: #b42318;
+  --success: #2ea36a;
+
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --shadow2: 0 6px 18px rgba(15, 23, 42, 0.08);
+
+  --r: 16px;
+  --r2: 12px;
+
+  --focus: 0 0 0 3px rgba(20, 169, 175, 0.16);
+}
+
+/* ============================
+   Layout
+   ============================ */
 .layoutContainer {
   width: 100vw;
   height: 100vh;
-  background-color: #f7f7f7;
+  box-sizing: border-box;
+  background: var(--bg);
 
   /* header height */
   padding-top: 60px;
 
-  box-sizing: border-box;
-  overflow: hidden; /* prevents double scrollbars */
+  overflow: hidden; /* keep scroll inside panels */
 }
 
-/* NEW: DataSidebar + right panel are in one row */
 .contentRow {
   height: calc(100vh - 60px);
   display: flex;
   min-width: 0;
 }
 
-/* LEFT: data sidebar wrapper */
+/* LEFT */
 .leftSidebar {
   width: 410px;
   flex: 0 0 435px;
-  background-color: #fff;
-  border-right: 1px solid #ccc;
-  overflow-y: auto;
+
+  background: var(--card);
+  border-right: 1px solid var(--border);
   padding: 16px;
   box-sizing: border-box;
-  transition: margin-left 0.3s ease; /* Smooth transition */
 
+  overflow-y: hidden;
+  min-height: 0;
 }
 
-/* RIGHT: main content */
+/* RIGHT */
 .rightPanel {
   flex: 1 1 auto;
   min-width: 0;
+
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   box-sizing: border-box;
+
+  overflow-y: auto;
+  min-height: 0;
 }
 
-
-/* Map preview (fixed height / not scrollable) */
+/* Map preview (fixed height / no scroll inside) */
 .mapSection {
   flex: 0 0 auto;
-  background-color: #f9f9f9;
   padding: 16px;
+  background: var(--bg);
 }
 
 /* Scrollable nav & settings */
 .navSection {
   flex: 1 1 auto;
-  /* Removed overflow-y: auto */
-  background-color: #f9f9f9;
   padding: 16px;
+  background: var(--bg);
 }
-/* -------- MAP BOX -------- */
-.mapBox {
-  border: 1px solid #ddd;
-  background-color: #fff;
-  border-radius: 6px;
-  padding: 10px;
-  height: 100%;
+
+/* ============================
+   Cards / Sections
+   ============================ */
+.mapBox,
+.section,
+.tableBox {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
   box-sizing: border-box;
+}
+
+.mapBox {
+  padding: 12px;
+  height: 100%;
+}
+
+.mapBox h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.2px;
 }
 
 .mapPreview {
@@ -70,311 +122,19 @@
   height: auto;
 }
 
-/* -------- TABS & CONTENT -------- */
-.tabRow {
-  display: flex;
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 20px;
-}
-.tabItem {
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #666;
-  border-right: 1px solid #ccc;
-  transition: background-color 0.2s;
-}
-.tabItem:hover {
-  background-color: #fafafa;
-}
-.activeTab {
-  background-color: #fff;
-  font-weight: 700;
-  color: #333;
-}
-.tabContentArea {}
-
-/* Section box */
 .section {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 10px;
-  background-color: #fff;
-  margin-bottom: 20px;
+  padding: 12px;
+  margin-bottom: 16px;
 }
 
-/* Range table */
-.rangeTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-.rangeTable th,
-.rangeTable td {
-  border-bottom: 1px solid #ccc;
-  padding: 8px 12px;
-  text-align: center;
-  vertical-align: middle;
-  font-size: 14px;
-}
-.rangeTable th {
-  background-color: #f9f9f9;
-  font-weight: bold;
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.2px;
 }
 
-.rangeControls {
-  margin-top: 15px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  
-}
-
-.inputBox {
-  padding: 6px 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  height: 32px;
-  box-sizing: border-box;
-}
-
-.inputBox[type='number'] {
-  width: 80px;
-}
-.primaryButton,
-.secondaryButton {
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid rgba(0,0,0,0.16);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.primaryButton {
-  background-color: #55957b;
-  color: #fff;
-}
-.primaryButton:hover:not(:disabled) {
-  background-color: #49816b;
-}
-.primaryButton:disabled {
-  background-color: #d6d6d6;
-  color: #636363;
-  cursor: not-allowed;
-}
-.secondaryButton {
-  background-color: #dadada;
-  color: #000;
-}
-.secondaryButton:hover:not(:disabled) {
-  background-color: #bebebe;
-}
-.secondaryButton:disabled {
-  background-color: #d6d6d6;
-  color: #636363;
-  cursor: not-allowed;
-}
-.removeButton {
-  background: none;
-  border: none;
-  color: #000;
-  font-size: 24px;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-.removeButton:hover:not(:disabled) {
-  color: #ff4d4f;
-}
-.errorMessage {
-  color: #d00;
-  margin-left: 10px;
-  font-size: 14px;
-}
-
-/* Theme, info, etc. */
-.themeTab, .infoTab {
-  margin-bottom: 20px;
-}
-.themeField {
-  margin-bottom: 12px;
-}
-.themePreview {
-  display: flex;
-  gap: 4px;
-  margin-top: 4px;
-}
-.themeColor {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-}
-.radioGroup {
-  display: flex;
-  gap: 16px;
-}
-.settingItem, .settingItemRow {
-  margin-bottom: 12px;
-}
-
-.descriptionInput {
-  height: 80px;
-}
-.tagBox {
-  margin-top: 10px;
-  width: 100%;
-  height: 60px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 4px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  overflow-y: auto;
-  align-content: flex-start;
-}
-.tagItem {
-  background-color: #e0e0e0;
-  border-radius: 16px;
-  font-size: 12px;
-  padding: 3px 8px;
-  display: flex;
-  align-items: center;
-}
-.removeTagButton {
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  margin-left: 5px;
-  cursor: pointer;
-  color: #333;
-}
-.removeTagButton:hover {
-  color: #ff4d4f;
-}
-
-.referencesList {
-  max-height: 120px; 
-  overflow-y: auto;
-}
-.referenceItem {
-  background-color: transparent;
-  margin-bottom: 6px;
-  cursor: pointer;
-  text-decoration: underline;
-  color: #333;
-}
-.referenceItem:hover {
-  text-decoration: none;
-}
-
-/* Custom select */
-.customSelect {
-  position: relative;
-  width: 100px;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  user-select: none;
-  margin-top: 5px;
-}
-.visibilityIcon {
-  font-size: 16px;
-  margin-right: 6px;
-}
-.selectArrow {
-  margin-left: auto;
-  font-size: 12px;
-}
-.selectOptions {
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 0;
-  width: 100%;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  z-index: 100;
-}
-.selectOption {
-  padding: 6px 8px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-.selectOption:hover {
-  background-color: #f0f0f0;
-}
-
-/* Modal */
-.modalOverlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex; 
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-.modalContent {
-  background-color: #fff;
-  padding: 20px 30px;
-  border-radius: 8px;
-  width: 500px;
-  max-width: 95%;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-.closeButton {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-}
-.modalFormRow {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.modalFormRow label {
-  flex: 0 0 150px;
-  font-weight: bold;
-  margin-right: 10px;
-}
-.modalFormRow input,
-.modalFormRow textarea {
-  flex: 1;
-  font-size: 14px;
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-.modalBottomRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-.deleteRefLink {
-  color: #666;
-  text-decoration: underline;
-  cursor: pointer;
-  margin-right: auto;
-}
-.deleteRefLink:hover {
-  color: #333;
-}
-
-/* Map Info */
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -383,12 +143,346 @@
   margin-top: 10px;
 }
 
-.sectionTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: #222;
+/* tableBox ONLY wraps table + controls */
+.tableBox {
+  padding: 10px;
+  box-shadow: none;
 }
 
+/* ============================
+   Tabs (if used)
+   ============================ */
+.tabRow {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.tabItem {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.70);
+  border-radius: 999px;
+  transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.tabItem:hover {
+  background: rgba(40, 168, 225, 0.08);
+  transform: translateY(-1px);
+}
+
+.activeTab {
+  background: rgba(20, 169, 175, 0.14);
+  color: var(--text);
+}
+
+/* ============================
+   Range / Categories table
+   ============================ */
+.rangeTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.rangeTable th,
+.rangeTable td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 10px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 13px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rangeTable th {
+  background: var(--card2);
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.80);
+}
+
+/* Fixed column widths (choropleth table: 6 columns) */
+.rangeTable th:nth-child(1),
+.rangeTable td:nth-child(1) { width: 42%; text-align: left; }
+.rangeTable th:nth-child(2),
+.rangeTable td:nth-child(2) { width: 10%; }
+.rangeTable th:nth-child(3),
+.rangeTable td:nth-child(3) { width: 10%; }
+.rangeTable th:nth-child(4),
+.rangeTable td:nth-child(4) { width: 20%; }
+.rangeTable th:nth-child(5),
+.rangeTable td:nth-child(5) { width: 12%; }
+.rangeTable th:nth-child(6),
+.rangeTable td:nth-child(6) { width: 6%; }
+
+.countriesCell {
+  text-align: left;
+}
+
+.countriesList {
+  font-size: 12px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.rangeControls {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ============================
+   Inputs
+   ============================ */
+.inputBox {
+  width: 100%;
+  height: 34px;
+  padding: 8px 10px;
+  font-size: 14px;
+
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  border-radius: 10px;
+  background: #fff;
+
+  box-sizing: border-box;
+  outline: none;
+
+  transition: box-shadow 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.inputBox:focus {
+  border-color: rgba(20, 169, 175, 0.55);
+  box-shadow: var(--focus);
+}
+
+.inputBox::placeholder {
+  color: rgba(15, 23, 42, 0.45);
+}
+
+/* Make textareas match */
+.descriptionFixed {
+  height: 120px;
+  resize: none;
+  line-height: 1.45;
+}
+
+/* Optional older usage */
+.descriptionInput {
+  height: 80px;
+}
+
+/* ============================
+   Inline table editing
+   ============================ */
+.tableInputText,
+.tableInputNumber {
+  width: 100%;
+  height: 30px;
+  padding: 6px 8px;
+  font-size: 13px;
+
+  border-radius: 10px;
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  background: #fbfbfd;
+
+  outline: none;
+  box-sizing: border-box;
+}
+
+.tableInputText:focus,
+.tableInputNumber:focus,
+.hexInput:focus {
+  border-color: rgba(20, 169, 175, 0.65);
+  box-shadow: var(--focus);
+}
+
+.tableInputNumber {
+  max-width: 110px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* remove number spinners */
+.tableInputNumber::-webkit-outer-spin-button,
+.tableInputNumber::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.tableInputNumber[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ============================
+   Buttons (MIC pill system)
+   ============================ */
+.actionPill,
+.addRangeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  height: 34px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+
+  background: #fff;
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.actionPill:hover,
+.addRangeButton:hover {
+  box-shadow: var(--shadow2);
+  transform: translateY(-1px);
+}
+
+.actionPill:active,
+.addRangeButton:active {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+.actionPill:disabled,
+.addRangeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Keep addRange vibe but MIC-hover */
+.addRangeButton:hover {
+  background: rgba(20, 169, 175, 0.08);
+}
+
+/* Cancel variant */
+.cancelPill {
+  background: #fff;
+  color: var(--text);
+}
+
+.cancelPill:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+/* Save (teal) */
+.savePill {
+  background: var(--brand2);
+  border-color: rgba(20, 169, 175, 0.55);
+  color: #fff;
+}
+
+.savePill:hover:not(:disabled) {
+  background: #149397;
+}
+
+/* Primary (teal) */
+.primaryPill {
+  background: var(--brand2);
+  border-color: rgba(20, 169, 175, 0.55);
+  color: #fff;
+}
+
+.primaryPill:hover:not(:disabled) {
+  background: #149397;
+}
+
+/* Add reference pill */
+.addRefPill {
+  background: #fff;
+  color: var(--text);
+}
+
+.addRefPill:hover {
+  background: rgba(40, 168, 225, 0.08);
+}
+
+/* Danger pill */
+.dangerPill {
+  background: #fff;
+  color: var(--danger);
+  border-color: rgba(180, 35, 24, 0.35);
+}
+
+.dangerPill:hover:not(:disabled) {
+  background: rgba(180, 35, 24, 0.06);
+}
+
+/* Old style buttons (if still used somewhere) */
+.primaryButton,
+.secondaryButton {
+  padding: 9px 14px;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  cursor: pointer;
+  transition: background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.primaryButton {
+  background: var(--brand2);
+  border-color: rgba(20, 169, 175, 0.55);
+  color: #fff;
+}
+.primaryButton:hover:not(:disabled) {
+  background: #149397;
+  box-shadow: var(--shadow2);
+  transform: translateY(-1px);
+}
+.primaryButton:disabled {
+  background: #d6d6d6;
+  color: #636363;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: #fff;
+  color: var(--text);
+}
+.secondaryButton:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow2);
+  transform: translateY(-1px);
+}
+.secondaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* remove "x" button in table */
+.removeButton {
+  background: none;
+  border: none;
+  color: rgba(15, 23, 42, 0.85);
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 120ms ease, transform 120ms ease;
+}
+.removeButton:hover:not(:disabled) {
+  color: #ff4d4f;
+  transform: translateY(-1px);
+}
+
+/* ============================
+   Map Info blocks
+   ============================ */
 .mapInfoGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -402,31 +496,21 @@
 }
 
 .fieldBlock {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   padding: 12px;
-  background: #fafafa;
+  background: var(--card2);
   margin-bottom: 12px;
+  box-shadow: none;
 }
 
 .fieldLabel {
   font-size: 12px;
-  font-weight: 700;
-  color: #333;
-  letter-spacing: 0.2px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.85);
+  letter-spacing: 0.25px;
   margin-bottom: 6px;
   display: block;
-}
-
-.descriptionFixed {
-  height: 120px;
-  resize: none;
-  line-height: 1.4;
-  width: 100%;
-}
-
-.fieldBlock .inputBox {
-  width: 100%;
 }
 
 .rowBetween {
@@ -437,29 +521,73 @@
   margin-bottom: 8px;
 }
 
-.tagBoxLg {
-  margin-top: 10px;
-  width: 100%;
-  min-height: 78px;
-  max-height: 130px;
-  border: 1px dashed rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  padding: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  overflow-y: auto;
-  align-content: flex-start;
-  background: #fff;
-}
-
 .mutedText {
   margin: 0;
   font-size: 12px;
   opacity: 0.65;
   font-style: italic;
+  color: rgba(15, 23, 42, 0.65);
 }
 
+.mapInfoActionsBottomCentered {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Tags */
+.tagBoxLg {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 78px;
+  max-height: 130px;
+
+  border: 1px dashed rgba(20, 24, 40, 0.22);
+  border-radius: 14px;
+
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  overflow-y: auto;
+  align-content: flex-start;
+  background: #fff;
+}
+
+.tagItem {
+  background: rgba(40, 168, 225, 0.12);
+  border: 1px solid rgba(40, 168, 225, 0.18);
+  color: rgba(15, 23, 42, 0.90);
+
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+
+  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.removeTagButton {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.70);
+}
+
+.removeTagButton:hover {
+  color: #ff4d4f;
+}
+
+/* References list */
 .referencesListLg {
   max-height: 180px;
   overflow-y: auto;
@@ -471,200 +599,514 @@
 .referenceRowBtn {
   width: 100%;
   text-align: left;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+
+  border: 1px solid var(--border);
   background: #fff;
+
   padding: 10px 10px;
-  border-radius: 10px;
+  border-radius: 14px;
   cursor: pointer;
+
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
+
+  transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
 }
 
 .referenceRowBtn:hover {
-  background: #f3f3f3;
+  background: rgba(20, 169, 175, 0.06);
+  box-shadow: var(--shadow2);
+  transform: translateY(-1px);
 }
 
 .referenceTitle {
   font-size: 13px;
-  font-weight: 600;
-  color: #222;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.referenceMeta {
+.referenceMetaLine {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+
   font-size: 12px;
-  opacity: 0.7;
+  opacity: 0.75;
+
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.referenceDot {
+  opacity: 0.55;
+}
+
+.referencePublisher {
+  color: rgba(15, 23, 42, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+/* ============================
+   Visibility select
+   ============================ */
 .customSelectWide {
   position: relative;
   width: 100%;
+
   box-sizing: border-box;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  padding: 10px 12px;
+
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  border-radius: 14px;
+
   cursor: pointer;
   font-size: 14px;
+
   display: flex;
   align-items: center;
   user-select: none;
+
   margin-top: 6px;
   background: #fff;
+
+  transition: box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.customSelectWide:hover {
+  border-color: rgba(20, 169, 175, 0.45);
+}
+
+.visibilityIcon {
+  font-size: 16px;
+  margin-right: 8px;
+  color: rgba(15, 23, 42, 0.80);
 }
 
 .selectArrow {
   margin-left: auto;
   font-size: 12px;
-}
-
-.visibilityIcon {
-  font-size: 16px;
-  margin-right: 6px;
+  color: rgba(15, 23, 42, 0.55);
 }
 
 .selectOptions {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   left: 0;
   width: 100%;
-  border: 1px solid #ccc;
-  background-color: #fff;
+
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  background: #fff;
   z-index: 100;
-  border-radius: 10px;
+
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
 }
 
 .selectOption {
   width: 100%;
-  padding: 10px 10px;
+  padding: 11px 12px;
+
   display: flex;
   align-items: center;
   gap: 8px;
+
   cursor: pointer;
   border: none;
   background: transparent;
+
   text-align: left;
   font-size: 14px;
+  font-weight: 800;
+
+  color: rgba(15, 23, 42, 0.86);
 }
 
 .selectOption:hover {
-  background-color: #f0f0f0;
+  background: rgba(40, 168, 225, 0.08);
 }
 
-.mapInfoActionsBottomCentered {
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.primaryButtonBig {
-  padding: 10px 20px;
-  font-size: 15px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  cursor: pointer;
-  background-color: #55957b;
-  color: #fff;
+/* ============================
+   ColorCell
+   ============================ */
+.colorCell {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  justify-content: center;
 }
 
-.cancelButton {
-  padding: 10px 18px;
-  font-size: 14px;
+.hiddenColorInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.swatchButton {
+  width: 20px;
+  height: 20px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(20, 24, 40, 0.20);
   cursor: pointer;
-  background: #fff;
+  padding: 0;
+  display: inline-block;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
-/* Saving modal */
+.swatchButton:hover {
+  border-color: rgba(40, 168, 225, 0.70);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+  transform: translateY(-1px);
+}
+
+.hexInput {
+  width: 92px;
+  height: 30px;
+  padding: 6px 8px;
+  font-size: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  background: #fbfbfd;
+
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* ============================
+   Reference Modal (MIC)
+   ============================ */
+.refModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+  padding: 18px;
+}
+
+.refModalCard {
+  width: 720px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+  animation: mic_popIn 140ms ease-out;
+}
+
+.refModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  background: var(--card2);
+  border-bottom: 1px solid var(--border);
+}
+
+.refModalEyebrow {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.45px;
+  color: rgba(15, 23, 42, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.refModalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.refModalSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.62);
+}
+
+.refModalClose {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.refModalClose:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.refModalBody {
+  padding: 14px 16px 16px;
+}
+
+.refModalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.refModalTextarea {
+  height: 110px;
+  resize: none;
+  line-height: 1.45;
+  width: 100%;
+}
+
+.refModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
+
+.refModalFooterRight {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+@keyframes mic_popIn {
+  from { transform: translateY(6px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* responsive */
+@media (max-width: 700px) {
+  .refModalGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================
+   Saving modal (MIC)
+   ============================ */
 .saveModalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+  display: grid;
+  place-items: center;
   z-index: 10000;
+  padding: 18px;
 }
 
-.saveModalContent {
-  width: 420px;
-  max-width: calc(100vw - 32px);
+.saveModalCard {
+  width: 520px;
+  max-width: calc(100vw - 36px);
   background: #fff;
-  border-radius: 16px;
-  padding: 22px 22px 18px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  border-radius: 18px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+  animation: mic_popIn 140ms ease-out;
+}
+
+.saveModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  background: var(--card2);
+  border-bottom: 1px solid var(--border);
+}
+
+.saveModalEyebrow {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.45px;
+  color: rgba(15, 23, 42, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.saveModalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.saveModalSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.62);
+}
+
+.saveModalBody {
+  padding: 16px;
   text-align: center;
 }
 
-.saveIconWrap {
+.saveIconWrap,
+.saveSuccessWrap {
   width: 56px;
   height: 56px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: rgba(85, 149, 123, 0.12);
-  margin: 0 auto 10px;
+  margin: 4px auto 12px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+}
+
+.saveIconWrap {
+  background: rgba(20, 169, 175, 0.10);
+}
+
+.saveSuccessWrap {
+  background: rgba(46, 163, 106, 0.12);
 }
 
 .saveUploadIcon {
-  font-size: 26px;
-  color: #55957b;
+  font-size: 24px;
+  color: var(--brand2);
 }
 
 .saveSuccessIcon {
-  font-size: 44px;
-  color: #2ea36a;
-  margin-bottom: 8px;
+  font-size: 28px;
+  color: var(--success);
 }
 
 .progressTrack {
   width: 100%;
   height: 10px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.10);
+  background: rgba(15, 23, 42, 0.10);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
   border-radius: 999px;
-  background: #55957b;
+  background: var(--brand2);
   transition: width 180ms ease;
 }
 
 .progressMeta {
   margin-top: 8px;
   font-size: 12px;
-  color: rgba(0,0,0,0.6);
+  color: rgba(15, 23, 42, 0.60);
   display: flex;
   justify-content: center;
 }
 
+/* =========================
+   Skeleton (MIC shimmer)
+========================= */
+.skelBlock,
+.skelLine,
+.skelCard,
+.skelMap,
+.skelTableRow {
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skelCard {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.75);
+  padding: 12px;
+}
+
+.skelLine {
+  height: 12px;
+  margin: 10px 0;
+}
+
+.skelBlock {
+  height: 14px;
+}
+
+.skelMap {
+  height: 340px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.skelTableRow {
+  height: 46px;
+  border-radius: 14px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.80);
+}
+
+.skelBlock::after,
+.skelLine::after,
+.skelCard::after,
+.skelMap::after,
+.skelTableRow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 60%;
+  transform: translateX(-120%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.78) 50%,
+    transparent 100%
+  );
+  animation: di_shimmer 1.25s ease-in-out infinite;
+}
+
+@keyframes di_shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+
+/* ============================
+   Errors
+   ============================ */
+.errorMessage {
+  color: #d00;
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+/* ============================
+   Responsive
+   ============================ */
 @media (max-width: 900px) {
   .mapInfoGrid {
     grid-template-columns: 1fr;
   }
 }
 
-
-
-
 @media (max-width: 900px) {
   .layoutContainer {
-    padding-left: 0 !important; /* main sidebar is off-canvas on mobile */
+    padding-left: 0 !important;
     padding-top: 60px;
     height: auto;
     overflow: visible;
@@ -679,7 +1121,7 @@
     width: 100%;
     flex: 0 0 auto;
     border-right: none;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--border);
   }
 
   .rightPanel {

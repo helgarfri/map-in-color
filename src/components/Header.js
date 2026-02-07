@@ -1,29 +1,28 @@
 // src/components/Header.js
-import React, { useState, useRef, useEffect, useContext } from 'react';
-import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import {
   fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-} from '../api';
-import { formatDistanceToNow } from 'date-fns';
-import { UserContext } from '../context/UserContext';
-import styles from './Header.module.css';
-import useWindowSize from '../hooks/useWindowSize';
+} from "../api";
+import { formatDistanceToNow } from "date-fns";
+import { UserContext } from "../context/UserContext";
+import { SidebarContext } from "../context/SidebarContext";
+import styles from "./Header.module.css";
 
-export default function Header({ isCollapsed, setIsCollapsed, title }) {
+export default function Header({ title }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
-  const { width } = useWindowSize();
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
 
   const navigate = useNavigate();
-
   const { profile, setAuthToken } = useContext(UserContext);
+        const { isCollapsed, toggleCollapsed } = useContext(SidebarContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,7 +30,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
         const res = await fetchNotifications();
         setNotifications(res.data);
       } catch (err) {
-        console.error('Error fetching notifications:', err);
+        console.error("Error fetching notifications:", err);
       }
     };
     fetchData();
@@ -43,11 +42,9 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      if (notification.map_id) {
-        navigate(`/map/${notification.map_id}`);
-      }
+      if (notification.map_id) navigate(`/map/${notification.map_id}`);
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      console.error("Error marking notification as read:", err);
     }
   };
 
@@ -56,7 +53,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
       await markAllNotificationsAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
-      console.error('Error marking all as read:', err);
+      console.error("Error marking all as read:", err);
     }
   };
 
@@ -70,38 +67,38 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Create Map now goes straight to /create
-  const handleCreateMap = () => {
-    navigate('/create');
-  };
+  const handleCreateMap = () => navigate("/create");
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     if (setAuthToken) setAuthToken(null);
-    navigate('/login');
+    navigate("/login");
   };
 
   const profile_pictureUrl = profile?.profile_picture
     ? profile.profile_picture
-    : '/default-profile-pic.jpg';
+    : "/default-profile-pic.jpg";
 
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
-        <button
-          className={styles.hamburgerButton}
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          <span className={styles.iconWrapper}>
-            <FaBars />
-          </span>
-        </button>
+
+<button
+  className={styles.hamburgerButton}
+  onClick={toggleCollapsed}
+  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+>
+  <span className={styles.iconWrapper}>
+    <FaBars />
+  </span>
+</button>
+
 
         <div className={styles.logoWrapper}>
           <Link to="/dashboard" className={styles.logoLink}>
@@ -123,24 +120,39 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
 
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button
-            className={styles.notificationBell}
-            onClick={() => setShowNotifications(!showNotifications)}
+            className={`${styles.notificationBell} ${
+              showNotifications ? styles.notificationBellActive : ""
+            }`}
+            onClick={() => setShowNotifications((p) => !p)}
+            aria-expanded={showNotifications}
+            aria-label="Notifications"
           >
-            <span className={styles.iconWrapper}>
+            <span className={styles.bellIcon}>
               {showNotifications ? <FaBell /> : <FaRegBell />}
             </span>
-            {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount}</span>}
+
+            {unreadCount > 0 && (
+              <span
+                className={styles.unreadBadge}
+                aria-label={`${unreadCount} unread notifications`}
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
 
           {showNotifications && (
             <div className={styles.notificationPopout}>
               <div className={styles.notificationHeader}>
-                <h3>Notifications</h3>
+                <div>
+                  <h3>Notifications</h3>
+                  <p className={styles.notificationHeaderSub}>
+                    {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+                  </p>
+                </div>
+
                 {unreadCount > 0 && (
-                  <button
-                    className={styles.markAllAsRead}
-                    onClick={handleMarkAllAsRead}
-                  >
+                  <button className={styles.markAllAsRead} onClick={handleMarkAllAsRead}>
                     Mark all as read
                   </button>
                 )}
@@ -161,24 +173,26 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                           src={
                             notification.Sender?.profile_picture
                               ? notification.Sender.profile_picture
-                              : '/default-profile-pic.jpg'
+                              : "/default-profile-pic.jpg"
                           }
                           alt="Sender"
                           className={styles.profile_picture}
                         />
+
                         <div className={styles.notificationText}>
                           <p className={styles.notificationContent}>
                             <Link
-                              to={`/profile/${notification.Sender?.username || 'unknown'}`}
+                              to={`/profile/${notification.Sender?.username || "unknown"}`}
                               className={styles.senderName}
                               onClick={(e) => e.stopPropagation()}
                             >
                               {notification.Sender?.first_name ||
                                 notification.Sender?.username ||
-                                'Unknown'}
-                            </Link>{' '}
-                            {getNotificationMessage(notification)}
+                                "Unknown"}
+                            </Link>{" "}
+                            {getNotificationMessage(notification, styles)}
                           </p>
+
                           <p className={styles.notificationMeta}>
                             {formatDistanceToNow(new Date(notification.created_at), {
                               addSuffix: true,
@@ -195,7 +209,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
 
               <div className={styles.viewAllLink}>
                 <Link to="/notifications" onClick={() => setShowNotifications(false)}>
-                  View All Notifications
+                  View all notifications
                 </Link>
               </div>
             </div>
@@ -203,12 +217,22 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
         </div>
 
         <div className={styles.profileWrapper} ref={profileMenuRef}>
-          <img
-            src={profile_pictureUrl}
-            alt="User Avatar"
-            className={styles.headerProfilePicture}
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-          />
+          <button
+            type="button"
+            className={`${styles.profileButton} ${
+              showProfileMenu ? styles.profileButtonActive : ""
+            }`}
+            onClick={() => setShowProfileMenu((p) => !p)}
+            aria-expanded={showProfileMenu}
+            aria-label="Profile menu"
+          >
+            <img
+              src={profile_pictureUrl}
+              alt="User Avatar"
+              className={styles.headerProfilePicture}
+            />
+          </button>
+
           {showProfileMenu && (
             <div className={styles.profileMenu}>
               <div className={styles.profileMenuHeader}>
@@ -228,7 +252,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
               <ul className={styles.profileMenuList}>
                 <li>
                   <Link
-                    to={`/profile/${profile?.username || 'unknown'}`}
+                    to={`/profile/${profile?.username || "unknown"}`}
                     className={styles.profileMenuItem}
                     onClick={() => setShowProfileMenu(false)}
                   >
@@ -236,6 +260,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                     <span>View Profile</span>
                   </Link>
                 </li>
+
                 <li>
                   <Link
                     to="/settings"
@@ -246,18 +271,16 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                     <span>Settings</span>
                   </Link>
                 </li>
+
                 <li>
-                  <Link
-                    to="#"
-                    className={styles.profileMenuItem}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleLogout();
-                    }}
+                  <button
+                    type="button"
+                    className={`${styles.profileMenuItem} ${styles.profileMenuItemDanger}`}
+                    onClick={handleLogout}
                   >
                     <FaSignOutAlt className={styles.profileMenuIcon} />
                     <span>Logout</span>
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -268,8 +291,8 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
   );
 }
 
-function getNotificationMessage(notification) {
-  const mapTitle = notification.Map?.title || 'Untitled Map';
+function getNotificationMessage(notification, styles) {
+  const mapTitle = notification.Map?.title || "Untitled Map";
   const mapId = notification.Map?.id;
 
   const mapLink = mapId ? (
@@ -281,17 +304,17 @@ function getNotificationMessage(notification) {
       {mapTitle}
     </Link>
   ) : (
-    'the map'
+    "the map"
   );
 
   switch (notification.type) {
-    case 'star':
+    case "star":
       return <>starred your map {mapLink}.</>;
-    case 'comment':
+    case "comment":
       return <>commented on your map {mapLink}.</>;
-    case 'like':
+    case "like":
       return <>liked your comment on {mapLink}.</>;
-    case 'reply':
+    case "reply":
       return <>replied to your comment on {mapLink}.</>;
     default:
       return <>performed an action on {mapLink}.</>;

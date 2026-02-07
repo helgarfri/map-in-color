@@ -329,47 +329,34 @@ const normalized = normalizeMapForPreview(mapToRender);
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
 
-    const overlayUrl = getOverlayAvatarUrl(act);
-    const overlayUsername = getOverlayAvatarUsername(act);
-    const overlayIcon = getActivityIcon(act.type);
 
-    return (
-      <div className={dashFeedStyles.thumbContainer}>
-        <div className={dashFeedStyles.thumbMapStage}>
-          <Map
-  groups={normalized.groups}
-  data={normalized.data}
-  selected_map={normalized.selectedMap}
-  mapDataType={normalized.mapDataType}
-  custom_ranges={normalized.customRanges}
-            mapTitleValue={normalized.title}
-            ocean_color={normalized.ocean_color}
-            unassigned_color={normalized.unassigned_color}
-            font_color={normalized.font_color}
-            is_title_hidden={normalized.is_title_hidden}
-            isThumbnail={true}
-            showNoDataLegend={normalized.showNoDataLegend}
-            titleFontSize={normalized.titleFontSize}
-            legendFontSize={normalized.legendFontSize}
-          />
-        </div>
+return (
+  <div className={dashFeedStyles.thumbContainer}>
+    <div className={dashFeedStyles.thumbMapStage}>
+      <Map
+        groups={normalized.groups}
+        data={normalized.data}
+        selected_map={normalized.selectedMap}
+        mapDataType={normalized.mapDataType}
+        custom_ranges={normalized.customRanges}
+        mapTitleValue={normalized.title}
+        ocean_color={normalized.ocean_color}
+        unassigned_color={normalized.unassigned_color}
+        font_color={normalized.font_color}
+        is_title_hidden={normalized.is_title_hidden}
+        isThumbnail={true}
+        showNoDataLegend={normalized.showNoDataLegend}
+        titleFontSize={normalized.titleFontSize}
+        legendFontSize={normalized.legendFontSize}
+        strokeMode='thin'
+      />
+    </div>
 
-        {/* Blocks hover/zoom/pan/tooltips; row click still works */}
-        <div className={dashFeedStyles.interactionBlocker} aria-hidden="true" />
+    {/* Blocks hover/zoom/pan/tooltips; row click still works */}
+    <div className={dashFeedStyles.interactionBlocker} aria-hidden="true" />
+  </div>
+);
 
-        {/* Overlay stays clickable */}
-        <div
-          className={dashFeedStyles.activityOverlay}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/profile/${overlayUsername}`);
-          }}
-        >
-          <img className={dashFeedStyles.activityAvatar} src={overlayUrl} alt="User" />
-          <div className={dashFeedStyles.activityIcon}>{overlayIcon}</div>
-        </div>
-      </div>
-    );
   }
 
   function renderSenderName(act) {
@@ -410,11 +397,7 @@ const normalized = normalizeMapForPreview(mapToRender);
     );
   }
 
-  function getCommentAuthorAvatar(act) {
-    if (act.commentAuthor?.profile_picture) return act.commentAuthor.profile_picture;
-    if (act.type === 'commented' && userProfile?.profile_picture) return userProfile.profile_picture;
-    return '/default-profile-picture.png';
-  }
+
 
   function getCommentAuthorUsername(act) {
     if (act.commentAuthor?.username) return act.commentAuthor.username;
@@ -423,23 +406,57 @@ const normalized = normalizeMapForPreview(mapToRender);
   }
 
   function renderCommentBox(act) {
-    const commentAvatarUrl = getCommentAuthorAvatar(act);
     const commentAuthor = getCommentAuthorUsername(act);
     return (
       <div className={dashFeedStyles.commentBox}>
-        <img
-          className={dashFeedStyles.commentAuthorAvatar}
-          src={commentAvatarUrl}
-          alt="Comment Author"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/profile/${commentAuthor}`);
-          }}
-        />
+        
         <div className={dashFeedStyles.commentBody}>{act.commentContent}</div>
       </div>
     );
   }
+
+  function renderMetaRow(act) {
+  const avatarUrl = getOverlayAvatarUrl(act);
+  const overlayUsername = getOverlayAvatarUsername(act);
+  const icon = getActivityIcon(act.type);
+
+  // label on the right (for notifications show sender, otherwise "You")
+  const label = act.type?.startsWith("notification_")
+    ? (act.notificationData?.sender?.username || "someone")
+    : (userProfile?.username || "you");
+
+  return (
+    <div className={dashFeedStyles.metaRow}>
+      <img
+        className={dashFeedStyles.metaAvatar}
+        src={avatarUrl}
+        alt="User"
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/profile/${overlayUsername}`);
+        }}
+      />
+
+      <div className={dashFeedStyles.metaMiddle}>
+        <div
+          className={dashFeedStyles.metaName}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/profile/${overlayUsername}`);
+          }}
+          title={label}
+        >
+          {label}
+        </div>
+      </div>
+
+      <div className={dashFeedStyles.metaIconPill} aria-hidden="true">
+        {icon}
+      </div>
+    </div>
+  );
+}
+
 
   function renderActivityItem(act, idx) {
     const { type, map, commentContent, created_at } = act;
@@ -480,11 +497,13 @@ const normalized = normalizeMapForPreview(mapToRender);
         onClick={() => handleItemClick(act)}
       >
         {mapThumb}
-        <div className={dashFeedStyles.activityDetails}>
-          <p className={dashFeedStyles.mainText}>{mainText}</p>
-          {shouldShowCommentBox && renderCommentBox(act)}
-          <div className={dashFeedStyles.timestampBox}>{timeAgo(created_at)}</div>
-        </div>
+      <div className={dashFeedStyles.activityDetails}>
+  {renderMetaRow(act)}
+  <p className={dashFeedStyles.mainText}>{mainText}</p>
+  {shouldShowCommentBox && renderCommentBox(act)}
+  <div className={dashFeedStyles.timestampBox}>{timeAgo(created_at)}</div>
+</div>
+
       </div>
     );
   }
@@ -500,10 +519,10 @@ const normalized = normalizeMapForPreview(mapToRender);
     );
   }
 
-  // no data
-  if (!isInitialLoading && activities.length === 0) {
-    return <p>No recent activity.</p>;
-  }
+if (!isInitialLoading && activities.length === 0) {
+  return <p className={dashFeedStyles.emptyText}>No recent activity.</p>;
+}
+
 
   return (
     <div className={dashFeedStyles.dashActivityFeed}>

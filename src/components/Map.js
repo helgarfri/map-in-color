@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useLayoutEffect
 } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import cls from "./Map.module.css";
@@ -39,6 +40,7 @@ const getCountryEls = (svg, code) =>
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
   );
 
+  
 /* ───────────────── component ───────────────────────────────────────── */
 
 export default function Map({
@@ -62,9 +64,12 @@ export default function Map({
   onHoverCode,
   onSelectCode,
   placeholders = {},
+  strokeMode = "thin", // "thin" | "thick"
   viewBox,
 
 } = {}) {
+
+
   /* ───────────────────────────────
    * 1) Parse props that may arrive as JSON strings
    * ─────────────────────────────── */
@@ -238,6 +243,18 @@ export default function Map({
   const wrapperRef = useRef(null);
   const currentScaleRef = useRef(1);
 
+  const tooltipElRef = useRef(null);
+  const rafRef = useRef(null);
+  const lastPosRef = useRef({ x: 0, y: 0 });
+
+  const isZoomedRef = useRef(false);
+
+  const lastClickRef = useRef({ code: null, t: 0 });
+const DOUBLE_CLICK_MS = 260; // tweak 220–320 to taste
+
+
+
+
   // internal “selected” (used for info box)
   const selectedCodeRef = useRef(null);
 
@@ -267,36 +284,39 @@ const findValue = useCallback((code) => {
     [derivedGroups, unassigned_color]
   );
 
-  const resetView = useCallback(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
+const resetView = useCallback(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
 
-    // remove selected highlight
-    if (selectedCodeRef.current) {
-      getCountryEls(svg, selectedCodeRef.current).forEach((el) =>
-        el.classList.remove(cls.hovered)
-      );
+  // remove selected highlight
+  if (selectedCodeRef.current) {
+    const c = selectedCodeRef.current;
+    getCountryEls(svg, c).forEach((el) => {
+      el.classList.remove(cls.active);
+      el.classList.remove(cls.hovered); // safety
+    });
+  }
+
+  // remove sidebar-hover highlight (if different)
+  if (sidebarHoverRef.current) {
+    const c = sidebarHoverRef.current;
+    if (c !== selectedCodeRef.current) {
+      getCountryEls(svg, c).forEach((el) => el.classList.remove(cls.hovered));
     }
+    sidebarHoverRef.current = null;
+  }
 
-    // remove sidebar-hover highlight (if different)
-    if (sidebarHoverRef.current) {
-      const c = sidebarHoverRef.current;
-      if (c !== selectedCodeRef.current) {
-        getCountryEls(svg, c).forEach((el) => el.classList.remove(cls.hovered));
-      }
-      sidebarHoverRef.current = null;
-    }
 
-    selectedCodeRef.current = null;
-    setSelected(null);
-    setTooltip(null);
+  selectedCodeRef.current = null;
+  setSelected(null);
+  setTooltip(null);
 
-    wrapperRef.current?.resetTransform();
-    currentScaleRef.current = 1;
 
-    // optional: tell parent nothing is selected
-    onSelectCode?.(null);
-  }, [onSelectCode]);
+
+  onSelectCode?.(null);
+  onHoverCode?.(null);
+}, [onSelectCode, onHoverCode]);
+
 
   /* ───────────────────────────────
    * 7) paint base map
@@ -338,19 +358,29 @@ const findValue = useCallback((code) => {
       const placeholder = findPlaceholder(C);
 
 
-      // clear old selected highlight
+            // clear old selected highlight
       if (selectedCodeRef.current) {
-        getCountryEls(svg, selectedCodeRef.current).forEach((x) =>
-          x.classList.remove(cls.hovered)
-        );
+        getCountryEls(svg, selectedCodeRef.current).forEach((x) => {
+          x.classList.remove(cls.active);
+          x.classList.remove(cls.hovered); // optional safety
+        });
       }
 
       selectedCodeRef.current = C;
-      getCountryEls(svg, C).forEach((x) => x.classList.add(cls.hovered));
+      getCountryEls(svg, C).forEach((x) => x.classList.add(cls.active));
+
+
 
       setSelected({ code: C, name, value, bbox, color, placeholder });
 
-      if (!zoom) return;
+
+
+      // if we’re selecting without zoom, mark zoom state off
+      if (!zoom) {
+        isZoomedRef.current = false;
+        return;
+      }
+
       if (!wrapperRef.current || !svgRef.current) return;
 
       // zoom math (same as your click handler)
@@ -383,7 +413,9 @@ const findValue = useCallback((code) => {
         250,
         "easeOutQuart"
       );
+
       currentScaleRef.current = targetScale;
+      isZoomedRef.current = true;
     },
     [findColor, findValue]
   );
@@ -447,13 +479,25 @@ const findValue = useCallback((code) => {
         code,
         name,
         value: findValue(code),
-        x: e.clientX,
-        y: e.clientY,
       });
+
     };
 
-    const handleMove = (e) =>
-      setTooltip((t) => (t ? { ...t, x: e.clientX, y: e.clientY } : t));
+ const handleMove = (e) => {
+  lastPosRef.current.x = e.clientX + 12;
+  lastPosRef.current.y = e.clientY + 12;
+
+  if (rafRef.current) return;
+
+  rafRef.current = requestAnimationFrame(() => {
+    rafRef.current = null;
+    const el = tooltipElRef.current;
+    if (!el) return;
+
+    // transform is much cheaper than top/left layout
+    el.style.transform = `translate3d(${lastPosRef.current.x}px, ${lastPosRef.current.y}px, 0)`;
+  });
+};
 
     const handleLeave = (e) => {
       const code = norm(e.target.id);
@@ -471,16 +515,42 @@ const findValue = useCallback((code) => {
       setTooltip(null);
     };
 
-    const handleClick = (e) => {
-      const code = norm(e.target.id);
-      if (!code) return;
+const handleClick = (e) => {
+  const code = norm(e.target.id);
+  if (!code) return;
 
-      // tell parent (sidebar) what is selected
-      onSelectCode?.(code);
+  const current = selectedCodeRef.current;
+  const now = performance.now();
 
-      // select internally + zoom
-      selectCountryByCode(code, { zoom: true });
-    };
+  // Clicking a different country:
+  if (current !== code) {
+    onSelectCode?.(code);
+
+    // first click = select + info box, NO zoom
+    selectCountryByCode(code, { zoom: false });
+
+    // reset dbl-click tracking for new target
+    lastClickRef.current = { code, t: now };
+    return;
+  }
+
+  // Clicking the same (already active) country:
+  // Only zoom if it's a FAST double click.
+  const last = lastClickRef.current;
+
+  const isFastDouble =
+    last.code === code && (now - last.t) <= DOUBLE_CLICK_MS;
+
+  // update last click time every time
+  lastClickRef.current = { code, t: now };
+
+  if (isFastDouble) {
+    selectCountryByCode(code, { zoom: true });
+  }
+
+  // otherwise: do nothing (stay active, don’t deselect)
+};
+
 
     const all = svg.querySelectorAll("path[id], polygon[id], rect[id]");
     all.forEach((el) => {
@@ -545,21 +615,18 @@ useEffect(() => {
 
 
   /* ── renders ─────────────────────────────────────────────────────── */
-  const renderTooltip = () =>
-    tooltip && (
-      <div
-        className={cls.tooltip}
-        style={{ top: tooltip.y + 12, left: tooltip.x + 12 }}
-      >
-        <img
-          src={`https://flagcdn.com/w20/${tooltip.code.toLowerCase()}.png`}
-          alt=""
-          className="inline mr-2"
-        />
-        <strong>{tooltip.name}</strong>
-        <div className="text-xs mt-1">{tooltip.value}</div>
-      </div>
-    );
+ const renderTooltip = () =>
+  tooltip && (
+    <div ref={tooltipElRef} className={cls.tooltip}>
+      <img
+        src={`https://flagcdn.com/w20/${tooltip.code.toLowerCase()}.png`}
+        alt=""
+      />
+      <strong>{tooltip.name}</strong>
+      <div>{tooltip.value}</div>
+    </div>
+  );
+
 
   const renderInfoBox = () =>
     selected && (
@@ -602,6 +669,29 @@ useEffect(() => {
     );
 
 
+useLayoutEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  // force neutral fill for first paint
+  svg.classList.add(cls.isPainting);
+  svg.classList.remove(cls.isReady);
+
+  // paint base + groups
+  svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+    el.style.fill = unassigned_color;
+  });
+
+  derivedGroups.forEach(({ countries = [], color }) => {
+    countries.forEach(({ code }) => {
+      getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
+    });
+  });
+
+  // now allow JS fill to be visible
+  svg.classList.remove(cls.isPainting);
+  svg.classList.add(cls.isReady);
+}, [derivedGroups, unassigned_color]);
 
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
@@ -635,15 +725,15 @@ useEffect(() => {
         <svg
   ref={svgRef}
   className={cls.mapCanvas}
+  data-stroke={strokeMode}
   viewBox="0 0 2000 857"
   /*              ▼ swap “slice” for “meet”     */
   preserveAspectRatio="xMidYMid meet"
-  stroke="black"
   strokeLinecap="round"
   strokeLinejoin="round"
-  strokeWidth={0.3}
-  fill="#ececec"
   xmlns="http://www.w3.org/2000/svg"
+
+  
 
 
 >

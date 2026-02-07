@@ -47,7 +47,7 @@ export default function LoggedInMapDetail() {
   /* -------------------------------------------------- */
   /* collapse sidebar automatically under 1000 px */
   useEffect(() => {
-    setIsCollapsed(width < 1000);
+    
   }, [width, setIsCollapsed]);
 
   /* notifications */

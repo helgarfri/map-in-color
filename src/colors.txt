@@ -8,4 +8,16 @@ Orange: #e6604d
 Red: #d24b4c
 Purple: #7e3168
 Green: #309d81
-Blue: #79a6b7
+Blue: #28a8e1
+
+
+version 2.5
+
+Cyan: #14a9af
+Light red (white): #fbfafa
+Azure: #28a8e1
+Orange: #fc861d
+Magenta: #ce2292
+
+
+cyan hover: #149397

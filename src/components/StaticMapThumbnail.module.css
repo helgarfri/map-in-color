@@ -6,6 +6,9 @@
   border-radius: 4px;
   display: flex;
   align-items: center;
+  position: relative; /* ✅ anchor the absolute blocker */
+  overflow: hidden;   /* ✅ keep map/blocker clipped to the thumbnail */
+  
 }
 
 

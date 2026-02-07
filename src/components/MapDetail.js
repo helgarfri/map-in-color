@@ -60,10 +60,7 @@ export default function MapDetail() {
   const { width } = useWindowSize();
 
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
-useEffect(() => {
-  if (width < 1000) setIsCollapsed(true);
-  else setIsCollapsed(false);
-}, [width, setIsCollapsed]);
+
 
 
     // For reporting a comment
@@ -1694,6 +1691,7 @@ function mapDataProps() {
 
     // also alias in case Map expects a different name:
     customDescriptions: parseJsonObject(mapData.placeholders),
+    strokeMode:'thick'
   };
 }
 

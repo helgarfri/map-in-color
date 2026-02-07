@@ -1,73 +1,170 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.55);
   z-index: 10000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  place-items: center;
+  padding: 18px;
 }
 
-.modal {
+.card {
+  width: 520px;
+  max-width: calc(100vw - 36px);
   background: #fff;
-  border-radius: 6px;
-  width: 460px;
-  max-width: 90%;
-  padding: 20px;
-  position: relative;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
 }
 
-.closeBtn {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
+@keyframes popIn {
+  from { transform: translateY(6px); opacity: 0.7; }
+  to { transform: translateY(0px); opacity: 1; }
 }
 
-.content {
+.header {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 16px;
+  color: #111;
+  background: rgba(20,169,175,0.14);
+  border: 1px solid rgba(20,169,175,0.22);
+  flex: 0 0 auto;
+}
+
+.badge[data-danger="1"] {
+  background: rgba(180,35,24,0.12);
+  border-color: rgba(180,35,24,0.25);
+  color: #b42318;
+}
+
+.headerText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(0,0,0,0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
 }
 
 .title {
-  margin-bottom: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.close:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.body {
+  padding: 14px 16px 6px;
 }
 
 .message {
   margin: 0;
-  line-height: 1.4;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(0,0,0,0.70);
 }
 
-.actions {
+.footer {
   display: flex;
-  gap: 16px;
-  margin-top: 16px;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px 16px;
 }
 
-.cancelBtn,
-.confirmBtn {
-  padding: 8px 16px;
+/* Pill buttons (match your existing vibe) */
+.actionPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  height: 34px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.14);
+
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background: #f1f1f1;
-  font-weight: 600;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 
-.cancelBtn:hover,
-.confirmBtn:hover {
-  background: #e7e7e7;
+.actionPill:hover {
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
 }
 
-.danger {
-  border-color: #b3261e;
+.actionPill:active {
+  transform: translateY(0px);
+  box-shadow: none;
 }
 
-.danger:hover {
-  background: rgba(179, 38, 30, 0.08);
+.cancelPill {
+  background: #fff;
+  color: #111;
+}
+
+.cancelPill:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.primaryPill {
+  border-color: #149397;
+  background: #14a9af;
+  color: #fff;
+}
+
+.primaryPill:hover {
+  background: #149397;
+}
+
+.dangerPill {
+  background: #fff;
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.35);
+}
+
+.dangerPill:hover {
+  background: rgba(180, 35, 24, 0.06);
 }

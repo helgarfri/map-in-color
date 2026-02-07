@@ -1,80 +1,150 @@
-/* Container for the sidebar, pinned to the right edge */
+/* ===== MIC tokens (reuse your map tokens) ===== */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+  --mic-orange: #fc861d;
+
+  --text: rgba(15,23,42,0.88);
+  --muted: rgba(15,23,42,0.55);
+  --border: rgba(15,23,42,0.10);
+
+  --card: rgba(255,255,255,0.92);
+  --card2: rgba(255,255,255,0.75);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 26px rgba(0,0,0,0.08);
+
+  --r-lg: 18px;
+  --r-md: 14px;
+}
+
+/* ===== Sidebar shell ===== */
 .sidebarContainer {
-    width: 400px;
-    background-color: #fff;
-    border: 1px solid #e5e5e5;
-    box-shadow: 0 0 3px rgba(0,0,0,0.1); /* optional */
-    padding: 20px;
-    box-sizing: border-box;
-    overflow-y: hidden; /* let the content scroll if it gets tall */
-    /* no position: fixed; or top/bottom, etc. */
-  }
-  
-  /* Tabs row container */
-  .tabRow {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #e5e5e5;
-  }
-  
-  /* Each tab */
-  .tabItem {
-    flex: 1;
-    text-align: center;
-    padding: 10px 0;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.3s ease;
-  }
-  .tabItem:hover {
-    color: #333;
-  }
-  .activeTab {
-    color: #333;
-    font-weight: 600;
-    border-bottom: 2px solid #55957b;
-  }
-  
-/* ===== Upload CTA (clean + centered + wide) ===== */
+  width: 400px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  padding: 14px;
+  box-sizing: border-box;
+
+  background: linear-gradient(180deg, rgba(40,168,225,0.06), rgba(20,169,175,0.04));
+  border-left: 1px solid var(--border);
+}
+
+/* ===== Tabs (segmented control) ===== */
+.tabRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  padding: 10px;
+  border-radius: var(--r-lg);
+  background: rgba(255,255,255,0.70);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
+}
+
+.tabBtn {
+  all: unset;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  height: 40px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 950;
+
+  color: rgba(15,23,42,0.60);
+  border: 1px solid transparent;
+
+  transition: transform 120ms ease, background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.tabBtn:hover {
+  transform: translateY(-1px);
+  color: rgba(15,23,42,0.78);
+  background: rgba(255,255,255,0.70);
+  border-color: rgba(0,0,0,0.06);
+}
+
+.tabIcon {
+  font-size: 14px;
+  opacity: 0.95;
+}
+
+.tabActive {
+  color: rgba(15,23,42,0.90);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.18),
+    rgba(20,169,175,0.14)
+  );
+  border-color: rgba(20,169,175,0.25);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+/* ===== Upload CTA (more premium) ===== */
 .uploadButtonWrap {
   display: flex;
   justify-content: center;
-  margin: 10px 0 14px;
+  margin: 6px 0 12px;
 }
 
 .uploadCta {
   width: 100%;
-  max-width: 360px;            /* nearly full width but still “designed” */
+  border: 1px solid rgba(20,169,175,0.22);
+  border-radius: var(--r-lg);
+
+  background: linear-gradient(
+    135deg,
+    rgba(20,169,175,0.18),
+    rgba(40,168,225,0.16)
+  );
+
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
 
-  padding: 12px 14px;
-  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.90);
 
-  border: 1px solid rgba(85, 149, 123, 0.35);
-  background: rgba(85, 149, 123, 0.12);
-  color: #1d1d1d;
-
-  font-size: 14px;
-  font-weight: 700;
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
-  transition: transform 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+/* subtle shine sweep */
+.uploadCta::after {
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  transform: rotate(12deg) translateX(-40%);
+  opacity: 0;
+  transition: opacity 200ms ease, transform 500ms ease;
 }
 
 .uploadCta:hover {
-  background: rgba(85, 149, 123, 0.18);
   transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.10);
+  filter: brightness(1.02);
 }
 
-.uploadCta:active {
-  transform: translateY(0px);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+.uploadCta:hover::after {
+  opacity: 1;
+  transform: rotate(12deg) translateX(40%);
 }
 
 .uploadCtaIcon {
@@ -84,314 +154,246 @@
   display: grid;
   place-items: center;
 
-  background: rgba(85, 149, 123, 0.22);
-  color: #2f6e57;
-  font-size: 16px;
-  flex: 0 0 auto;
+  background: linear-gradient(180deg, rgba(20,169,175,0.95), rgba(40,168,225,0.85));
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
 }
 
-.uploadCtaText {
-  letter-spacing: 0.2px;
+/* ===== Sort card ===== */
+.sortCard {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.75);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 12px;
 }
 
 .sortRow {
   display: flex;
   align-items: center;
   gap: 10px;
-
   padding: 10px 12px;
-  border: 1px solid rgba(0,0,0,0.10);
-  border-radius: 14px;
-  background: #ffffff;
 }
 
 .sortLabel {
   font-size: 12px;
-  font-weight: 800;
-  color: #334155;
-  white-space: nowrap;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.72);
+  letter-spacing: 0.2px;
 }
 
 .sortSelect {
   flex: 1;
-  height: 36px;
+  height: 38px;
   padding: 0 12px;
 
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.12);
-  background: #f8fafc;
-  color: #0f172a;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(248,250,252,0.90);
+  color: rgba(15,23,42,0.88);
 
   font-size: 13px;
-  font-weight: 800;
-
+  font-weight: 950;
   outline: none;
-  cursor: pointer;
 }
 
 .sortSelect:focus {
-  border-color: rgba(85, 149, 123, 0.55);
-  box-shadow: 0 0 0 3px rgba(85, 149, 123, 0.18);
-  background: #ffffff;
+  border-color: rgba(20,169,175,0.45);
+  box-shadow: 0 0 0 3px rgba(20,169,175,0.16);
+  background: #fff;
 }
 
-.sortSelect:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+/* ===== List container ===== */
+.scrollableList {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.65);
+  box-shadow: var(--shadow-sm);
+
+  padding: 10px;
 }
 
+/* ===== Rows as cards ===== */
+.rowWrapper {
+  display: block;
+}
 
-  
-  /* Category manager block (only visible if mapDataType === 'categorical') */
-  .categoryManager {
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 10px;
-    background-color: #fafafa;
-  }
-  .categoryManager h4 {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .addCategoryRow {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .addCategoryRow input {
-    flex: 1;
-    font-size: 13px;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .addCategoryRow button {
-    font-size: 13px;
-    padding: 6px 10px;
-    border: 1px solid #666;
-    border-radius: 4px;
-    background-color: #f0f0f0;
-    cursor: pointer;
-  }
-  .addCategoryRow button:hover {
-    background-color: #e0e0e0;
-  }
-  
-  .categoryList {
-    list-style: none;
-    margin: 0; 
-    padding: 0;
-  }
-  .categoryList li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    background-color: #fff;
-    padding: 4px 6px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 13px;
-  }
-  .removeCatBtn {
-    background: none;
-    border: none;
-    color: #444;
-    font-size: 16px;
-    cursor: pointer;
-    margin-left: 8px;
-    transition: color 0.3s ease;
-  }
-  .removeCatBtn:hover {
-    color: #d9534f;
-  }
-  
-  /* MAIN SCROLLABLE AREA */
-  .scrollableList {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border: 1px solid #e5e5e5;
-    border-radius: 4px;
-    padding: 10px;
-    background-color: #fafafa;
-    max-height: 65vh;   /* pick whatever fits your layout */
-  }
-  
 .countryRow {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e5e5;
+
+  padding: 10px 10px;
+  margin-bottom: 8px;
+
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.82);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
-.countryRow:last-child {
-  border-bottom: none;
+.countryRow:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.08);
 }
 
-/* LEFT SIDE: flag + name */
+/* left accent bar (MIC style) */
+.countryRow::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.10);
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease;
+}
+
+.rowHovered {
+  background: rgba(20,169,175,0.08);
+}
+
+.rowSelected {
+  border-color: rgba(20,169,175,0.30);
+  background: linear-gradient(135deg, rgba(40,168,225,0.08), rgba(20,169,175,0.06));
+}
+
+.rowSelected::before {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(40,168,225,0.95), rgba(20,169,175,0.85));
+}
+
+/* flag + name */
 .countryLeft {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0; /* important so text can ellipsis */
-  flex: 1;      /* take remaining space so input gets pushed right */
+  min-width: 0;
+  flex: 1;
+  padding-left: 8px; /* room for accent bar */
 }
 
 .flag {
-  width: 20px;
-  height: 15px;
-  object-fit: cover;
-  border-radius: 2px;
-  flex: 0 0 auto;
+  width: 22px;
+  height: 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.04);
 }
 
-/* Country name */
 .countryLabel {
-  font-size: 14px;
-  color: #555;
+  font-size: 13px;
+  font-weight: 950;
+  color: rgba(15,23,42,0.82);
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
 }
 
-/* RIGHT SIDE input/select pinned right */
+/* input/select */
 .countryInput,
 .countrySelect {
-  flex: 0 0 130px;  /* fixed width for consistent alignment */
-  width: 130px;
-  margin-left: auto; /* this is the “pin to right” */
-  font-size: 14px;
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: 140px;
+  flex: 0 0 140px;
+
+  height: 36px;
+  padding: 0 10px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(248,250,252,0.90);
+
+  font-size: 13px;
+  font-weight: 950;
+  color: rgba(15,23,42,0.85);
+
+  outline: none;
 }
 
-  
-  /* WARNING MODAL */
-  .typeWarningOverlay {
-    position: fixed;
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 10000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .typeWarningModal {
-    background: #fff;
-    border-radius: 6px;
-    width: 460px;
-    max-width: 90%;
-    padding: 20px;
-    position: relative;
-  }
-  .typeWarningCloseBtn {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-  .typeWarningContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  .typeWarningContent h2 {
-    margin-bottom: 8px;
-  }
-  .typeWarningActions {
-    display: flex;
-    gap: 16px;
-    margin-top: 16px;
-  }
-  .typeWarningActions button {
-    padding: 8px 16px;
-    cursor: pointer;
-    border: 1px solid #666;
-    border-radius: 4px;
-    background: #f1f1f1;
-    font-weight: 600;
-  }
-  .typeWarningActions button:hover {
-    background: #e7e7e7;
-  }
-  
-.rowHovered {
-  background: rgba(85, 149, 123, 0.10);
+.countryInput:focus,
+.countrySelect:focus {
+  border-color: rgba(20,169,175,0.45);
+  box-shadow: 0 0 0 3px rgba(20,169,175,0.14);
+  background: #fff;
 }
 
-.rowSelected {
-  background: rgba(85, 149, 123, 0.18);
-  outline: 2px solid rgba(85, 149, 123, 0.35);
-  border-radius: 6px;
-  padding-left: 6px;
-  padding-right: 6px;
-}
-
-.rowWrapper {
-  display: block;
-}
-
+/* ===== Placeholder area ===== */
 .placeholderArea {
   display: flex;
   justify-content: center;
-  padding: 10px 0 14px 0;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 6px 0 12px 0;
+  margin-bottom: 8px;
 }
 
 .addPlaceholderBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border: 1px dashed #bbb;
-  border-radius: 10px;
-  background: #fff;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  border: 1px dashed rgba(0,0,0,0.18);
+  background: rgba(255,255,255,0.85);
+
   cursor: pointer;
-  font-size: 13px;
-  color: #333;
+  font-size: 12px;
+  font-weight: 950;
+  color: rgba(15,23,42,0.78);
+
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
 .addPlaceholderBtn:hover {
-  background: #f5f5f5;
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.35);
+  background: rgba(255,255,255,0.95);
 }
 
 .placeholderEditor {
   width: 100%;
-  max-width: 340px; /* looks centered + “nice” */
+  max-width: 360px;
 }
 
 .placeholderTextarea {
-  width: 312px;
+  width: 100%;
   min-height: 110px;
   resize: vertical;
+
   padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 13px;
-  line-height: 1.35;
+
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.92);
+
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.4;
+
   outline: none;
 }
 
 .placeholderTextarea:focus {
-  border-color: rgba(85, 149, 123, 0.7);
-  box-shadow: 0 0 0 3px rgba(85, 149, 123, 0.15);
+  border-color: rgba(20,169,175,0.45);
+  box-shadow: 0 0 0 3px rgba(20,169,175,0.14);
 }
 
 .placeholderHint {
   margin-top: 6px;
   font-size: 11px;
-  opacity: 0.7;
+  font-weight: 900;
+  color: rgba(15,23,42,0.55);
 }

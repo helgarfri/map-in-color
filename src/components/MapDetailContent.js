@@ -63,10 +63,7 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
-useEffect(() => {
-  if (width < 1000) setIsCollapsed(true);
-  else setIsCollapsed(false);
-}, [width, setIsCollapsed]);
+
 
 
 
@@ -1829,6 +1826,8 @@ function mapDataProps() {
     show_top_low_values: toBool(mapData.show_top_low_values),
     showNoDataLegend: toBool(mapData.show_no_data_legend),
     top_low_values: parseJsonArray(mapData.top_low_values),
+
+    strokeMode: "thick"
   };
 }
 
