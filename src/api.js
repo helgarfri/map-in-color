@@ -162,3 +162,9 @@ export const approveProfileReport = (reportId) => {
 export const banProfileReport = (reportId) => {
   return API.post(`/admin/profile-reports/${reportId}/ban`);
 };
+
+export const requestPasswordReset = (email) =>
+  axios.post(`/api/auth/request-password-reset`, { email });
+
+export const resetPassword = ({ token, newPassword }) =>
+  axios.post(`/api/auth/reset-password`, { token, newPassword });

@@ -2,7 +2,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
-import { logIn } from "../api";
+import { logIn, requestPasswordReset } from "../api"; // ✅ add this
 import { UserContext } from "../context/UserContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHome, faTriangleExclamation, faCircleNotch } from "@fortawesome/free-solid-svg-icons";
@@ -14,11 +14,14 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // ✅ error modal state
+  // error modal
   const [errorOpen, setErrorOpen] = useState(false);
   const [errorTitle, setErrorTitle] = useState("Login failed");
   const [errorMessage, setErrorMessage] = useState("");
-  const [errorAction, setErrorAction] = useState(null); // optional redirect on close
+  const [errorAction, setErrorAction] = useState(null);
+
+  // ✅ reset modal
+  const [showResetModal, setShowResetModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -76,10 +79,7 @@ export default function Login() {
               onCloseNavigateTo: "/verify-account",
             });
           } else {
-            openError({
-              title: "Access denied",
-              message: serverMsg,
-            });
+            openError({ title: "Access denied", message: serverMsg });
           }
         } else if (serverStatus === 401) {
           openError({
@@ -87,10 +87,7 @@ export default function Login() {
             message: "The email/username or password is incorrect.",
           });
         } else {
-          openError({
-            title: "Server error",
-            message: serverMsg,
-          });
+          openError({ title: "Server error", message: serverMsg });
         }
       } else if (err.request) {
         openError({
@@ -98,10 +95,7 @@ export default function Login() {
           message: "We couldn’t reach the server. Check your connection and try again.",
         });
       } else {
-        openError({
-          title: "Unexpected error",
-          message: err.message,
-        });
+        openError({ title: "Unexpected error", message: err.message });
       }
     } finally {
       setIsLoggingIn(false);
@@ -109,13 +103,16 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (authToken && !loadingProfile) {
-      navigate("/dashboard");
-    }
+    if (authToken && !loadingProfile) navigate("/dashboard");
   }, [authToken, loadingProfile, navigate]);
 
   return (
     <div className={styles.splitContainer}>
+      {/* ✅ Reset password modal MUST be inside return */}
+      {showResetModal && (
+        <ResetPasswordRequestModal onClose={() => setShowResetModal(false)} />
+      )}
+
       {/* ✅ MIC logging modal */}
       {isLoggingIn && (
         <div className={styles.micModalOverlay} role="presentation">
@@ -143,7 +140,6 @@ export default function Login() {
                 <FontAwesomeIcon icon={faCircleNotch} className={styles.loaderIcon} />
                 <span className={styles.loaderText}>Please wait</span>
               </div>
-
               <div className={styles.progressTrack}>
                 <div className={styles.progressFillIndeterminate} />
               </div>
@@ -168,9 +164,7 @@ export default function Login() {
                 <h2 id="error-title" className={styles.micModalTitle}>
                   {errorTitle}
                 </h2>
-                <p className={styles.micModalSubtitle}>
-                  {errorMessage}
-                </p>
+                <p className={styles.micModalSubtitle}>{errorMessage}</p>
               </div>
 
               <div className={styles.errorBadge} title="Error">
@@ -198,16 +192,12 @@ export default function Login() {
       {/* Left side */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
-          <img
-            src="/assets/map-in-color-logo.png"
-            alt="Map in Color Logo"
-            className={styles.logo}
-          />
+          <img src="/assets/map-in-color-logo.png" alt="Map in Color Logo" className={styles.logo} />
           <h1 className={styles.brandText}>Map in Color</h1>
         </div>
       </div>
 
-      {/* Right side: Login Form */}
+      {/* Right side */}
       <div className={styles.rightSide}>
         <div className={styles.loginBox}>
           <h2 className={styles.loginTitle}>Login</h2>
@@ -236,15 +226,105 @@ export default function Login() {
               />
             </div>
 
+            {/* ✅ put it ABOVE login button */}
+            <button
+              type="button"
+              className={styles.forgotLink}
+              onClick={() => setShowResetModal(true)}
+            >
+              Forgot password?
+            </button>
+
             <button type="submit" className={styles.loginButton} disabled={isLoggingIn}>
               Login
             </button>
           </form>
 
-          
-<p className={styles.loginFooter}>
-  Don&rsquo;t have an account? <Link to="/signup">Sign up here</Link>.
-</p>
+          <p className={styles.loginFooter}>
+            Don&rsquo;t have an account? <Link to="/signup">Sign up here</Link>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------
+   Reset password request modal
+---------------------------- */
+function ResetPasswordRequestModal({ onClose }) {
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState("");
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    setErr("");
+    setSending(true);
+    try {
+      await requestPasswordReset(email);
+      setDone(true);
+    } catch (e) {
+      setErr("Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className={styles.micModalOverlay} onClick={onClose} role="presentation">
+      <div
+        className={styles.micModalCard}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reset-title"
+      >
+        <div className={styles.micModalHeader}>
+          <div>
+            <div className={styles.micModalEyebrow}>Password</div>
+            <h2 id="reset-title" className={styles.micModalTitle}>
+              {done ? "Check your email" : "Reset your password"}
+            </h2>
+            <p className={styles.micModalSubtitle}>
+              {done
+                ? "If an account with that email exists, we sent a reset link."
+                : "Enter your email and we’ll send a reset link."}
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.micModalBody}>
+          {done ? null : (
+            <form onSubmit={handleSend} className={styles.loginForm}>
+              <div className={styles.formGroup}>
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              {err && <p className={styles.resetError}>{err}</p>}
+
+              <button type="submit" className={styles.loginButton} disabled={sending}>
+                {sending ? "Sending…" : "Send reset link"}
+              </button>
+            </form>
+          )}
+        </div>
+
+        <div className={styles.micModalFooter}>
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.primaryPill}`}
+            onClick={onClose}
+          >
+            OK
+          </button>
         </div>
       </div>
     </div>

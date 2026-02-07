@@ -11,11 +11,11 @@ export default function LoggedInExplore() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  // Whenever the window is under 1000px, auto-collapse the sidebar
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+useEffect(() => {
+  if (width < 1000) setIsCollapsed(true);
+  // else: do nothing (keep user preference)
+}, [width, setIsCollapsed]);
+
 
   // If on a small screen and we are NOT collapsed => show overlay
   const showOverlay = !isCollapsed && width < 1000;

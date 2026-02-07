@@ -112,13 +112,6 @@ useEffect(() => {
 }, []);
 
 
-  // ----------------------------
-  // Auto-collapse sidebar on small screens
-  // ----------------------------
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
 
   // ----------------------------
   // Fetch profile from server (or context)

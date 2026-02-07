@@ -27,11 +27,10 @@ export default function YourMaps() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const navigate = useNavigate();
   const { width } = useWindowSize();
+const [isDeleting, setIsDeleting] = useState(false);
+const [deleteError, setDeleteError] = useState(null);
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+
 
   useEffect(() => {
     const getMaps = async () => {
@@ -109,23 +108,34 @@ export default function YourMaps() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = async () => {
-    if (!mapToDelete) return;
+const confirmDelete = async () => {
+  if (!mapToDelete) return;
 
-    try {
-      await deleteMap(mapToDelete.id);
-      setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
-      setShowDeleteModal(false);
-      setMapToDelete(null);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  setIsDeleting(true);
+  setDeleteError(null);
 
-  const cancelDelete = () => {
+  try {
+    await deleteMap(mapToDelete.id);
+
+    setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
+
+    // close portal
     setShowDeleteModal(false);
     setMapToDelete(null);
-  };
+  } catch (err) {
+    console.error(err);
+    setDeleteError("Delete failed. Please try again.");
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+const cancelDelete = () => {
+  if (isDeleting) return;
+  setShowDeleteModal(false);
+  setMapToDelete(null);
+  setDeleteError(null);
+};
 
   // --------------------------
   // SKELETON VIEW
@@ -295,32 +305,63 @@ export default function YourMaps() {
           <p>You have no maps.</p>
         )}
 
-        {showDeleteModal && (
-          <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
+       {showDeleteModal && (
+  <div
+    className={`${styles.modalOverlay} ${styles.modalOverlayBlur}`}
+    onClick={cancelDelete}
+  >
+    <div
+      className={`${styles.modalContent} ${isDeleting ? styles.modalContentCompact : ""}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {!isDeleting ? (
+        <>
+          <h2>Delete map?</h2>
+
+          <p>
+            You’re about to delete{" "}
+            <strong>{mapToDelete?.title || "Untitled Map"}</strong>. This cannot be undone.
+          </p>
+
+          {deleteError && <div className={styles.deleteError}>{deleteError}</div>}
+
+          <div className={styles.modalButtons}>
+            <button
+              className={styles.deleteButtonModal}
+              onClick={confirmDelete}
             >
-              <h2>Confirm Delete</h2>
-              <p>
-                Are you sure you want to delete the map titled{' '}
-                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>? This action
-                cannot be undone.
-              </p>
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.deleteButtonModal}
-                  onClick={confirmDelete}
-                >
-                  Delete
-                </button>
-                <button className={styles.cancelButton} onClick={cancelDelete}>
-                  Cancel
-                </button>
+              Delete
+            </button>
+
+            <button
+              className={styles.cancelButton}
+              onClick={cancelDelete}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={styles.deletePortal}>
+            <div className={styles.deleteSpinner} aria-hidden="true" />
+            <div className={styles.deleteText}>
+              <div className={styles.deleteTitle}>Deleting…</div>
+              <div className={styles.deleteSub}>
+                <strong>{mapToDelete?.title || "Untitled Map"}</strong>
               </div>
+              <div className={styles.deleteHint}>Please don’t close this tab.</div>
             </div>
           </div>
-        )}
+
+          {/* optional: show error even during deleting if api fails fast */}
+          {deleteError && <div className={styles.deleteError}>{deleteError}</div>}
+        </>
+      )}
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

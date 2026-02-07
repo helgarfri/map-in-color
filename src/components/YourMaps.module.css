@@ -361,6 +361,88 @@
   filter: brightness(0.99);
 }
 
+.modalOverlayBlur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* When loading, make it feel tighter */
+.modalContentCompact {
+  text-align: left;
+}
+
+/* Delete loading portal */
+.deletePortal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px;
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.12),
+    rgba(20,169,175,0.10)
+  );
+  border: 1px solid rgba(20, 24, 40, 0.10);
+}
+
+.deleteSpinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+
+  border: 3px solid rgba(20,169,175,0.18);
+  border-top-color: rgba(20,169,175,0.95);
+  animation: micSpin 0.9s linear infinite;
+
+  box-shadow: 0 12px 22px rgba(15,23,42,0.10);
+  flex: 0 0 auto;
+}
+
+@keyframes micSpin {
+  to { transform: rotate(360deg); }
+}
+
+.deleteText { min-width: 0; }
+
+.deleteTitle {
+  font-size: 14px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.82);
+}
+
+.deleteSub {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleteHint {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 850;
+  color: rgba(0,0,0,0.52);
+}
+
+/* Error chip */
+.deleteError {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(210,75,76,0.22);
+  background: rgba(210,75,76,0.12);
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.74);
+}
+
+
 /* ===== Skeleton ===== */
 @keyframes shimmer {
   0% { transform: translateX(-100%); }

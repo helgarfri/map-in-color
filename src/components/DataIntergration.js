@@ -311,11 +311,6 @@ useEffect(() => {
 }, [externalLoading]);
 
 
-  // Collapse the main sidebar for small screens
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
 
   // If editing existing: sync map type
   useEffect(() => {

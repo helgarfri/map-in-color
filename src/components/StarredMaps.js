@@ -27,10 +27,6 @@ export default function StarredMaps() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
 
   useEffect(() => {
     const getStarredMaps = async () => {

@@ -6,6 +6,8 @@ const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator');
 const { supabaseAdmin } = require('../config/supabase'); 
 const { resend } = require('../config/resend');
+const crypto = require("crypto");
+
 
 
 const saltRounds = 10;
@@ -376,6 +378,145 @@ router.post('/resend-verification', async (req, res) => {
     return res.status(500).json({ msg: 'Server error.' });
   }
 });
+
+// REQUEST PASSWORD RESET
+router.post("/request-password-reset", async (req, res) => {
+  const { email } = req.body;
+
+  // Always respond success (security)
+  const genericMsg =
+    "If an account with that email exists, we sent a password reset link.";
+
+  try {
+    if (!email) return res.status(200).json({ msg: genericMsg });
+
+    // Find user
+    const { data: user, error } = await supabaseAdmin
+      .from("users")
+      .select("id, email, first_name, status")
+      .ilike("email", email.trim())
+      .maybeSingle();
+
+    if (error) {
+      console.error("request-password-reset lookup error:", error);
+      return res.status(200).json({ msg: genericMsg });
+    }
+
+    // Only allow if user exists and is active (optional rule)
+    if (!user || user.status !== "active") {
+      return res.status(200).json({ msg: genericMsg });
+    }
+
+    // Create random token (sent to user), but store only HASH in DB
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    // expire in 30 minutes
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    // Store hash + expiry on user row (simplest approach)
+    const { error: updErr } = await supabaseAdmin
+      .from("users")
+      .update({
+        reset_token_hash: tokenHash,
+        reset_token_expires_at: expiresAt,
+      })
+      .eq("id", user.id);
+
+    if (updErr) {
+      console.error("request-password-reset update error:", updErr);
+      return res.status(200).json({ msg: genericMsg });
+    }
+
+    // Link points to FRONTEND page
+    const resetLink = `https://mapincolor.com/reset-password?token=${rawToken}`;
+
+    await resend.emails.send({
+      from: "no-reply@mapincolor.com",
+      to: user.email,
+      subject: "Reset your password - Map in Color",
+      html: `
+        <p>Hello ${user.first_name || ""},</p>
+        <p>We received a request to reset your password.</p>
+        <p><a href="${resetLink}">Reset password</a></p>
+        <p>This link expires in 30 minutes.</p>
+        <p>If you didn't request this, you can ignore this email.</p>
+        <p>Cheers,<br/>Helgi</p>
+      `,
+    });
+
+    return res.json({ msg: genericMsg });
+  } catch (err) {
+    console.error("request-password-reset server error:", err);
+    return res.status(200).json({ msg: genericMsg });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ msg: "Missing required fields." });
+    }
+
+    // match your signup rules
+    if (
+      newPassword.length < 6 ||
+      !/[A-Z]/.test(newPassword) ||
+      !/[0-9]/.test(newPassword) ||
+      !/[!?.#]/.test(newPassword)
+    ) {
+      return res.status(400).json({ msg: "Password does not meet requirements." });
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const { data: user, error } = await supabaseAdmin
+      .from("users")
+      .select("id, reset_token_hash, reset_token_expires_at")
+      .eq("reset_token_hash", tokenHash)
+      .maybeSingle();
+
+    if (error) {
+      console.error("reset-password lookup error:", error);
+      return res.status(400).json({ msg: "Invalid or expired reset link." });
+    }
+
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid or expired reset link." });
+    }
+
+    const exp = user.reset_token_expires_at ? new Date(user.reset_token_expires_at) : null;
+    if (!exp || exp.getTime() < Date.now()) {
+      return res.status(400).json({ msg: "Reset link expired. Please request a new one." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password + clear token fields
+    const { error: updErr } = await supabaseAdmin
+      .from("users")
+      .update({
+        password: hashedPassword,
+        reset_token_hash: null,
+        reset_token_expires_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (updErr) {
+      console.error("reset-password update error:", updErr);
+      return res.status(500).json({ msg: "Error updating password." });
+    }
+
+    return res.json({ msg: "Password reset successfully." });
+  } catch (err) {
+    console.error("reset-password server error:", err);
+    return res.status(500).json({ msg: "Server error." });
+  }
+});
+
 
 
 
