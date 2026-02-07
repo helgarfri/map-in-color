@@ -261,7 +261,8 @@ function ResetPasswordRequestModal({ onClose }) {
 
     setSending(true);
     try {
-    await requestPasswordReset({ email });
+    await requestPasswordReset(email); 
+
       setDone(true);
     } catch (e) {
       const msg = e?.response?.data?.msg || "Something went wrong. Please try again.";
