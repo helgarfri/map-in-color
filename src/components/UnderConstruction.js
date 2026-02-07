@@ -11,7 +11,6 @@ export default function UnderConstruction() {
         />
 
         <h1 style={styles.title}>New version drops</h1>
-        <p style={styles.date}>15 April</p>
 
         <p style={styles.sub}>
           We’re preparing the next release of Map in Color.
