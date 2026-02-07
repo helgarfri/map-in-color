@@ -182,6 +182,60 @@
   text-decoration: underline;
 }
 
+/* Reset password: requirement checklist (copied from ProfileSettings) */
+.pwReqGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.pwReqItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.68);
+}
+
+.pwDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.25);
+  flex: 0 0 auto;
+}
+
+.pwValid {
+  background: rgba(72, 177, 125, 0.95);
+}
+
+.pwInvalid {
+  background: rgba(15, 23, 42, 0.22);
+}
+
+.pwMatchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.65);
+  margin: 6px 0 2px;
+}
+
+@media (max-width: 520px) {
+  .pwReqGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 /* ===== Responsive ===== */
 @media (max-width: 1200px) {
   .splitContainer {

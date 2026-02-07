@@ -9,6 +9,16 @@ const { resend } = require('../config/resend');
 const crypto = require("crypto");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
+function passwordRuleFailures(pw) {
+  const fails = [];
+
+  if (!pw || pw.length < 6) fails.push("at least 6 characters");
+  if (!/[A-Z]/.test(pw)) fails.push("one uppercase letter (A-Z)");
+  if (!/[0-9]/.test(pw)) fails.push("one number (0-9)");
+  if (!/[!?.#]/.test(pw)) fails.push("one special character (! ? . #)");
+
+  return fails;
+}
 
 const saltRounds = 10;
 // Full public URL from Supabase
@@ -460,15 +470,22 @@ router.post("/reset-password", async (req, res) => {
       return res.status(400).json({ msg: "Missing required fields." });
     }
 
-    // match your signup rules
-    if (
-      newPassword.length < 6 ||
-      !/[A-Z]/.test(newPassword) ||
-      !/[0-9]/.test(newPassword) ||
-      !/[!?.#]/.test(newPassword)
-    ) {
-      return res.status(400).json({ msg: "Password does not meet requirements." });
-    }
+ // match your signup rules (but return a useful message)
+const fails = passwordRuleFailures(newPassword);
+
+if (fails.length) {
+  return res.status(400).json({
+    msg: `Password must contain ${fails.join(", ")}.`,
+    code: "PASSWORD_WEAK",
+    requirements: {
+      minLength: 6,
+      uppercase: true,
+      number: true,
+      special: "!?.#",
+    },
+  });
+}
+
 
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 

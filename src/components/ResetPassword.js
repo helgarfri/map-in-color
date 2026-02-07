@@ -1,13 +1,21 @@
 // src/pages/ResetPassword.jsx
 import React, { useMemo, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import styles from "../components/Login.module.css"; // reuse your modal/card styles
+import styles from "../components/Login.module.css";
 import { resetPassword } from "../api";
+
+function PasswordRequirement({ text, isValid }) {
+  return (
+    <div className={styles.pwReqItem}>
+      <span className={`${styles.pwDot} ${isValid ? styles.pwValid : styles.pwInvalid}`} />
+      <span>{text}</span>
+    </div>
+  );
+}
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-
   const token = useMemo(() => params.get("token") || "", [params]);
 
   const [newPassword, setNewPassword] = useState("");
@@ -16,18 +24,27 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
   const [err, setErr] = useState("");
 
+  // same validation rules as backend
+  const isLongEnough = newPassword.length >= 6;
+  const hasUpperCase = /[A-Z]/.test(newPassword);
+  const hasNumber = /[0-9]/.test(newPassword);
+  const hasSpecial = /[!?.#]/.test(newPassword);
+  const passwordsMatch = newPassword === confirm && newPassword !== "";
+
+  const isPasswordValid =
+    isLongEnough && hasUpperCase && hasNumber && hasSpecial && passwordsMatch;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
 
-    if (!token) {
-      setErr("Missing token. Please request a new reset link.");
-      return;
+    if (!token) return setErr("Missing token. Please request a new reset link.");
+
+    // show specific guidance instead of generic error
+    if (!isLongEnough || !hasUpperCase || !hasNumber || !hasSpecial) {
+      return setErr("Password does not meet the requirements below.");
     }
-    if (newPassword !== confirm) {
-      setErr("Passwords do not match.");
-      return;
-    }
+    if (!passwordsMatch) return setErr("Passwords do not match.");
 
     setSubmitting(true);
     try {
@@ -45,7 +62,7 @@ export default function ResetPasswordPage() {
   return (
     <div className={styles.splitContainer}>
       <div className={styles.rightSide} style={{ width: "100%" }}>
-        <div className={styles.loginBox} style={{ maxWidth: 520 }}>
+        <div className={`${styles.loginBox} ${styles.resetBox}`} style={{ maxWidth: 520 }}>
           <h2 className={styles.loginTitle}>
             {done ? "Password updated" : "Reset password"}
           </h2>
@@ -63,7 +80,7 @@ export default function ResetPasswordPage() {
           ) : (
             <>
               <p className={styles.loginSubtitle}>
-                Enter a new password for your account.
+                Choose a strong password. It must meet all requirements below.
               </p>
 
               <form onSubmit={handleSubmit} className={styles.loginForm}>
@@ -73,8 +90,16 @@ export default function ResetPasswordPage() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
                     required
                   />
+                </div>
+
+                <div className={styles.pwReqGrid}>
+                  <PasswordRequirement text="At least 6 characters" isValid={isLongEnough} />
+                  <PasswordRequirement text="One uppercase letter" isValid={hasUpperCase} />
+                  <PasswordRequirement text="One number" isValid={hasNumber} />
+                  <PasswordRequirement text="One special (! ? . #)" isValid={hasSpecial} />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -83,8 +108,14 @@ export default function ResetPasswordPage() {
                     type="password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
+                    autoComplete="new-password"
                     required
                   />
+                </div>
+
+                <div className={styles.pwMatchRow}>
+                  <span className={`${styles.pwDot} ${passwordsMatch ? styles.pwValid : styles.pwInvalid}`} />
+                  <span>Passwords match</span>
                 </div>
 
                 {err && <p className={styles.resetError}>{err}</p>}
@@ -92,7 +123,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   className={styles.loginButton}
-                  disabled={submitting || !token}
+                  disabled={submitting || !token || !newPassword || !confirm}
                 >
                   {submitting ? "Updating…" : "Set new password"}
                 </button>
