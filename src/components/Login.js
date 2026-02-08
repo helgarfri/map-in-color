@@ -302,43 +302,52 @@ function ResetPasswordRequestModal({ onClose }) {
           )}
         </div>
 
-        <div className={styles.micModalBody}>
-          {done ? null : (
-            <form onSubmit={handleSend} className={styles.loginForm}>
-              <div className={styles.formGroup}>
-                <label htmlFor="resetEmail">Email</label>
-                <input
-                  id="resetEmail"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              {err && <p className={styles.resetError}>{err}</p>}
-
-              <button type="submit" className={styles.loginButton} disabled={sending}>
-                {sending ? "Sending…" : "Send reset link"}
-              </button>
-
-       
-            </form>
-          )}
+     <div className={styles.micModalBody}>
+  {done ? (
+    <div className={styles.doneBody}>
+      <div className={styles.doneIcon}>✓</div>
+      <div>
+        <div className={styles.doneTitle}>Email sent</div>
+        <div className={styles.doneText}>
+          Check your inbox for the reset link. It may take a minute.
         </div>
+      </div>
+    </div>
+  ) : (
+    <form onSubmit={handleSend} className={styles.loginForm}>
+      <div className={styles.formGroup}>
+        <label htmlFor="resetEmail">Email</label>
+        <input
+          id="resetEmail"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
 
-        {/* Only show footer button on DONE state */}
-        {done && (
-          <div className={styles.micModalFooter}>
-            <button
-              type="button"
-              className={`${styles.actionPill} ${styles.primaryPill}`}
-              onClick={onClose}
-            >
-              OK
-            </button>
-          </div>
-        )}
+      {err && <p className={styles.resetError}>{err}</p>}
+
+      <button type="submit" className={styles.loginButton} disabled={sending}>
+        {sending ? "Sending…" : "Send reset link"}
+      </button>
+    </form>
+  )}
+</div>
+
+{done && (
+  <div className={styles.micModalFooter}>
+    <button
+      type="button"
+      className={`${styles.actionPill} ${styles.primaryPill}`}
+      onClick={onClose}
+    >
+      OK
+    </button>
+  </div>
+)}
+
+
       </div>
     </div>
   );

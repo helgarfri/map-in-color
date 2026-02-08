@@ -178,60 +178,77 @@ router.get('/saved', auth, async (req, res) => {
 -------------------------------------------- */
 router.post('/:id/download', authOptional, async (req, res) => {
   try {
-    const mapId = req.params.id;
-    const user_id = req.user?.id || null;
+    const mapId = Number(req.params.id); // ✅ coerce
+    if (!Number.isFinite(mapId)) return res.status(400).json({ msg: "Invalid map id" });
 
-    // 1) fetch the map
+    const user_id = req.user?.id ?? null;
+    const anon_id = req.body?.anon_id ?? null;
+
+    if (!user_id && !anon_id) {
+      return res.status(400).json({ msg: "anon_id required for anonymous downloads" });
+    }
+
+    // fetch map
     const { data: mapRow, error: mapErr } = await supabaseAdmin
       .from('maps')
       .select(`
-        *,
-        user:users!maps_user_id_fkey (
-          id,
-          status
-        )
+        id,
+        user_id,
+        is_public,
+        download_count,
+        user:users!maps_user_id_fkey ( id, status )
       `)
       .eq('id', mapId)
       .maybeSingle();
 
-    if (mapErr) {
-      console.error(mapErr);
-      return res.status(500).json({ msg: 'Server error' });
-    }
-    if (!mapRow) {
-      return res.status(404).json({ msg: 'Map not found' });
-    }
+    if (mapErr) return res.status(500).json({ msg: 'Server error' });
+    if (!mapRow) return res.status(404).json({ msg: 'Map not found' });
+    if (mapRow.user?.status === 'banned') return res.status(404).json({ msg: 'Map not found' });
 
-    // *** If the owner is banned => 404
-    if (mapRow.user?.status === 'banned') {
-      return res.status(404).json({ msg: 'Map not found' });
-    }
-
-    // Check if it's public or if user is owner
     if (!mapRow.is_public && (!user_id || mapRow.user_id !== user_id)) {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
-    // increment
+    const insertPayload = {
+      map_id: mapRow.id,                 // bigint
+      user_id: user_id,                  // must match your DB type
+      anon_id: user_id ? null : anon_id, // only store anon_id if not logged in
+      created_at: new Date().toISOString(),
+    };
+
+    const { error: insErr } = await supabaseAdmin
+      .from('map_downloads')
+      .insert(insertPayload); // ✅ can insert object directly
+
+    if (insErr) {
+      // ✅ best: check code 23505
+      const isDuplicate = insErr.code === "23505" || String(insErr.message || "").toLowerCase().includes("duplicate");
+      if (isDuplicate) {
+        return res.json({ download_count: mapRow.download_count || 0, already_counted: true });
+      }
+      console.error("map_downloads insert error:", insErr);
+      return res.status(500).json({ msg: "Error recording download" });
+    }
+
     const newDownloadCount = (mapRow.download_count || 0) + 1;
+
     const { error: updateErr } = await supabaseAdmin
       .from('maps')
       .update({ download_count: newDownloadCount })
-      .eq('id', mapId);
+      .eq('id', mapRow.id);
 
     if (updateErr) {
       console.error(updateErr);
       return res.status(500).json({ msg: 'Error incrementing download count' });
     }
 
-    console.log('DownloadCount AFTER increment:', newDownloadCount);
-
-    res.json({ download_count: newDownloadCount });
+    return res.json({ download_count: newDownloadCount, already_counted: false });
   } catch (err) {
     console.error('Error incrementing download count:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    PUT /api/maps/:id

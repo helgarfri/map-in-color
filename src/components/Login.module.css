@@ -352,6 +352,55 @@
   padding: 14px 16px 10px;
 }
 
+/* Ensure footer is centered */
+.micModalFooter {
+  padding: 12px 16px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Make DONE state body compact + nice */
+.doneBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 2px;
+}
+
+.doneIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 18px;
+  background: rgba(20, 169, 175, 0.14);
+  color: var(--mic-cyan);
+  flex: 0 0 auto;
+}
+
+.doneTitle {
+  font-weight: 900;
+  font-size: 14px;
+  color: rgba(0,0,0,0.84);
+  margin-bottom: 2px;
+}
+
+.doneText {
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.35;
+}
+
+/* Optional: tighten body padding a bit overall */
+.micModalBody {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+
 .modalX {
   width: 36px;
   height: 36px;

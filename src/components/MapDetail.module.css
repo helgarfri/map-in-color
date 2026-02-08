@@ -150,7 +150,55 @@
   border-radius: var(--radius);
   padding: 18px;
   box-shadow: var(--shadow2);
+
 }
+
+/* RIGHT column container */
+.mapStats {
+  max-width: 420px;
+  width: 420px;
+  top: 22px;
+  padding: 0px;
+  margin: 0px;
+  align-self: flex-start;
+
+
+}
+
+/* Group edit + view buttons */
+.titleActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Icon-only view button */
+.viewIconButton {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.04);
+
+  color: rgba(15, 23, 42, 0.85);
+  font-size: 1.05rem;
+
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.viewIconButton:hover {
+  background: rgba(40,168,225,0.14);
+  border-color: rgba(40,168,225,0.30);
+  transform: translateY(-1px);
+}
+
 
 /* =========================
    TITLE & CREATOR
@@ -327,6 +375,343 @@
 }
 
 /* =========================
+   MIC DETAILS REDESIGN
+========================= */
+
+.detailsHero {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.10),
+    rgba(20,169,175,0.08),
+    rgba(255,255,255,0.92)
+  );
+  box-shadow: var(--shadow2);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailsHeroTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detailsTitleWrap { min-width: 0; flex: 1; }
+
+.detailsTitle {
+  margin: 0;
+  font-size: 1.28rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: rgba(15,23,42,0.92);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.detailsMetaLine {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.55);
+}
+
+.visibilityPill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(40,168,225,0.18);
+  background: rgba(40,168,225,0.10);
+  color: rgba(15,23,42,0.78);
+}
+
+.detailsActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+/* Creator chip */
+.detailsHeroBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.creatorChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.creatorChipLink {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(255,255,255,0.70);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.creatorChipLink:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+.creatorChipAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(20,24,40,0.10);
+  flex: 0 0 auto;
+}
+
+.creatorChipText { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.creatorChipName {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.86);
+  line-height: 1.1;
+}
+.creatorChipUser {
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.55);
+  line-height: 1.1;
+}
+
+/* Stat pills (stars/downloads) */
+.detailsPillsRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pillStatBtn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(20,24,40,0.12);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.72);
+
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.pillStatBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+.pillIcon {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.pillLabel { color: rgba(15,23,42,0.60); }
+.pillValue { color: rgba(15,23,42,0.86); }
+
+/* Section cards (Description/Tags/References) */
+.sectionCard {
+  margin-top: 12px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 8px 22px rgba(15,23,42,0.05);
+  padding: 14px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.82);
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.sectionHint {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.55);
+}
+
+/* Description text (cleaner) */
+.descriptionText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(15,23,42,0.78);
+}
+
+/* Tags */
+.tagsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tagChip {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(15,23,42,0.03);
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.72);
+
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.tagChip:hover {
+  transform: translateY(-1px);
+  background: rgba(20,169,175,0.10);
+  border-color: rgba(20,169,175,0.22);
+}
+
+.tagHash {
+  color: rgba(40,168,225,0.95);
+  font-weight: 1000;
+}
+
+/* References */
+.refsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.refItem {
+  border-radius: 14px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(15,23,42,0.02);
+  padding: 12px;
+}
+
+.refTop {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.refIndex {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+
+  background: rgba(40,168,225,0.14);
+  border: 1px solid rgba(40,168,225,0.20);
+  color: rgba(15,23,42,0.80);
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.refMain { min-width: 0; }
+
+.refTitleLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.refName {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.84);
+}
+
+.refYear {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.55);
+}
+
+.refPublisher {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.60);
+}
+
+.refLink {
+  margin-top: 6px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(40,168,225,0.95);
+  overflow-wrap: anywhere;
+}
+
+.refLink:hover { text-decoration: underline; }
+
+.refNotes {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.62);
+}
+
+.refNotesLabel {
+  font-weight: 1000;
+  color: rgba(15,23,42,0.72);
+}
+
+
+/* =========================
    EDIT BUTTON
 ========================= */
 .editButton {
@@ -434,6 +819,425 @@
 .countryList tr:nth-child(even) {
   background: rgba(15, 23, 42, 0.02);
 }
+
+/* =========================
+   HERO SINGLE-ROW (TITLE LEFT, ACTIONS+PROFILE RIGHT)
+   Layout target:
+   [ Title + meta ]                           [ Stars | Downloads | View | Edit | Profile ]
+========================= */
+
+.heroRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+}
+
+/* LEFT: Title/meta */
+.heroLeft {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* RIGHT: actions + profile */
+.heroRight {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* Actions live LEFT of profile, can wrap if needed */
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Profile wrapper (keeps chip at far right) */
+.heroProfile {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+/* =========================
+   HERO CARD (reuses your MIC vibe)
+========================= */
+
+.detailsHero {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.10),
+    rgba(20,169,175,0.08),
+    rgba(255,255,255,0.92)
+  );
+  box-shadow: var(--shadow2);
+  padding: 14px;
+}
+
+/* Title style */
+.detailsTitle {
+  margin: 0;
+  font-size: 1.28rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: rgba(15,23,42,0.92);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Truncate long titles nicely on desktop */
+.heroLeft .detailsTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detailsMetaLine {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.55);
+}
+
+.visibilityPill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(40,168,225,0.18);
+  background: rgba(40,168,225,0.10);
+  color: rgba(15,23,42,0.78);
+}
+
+/* =========================
+   CREATOR CHIP
+========================= */
+
+.creatorChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.creatorChipLink {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(255,255,255,0.70);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  max-width: 320px;
+}
+
+.creatorChipLink:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+.creatorChipAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(20,24,40,0.10);
+  flex: 0 0 auto;
+}
+
+.creatorChipText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.creatorChipName {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.86);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creatorChipUser {
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.55);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================
+   EDIT BUTTON
+========================= */
+
+.editButton {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(40,168,225,0.25);
+  background: rgba(40,168,225,0.14);
+  color: rgba(15, 23, 42, 0.88);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+}
+
+.editButton:hover {
+  background: rgba(40,168,225,0.18);
+  border-color: rgba(40,168,225,0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+/* =========================
+   VIEW ICON BUTTON
+========================= */
+
+.viewIconButton {
+  all: unset;
+  cursor: pointer;
+  height: 38px;
+  width: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(20,24,40,0.12);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.viewIconButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+/* =========================
+   STAT ACTION BUTTONS (Downloads + Stars)
+========================= */
+
+.statActionBtn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(20,24,40,0.12);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.72);
+
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, filter 120ms ease;
+  position: relative;
+  user-select: none;
+  overflow: hidden; /* for shimmer */
+}
+
+.statActionBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+.statActionBtn:active {
+  transform: translateY(0px) scale(0.985);
+  filter: brightness(0.99) saturate(1.03);
+}
+
+.statActionBtn:disabled {
+  cursor: default;
+  opacity: 0.75;
+  transform: none;
+}
+
+.statActionIcon {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  opacity: 0.92;
+}
+
+.statActionLabel { color: rgba(15,23,42,0.60); }
+.statActionValue { color: rgba(15,23,42,0.86); }
+
+/* =========================
+   DOWNLOAD ANIMATION (shimmer sweep + icon bounce)
+   Add class: styles.downloadBtn
+========================= */
+
+.downloadBtn::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0) 0%,
+    rgba(40,168,225,0.10) 22%,
+    rgba(20,169,175,0.10) 48%,
+    rgba(255,255,255,0) 72%
+  );
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* shimmer triggers on hover and click */
+.downloadBtn:hover::after {
+  opacity: 1;
+  animation: micShimmer 0.9s ease forwards;
+}
+.downloadBtn:active::after {
+  opacity: 1;
+  animation: micShimmer 0.6s ease forwards;
+}
+
+/* subtle icon pop on click */
+.downloadBtn:active .statActionIcon {
+  animation: micPop 220ms ease;
+}
+
+@keyframes micShimmer {
+  from { transform: translateX(-120%); opacity: 0.0; }
+  10%  { opacity: 1; }
+  to   { transform: translateX(120%); opacity: 0.0; }
+}
+
+@keyframes micPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+/* =========================
+   STARS: ACTIVE + LOADING
+========================= */
+
+.starActionBtn {
+  border-color: rgba(40,168,225,0.18);
+}
+
+/* Strong "selected" fill effect across whole pill */
+.starActive {
+  background: rgba(40,168,225,0.16);
+  border-color: rgba(40,168,225,0.30);
+  box-shadow: 0 12px 26px rgba(40,168,225,0.12);
+}
+
+.starActive .statActionIcon {
+  opacity: 1;
+  transform: translateY(-0.5px);
+}
+
+.starActive .statActionLabel {
+  color: rgba(15,23,42,0.72);
+}
+
+/* Loading state + spinner */
+.starLoading {
+  background: rgba(15,23,42,0.04);
+  border-color: rgba(20,24,40,0.14);
+}
+
+.miniSpinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(15,23,42,0.22);
+  border-top-color: rgba(15,23,42,0.60);
+  animation: micSpin 0.7s linear infinite;
+  margin-left: 2px;
+}
+
+@keyframes micSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 980px) {
+  .creatorChipLink { max-width: 260px; }
+}
+
+@media (max-width: 860px) {
+  .heroRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .heroRight {
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .heroActions {
+    justify-content: flex-start;
+  }
+
+  .heroLeft .detailsTitle {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .heroActions { gap: 8px; }
+
+  .statActionBtn {
+    height: 36px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .editButton {
+    height: 36px;
+    padding: 0 12px;
+  }
+
+  .viewIconButton {
+    height: 36px;
+    width: 36px;
+  }
+}
+
 
 /* =========================
    DISCUSSION / COMMENTS
@@ -881,6 +1685,277 @@ a {
 }
 
 /* =========================
+   MIC-FIED DISCUSSION CARD
+========================= */
+
+.discussionCard {
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle MIC gradient “accent” like hero */
+.discussionCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+      900px 240px at 20% -10%,
+      rgba(40,168,225,0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 240px at 80% 0%,
+      rgba(20,169,175,0.10),
+      transparent 60%
+    );
+}
+
+.discussionBody {
+  position: relative; /* above the ::before */
+  padding-top: 6px;
+}
+
+/* Login-locked bar */
+.discussionLocked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.75);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.discussionLockedText {
+  color: rgba(15, 23, 42, 0.78);
+  font-weight: 650;
+  font-size: 0.92rem;
+}
+
+.discussionLockedBtn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  cursor: pointer;
+
+  border: 1px solid rgba(40,168,225,0.30);
+  background: rgba(40,168,225,0.14);
+  color: rgba(15,23,42,0.92);
+  font-weight: 800;
+
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.discussionLockedBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(40,168,225,0.20);
+  border-color: rgba(40,168,225,0.45);
+}
+
+/* Composer (MIC-style) */
+.commentComposer {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+
+  padding: 14px;
+  border: 1px solid rgba(20,169,175,0.22);
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.80);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.composerAvatarWrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+.composerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.composerMain {
+  min-width: 0;
+}
+
+.composerTextarea {
+  width: 100%;
+  max-width: 100%;
+
+  /* ✅ stops width + padding/border from overflowing */
+  box-sizing: border-box;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 12px;
+  font-size: 0.95rem;
+
+  /* ✅ remove resize handle + prevent expanding */
+  resize: none;
+
+  min-height: 72px;
+
+  background: rgba(255,255,255,0.9);
+  color: var(--text);
+
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.composerTextarea:focus {
+  outline: none;
+  border-color: rgba(40,168,225,0.35);
+  box-shadow: 0 0 0 4px rgba(40,168,225,0.10);
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.composerHint {
+  font-size: 0.82rem;
+  color: rgba(15, 23, 42, 0.58);
+  font-weight: 650;
+}
+
+.composerSendBtn {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  border: 1px solid rgba(20,169,175,0.28);
+  background: rgba(20,169,175,0.18);
+  color: rgba(15, 23, 42, 0.92);
+
+  font-weight: 850;
+  cursor: pointer;
+
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.composerSendBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(20,169,175,0.24);
+  border-color: rgba(20,169,175,0.42);
+}
+.composerSendBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.composerSendIcon {
+  display: grid;
+  place-items: center;
+}
+.composerSendText {
+  font-size: 0.9rem;
+}
+
+/* little dot separator in comment meta */
+.dotSep {
+  color: rgba(15, 23, 42, 0.35);
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Make avatar click button not ugly */
+.avatarButton {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Author button when not logged in */
+.commentAuthorBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.commentAuthorBtn:hover {
+  text-decoration: underline;
+}
+
+/* Danger pill for delete, still MIC-styled */
+.dangerButton {
+  border-color: rgba(187, 101, 91, 0.25);
+  background: rgba(187, 101, 91, 0.08);
+  color: rgba(187, 101, 91, 0.98);
+}
+.dangerButton:hover {
+  background: rgba(187, 101, 91, 0.12);
+}
+
+/* Empty state */
+.discussionEmpty {
+  border: 1px dashed rgba(15, 23, 42, 0.18);
+  border-radius: 18px;
+  padding: 18px 16px;
+  background: rgba(255,255,255,0.72);
+  text-align: center;
+  margin-top: 6px;
+}
+
+.discussionEmptyTitle {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.88);
+  letter-spacing: -0.01em;
+}
+
+.discussionEmptyHint {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.62);
+  font-weight: 650;
+}
+
+/* Mobile: composer stacks nicer */
+@media (max-width: 640px) {
+  .commentComposer {
+    grid-template-columns: 1fr;
+  }
+  .composerAvatarWrap {
+    display: none;
+  }
+  .composerFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .composerSendBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+/* =========================
    PRIVATE MAP BOX
 ========================= */
 .privateMapBox {
@@ -1026,6 +2101,355 @@ a {
 .fullScreenLabel {
   user-select: none;
 }
+
+/* Exit view mode (fullscreen only) */
+.exitViewBtn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border);
+
+  color: rgba(15, 23, 42, 0.85);
+  font-size: 1.05rem;
+
+  cursor: pointer;
+  z-index: 6;
+
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(8px);
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.exitViewBtn:hover {
+  background: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
+}
+
+/* =========================
+   MAP LEGEND BOX (MapDetail only)
+========================= */
+
+/* =========================
+   MAP LEGEND BOX (MIC-fy)
+========================= */
+
+/* subtle slide-in only when fullscreen */
+.mapDisplay.fullScreen .mapLegendBox {
+  animation: legendSlideIn 260ms cubic-bezier(.2,.9,.2,1) both;
+  transform-origin: left bottom;
+}
+
+@keyframes legendSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* =========================================================
+   MAP LEGEND BOX (MIC-fy, compact scale @ 12.5px base)
+   Base assumption: legend text ~= 12.5px
+========================================================= */
+
+:root {
+  /* optional: local legend scale tokens */
+  --legend-font: 12.5px;
+  --legend-radius: 12px;
+  --legend-radius-sm: 10px;
+  --legend-border: rgba(20, 24, 40, 0.08);
+  --legend-bg: rgba(255, 255, 255, 0.92);
+}
+
+/* Slide-in only when fullscreen */
+.mapDisplay.fullScreen .mapLegendBox {
+  animation: legendSlideIn 240ms cubic-bezier(.2,.9,.2,1) both;
+  transform-origin: left bottom;
+}
+
+@keyframes legendSlideIn {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Legend container */
+.mapLegendBox {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 6;
+
+  width: 180px; /* compact default */
+  max-width: calc(100% - 24px);
+
+  background: var(--legend-bg);
+  border: 1px solid var(--legend-border);
+  border-radius: var(--legend-radius);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+
+  padding: 10px;
+  overflow: hidden;
+
+  max-height: calc(100vh - 24px);
+}
+
+/* Header */
+.mapLegendHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(20, 24, 40, 0.07);
+}
+
+/* Title (fullscreen only in your JSX) */
+.mapLegendTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+  line-height: 1.15;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapLegendSub {
+  font-size: 11px;
+  color: var(--muted2);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+/* Items list */
+.mapLegendItems {
+  display: grid;
+  gap: 8px;
+
+  max-height: calc(100vh - 24px - 118px);
+  overflow: auto;
+
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+/* Row card */
+.mapLegendRow {
+  display: grid;
+  grid-template-columns: 28px 1fr 14px;
+  gap: 8px;
+  align-items: center;
+
+  padding: 6px 6px;
+  border-radius: 11px;
+
+  background: rgba(15, 23, 42, 0.028);
+  border: 1px solid rgba(20, 24, 40, 0.075);
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.mapLegendRow:hover {
+  background: rgba(40, 168, 225, 0.085);
+  border-color: rgba(40, 168, 225, 0.20);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+}
+
+
+
+/* Color dot */
+.mapLegendDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.10);
+}
+
+/* Text column */
+.mapLegendText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ✅ Base legend font size */
+.mapLegendLabel {
+  font-size: var(--legend-font); /* 12.5px */
+  color: rgba(15, 23, 42, 0.88);
+  line-height: 1.15;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* Optional meta chip */
+.mapLegendMeta {
+  font-size: 10.75px;
+  font-weight: 700;
+  color: var(--muted2);
+  width: fit-content;
+
+  padding: 3px 7px;
+  border-radius: 999px;
+
+  background: rgba(15, 23, 42, 0.038);
+  border: 1px solid rgba(20, 24, 40, 0.075);
+}
+
+/* Hover hint (tiny) */
+.mapLegendHoverHint {
+  justify-self: end;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.32);
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+
+.mapLegendRow:hover .mapLegendHoverHint {
+  color: rgba(20, 169, 175, 0.82);
+  transform: translateX(1px);
+}
+
+/* Empty state */
+.mapLegendEmpty {
+  font-size: var(--legend-font);
+  color: var(--muted);
+  padding: 8px;
+  border-radius: 11px;
+  background: rgba(15, 23, 42, 0.028);
+  border: 1px solid rgba(20, 24, 40, 0.075);
+}
+
+.mapLegendRowActive {
+  background: rgba(20, 169, 175, 0.10);
+  border-color: rgba(20, 169, 175, 0.28);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+}
+
+.mapLegendRowActive .mapLegendHoverHint {
+  color: rgba(20, 169, 175, 0.92);
+}
+
+/* =========================
+   CLEAN VALUE TABLE (Map stats)
+========================= */
+.cleanTableWrap {
+  background: var(--card2);
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+
+
+}
+
+.cleanTable {
+  overflow-y: auto;
+  max-height: calc(100vh - 44px - 18px - 18px - 120px);
+  /* ^ sticky stats card height minus padding-ish; adjust if needed */
+  scrollbar-width: thin;
+  padding-right: 4px;
+}
+
+.cleanEmpty {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.02);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cleanRow {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 10px;
+  align-items: center;
+
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.88);
+
+  cursor: pointer;
+  border-radius: 12px;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.cleanRow:last-child {
+  border-bottom: none;
+}
+
+.cleanRow:nth-child(even) {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.cleanRow:hover {
+  background: rgba(40, 168, 225, 0.085);
+  border-color: rgba(40, 168, 225, 0.20);
+  transform: translateY(-1px);
+}
+
+.cleanRowHovered {
+  background: rgba(40, 168, 225, 0.12) !important;
+  border-color: rgba(40, 168, 225, 0.22) !important;
+}
+
+.cleanRowActive {
+  background: rgba(20, 169, 175, 0.12) !important;
+  border-color: rgba(20, 169, 175, 0.28) !important;
+}
+
+.cleanCellNum {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted2);
+  text-align: left;
+  user-select: none;
+}
+
+.cleanCellName {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cleanCellValue {
+  font-weight: 400;
+  color: rgba(15, 23, 42, 0.70);
+  justify-self: end;
+  white-space: nowrap;
+}
+
+
+
 
 /* =========================
    RESPONSIVE

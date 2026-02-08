@@ -13,25 +13,66 @@ const JSMap = window.Map;
 
 /* ───────────────── helpers ─────────────────────────────────────────── */
 
-function formatValue(num) {
-  if (typeof num !== "number" || isNaN(num)) return String(num);
-  const suffixes = [
-    { value: 1e24, suffix: "y" },
-    { value: 1e21, suffix: "z" },
-    { value: 1e18, suffix: "e" },
-    { value: 1e15, suffix: "p" },
-    { value: 1e12, suffix: "t" },
-    { value: 1e9, suffix: "b" },
-    { value: 1e6, suffix: "m" },
-    { value: 1e3, suffix: "k" },
-  ];
-  for (let i = 0; i < suffixes.length; i++) {
-    if (num >= suffixes[i].value) {
-      return (num / suffixes[i].value).toFixed(2) + suffixes[i].suffix;
-    }
-  }
-  return num.toFixed(2);
+
+function formatDotsInteger(n) {
+  // 1234567 -> "1.234.567"
+  const s = Math.trunc(Math.abs(n)).toString();
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+
+function formatDotsNumber(n, maxDecimals = 5) {
+  // 1000.34598 -> "1.000,34598"
+  if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
+
+  const sign = n < 0 ? "-" : "";
+  const abs = Math.abs(n);
+
+  // avoid float noise + cap decimals
+  const rounded = Number(abs.toFixed(maxDecimals));
+
+  const intPart = Math.trunc(rounded);
+  const frac = rounded - intPart;
+
+  const intStr = formatDotsInteger(intPart);
+
+  if (frac === 0) return sign + intStr;
+
+  const fracStr = frac.toFixed(maxDecimals).slice(2).replace(/0+$/, "");
+  return fracStr ? `${sign}${intStr},${fracStr}` : `${sign}${intStr}`;
+}
+
+function formatValue(n) {
+  // ✅ handles "No data" + categorical strings safely
+  if (n == null) return "No data";
+  if (typeof n !== "number") return String(n);
+  if (!Number.isFinite(n)) return "No data";
+
+  const abs = Math.abs(n);
+
+  // full format up to < 1 quadrillion
+  const ABBREV_FROM = 1e15;
+  if (abs < ABBREV_FROM) {
+    return formatDotsNumber(n, 5);
+  }
+
+  const units = [
+    { value: 1e24, label: "septillion" },
+    { value: 1e21, label: "sextillion" },
+    { value: 1e18, label: "quintillion" },
+    { value: 1e15, label: "quadrillion" },
+    { value: 1e12, label: "trillion" },
+    { value: 1e9, label: "billion" },
+    { value: 1e6, label: "million" },
+    { value: 1e3, label: "thousand" },
+  ];
+
+  const u = units.find((x) => abs >= x.value) || units[units.length - 1];
+  const scaled = n / u.value;
+
+  // abbreviated: keep up to 2 decimals
+  return `${formatDotsNumber(scaled, 2)} ${u.label}`;
+}
+
 
 const norm = (c = "") => String(c || "").trim().toUpperCase();
 
@@ -58,7 +99,18 @@ export default function Map({
   legendFontSize = 16,
   isLargeMap = false,
 
+  groupHoveredCodes = [],
+  groupActiveCodes = [],
+  suppressInfoBox = false,
+
+  activeLegendModel = null,
+codeToName = {},
+onCloseActiveLegend,
+
+
   // ✅ NEW: controlled hover/selection from parent (DataIntegration)
+  selectedCodeZoom = false,
+  selectedCodeNonce = 0,
   hoveredCode = null,
   selectedCode: externalSelectedCode = null,
   onHoverCode,
@@ -188,6 +240,7 @@ export default function Map({
           .filter((r) => r.lower != null && r.upper != null);
 
         return ranges.map((r) => ({
+          label: (r.label ?? r.name ?? `${r.lower}–${r.upper}`).toString(),
           color: r.color,
           countries: data
             .filter(
@@ -236,6 +289,33 @@ export default function Map({
     }));
   }, [effectiveMapType, parsedRanges, parsedGroups, data, normalizeGroups]);
 
+  
+
+  const activeLegendCodes = useMemo(() => {
+  if (!activeLegendModel) return [];
+
+  // 1) best case: parent already provides codes
+  const direct = Array.from(activeLegendModel.codes || []).map(norm).filter(Boolean);
+  if (direct.length) return direct;
+
+  // 2) fallback by index (if you store groupIndex)
+  if (Number.isInteger(activeLegendModel.groupIndex)) {
+    const g = derivedGroups[activeLegendModel.groupIndex];
+    return (g?.countries || []).map((c) => norm(c.code)).filter(Boolean);
+  }
+
+  // 3) fallback by label/name match
+  const label = (activeLegendModel.label ?? activeLegendModel.name ?? "").toString().trim();
+  if (!label) return [];
+
+  const g =
+    derivedGroups.find((x) => String(x.name ?? "").trim() === label) ||
+    derivedGroups.find((x) => String(x.label ?? "").trim() === label);
+
+  return (g?.countries || []).map((c) => norm(c.code)).filter(Boolean);
+}, [activeLegendModel, derivedGroups]);
+
+
   /* ───────────────────────────────
    * 6) refs / state
    * ─────────────────────────────── */
@@ -251,6 +331,53 @@ export default function Map({
 
   const lastClickRef = useRef({ code: null, t: 0 });
 const DOUBLE_CLICK_MS = 260; // tweak 220–320 to taste
+
+const groupHoverRef = useRef(new Set());
+const groupActiveRef = useRef(new Set());
+
+const [showResetBtn, setShowResetBtn] = useState(false);
+
+const FULLSCREEN_Y_OFFSET = 70; // ✅ move map DOWN in fullscreen
+const baseX = 0;
+const baseY = isLargeMap ? FULLSCREEN_Y_OFFSET : 0;
+const baseScale = 1;
+
+
+const updateResetBtn = useCallback((state) => {
+  if (!state) return;
+
+  const { scale, positionX, positionY } = state;
+
+  const notDefault =
+    Math.abs(scale - 1) > 0.02 ||
+    Math.abs(positionX - baseX) > 2 ||
+    Math.abs(positionY - baseY) > 2;
+
+  setShowResetBtn(notDefault);
+}, [baseX, baseY]);
+
+
+
+const applyGroupClass = useCallback((codes, className, prevRef) => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  // remove old
+  for (const code of prevRef.current) {
+    getCountryEls(svg, code).forEach((el) => el.classList.remove(className));
+  }
+
+  const next = new Set((codes || []).map(norm).filter(Boolean));
+
+  for (const code of next) {
+    // don't override a real selected country styling if you want (optional):
+    // if (code === selectedCodeRef.current) continue;
+
+    getCountryEls(svg, code).forEach((el) => el.classList.add(className));
+  }
+
+  prevRef.current = next;
+}, []);
 
 
 
@@ -316,6 +443,35 @@ const resetView = useCallback(() => {
   onSelectCode?.(null);
   onHoverCode?.(null);
 }, [onSelectCode, onHoverCode]);
+
+const clearAll = useCallback(() => {
+  // close group overlay (legend active)
+  onCloseActiveLegend?.();
+
+  // clear selected country + tooltip + parent controlled hover/select
+  resetView();
+
+  // (optional) zoom out too when clearing
+  // resetPanZoom(220);
+}, [onCloseActiveLegend, resetView /*, resetPanZoom*/]);
+
+
+const resetPanZoom = useCallback((ms = 220) => {
+  const api = wrapperRef.current;
+  if (!api) return;
+
+  if (typeof api.setTransform === "function") {
+    api.setTransform(baseX, baseY, 1, ms, "easeOutQuart");
+  } else if (typeof api.resetTransform === "function") {
+    // fallback if setTransform doesn't exist (rare)
+    api.resetTransform(ms);
+  }
+
+  currentScaleRef.current = 1;
+  isZoomedRef.current = false;
+}, [baseX, baseY]);
+
+
 
 
   /* ───────────────────────────────
@@ -424,15 +580,28 @@ const resetView = useCallback(() => {
    * 9) Sync: parent-selectedCode → internal select + zoom
    * (this is what makes sidebar click select on map)
    * ─────────────────────────────── */
-  useEffect(() => {
-    if (!externalSelectedCode) return;
-    const C = norm(externalSelectedCode);
+useEffect(() => {
+  // ✅ allow parent to clear selection
+  if (!externalSelectedCode) {
+    if (selectedCodeRef.current) {
+      resetView(); // clears active class + tooltip + selected state
+    }
+    return;
+  }
 
-    // already selected internally
-    if (selectedCodeRef.current === C) return;
+  const C = norm(externalSelectedCode);
+  const zoom = !!selectedCodeZoom;
 
-    selectCountryByCode(C, { zoom: true });
-  }, [externalSelectedCode, selectCountryByCode]);
+  if (selectedCodeRef.current === C && !zoom) return;
+
+  selectCountryByCode(C, { zoom });
+}, [
+  externalSelectedCode,
+  selectedCodeZoom,
+  selectedCodeNonce,
+  selectCountryByCode,
+  resetView
+]);
 
   /* ───────────────────────────────
    * 10) Sync: parent-hoveredCode → highlight on map (no tooltip)
@@ -482,6 +651,8 @@ const resetView = useCallback(() => {
       });
 
     };
+
+
 
  const handleMove = (e) => {
   lastPosRef.current.x = e.clientX + 12;
@@ -586,6 +757,57 @@ const findPlaceholder = useCallback(
   [normalizedPlaceholders]
 );
 
+const isChoropleth = effectiveMapType === "choropleth";
+
+const groupRows = useMemo(() => {
+  const codes = activeLegendCodes || [];
+
+  const rows = codes.map((c) => {
+    const code = norm(c);
+    const name = codeToName?.[code] || code;
+    const value = findValue(code); // number or "No data"
+    return { code, name, value };
+  });
+
+  if (!isChoropleth) {
+    // categorical: no value column, just sort by name
+    return rows.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // choropleth: sort by numeric value asc, "No data" last, then name
+  const toSortable = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+  return rows.sort((a, b) => {
+    const av = toSortable(a.value);
+    const bv = toSortable(b.value);
+
+    const aNo = av == null;
+    const bNo = bv == null;
+
+    if (aNo && bNo) return a.name.localeCompare(b.name);
+    if (aNo) return 1;
+    if (bNo) return -1;
+    if (av !== bv) return av - bv;
+    return a.name.localeCompare(b.name);
+  });
+}, [activeLegendCodes, codeToName, findValue, isChoropleth, effectiveMapType]);
+
+const handleGroupRowClick = useCallback(
+  (code) => {
+    const C = norm(code);
+    if (!C) return;
+
+    // close the group overlay first
+    onCloseActiveLegend?.();
+
+    // select the country (opens normal infobox)
+    onSelectCode?.(C);
+    selectCountryByCode(C, { zoom: true }); // or zoom:true if you want
+  },
+  [onCloseActiveLegend, onSelectCode, selectCountryByCode]
+);
+
+
 useEffect(() => {
   if (!selected?.code) return;
   const next = findPlaceholder(selected.code);
@@ -611,6 +833,44 @@ useEffect(() => {
   );
 }, [findValue, findColor, selected?.code, selected?.value, selected?.color]);
 
+useEffect(() => {
+  applyGroupClass(groupHoveredCodes, cls.groupHovered, groupHoverRef);
+}, [groupHoveredCodes, applyGroupClass]);
+
+useEffect(() => {
+  applyGroupClass(groupActiveCodes, cls.groupActive, groupActiveRef);
+}, [groupActiveCodes, applyGroupClass]);
+
+useEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  const has = (groupActiveCodes || []).length > 0;
+  svg.classList.toggle(cls.hasGroupActive, has);
+}, [groupActiveCodes]);
+
+useEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  const has = !!selectedCodeRef.current; // or !!selected?.code
+  svg.classList.toggle(cls.hasCountrySelected, has);
+}, [selected?.code]); // keeps it in sync with your React state
+
+useEffect(() => {
+  // When a legend group is opened, always zoom out to default
+  if (activeLegendModel) {
+    resetPanZoom(220);
+  }
+}, [activeLegendModel, resetPanZoom]);
+
+useEffect(() => {
+  // when switching modes, snap to that mode’s baseline
+  resetPanZoom(0);
+  setShowResetBtn(false);
+}, [isLargeMap, resetPanZoom]);
+
+
 
 
 
@@ -627,46 +887,128 @@ useEffect(() => {
     </div>
   );
 
+const renderInfoBox = () => {
+  if (suppressInfoBox) return null;
+  if (!selected) return null;
 
-  const renderInfoBox = () =>
-    selected && (
-  <aside className={cls.infoBox}>
-  {/* HEADER */}
-  <header className={cls.infoBoxHeader}>
-    <img
-      src={`https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`}
-      alt=""
-    />
-    <h2>{selected.name}</h2>
+  const desc = (selected.placeholder ?? "").trim();
+  const hasDesc = desc.length > 0;
 
-    <button
-      onClick={resetView}
-      className={cls.closeBtn}
-      aria-label="Close info box"
-    >
-      ×
-    </button>
-  </header>
+  return (
+    <aside className={cls.infoBox}>
+      <header className={cls.infoBoxHeader}>
+        <img
+          src={`https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`}
+          alt=""
+          loading="lazy"
+        />
+        <h2 title={selected.name}>{selected.name}</h2>
 
-  {/* VALUE ROW */}
-  <div className={cls.valueRow}>
-    <span
-      className={`${cls.swatch} swatch`}   /* both since swatch is nested */
-      style={{ background: selected.color }}
-    />
-    <span>{formatValue(selected.value)}</span>
-  </div>
+        <button
+          onClick={resetView}
+          className={cls.closeBtn}
+          aria-label="Close info box"
+          type="button"
+        >
+          ×
+        </button>
+      </header>
 
-  {/* description (placeholder) */}
- {(selected.placeholder ?? "").trim() ? (
-  <p className={cls.placeholderText}>{selected.placeholder}</p>
-) : (
-  <p className={cls.placeholderEmpty}>
-  </p>
-)}
+      <div className={cls.infoBoxBody}>
+        <div className={cls.valueBlock}>
+          <div
+            className={[
+              cls.valueRow,
+              hasDesc ? cls.valueRowConnected : "",
+            ].join(" ")}
+            title={String(selected.value ?? "")}
+          >
+            <span
+              className={cls.swatch}
+              style={{ background: selected.color }}
+              aria-hidden="true"
+            />
+            <span className={cls.valueText}>{formatValue(selected.value)}</span>
+          </div>
 
-</aside>
-    );
+          {hasDesc ? (
+            <div className={cls.valueDescWrap}>
+              <div className={cls.valueDescLine} aria-hidden="true" />
+              <p className={cls.valueDesc}>{desc}</p>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+const renderGroupInfoBox = () => {
+  if (!activeLegendModel) return null;
+
+  const codes = activeLegendCodes;
+
+
+    const items = groupRows;
+
+
+  return (
+    <aside className={cls.groupBox}>
+      <header className={cls.groupBoxHeader}>
+        <span
+          className={cls.groupDot}
+          style={{ background: activeLegendModel.color }}
+          aria-hidden="true"
+        />
+        <div className={cls.groupHeaderText}>
+          <h2 className={cls.groupTitle} title={activeLegendModel.label}>
+            {activeLegendModel.label}
+          </h2>
+          <div className={cls.groupCount}>
+            {items.length} {items.length === 1 ? "country" : "countries"}
+          </div>
+        </div>
+
+        <button
+          onClick={() => onCloseActiveLegend?.()}
+          className={cls.closeBtn}
+          aria-label="Close group info box"
+          type="button"
+        >
+          ×
+        </button>
+      </header>
+
+      <div className={cls.groupBoxBody}>
+        <div className={cls.groupList}>
+          {/* header row */}
+     
+         {items.map((it) => (
+           <button
+             key={it.code}
+             type="button"
+            className={[
+               cls.groupRow,
+               isChoropleth ? cls.groupRow3 : cls.groupRow2,
+             ].join(" ")}
+             onClick={() => handleGroupRowClick(it.code)}
+             title="Select country"
+           >
+             <span className={cls.groupItemCode}>{it.code}</span>
+             <span className={cls.groupItemName}>{it.name}</span>
+             {isChoropleth ? (
+               <span className={cls.groupItemValue} title={String(it.value ?? "")}>
+                 {formatValue(it.value)}
+               </span>
+             ) : null}
+           </button>
+         ))}
+        </div>
+      </div>
+    </aside>
+  );
+};
+
 
 
 useLayoutEffect(() => {
@@ -692,25 +1034,63 @@ useLayoutEffect(() => {
   svg.classList.remove(cls.isPainting);
   svg.classList.add(cls.isReady);
 }, [derivedGroups, unassigned_color]);
+const handleResetViewClick = useCallback(() => {
+  resetPanZoom(220);
+
+  // optional: also clear selection + close group (up to you)
+  // clearAll();
+
+  setShowResetBtn(false);
+}, [resetPanZoom /*, clearAll*/]);
 
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
   return (
     <div className={cls.mapRoot}>
-      {renderInfoBox()}
+    {renderGroupInfoBox()}
+    {renderInfoBox()}
 
-      <TransformWrapper
-        ref={wrapperRef}
-        wheel={{ step: 50 }}
-        doubleClick={{ disabled: true }}
-        panning={{ velocityDisabled: true }}
-        minScale={1}
-        limitToBounds={false}
-        /* keep scale ref in sync */
-        onInit={({ state }) => (currentScaleRef.current = state.scale)}
-        onZoomStop={({ state }) => (currentScaleRef.current = state.scale)}
-        onPanningStop={({ state }) => (currentScaleRef.current = state.scale)}
-      >
+    <button
+  type="button"
+  className={[
+    cls.resetViewBtn,
+    showResetBtn ? cls.resetViewBtnVisible : "",
+  ].join(" ")}
+  onPointerDown={(e) => e.stopPropagation()} // don’t trigger "ocean click"
+  onClick={handleResetViewClick}
+  aria-label="Reset view"
+>
+  Reset view
+</button>
+
+
+<TransformWrapper
+  ref={wrapperRef}
+  wheel={{ step: 50 }}
+  doubleClick={{ disabled: true }}
+  panning={{ velocityDisabled: true }}
+  minScale={1}
+  limitToBounds={false}
+
+  initialScale={baseScale}
+  initialPositionX={baseX}
+  initialPositionY={baseY}
+
+  onInit={({ state }) => {
+    currentScaleRef.current = state.scale;
+    updateResetBtn(state);
+  }}
+  onZoomStop={({ state }) => {
+    currentScaleRef.current = state.scale;
+    updateResetBtn(state);
+  }}
+  onPanningStop={({ state }) => {
+    currentScaleRef.current = state.scale;
+    updateResetBtn(state);
+  }}
+>
+
+
         <TransformComponent
           wrapperStyle={{ width: "100%", height: "100%" }}
           contentStyle={{
@@ -732,6 +1112,20 @@ useLayoutEffect(() => {
   strokeLinecap="round"
   strokeLinejoin="round"
   xmlns="http://www.w3.org/2000/svg"
+    onPointerDownCapture={(e) => {
+    const t = e.target;
+
+    // If you clicked a country shape, do nothing (country handler will run)
+    const isCountryEl =
+      t &&
+      (t.matches?.("path[id], polygon[id], rect[id]") ||
+        t.closest?.("path[id], polygon[id], rect[id]"));
+
+    if (isCountryEl) return;
+
+    // Clicked "ocean"/svg background => clear group + selection
+    clearAll();
+  }}
 
   
 
