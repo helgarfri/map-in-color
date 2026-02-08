@@ -389,6 +389,7 @@ router.get('/:username', async (req, res) => {
       description,
       gender,
       profile_picture,
+      status,
       profile_visibility,
       show_saved_maps,
       star_notifications,

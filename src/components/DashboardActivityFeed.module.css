@@ -42,8 +42,8 @@
 /* ===== Thumbnail ===== */
 .thumbContainer {
   position: relative;
-  width: 220px;
-  height: 110px;
+  width: 350px;
+  height: 100%;
   flex-shrink: 0;
 
   border-radius: 14px;

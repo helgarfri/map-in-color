@@ -32,6 +32,7 @@ import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
 import MapView from './Map';
 import MapDetailValueTable from "./MapDetailValueTable";
+import { getAnonId } from "../utils/annonId"; // add at top
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {

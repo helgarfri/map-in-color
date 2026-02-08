@@ -113,7 +113,6 @@
 /* Thumbnail */
 .thumbnail {
   width: 100%;
-  height: 160px;
   overflow: hidden;
 
   position: relative;

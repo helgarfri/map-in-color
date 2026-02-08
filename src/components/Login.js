@@ -14,21 +14,27 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+    const navigate = useNavigate();
+  const [showResetModal, setShowResetModal] = useState(false);
   // error modal
   const [errorOpen, setErrorOpen] = useState(false);
   const [errorTitle, setErrorTitle] = useState("Login failed");
   const [errorMessage, setErrorMessage] = useState("");
   const [errorAction, setErrorAction] = useState(null);
 
-  // ✅ reset modal
-  const [showResetModal, setShowResetModal] = useState(false);
+  // ✅ NEW: show support hint
+  const [showSupportContact, setShowSupportContact] = useState(false);
 
-  const navigate = useNavigate();
-
-  const openError = ({ title, message, onCloseNavigateTo = null }) => {
+  const openError = ({
+    title,
+    message,
+    onCloseNavigateTo = null,
+    showSupport = false, // ✅ NEW
+  }) => {
     setErrorTitle(title || "Login failed");
     setErrorMessage(message || "Something went wrong. Please try again.");
     setErrorAction(onCloseNavigateTo);
+    setShowSupportContact(!!showSupport); // ✅ NEW
     setErrorOpen(true);
   };
 
@@ -36,8 +42,10 @@ export default function Login() {
     setErrorOpen(false);
     const target = errorAction;
     setErrorAction(null);
+    setShowSupportContact(false); // ✅ NEW reset
     if (target) navigate(target);
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,8 +78,10 @@ export default function Login() {
             openError({
               title: "Account banned",
               message: "Your account has been banned. You can’t log in.",
-              onCloseNavigateTo: "/banned",
+              showSupport: true,           // ✅ show support line
+              onCloseNavigateTo: null,     // ✅ do NOT navigate
             });
+
           } else if (String(serverMsg).toLowerCase().includes("verify")) {
             openError({
               title: "Verify your account",
@@ -164,7 +174,17 @@ export default function Login() {
                 <h2 id="error-title" className={styles.micModalTitle}>
                   {errorTitle}
                 </h2>
-                <p className={styles.micModalSubtitle}>{errorMessage}</p>
+                  <p className={styles.micModalSubtitle}>{errorMessage}</p>
+
+                  {showSupportContact && (
+                    <p className={styles.supportHint}>
+                      If you believe this is a mistake, please contact{" "}
+                      <a className={styles.supportLink} href="mailto:support@mapincolor.com">
+                        support@mapincolor.com
+                      </a>
+                      .
+                    </p>
+                  )}
               </div>
 
               <div className={styles.errorBadge} title="Error">
@@ -192,8 +212,7 @@ export default function Login() {
       {/* Left side */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
-          <img src="/assets/map-in-color-logo.png" alt="Map in Color Logo" className={styles.logo} />
-          <h1 className={styles.brandText}>Map in Color</h1>
+          <img src="/assets/3-0/mic-logo-2-5-text.png" alt="Map in Color Logo" className={styles.logo} />
         </div>
       </div>
 

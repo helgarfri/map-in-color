@@ -55,6 +55,8 @@ function formatValue(n) {
     return formatDotsNumber(n, 5);
   }
 
+  
+
   const units = [
     { value: 1e24, label: "septillion" },
     { value: 1e21, label: "sextillion" },
@@ -81,6 +83,7 @@ const getCountryEls = (svg, code) =>
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
   );
 
+  
   
 /* ───────────────── component ───────────────────────────────────────── */
 
@@ -120,6 +123,8 @@ onCloseActiveLegend,
   viewBox,
 
 } = {}) {
+
+  
 
 
   /* ───────────────────────────────
@@ -328,12 +333,22 @@ onCloseActiveLegend,
   const lastPosRef = useRef({ x: 0, y: 0 });
 
   const isZoomedRef = useRef(false);
+  const didAutoFitRef = useRef(false);
+
+  const dataFitRef = useRef(null); 
+// { x, y, scale } in react-zoom-pan-pinch coordinates
+
 
   const lastClickRef = useRef({ code: null, t: 0 });
+  const lastFitBBoxRef = useRef(null);
 const DOUBLE_CLICK_MS = 260; // tweak 220–320 to taste
 
 const groupHoverRef = useRef(new Set());
 const groupActiveRef = useRef(new Set());
+
+const [isViewReady, setIsViewReady] = useState(false);
+const didInitialFitRef = useRef(false);
+
 
 const [showResetBtn, setShowResetBtn] = useState(false);
 
@@ -341,6 +356,10 @@ const FULLSCREEN_Y_OFFSET = 70; // ✅ move map DOWN in fullscreen
 const baseX = 0;
 const baseY = isLargeMap ? FULLSCREEN_Y_OFFSET : 0;
 const baseScale = 1;
+
+
+
+
 
 
 const updateResetBtn = useCallback((state) => {
@@ -379,6 +398,24 @@ const applyGroupClass = useCallback((codes, className, prevRef) => {
   prevRef.current = next;
 }, []);
 
+const resetToDataView = useCallback((ms = 220) => {
+  const api = wrapperRef.current;
+  const t = dataFitRef.current;
+
+  if (!api) return;
+
+  // If we don't have a data-fit yet, fall back to world baseline
+  if (!t) {
+    api.setTransform(baseX, baseY, 1, ms, "easeOutQuart");
+    currentScaleRef.current = 1;
+    isZoomedRef.current = false;
+    return;
+  }
+
+  api.setTransform(t.x, t.y, t.scale, ms, "easeOutQuart");
+  currentScaleRef.current = t.scale;
+  isZoomedRef.current = t.scale > 1.02;
+}, [baseX, baseY]);
 
 
 
@@ -792,6 +829,148 @@ const groupRows = useMemo(() => {
   });
 }, [activeLegendCodes, codeToName, findValue, isChoropleth, effectiveMapType]);
 
+
+const codesWithData = useMemo(() => {
+  const out = new Set();
+
+  for (const d of data || []) {
+    const code = norm(d.code);
+    if (!code) continue;
+
+    if (effectiveMapType === "choropleth") {
+      if (typeof d.value === "number" && Number.isFinite(d.value)) out.add(code);
+    } else {
+      const v = (d.value ?? "").toString().trim();
+      if (v) out.add(code);
+    }
+  }
+
+  return Array.from(out);
+}, [data, effectiveMapType]);
+
+
+const getBBoxUnionForCodes = useCallback((codes) => {
+  const svg = svgRef.current;
+  if (!svg) return null;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let found = 0;
+
+  for (const code of codes) {
+    const els = getCountryEls(svg, norm(code));
+    els.forEach((el) => {
+      try {
+        const b = el.getBBox();
+        minX = Math.min(minX, b.x);
+        minY = Math.min(minY, b.y);
+        maxX = Math.max(maxX, b.x + b.width);
+        maxY = Math.max(maxY, b.y + b.height);
+        found++;
+      } catch {}
+    });
+  }
+
+  if (!found) return null;
+
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}, []);
+
+
+const fitBBoxToView = useCallback(
+  (bbox, { ms = 260, padding = 0.12, store = false } = {}) => {
+    const api = wrapperRef.current;
+    const svgEl = svgRef.current;
+    if (!api || !svgEl || !bbox) return null;
+
+    const vpW = svgEl.clientWidth;
+    const vpH = svgEl.clientHeight;
+
+    const vbW = 2000;
+    const vbH = 857;
+
+    const fit = Math.min(vpW / vbW, vpH / vbH);
+    const pxPerUnit = fit;
+
+    // expand bbox a bit
+    const padX = bbox.width * padding;
+    const padY = bbox.height * padding;
+
+    const bb = {
+      x: bbox.x - padX,
+      y: bbox.y - padY,
+      width: bbox.width + padX * 2,
+      height: bbox.height + padY * 2,
+    };
+
+    // ✅ Decide if this is basically "global"
+    const coverX = bb.width / vbW;
+    const coverY = bb.height / vbH;
+    const coverA = (bb.width * bb.height) / (vbW * vbH);
+
+    // Tune these 3 numbers if you want (start here)
+    const isGlobalSpread =
+      coverX > 0.88 || coverY > 0.88 || coverA > 0.60;
+
+
+const GLOBAL_SCALE = 0.92;           // tweak: 0.88–0.95
+const GLOBAL_Y_NUDGE = 0.05;         // +4% of viewport height (moves map DOWN)
+
+if (isGlobalSpread) {
+  const nudgeYpx = vpH * GLOBAL_Y_NUDGE;
+
+  const t = {
+    x: baseX,                        // no x nudge
+    y: baseY + nudgeYpx,             // ✅ y nudge (down)
+    scale: GLOBAL_SCALE,
+  };
+
+  api.setTransform(t.x, t.y, t.scale, ms, "easeOutQuart");
+  currentScaleRef.current = t.scale;
+  isZoomedRef.current = t.scale > 1.02;
+
+  if (store) {
+    dataFitRef.current = t;
+    lastFitBBoxRef.current = bb;
+  }
+  return t;
+}
+
+
+    // Otherwise do normal fit-zoom
+    const stripeXpx = (vpW - vbW * fit) * 0.5;
+    const stripeYpx = (vpH - vbH * fit) * 0.5;
+
+    const centerX = stripeXpx + (bb.x + bb.width / 2) * pxPerUnit;
+    const centerY = stripeYpx + (bb.y + bb.height / 2) * pxPerUnit;
+
+    const computedScale = Math.min(
+      6,
+      (vpW * 0.9) / (bb.width * pxPerUnit),
+      (vpH * 0.9) / (bb.height * pxPerUnit)
+    );
+
+    // ✅ don’t ever zoom OUT below baseline, but zoom IN as needed
+    const scale = Math.max(1, computedScale);
+
+    const yOffsetPx = baseY;
+
+    const x = vpW / 2 - centerX * scale;
+    const y = vpH / 2 - centerY * scale + yOffsetPx;
+
+    api.setTransform(x, y, scale, ms, "easeOutQuart");
+    currentScaleRef.current = scale;
+    isZoomedRef.current = scale > 1.02;
+
+    const t = { x, y, scale };
+    if (store) dataFitRef.current = t;
+    return t;
+  },
+  [baseX, baseY]
+);
+
+
+
+
 const handleGroupRowClick = useCallback(
   (code) => {
     const C = norm(code);
@@ -858,11 +1037,11 @@ useEffect(() => {
 }, [selected?.code]); // keeps it in sync with your React state
 
 useEffect(() => {
-  // When a legend group is opened, always zoom out to default
   if (activeLegendModel) {
-    resetPanZoom(220);
+    resetToDataView(220);
   }
-}, [activeLegendModel, resetPanZoom]);
+}, [activeLegendModel, resetToDataView]);
+
 
 useEffect(() => {
   // when switching modes, snap to that mode’s baseline
@@ -871,6 +1050,53 @@ useEffect(() => {
 }, [isLargeMap, resetPanZoom]);
 
 
+useEffect(() => {
+  didAutoFitRef.current = false;
+}, [selected_map]);
+
+useEffect(() => {
+  if (codesWithData.length === 0) {
+    didAutoFitRef.current = false; // allow next time data appears
+  }
+}, [codesWithData.length]);
+
+useEffect(() => {
+  setIsViewReady(false);
+  didInitialFitRef.current = false;
+}, [selected_map]);
+
+useEffect(() => {
+  if (didInitialFitRef.current) return;
+  if (!codesWithData.length) return;
+
+  requestAnimationFrame(() => {
+    const bbox = getBBoxUnionForCodes(codesWithData);
+    if (!bbox) return;
+
+    fitBBoxToView(bbox, { ms: 0, padding: 0.12, store: true });
+    didAutoFitRef.current = true;
+    didInitialFitRef.current = true;
+
+    // ✅ reveal only after the transform has been committed
+    requestAnimationFrame(() => setIsViewReady(true));
+  });
+}, [codesWithData, getBBoxUnionForCodes, fitBBoxToView]);
+
+useEffect(() => {
+  // entering/leaving fullscreen changes vp size + baseY,
+  // so we must re-fit the same bbox.
+  if (!lastFitBBoxRef.current) return;
+
+  setIsViewReady(false);
+
+  requestAnimationFrame(() => {
+    // re-fit using stored bbox (already padded)
+    fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+
+    // reveal after transform commits
+    requestAnimationFrame(() => setIsViewReady(true));
+  });
+}, [isLargeMap, fitBBoxToView]);
 
 
 
@@ -1035,7 +1261,7 @@ useLayoutEffect(() => {
   svg.classList.add(cls.isReady);
 }, [derivedGroups, unassigned_color]);
 const handleResetViewClick = useCallback(() => {
-  resetPanZoom(220);
+  resetToDataView(220);
 
   // optional: also clear selection + close group (up to you)
   // clearAll();
@@ -1063,13 +1289,22 @@ const handleResetViewClick = useCallback(() => {
   Reset view
 </button>
 
+<div className={cls.mapStage}>
+  {!isViewReady && <div className={cls.mapSkeleton} aria-hidden="true" />}
 
+  <div
+    className={cls.mapInner}
+    style={{
+      opacity: isViewReady ? 1 : 0,
+      pointerEvents: isViewReady ? "auto" : "none",
+    }}
+  >
 <TransformWrapper
   ref={wrapperRef}
   wheel={{ step: 50 }}
   doubleClick={{ disabled: true }}
   panning={{ velocityDisabled: true }}
-  minScale={1}
+  minScale={0.9}
   limitToBounds={false}
 
   initialScale={baseScale}
@@ -2080,9 +2315,10 @@ const handleResetViewClick = useCallback(() => {
           </svg>
             </TransformComponent>
       </TransformWrapper>
+        </div>
+</div>
 
-      {renderTooltip()}
-      {renderInfoBox() /* ← AFTER the map, so it’s painted on top */ }
+
     </div>
   );
 }

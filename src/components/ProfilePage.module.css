@@ -358,7 +358,6 @@
 
 .mapThumb {
   width: 100%;
-  height: 170px;
   background: rgba(15, 23, 42, 0.05);
   display: flex;
   align-items: center;
@@ -745,7 +744,7 @@
 
 .skelThumb {
   width: 100%;
-  height: 170px;
+  height: 100px;
   border-radius: 0;
 }
 

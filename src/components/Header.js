@@ -103,7 +103,7 @@ export default function Header({ title }) {
         <div className={styles.logoWrapper}>
           <Link to="/dashboard" className={styles.logoLink}>
             <img
-              src="/assets/mic-logo-2-5.png"
+              src="/assets/3-0/mic-logo-2-5.png"
               alt="App Logo"
               className={styles.logo}
             />

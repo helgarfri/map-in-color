@@ -291,16 +291,16 @@ export default function Signup() {
         <FontAwesomeIcon icon={faHome} />
       </button>
 
-      <div className={styles.leftSide}>
-        <div className={styles.brandContainer}>
-          <img
-            src="/assets/map-in-color-logo.png"
-            alt="Map in Color Logo"
-            className={styles.logo}
-          />
-          <h1 className={styles.brandText}>Map in Color</h1>
-        </div>
-      </div>
+<div className={styles.leftSide}>
+<div className={styles.brandContainer}>
+  <img
+    src="/assets/3-0/mic-logo-2-5-text.png"
+    alt="Map in Color Logo"
+    className={styles.logo}
+  />
+</div>
+
+</div>
 
       <div className={styles.rightSide}>
         <div className={styles.signupBox}>

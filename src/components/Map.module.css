@@ -821,6 +821,36 @@
   color: rgba(0,0,0,0.72);
 }
 
+.mapStage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mapInner {
+  width: 100%;
+  height: 100%;
+  transition: opacity 140ms ease;
+}
+
+.mapSkeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.06),
+    rgba(0,0,0,0.10),
+    rgba(0,0,0,0.06)
+  );
+  background-size: 200% 100%;
+  animation: micShimmer 1.1s infinite linear;
+}
+
+@keyframes micShimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
 
 /* =========================
    RESPONSIVE: mobile dock
