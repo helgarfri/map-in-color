@@ -375,6 +375,34 @@ const updateResetBtn = useCallback((state) => {
   setShowResetBtn(notDefault);
 }, [baseX, baseY]);
 
+const applyNoDataBaseline = useCallback((ms = 0, { store = true } = {}) => {
+  const api = wrapperRef.current;
+  const svgEl = svgRef.current;
+  if (!api || !svgEl) return null;
+
+  // your preferred global look
+  const GLOBAL_SCALE = 0.92;
+  const GLOBAL_Y_NUDGE = 0.05; // moves DOWN
+
+  const vpH = svgEl.clientHeight;
+  const t = {
+    x: baseX,
+    y: baseY + vpH * GLOBAL_Y_NUDGE,
+    scale: GLOBAL_SCALE,
+  };
+
+  api.setTransform(t.x, t.y, t.scale, ms, "easeOutQuart");
+  currentScaleRef.current = t.scale;
+  isZoomedRef.current = t.scale > 1.02;
+
+  if (store) {
+    dataFitRef.current = t;
+    lastFitBBoxRef.current = null; // important: there's no bbox for "no data"
+  }
+
+  return t;
+}, [baseX, baseY]);
+
 
 
 const applyGroupClass = useCallback((codes, className, prevRef) => {
@@ -1061,26 +1089,38 @@ useEffect(() => {
 }, [codesWithData.length]);
 
 useEffect(() => {
-  setIsViewReady(false);
-  didInitialFitRef.current = false;
-}, [selected_map]);
-
-useEffect(() => {
   if (didInitialFitRef.current) return;
-  if (!codesWithData.length) return;
 
+  // ✅ CASE A: no data assigned → reveal immediately with global baseline
+  if (!codesWithData.length) {
+    requestAnimationFrame(() => {
+      applyNoDataBaseline(0, { store: true });
+      didInitialFitRef.current = true;
+
+      requestAnimationFrame(() => setIsViewReady(true));
+    });
+    return;
+  }
+
+  // ✅ CASE B: normal maps with data → fit bbox then reveal
   requestAnimationFrame(() => {
     const bbox = getBBoxUnionForCodes(codesWithData);
-    if (!bbox) return;
+    if (!bbox) {
+      // super defensive fallback (rare): still reveal
+      applyNoDataBaseline(0, { store: true });
+      didInitialFitRef.current = true;
+      requestAnimationFrame(() => setIsViewReady(true));
+      return;
+    }
 
     fitBBoxToView(bbox, { ms: 0, padding: 0.12, store: true });
     didAutoFitRef.current = true;
     didInitialFitRef.current = true;
 
-    // ✅ reveal only after the transform has been committed
     requestAnimationFrame(() => setIsViewReady(true));
   });
-}, [codesWithData, getBBoxUnionForCodes, fitBBoxToView]);
+}, [codesWithData, getBBoxUnionForCodes, fitBBoxToView, applyNoDataBaseline]);
+
 
 useEffect(() => {
   // entering/leaving fullscreen changes vp size + baseY,

@@ -29,6 +29,8 @@
   background-color: var(--bg);
   min-height: 100vh;
   margin: 0 auto;
+    max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* The main content area next to the sidebar */
@@ -38,7 +40,16 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  max-width: 100%;
+  min-width: 0; /* ✅ allow flex children to shrink */
 }
+
+/* ✅ make sure everything sizes with padding included */
+.mapDetailContainer *,
+.mapDetailContent * {
+  box-sizing: border-box;
+}
+
 
 /* If you have a "contentCollapsed" class in JS */
 .contentCollapsed {
@@ -164,6 +175,14 @@
 
 
 }
+
+.detailsAndStats,
+.leftContent,
+.mapDetails,
+.mapStats {
+  min-width: 0; /* ✅ stops flex overflow from long strings/buttons */
+}
+
 
 /* Group edit + view buttons */
 .titleActions {
@@ -1401,7 +1420,7 @@ a {
   border-color: var(--border2);
   transform: translateY(-1px);
 }
-.reactionButton.active {
+.reactionButtonActive {
   background: rgba(40,168,225,0.16);
   border-color: rgba(40,168,225,0.30);
   color: rgba(15, 23, 42, 0.92);
@@ -1711,10 +1730,14 @@ a {
     );
 }
 
+
+
 .discussionBody {
   position: relative; /* above the ::before */
   padding-top: 6px;
 }
+
+
 
 /* Login-locked bar */
 .discussionLocked {
@@ -1755,6 +1778,22 @@ a {
   transform: translateY(-1px);
   background: rgba(40,168,225,0.20);
   border-color: rgba(40,168,225,0.45);
+}
+
+.discussionCard::before {
+  z-index: 0;
+  pointer-events: none;
+}
+
+.discussionBody {
+  position: relative;
+  z-index: 1;
+}
+
+/* also make sure the actual buttons are clickable */
+.commentActions {
+  position: relative;
+  z-index: 2;
 }
 
 /* Composer (MIC-style) */
@@ -1954,6 +1993,101 @@ a {
   }
 }
 
+.unavailableBox {
+  margin: 70px auto;
+  max-width: 560px;
+  width: 100%;
+
+  padding: 34px 28px;
+  text-align: center;
+
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow2);
+}
+
+.unavailableIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 18px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.12),
+    rgba(20,169,175,0.10),
+    rgba(255,255,255,0.90)
+  );
+
+  font-size: 28px;
+}
+
+.unavailableTitle {
+  margin: 0;
+  font-size: 1.22rem;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.unavailableMsg {
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.unavailableActions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.unavailablePrimary,
+.unavailableSecondary {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.04);
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.unavailablePrimary {
+  border-color: rgba(40,168,225,0.30);
+  background: rgba(40,168,225,0.16);
+}
+
+.unavailablePrimary:hover,
+.unavailableSecondary:hover {
+  transform: translateY(-1px);
+  background: rgba(40,168,225,0.20);
+  border-color: rgba(40,168,225,0.45);
+}
+
+.unavailableLink {
+  margin-top: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(40,168,225,0.95);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.unavailableLink:hover {
+  text-decoration: underline;
+}
+
 
 /* =========================
    PRIVATE MAP BOX
@@ -2060,8 +2194,7 @@ a {
 }
 
 .mapCanvas {
-  height: 100vh;
-  width: auto;
+  max-width: 100%;  width: auto;
   max-width: 100vw;
   max-height: 100vh;
   display: block;
@@ -2515,6 +2648,12 @@ a {
     grid-template-columns: 1fr;
     gap: 10px;
   }
+
+    .mapLegendBox {
+    display: none;
+  }
+
+
 }
 
 @media (max-width: 400px) {
@@ -2524,3 +2663,45 @@ a {
     padding: 14px;
   }
 }
+
+
+@media (max-width: 900px) {
+  .detailsAndStats {
+    flex-direction: column;
+  }
+
+  .leftContent {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mapStats {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none;
+  }
+}
+
+/* ✅ prevent hero/action area from pushing width */
+.heroRight,
+.heroActions {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+/* ✅ pills/buttons can wrap instead of forcing overflow */
+.statActionBtn {
+  max-width: 100%;
+}
+
+.statActionLabel {
+  white-space: nowrap;
+}
+
+/* On very tiny screens, shorten the UI a bit */
+@media (max-width: 420px) {
+  .statActionLabel {
+    display: none; /* keeps icon + count only */
+  }
+}
+

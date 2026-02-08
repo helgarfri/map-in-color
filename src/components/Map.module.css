@@ -284,7 +284,7 @@
 
 /* header with accent bar */
 .infoBoxHeader {
-  height: 25px;
+  height: 45px;
   position: relative;
   display: flex;
   align-items: center;
@@ -625,7 +625,7 @@
 }
 
 .groupBoxHeader{
-  height: 25px;
+  height: 45px;
   position: relative;
   display: flex;
   align-items: center;

@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
 import FullScreenMap from './FullScreenMap';
 import { BiDownload, BiSend } from 'react-icons/bi';
+import { createPortal } from "react-dom";
 import {
   fetchMapById,
   saveMap,
@@ -63,12 +64,19 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
 
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
 
+const [loadState, setLoadState] = useState("loading"); 
+// "loading" | "ready" | "error"
 
 
 
     // For reporting a comment
   const [reportTargetComment, setReportTargetComment] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [isDeleting, setIsDeleting] = useState(false);
+
 
   // The user’s chosen reasons, e.g. ["Spam","Inappropriate"]
   const [reportReasons, setReportReasons] = useState('');
@@ -108,7 +116,8 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const mapDisplayRef = useRef(null);
 
   // near the top:
-const [fetchError, setFetchError] = useState(false);
+const [fetchError, setFetchError] = useState(null);
+// { kind: "unavailable" | "temporary", title: string, message: string }
 
   // ✅ Map type (always defined, even when mapData is null)
 const mapType = useMemo(() => {
@@ -267,42 +276,96 @@ if (type === "categorical") {
 
 useEffect(() => {
   let timer;
-  async function getMapData() {
-    setIsLoading(true);
-    try {
-      timer = setTimeout(() => {
-        if (isLoading) {
-          setFetchError(true);
-          setIsLoading(false);
-        }
-      }, 10000);
+  let cancelled = false;
 
-      const res = await fetchMapById(id);
-      setMapData(res.data);
-      console.log("MAPDATA legend fields:", {
-  mapDataType: res.data.mapDataType ?? res.data.map_data_type ?? res.data.type,
-  custom_ranges: res.data.custom_ranges,
-  customRanges: res.data.customRanges,
-  groups: res.data.groups,
-  legend: res.data.legend,
-  legend_items: res.data.legend_items,
-});
+  
 
-      setSaveCount(res.data.save_count || 0);
-      setIsSaved(res.data.isSavedByCurrentUser || false);
-      setIsOwner(res.data.isOwner || false);
-      setIsPublic(res.data.is_public);
-    } catch (err) {
-      setFetchError(true);
-    } finally {
-      setIsLoading(false);
-      clearTimeout(timer);
+async function getMapData() {
+  setLoadState("loading");
+setIsLoading(true);
+// DO NOT clear fetchError here
+
+
+  try {
+    const res = await fetchMapById(id);
+
+    if (!res?.data) {
+      setFetchError({
+        kind: "unavailable",
+        title: "Map not available",
+        message: "This map is no longer available.",
+      });
+      setLoadState("error");
+      return;
     }
+
+    setMapData(res.data);
+    setSaveCount(res.data.save_count || 0);
+    setIsSaved(res.data.isSavedByCurrentUser || false);
+    setIsOwner(res.data.isOwner || false);
+    setIsPublic(res.data.is_public);
+    setFetchError(null);  
+
+    setLoadState("ready");
+  } catch (err) {
+    const status = err?.response?.status;
+    const apiMsg =
+      err?.response?.data?.message ||
+      err?.response?.data?.msg ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "";
+
+    const lower = String(apiMsg).toLowerCase();
+    const code = err?.response?.data?.code;
+    const reason = err?.response?.data?.reason;
+
+    // choose error UI
+    if (status === 410 && code === "MAP_UNAVAILABLE" && reason === "OWNER_BANNED") {
+      setFetchError({
+        kind: "unavailable",
+        title: "Map not available",
+        message: "This map is no longer available.",
+      });
+    } else {
+      const isUnavailableStatus = [404, 410, 403, 451].includes(status);
+      const smellsLikeUnavailable =
+        lower.includes("map not found") ||
+        lower.includes("not found") ||
+        lower.includes("private") ||
+        lower.includes("banned") ||
+        lower.includes("suspended") ||
+        lower.includes("deleted") ||
+        lower.includes("no longer available");
+
+      setFetchError(
+        isUnavailableStatus || smellsLikeUnavailable
+          ? {
+              kind: "unavailable",
+              title: "Map not available",
+              message: "This map is no longer available.",
+            }
+          : {
+              kind: "temporary",
+              title: "Couldn’t load map",
+              message: "Something went wrong. Please try again in a moment.",
+            }
+      );
+    }
+
+    setLoadState("error");
+  } finally {
+    setIsLoading(false);
   }
+}
+
+
   getMapData();
 
-  // Cleanup
-  return () => clearTimeout(timer);
+  return () => {
+    cancelled = true;
+    clearTimeout(timer);
+  };
 }, [id]);
 
 
@@ -368,6 +431,12 @@ useEffect(() => {
     getNotifications();
   }, []);
 
+  useEffect(() => {
+  if (loadState !== "ready") return;
+  // fetchComments...
+}, [id, loadState]);
+
+
   const handleSave = async () => {
     if (!is_public) return;
     if (!isUserLoggedIn) {
@@ -431,45 +500,38 @@ useEffect(() => {
   
   
 
-  const handleReplySubmit = async (e, parent_comment_id) => {
-    e.preventDefault();
-    const replyContent = replyingTo.content;
-    if (!replyContent.trim()) return;
-  
-    if (!isUserLoggedIn) {
-        setShowLoginModal(true);
-        return;
-      }
-  
-    // 1) Indicate we are posting a reply
-    setIsPostingReply(true);
-  
-    try {
-      const res = await postComment(id, { content: replyContent, parent_comment_id });
-      console.log('Reply post response:', res.data);
-  
-      setComments((prevComments) =>
-        prevComments.map((comment) => {
-          if (comment.id === parent_comment_id) {
-            return {
-              ...comment,
-              Replies: [...(comment.Replies || []), res.data],
-            };
-          }
-          return comment;
-        })
-      );
-  
-      setReplyingTo(null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      // 2) End the posting state
-      setIsPostingReply(false);
+const handleReplySubmit = async (e) => {
+  e.preventDefault();
+  if (!replyingTo?.content?.trim()) return;
+  if (!isUserLoggedIn) return setShowLoginModal(true);
+
+  setIsPostingReply(true);
+  try {
+    const parentId = replyingTo.parentId;
+    const res = await postComment(id, { content: replyingTo.content, parent_comment_id: parentId });
+
+    // Insert reply into the tree at the correct node (any depth)
+    setComments((prev) => insertReplyIntoTree(prev, parentId, res.data));
+    setReplyingTo(null);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsPostingReply(false);
+  }
+};
+
+function insertReplyIntoTree(nodes, parentId, newReply) {
+  return nodes.map((n) => {
+    if (n.id === parentId) {
+      return { ...n, Replies: [...(n.Replies || []), { ...newReply, Replies: [] }] };
     }
-  };
-  
-  
+    if (n.Replies?.length) {
+      return { ...n, Replies: insertReplyIntoTree(n.Replies, parentId, newReply) };
+    }
+    return n;
+  });
+}
+
 
 // Update handleLike and handleDislike functions
 
@@ -567,13 +629,28 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
     setReplyingTo(null);
   };
 
-  const handleDeleteCommentWithConfirm = (comment_id) => {
-    // Show a confirmation dialog
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      handleDeleteComment(comment_id);
-    }
-  };
-  
+const handleDeleteCommentWithConfirm = (comment_id) => {
+  setDeleteTargetId(comment_id);
+  setShowDeleteModal(true);
+};
+
+const confirmDelete = async () => {
+  if (!deleteTargetId || isDeleting) return;
+
+  try {
+    setIsDeleting(true);
+    await deleteComment(deleteTargetId);
+    setComments((prev) => removeCommentOrReply(prev, deleteTargetId));
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+
 
   const handleDeleteComment = async (comment_id) => {
     try {
@@ -1059,115 +1136,111 @@ function getCategoricalLegendItems(groups = []) {
 
 
   
-  // Right before the return, handle the special cases:
-  // 1) If we have an error
-  if (fetchError) {
-    return (
-      <div className={styles.mapDetailContainer}>
+
+
+// ─────────────────────────────────────────────
+// HARD render gates (NO OTHER UI ABOVE THIS)
+// ─────────────────────────────────────────────
+
+// 1) While loading: render ONLY skeleton (prevents 1-frame "Failed to load map")
+if (loadState === "loading") {
+  return (
+    <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={styles.mapDetailContent}>
-          <div className={styles.errorBox}>
-            <h2>Map not available</h2>
-            <p>We couldn’t load this map right now. Please try again later.</p>
+      <div className={styles.mapDetailContent}>
+        <div className={styles.mapDisplay}>
+          <div
+            className={styles.skeletonRow}
+            style={{ height: "400px", borderRadius: "8px" }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2) If we decided it's an error: render ONLY the nice error UI
+if (loadState === "error") {
+  // If for some reason fetchError is missing, show a safe fallback
+  const safe = fetchError ?? {
+    kind: "temporary",
+    title: "Couldn’t load map",
+    message: "Something went wrong. Please try again.",
+  };
+
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <div className={styles.unavailableBox}>
+          <div className={styles.unavailableIcon} aria-hidden="true">⛔</div>
+          <h2 className={styles.unavailableTitle}>{safe.title}</h2>
+          <p className={styles.unavailableMsg}>{safe.message}</p>
+
+          <div className={styles.unavailableActions}>
+            <button
+              type="button"
+              className={styles.unavailableSecondary}
+              onClick={() => navigate(-1)}
+            >
+              Go back
+            </button>
+            <button
+              type="button"
+              className={styles.unavailablePrimary}
+              onClick={() => navigate("/explore")}
+            >
+              Explore maps
+            </button>
+          </div>
+
+          {safe.kind === "temporary" && (
+            <button
+              type="button"
+              className={styles.unavailableLink}
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 3) Safety: if ready but mapData missing, treat as unavailable
+if (!mapData) {
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <div className={styles.unavailableBox}>
+          <div className={styles.unavailableIcon} aria-hidden="true">🗺️</div>
+          <h2 className={styles.unavailableTitle}>Map not available</h2>
+          <p className={styles.unavailableMsg}>This map is no longer available.</p>
+
+          <div className={styles.unavailableActions}>
+            <button
+              type="button"
+              className={styles.unavailableSecondary}
+              onClick={() => navigate(-1)}
+            >
+              Go back
+            </button>
+            <button
+              type="button"
+              className={styles.unavailablePrimary}
+              onClick={() => navigate("/explore")}
+            >
+              Explore maps
+            </button>
           </div>
         </div>
       </div>
-    );
-  }
-
-  // 2) If loading but the map is private + not owner => locked
-  if (isLoading && is_public === false && !isOwner) {
-    return (
-      <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={styles.mapDetailContent}>
-          <div className={styles.privateMapBox}>
-            <FaLock className={styles.lockIcon} />
-            <h2>This map is private</h2>
-            <p>You do not have permission to view this map.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 3) If loading => show the skeleton for everything
-  if (isLoading) {
-    return (
-      <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={styles.mapDetailContent}>
-          {/* --- SKELETON STARTS HERE --- */}
-          <div className={styles.mapDisplay}>
-            
-            {/* Large map placeholder */}
-            <div className={styles.skeletonRow} style={{ height: '400px', borderRadius: '8px' }}/>
-          </div>
-
-          <div className={styles.detailsAndStats} style={{ marginTop: '20px' }}>
-            {/* LEFT side: mapDetails + discussion */}
-            <div className={styles.leftContent}>
-              {/* MAP DETAILS SKELETON */}
-              <div className={styles.mapDetails} style={{ marginBottom: '20px' }}>
-                {/* Title line */}
-                <div className={styles.skeletonRow}  style={{ height: '24px', width: '60%', marginBottom: '10px' }} />
-                {/* A couple more lines for the description */}
-                <div className={styles.skeletonRow}  style={{ height: '16px', width: '90%', marginBottom: '8px' }} />
-                <div className={styles.skeletonRow}  style={{ height: '16px', width: '80%', marginBottom: '8px' }} />
-                {/* A row of tags */}
-                <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
-                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
-                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
-                </div>
-              </div>
-
-              {/* DISCUSSION SKELETON */}
-              <div className={styles.discussionSection}>
-                <div className={styles.skeletonSectionTitle} style={{ width: '100px', height: '18px', marginBottom: '16px' }} />
-                {/* pretend we have two or three "comment" placeholders */}
-                {[1,2,3].map((i) => (
-                  <div className={styles.skeletonRow}  key={i} style={{ marginBottom: '20px' }}>
-                    <div className={styles.skeletonThumb} style={{ width: '50px', height: '50px' }}/>
-                    <div className={styles.skeletonTextBlock}>
-                      <div className={styles.skeletonLine} style={{ height: '14px', marginBottom: '6px' }} />
-                      <div className={styles.skeletonLine} style={{ width: '80%', height: '14px' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* RIGHT side: stats */}
-            <div className={styles.mapStats}>
-              <div className={styles.statsSummary}>
-                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
-                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
-                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
-              </div>
-
-              <div className={styles.countryList} style={{ marginTop: '10px' }}>
-                {/* A few skeleton rows for the table */}
-                {[1,2,3,4].map((i) => (
-                  <div className={styles.skeletonRow} key={i} style={{ height: '20px', marginBottom: '8px' }}/>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* --- END SKELETON --- */}
-        </div>
-      </div>
-    );
-  }
-
-  // 4) If no data
-  if (!mapData) {
-
-
-    return null;
-  }
-
- 
+    </div>
+  );
+}
 
 
   // 5) If private & not owner => locked
@@ -1728,8 +1801,9 @@ function getCategoricalLegendItems(groups = []) {
                       <button
                         type="button"
                         className={`${styles.reactionButton} ${
-                          comment.userReaction === "like" ? styles.active : ""
-                        }`}
+                        comment.userReaction === "like" ? styles.reactionButtonActive : ""
+                      }`}
+
                         onClick={() => {
                           if (!isUserLoggedIn) return setShowLoginModal(true);
                           handleLike(comment.id, comment.userReaction);
@@ -1744,7 +1818,7 @@ function getCategoricalLegendItems(groups = []) {
                       <button
                         type="button"
                         className={`${styles.reactionButton} ${
-                          comment.userReaction === "dislike" ? styles.active : ""
+                          comment.userReaction === "dislike" ? styles.reactionButtonActive : ""
                         }`}
                         onClick={() => {
                           if (!isUserLoggedIn) return setShowLoginModal(true);
@@ -1761,7 +1835,7 @@ function getCategoricalLegendItems(groups = []) {
                         <button
                           type="button"
                           className={styles.reactionButton}
-                          onClick={() => setReplyingTo({ comment_id: comment.id, content: "" })}
+                          onClick={() => setReplyingTo({ parentId: commentOrReplyId, content: "" })}
                         >
                           <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
                             <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
@@ -1809,7 +1883,7 @@ function getCategoricalLegendItems(groups = []) {
                         <textarea
                           value={replyingTo.content}
                           onChange={(e) =>
-                            setReplyingTo({ ...replyingTo, content: e.target.value })
+                            setReplyingTo({ parentId: commentOrReplyId, content: "" })
                           }
                           placeholder="Write a reply…"
                           required
@@ -1901,7 +1975,7 @@ function getCategoricalLegendItems(groups = []) {
           <button
             type="button"
             className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-              reply.userReaction === "like" ? styles.active : ""
+              reply.userReaction === "like" ? styles.reactionButtonActive : ""
             }`}
             onClick={() => {
               if (!isUserLoggedIn) return setShowLoginModal(true);
@@ -1917,7 +1991,7 @@ function getCategoricalLegendItems(groups = []) {
           <button
             type="button"
             className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-              reply.userReaction === "dislike" ? styles.active : ""
+              reply.userReaction === "dislike" ? styles.reactionButtonActive : ""
             }`}
             onClick={() => {
               if (!isUserLoggedIn) return setShowLoginModal(true);
@@ -1930,18 +2004,18 @@ function getCategoricalLegendItems(groups = []) {
             <span>{reply.dislike_count}</span>
           </button>
 
-          {profile?.username === reply.user?.username && (
+      {reply.user?.username === profile?.username && (
             <button
               type="button"
-              className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${styles.dangerButton}`}
+              className={`${styles.reactionButton} ${styles.dangerButton}`}
               onClick={() => handleDeleteCommentWithConfirm(reply.id)}
             >
-              <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-              </svg>
-              <span>Delete</span>
-            </button>
-          )}
+                          <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                          </svg>
+                          <span>Delete</span>
+                        </button>
+                      )}
 
           {isUserLoggedIn && reply.user?.username !== profile?.username && (
             <button
@@ -2034,6 +2108,38 @@ function getCategoricalLegendItems(groups = []) {
   
 
       </div>
+
+      {showDeleteModal && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContent}>
+      <h3>Delete comment?</h3>
+      <p>This can’t be undone.</p>
+
+      <div className={styles.modalActions}>
+        <button
+          type="button"
+          onClick={confirmDelete}
+          disabled={isDeleting}
+          className={styles.dangerButton}
+        >
+          {isDeleting ? "Deleting…" : "Delete"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowDeleteModal(false);
+            setDeleteTargetId(null);
+          }}
+          disabled={isDeleting}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {showReportModal && reportedComment && (
   <div className={styles.modalOverlay}>
@@ -2321,7 +2427,10 @@ async function handleSubmitReport() {
   }
 }
 
+
 }
+
+
 
 function findCommentById(commentsArray, targetId) {
   for (const c of commentsArray) {
