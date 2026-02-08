@@ -93,6 +93,15 @@ export default function ProfilePage() {
         );
       } catch (err) {
         console.error("Error fetching profile:", err);
+
+
+       const status = err?.response?.status;
+       if (status === 403) {
+         // banned / blocked / not allowed
+         setProfile({ username, status: "banned" });
+         setProfilePictureUrl("/images/default-profile-picture.png");
+         return;
+       }
         navigate("/404");
       } finally {
         setLoadingProfile(false);
@@ -174,6 +183,31 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  // Banned profile gate
+if (!loadingProfile && profile?.status === "banned") {
+  return (
+    <div className={styles.page}>
+      <Sidebar />
+      <div className={`${styles.shell} ${isCollapsed ? styles.shellCollapsed : ""}`}>
+        <Header title="Profile unavailable" />
+        <main className={styles.main}>
+          <div className={styles.privateCard}>
+            <div className={styles.privateIconWrap}>
+              <FaLock />
+            </div>
+            <h2 className={styles.privateTitle}>This account is not active.</h2>
+            <p className={styles.privateText}>
+              If you believe this is a mistake, contact{" "}
+              <a href="mailto:support@mapincolor.com">support@mapincolor.com</a>.
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 
   // Loading skeleton
   if (loadingProfile) {

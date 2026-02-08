@@ -207,7 +207,7 @@ router.get('/profile/:username', async (req, res) => {
           ${MAP_SELECT},
           is_public
         ),
-        User:users(id, username, profile_picture)
+        User:users(id, username, profile_picture, status)
       `
       )
       .eq('user_id', user_id)
@@ -321,7 +321,8 @@ router.get('/dashboard', auth, async (req, res) => {
         User:users(
           id,
           username,
-          profile_picture
+          profile_picture,
+          status
         )
       `
       )
@@ -389,6 +390,7 @@ router.get('/dashboard', auth, async (req, res) => {
       if (n.comment_id && !commentIds.includes(n.comment_id)) commentIds.push(n.comment_id);
     }
 
+
     // (D1) Fetch sender info
     let sendersById = {};
     if (senderIds.length > 0) {
@@ -450,7 +452,8 @@ router.get('/dashboard', auth, async (req, res) => {
           User:users(
             id,
             username,
-            profile_picture
+            profile_picture,
+            status
           )
         `
         )
@@ -475,6 +478,11 @@ router.get('/dashboard', auth, async (req, res) => {
       const mapObj = n.map_id ? mapsById[n.map_id] || null : null;
       const commentObj = n.comment_id ? commentsById[n.comment_id] || null : null;
 
+  // ✅ hide activity from banned accounts
+  if (sender && sender.status === 'banned') {
+    continue;
+  }
+
       // respect sender opt-out for star notifications
       if ((n.type === 'star' || n.type === 'map_star') && sender && sender.star_notifications === false) {
         continue;
@@ -488,6 +496,10 @@ router.get('/dashboard', auth, async (req, res) => {
               profile_picture: commentObj.User.profile_picture,
             }
           : null;
+
+        if (commentObj?.User?.status === 'banned') {
+          continue;
+        }
 
       notifActivities.push({
         type: `notification_${n.type}`,
