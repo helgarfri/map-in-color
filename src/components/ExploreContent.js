@@ -1,12 +1,14 @@
 // src/components/ExploreContent.js
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useContext } from "react";
+import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 
-import { FaStar, FaSearch } from 'react-icons/fa';
+import { FaStar, FaSearch } from "react-icons/fa";
+import StaticMapThumbnail from "./StaticMapThumbnail";
+import styles from "./ExploreContent.module.css";
 
-import StaticMapThumbnail from './StaticMapThumbnail';
-import styles from './ExploreContent.module.css';
+import { SidebarContext } from "../context/SidebarContext";
+import useWindowSize from "../hooks/useWindowSize";
 
 function ExploreContent() {
   const [maps, setMaps] = useState([]);
@@ -14,10 +16,10 @@ function ExploreContent() {
 
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const [searchApplied, setSearchApplied] = useState('');
+  const [searchApplied, setSearchApplied] = useState("");
   const searchRef = useRef(null);
 
-  const [sort, setSort] = useState('newest');
+  const [sort, setSort] = useState("newest");
   const [selectedTags, setSelectedTags] = useState([]);
 
   const [page, setPage] = useState(1);
@@ -29,16 +31,25 @@ function ExploreContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ✅ only used to close sidebar when clicking a map on mobile
+  const { setIsCollapsed } = useContext(SidebarContext);
+  const { width } = useWindowSize();
+  const isMobile = width < 1000;
+
+  const closeSidebarIfMobile = () => {
+    if (isMobile) setIsCollapsed(true);
+  };
+
   // Fetch tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
         const res = await axios.get(
-          'https://map-in-color.onrender.com/api/explore/tags'
+          "https://map-in-color.onrender.com/api/explore/tags"
         );
         setAllMapsForTags(res.data);
       } catch (error) {
-        console.error('Error fetching distinct tags:', error);
+        console.error("Error fetching distinct tags:", error);
       }
     };
     fetchTags();
@@ -48,10 +59,10 @@ function ExploreContent() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
-    const urlTags = params.get('tags');
+    const urlTags = params.get("tags");
     if (urlTags) {
       const splitTags = urlTags
-        .split(',')
+        .split(",")
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean);
       setSelectedTags(splitTags);
@@ -59,7 +70,7 @@ function ExploreContent() {
       setSelectedTags([]);
     }
 
-    const urlPage = parseInt(params.get('page'), 10);
+    const urlPage = parseInt(params.get("page"), 10);
     setPage(urlPage && urlPage > 0 ? urlPage : 1);
   }, [location.search]);
 
@@ -68,11 +79,10 @@ function ExploreContent() {
     setLoading(true);
     try {
       const params = { sort, page, limit: mapsPerPage };
-
       if (searchApplied.trim()) params.search = searchApplied.trim();
-      if (selectedTags.length > 0) params.tags = selectedTags.join(',');
+      if (selectedTags.length > 0) params.tags = selectedTags.join(",");
 
-      const res = await axios.get('https://map-in-color.onrender.com/api/explore', {
+      const res = await axios.get("https://map-in-color.onrender.com/api/explore", {
         params,
       });
 
@@ -81,7 +91,7 @@ function ExploreContent() {
 
       if (initialLoad) setInitialLoad(false);
     } catch (err) {
-      console.error('Error fetching maps:', err);
+      console.error("Error fetching maps:", err);
     } finally {
       setLoading(false);
     }
@@ -95,21 +105,21 @@ function ExploreContent() {
   // Handlers
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    const typedValue = searchRef.current.value;
+    const typedValue = searchRef.current?.value || "";
     setSearchApplied(typedValue);
 
     const params = new URLSearchParams(location.search);
-    params.delete('page');
+    params.delete("page");
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   const handleClearSearch = () => {
-    if (searchRef.current) searchRef.current.value = '';
-    setSearchApplied('');
+    if (searchRef.current) searchRef.current.value = "";
+    setSearchApplied("");
     setPage(1);
 
     const params = new URLSearchParams(location.search);
-    params.delete('page');
+    params.delete("page");
     navigate(`?${params.toString()}`, { replace: true });
   };
 
@@ -119,18 +129,19 @@ function ExploreContent() {
     else newSelected = [...selectedTags, tag];
 
     const params = new URLSearchParams(location.search);
-    if (newSelected.length) params.set('tags', newSelected.join(','));
-    else params.delete('tags');
+    if (newSelected.length) params.set("tags", newSelected.join(","));
+    else params.delete("tags");
 
-    params.delete('page');
+    params.delete("page");
     navigate(`?${params.toString()}`, { replace: true });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSortChange = (newSort) => {
     setSort(newSort);
     const params = new URLSearchParams(location.search);
-    params.delete('page');
+    params.delete("page");
     navigate(`?${params.toString()}`, { replace: true });
   };
 
@@ -138,29 +149,29 @@ function ExploreContent() {
     const newSelected = selectedTags.filter((t) => t !== tagToRemove);
 
     const params = new URLSearchParams(location.search);
-    if (newSelected.length) params.set('tags', newSelected.join(','));
-    else params.delete('tags');
+    if (newSelected.length) params.set("tags", newSelected.join(","));
+    else params.delete("tags");
 
-    params.delete('page');
+    params.delete("page");
     navigate(`?${params.toString()}`, { replace: true });
   };
 
   const totalPages = Math.ceil(totalMaps / mapsPerPage);
   const handlePageChange = (newPage) => {
     if (newPage === page) return;
-    setLoading(true);
 
     const params = new URLSearchParams(location.search);
-    params.set('page', newPage.toString());
+    params.set("page", newPage.toString());
     navigate(`?${params.toString()}`, { replace: true });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const getDisplayName = (user) => {
-    if (!user) return 'Unknown';
+    if (!user) return "Unknown";
     const { first_name, last_name, username } = user;
     return first_name || last_name
-      ? `${first_name || ''} ${last_name || ''}`.trim()
+      ? `${first_name || ""} ${last_name || ""}`.trim()
       : username;
   };
 
@@ -168,6 +179,7 @@ function ExploreContent() {
   if (initialLoad && loading) {
     return (
       <div className={styles.exploreContentContainer}>
+        {/* ... keep your skeleton exactly as you had it ... */}
         <div className={styles.skeletonTopBar}>
           <div className={styles.skeletonSortTabs}>
             <div className={styles.skeletonSortTab} />
@@ -222,20 +234,20 @@ function ExploreContent() {
         <div className={styles.sortTabs}>
           <span className={styles.sortByLabel}>Sort by:</span>
           <button
-            className={`${styles.tabButton} ${sort === 'newest' ? styles.activeTab : ''}`}
-            onClick={() => handleSortChange('newest')}
+            className={`${styles.tabButton} ${sort === "newest" ? styles.activeTab : ""}`}
+            onClick={() => handleSortChange("newest")}
           >
             Newest
           </button>
           <button
-            className={`${styles.tabButton} ${sort === 'starred' ? styles.activeTab : ''}`}
-            onClick={() => handleSortChange('starred')}
+            className={`${styles.tabButton} ${sort === "starred" ? styles.activeTab : ""}`}
+            onClick={() => handleSortChange("starred")}
           >
             Most Starred
           </button>
           <button
-            className={`${styles.tabButton} ${sort === 'trending' ? styles.activeTab : ''}`}
-            onClick={() => handleSortChange('trending')}
+            className={`${styles.tabButton} ${sort === "trending" ? styles.activeTab : ""}`}
+            onClick={() => handleSortChange("trending")}
           >
             Trending
           </button>
@@ -243,7 +255,7 @@ function ExploreContent() {
 
         <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
           <div className={styles.searchInputContainer}>
-            {searchApplied.trim() !== '' && (
+            {searchApplied.trim() !== "" && (
               <button
                 type="button"
                 className={styles.clearSearchButton}
@@ -266,7 +278,7 @@ function ExploreContent() {
           {totalMaps} results
           {totalPages > 1 && (
             <>
-              {' '}| Page {page} of {totalPages}
+              {" "} | Page {page} of {totalPages}
             </>
           )}
         </span>
@@ -309,17 +321,19 @@ function ExploreContent() {
                 <p>No maps found.</p>
               ) : (
                 maps.map((map) => {
-                  const mapTitle = map.title || 'Untitled Map';
+                  const mapTitle = map.title || "Untitled Map";
                   const displayName = getDisplayName(map.user);
 
                   return (
                     <div
                       key={map.id}
                       className={styles.mapCard}
-                      onClick={() => navigate(`/map/${map.id}`)}
+                      onClick={() => {
+                        closeSidebarIfMobile();
+                        navigate(`/map/${map.id}`);
+                      }}
                     >
                       <div className={styles.thumbnail}>
-                        {/* ✅ Static preview + blocker (no interactions) */}
                         <StaticMapThumbnail map={map} background="#dddddd" />
                       </div>
 
@@ -360,7 +374,7 @@ function ExploreContent() {
                 <button
                   key={p}
                   onClick={() => handlePageChange(p)}
-                  className={p === page ? styles.activePage : ''}
+                  className={p === page ? styles.activePage : ""}
                 >
                   {p}
                 </button>
@@ -374,30 +388,29 @@ function ExploreContent() {
 
         <div className={styles.tagsSidebar}>
           <h2>Filter by Tags</h2>
-       <div className={styles.tagsList}>
-  {allMapsForTags.map((item) => (
-    <label
-      key={item.tag}
-      className={styles.tagCheckbox}
-      onClick={(e) => e.stopPropagation()} // ✅ prevents parent clicks
-    >
-      <input
-        type="checkbox"
-        checked={selectedTags.includes(item.tag)}
-        onClick={(e) => e.stopPropagation()} // ✅ important
-        onChange={() => handleTagChange(item.tag)}
-      />
-      <span
-        className={styles.checkboxTag}
-        onClick={(e) => e.stopPropagation()} // ✅ also safe
-      >
-        {item.tag}{' '}
-        <span style={{ color: '#999', fontSize: '0.9em' }}>({item.count})</span>
-      </span>
-    </label>
-  ))}
-</div>
 
+          <div className={styles.tagsList}>
+            {allMapsForTags.map((item) => (
+              <label
+                key={item.tag}
+                className={styles.tagCheckbox}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedTags.includes(item.tag)}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => handleTagChange(item.tag)}
+                />
+                <span className={styles.checkboxTag} onClick={(e) => e.stopPropagation()}>
+                  {item.tag}{" "}
+                  <span style={{ color: "#999", fontSize: "0.9em" }}>
+                    ({item.count})
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
     </div>

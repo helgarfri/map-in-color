@@ -306,3 +306,45 @@
     white-space: normal;
   }
 }
+/* ===========================================
+   MOBILE: thumbnail fill (single source of truth)
+   =========================================== */
+@media (max-width: 600px) {
+  .mapCard,
+  .thumbnail {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* give the thumbnail a real box */
+  .thumbnail {
+    display: block !important;        /* kill flex-centering */
+    aspect-ratio: 16 / 9;             /* choose your shape */
+    overflow: hidden !important;
+    padding: 0 !important;
+    line-height: 0 !important;
+  }
+
+  /* StaticMapThumbnail container should fill the box */
+  .thumbnail > * {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  /* IMPORTANT: the actual stage wrapper must fill too */
+  .thumbnail .stage {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Force the rendered thing to fill (svg/canvas/img) */
+  .thumbnail svg,
+  .thumbnail canvas,
+  .thumbnail img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+}

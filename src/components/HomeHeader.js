@@ -16,7 +16,7 @@ return (
             }
             }}>
             <img
-                src="/assets/map-in-color-logo.png"
+                src="/assets/3-0/mic-logo-2-5-text.png"
                 alt="Map in Color Logo"
                 className={styles.logo}
             />

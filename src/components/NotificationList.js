@@ -164,7 +164,7 @@ export default function NotificationList() {
 
   return (
     <div className={styles.notificationsContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar  />
 
       <div
         className={`${styles.mainContent} ${
@@ -172,12 +172,10 @@ export default function NotificationList() {
         }`}
       >
         <Header
-          notifications={notifications.slice(0, 6)}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={handleMarkAllAsRead}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          title="Notifications"
+        title="Notifications"
+        notifications={notifications.slice(0, 6)}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllAsRead={handleMarkAllAsRead}
         />
 
         {/* Stat box showing unread notifications */}

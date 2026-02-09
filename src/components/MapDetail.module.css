@@ -2581,7 +2581,691 @@ a {
   white-space: nowrap;
 }
 
+/* =========================
+   MIC Replies: tighter + tree lines + compact meta/actions
+   (Paste at END of file)
+========================= */
 
+/* make replies list tighter + slightly less indented */
+.repliesList {
+  margin-top: 8px;
+  margin-left: 46px;       /* was 58px */
+  display: grid;
+  gap: 8px;                /* was 10px */
+}
+
+/* reply form aligns with new indent */
+.replyForm {
+  margin-left: 46px;       /* was 58px */
+}
+
+/* toggle button aligns with new indent */
+.toggleRepliesButton {
+  margin-left: 46px;       /* was 58px */
+}
+
+/* reply cards: tighter padding + softer background */
+.replyItem {
+  position: relative;
+  padding: 10px 12px;      /* tighter than commentItem */
+  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+}
+
+/* replies should feel tighter overall */
+.replyItem .commentHeader {
+  gap: 10px;               /* slightly tighter than 12px */
+  align-items: flex-start;
+}
+
+/* smaller avatar for replies */
+.replyItem .commentProfilePicture,
+.replyItem .commentPlaceholder {
+  width: 30px;             /* smaller */
+  height: 30px;
+  border-radius: 999px;
+}
+
+/* meta row feels inline + compact */
+.replyItem .commentInfo {
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+/* slightly smaller author + time in replies */
+.replyItem .commentAuthor,
+.replyItem .commentAuthorBtn {
+  font-size: 0.84rem;      /* down from 0.9 */
+  font-weight: 900;
+}
+
+.replyItem .commentTime {
+  font-size: 0.74rem;
+}
+
+/* content slightly tighter */
+.replyItem .commentContent {
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+/* actions smaller in replies */
+.replyItem .commentActions {
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.replyItem .reactionButton {
+  height: 30px;            /* down from 34 */
+  padding: 0 9px;
+  font-size: 0.78rem;
+  gap: 7px;
+}
+
+.replyItem .reactionButtonSmall {
+  height: 28px;
+  font-size: 0.76rem;
+}
+
+.replyItem .icon,
+.replyItem .iconSmall {
+  width: 14px;
+  height: 14px;
+}
+
+/* ─────────────────────────
+   Tree connector lines (MIC style)
+   We draw them on the reply cards themselves.
+───────────────────────── */
+
+/* vertical line */
+.replyItem::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(40,168,225,0.18),
+    rgba(20,169,175,0.16)
+  );
+  opacity: 0.85;
+}
+
+/* horizontal elbow into the card */
+.replyItem::after {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 18px;
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(20, 24, 40, 0.14);
+  opacity: 0.9;
+}
+
+/* only show the elbow for replies (not top-level) */
+.commentItem:not(.replyItem)::before,
+.commentItem:not(.replyItem)::after {
+  content: none;
+}
+
+/* soften the last reply’s vertical line so it doesn’t look infinite */
+.repliesList > li.replyItem:last-child::before {
+  bottom: 18px;
+}
+
+/* on very small screens, remove hard indents */
+@media (max-width: 600px) {
+  .repliesList,
+  .replyForm,
+  .toggleRepliesButton {
+    margin-left: 0;
+  }
+
+  .replyItem::before,
+  .replyItem::after {
+    display: none;
+  }
+}
+
+
+/* =========================
+   UNIFY COMMENTS = COMPACT REPLY STYLE (GLOBAL)
+   Paste at VERY END of file
+========================= */
+
+/* 1) Make ALL comment cards compact (same as replyItem) */
+.commentItem {
+  padding: 10px 12px;                 /* was 14px */
+  background: rgba(15, 23, 42, 0.02); /* was var(--card) */
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: 16px;               /* was var(--radius) */
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+}
+
+/* tighter header spacing */
+.commentHeader {
+  gap: 10px;                          /* was 12px */
+  align-items: flex-start;
+}
+
+/* 2) Make ALL avatars the small size */
+.commentProfilePicture,
+.commentPlaceholder {
+  width: 30px;                        /* was 46px */
+  height: 30px;
+  border-radius: 999px;
+}
+
+/* 3) Compact meta row */
+.commentInfo {
+  gap: 8px;                           /* was 10px */
+  margin-bottom: 4px;                 /* was 6px */
+}
+
+/* author + time smaller */
+.commentAuthor,
+.commentAuthorBtn {
+  font-size: 0.84rem;                 /* was 0.9rem */
+  font-weight: 900;
+}
+
+.commentTime {
+  font-size: 0.74rem;                 /* was 0.78rem */
+}
+
+/* content slightly tighter */
+.commentContent {
+  font-size: 0.92rem;                 /* was 0.95rem */
+  line-height: 1.45;                  /* was 1.5 */
+}
+
+/* 4) Compact action pills for ALL comments */
+.commentActions {
+  margin-top: 8px;                    /* was 10px */
+  gap: 6px;                           /* was 8px */
+}
+
+.reactionButton {
+  height: 30px;                       /* was 34px */
+  padding: 0 9px;                     /* was 0 10px */
+  font-size: 0.78rem;                 /* was 0.82rem */
+  gap: 7px;                           /* was 8px */
+}
+
+.reactionButtonSmall {
+  height: 28px;
+  font-size: 0.76rem;
+}
+
+/* smaller icons for ALL comment actions */
+.icon,
+.iconSmall {
+  width: 14px;                        /* was 16px */
+  height: 14px;
+}
+
+.iconSmall {
+  width: 14px;
+  height: 14px;
+}
+
+/* 5) Indents should match the new smaller avatar */
+.repliesList,
+.replyForm,
+.toggleRepliesButton {
+  margin-left: 46px;                  /* keep your compact indent */
+}
+
+/* IMPORTANT:
+   Replies already use .replyItem with connector lines.
+   Keep those lines reply-only (your existing ::before/::after on .replyItem).
+*/
+
+.commentActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.replyButtonSubmit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.replyButtonSubmit svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.tinySpinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.20);
+  border-top-color: rgba(15, 23, 42, 0.75);
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+/* =========================
+   MOBILE COMMENTS (<= 750px)
+   Almost-flat stack + tiny thread line at the edge
+========================= */
+
+@media (max-width: 750px) {
+  /* kill all indent sources */
+  .repliesList,
+  .replyForm,
+  .toggleRepliesButton {
+    margin-left: 0 !important;
+  }
+
+  /* IMPORTANT: disable the DESKTOP tree pseudo-elements (the real overflow cause) */
+  .replyItem::before,
+  .replyItem::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  /* remove any horizontal offset on reply cards */
+  .replyItem {
+    padding-left: 10px;              /* tiny room for the thread line */
+    border-left: 2px solid rgba(20, 24, 40, 0.14);
+  }
+
+  /* keep the line super subtle and near the edge */
+  .replyItem {
+    background: rgba(15, 23, 42, 0.015);
+  }
+
+  /* optional: if you want replies *barely* to the right */
+  .replyItem {
+    margin-left: 6px;                /* tiny indent (barely noticeable) */
+  }
+
+  /* if your UL has default padding, nuke it to prevent overflow */
+  .repliesList {
+    padding-left: 0 !important;
+  }
+
+  /* make sure nothing creates horizontal scroll */
+  .commentItem {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* actions and info should wrap instead of pushing width */
+  .commentActions {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .commentInfo {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+}
+
+/* MOBILE flat reply stack */
+.repliesListMobile {
+  margin-top: 8px;
+  padding-left: 0;
+  margin-left: 0;
+  display: grid;
+  gap: 8px;
+}
+
+/* On mobile, replies are almost aligned with comments */
+@media (max-width: 750px) {
+  .replyItem {
+    margin-left: 6px;                 /* tiny nudge */
+    padding-left: 10px;               /* room for line */
+    border-left: 2px solid rgba(20, 24, 40, 0.14);
+  }
+
+  /* disable desktop elbows entirely */
+  .replyItem::before,
+  .replyItem::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .repliesList,
+  .replyForm,
+  .toggleRepliesButton {
+    margin-left: 0 !important;
+  }
+}
+
+
+/* =========================
+   MIC MODALS (clean + themed)
+========================= */
+
+.micModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(2, 6, 23, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.micOverlayBlur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.micModal {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.30);
+  padding: 16px;
+  overflow: hidden;
+}
+
+.micModalTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.micModalTitleWrap { min-width: 0; }
+
+.micModalTitle {
+  font-size: 16px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.88);
+  letter-spacing: -0.2px;
+}
+
+.micModalSub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.60);
+}
+
+.micModalX {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(255,255,255,0.85);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(15, 23, 42, 0.70);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.micModalX:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.12);
+}
+
+.micModalX:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.micModalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.micModal,
+.micTextareaBlock {
+  min-width: 0;
+}
+
+.micBtn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(15, 23, 42, 0.04);
+  font-size: 12px;
+  font-weight: 1000;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.micBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.10);
+}
+
+.micBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Primary = MIC blue */
+.micBtnPrimary {
+  border-color: rgba(40,168,225,0.30);
+  background: rgba(40,168,225,0.16);
+  color: rgba(15, 23, 42, 0.92);
+}
+
+/* Ghost */
+.micBtnGhost {
+  background: rgba(255,255,255,0.80);
+}
+
+/* Danger = red */
+.micBtnDanger {
+  border-color: rgba(210,75,76,0.30);
+  background: rgba(210,75,76,0.14);
+  color: rgba(15, 23, 42, 0.92);
+}
+
+/* Spinner */
+.micBtnRow { display: inline-flex; align-items: center; gap: 10px; }
+
+.micSpinner,
+.micSpinnerLg {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(15,23,42,0.18);
+  border-top-color: rgba(40,168,225,0.85);
+  animation: micSpin 0.8s linear infinite;
+}
+
+.micSpinnerLg {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes micSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Report modal specifics */
+.micUserHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(15,23,42,0.03);
+  min-width: 0;
+}
+
+.micUserAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(20,24,40,0.12);
+}
+
+.micUserText { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.micUserName { font-size: 13px; font-weight: 1000; color: rgba(15,23,42,0.86); }
+.micUserHint { font-size: 11px; font-weight: 900; color: rgba(15,23,42,0.55); }
+
+.micModalSectionTitle {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.82);
+  margin-top: 6px;
+}
+
+.micModalSectionSub {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.58);
+  margin-top: 6px;
+  margin-bottom: 12px;
+}
+
+/* Radio cards */
+.micRadioGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.micRadioCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(15,23,42,0.02);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.micRadioCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  background: rgba(40,168,225,0.08);
+}
+
+.micRadioCard input { transform: scale(1.05); }
+
+.micRadioLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.78);
+}
+
+@media (max-width: 520px) {
+  .micRadioGrid { grid-template-columns: 1fr; }
+}
+
+/* Textarea block */
+.micTextareaBlock { margin-top: 12px; }
+
+.micFieldLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.70);
+  margin-bottom: 6px;
+}
+/* Fix textarea overflow + disable resizing */
+.micTextarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  min-height: 90px;
+  padding: 10px 12px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(20,24,40,0.12);
+  background: rgba(255,255,255,0.92);
+
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.78);
+
+  outline: none;
+
+  /* ✅ stop the user from expanding it */
+  resize: none;
+
+  /* ✅ prevent any “push out to the right” issues */
+  overflow-x: hidden;
+}
+.micTextarea:focus {
+  border-color: rgba(40,168,225,0.35);
+  box-shadow: 0 0 0 4px rgba(40,168,225,0.12);
+}
+
+/* Loading / success box */
+.micStateBox {
+  border-radius: 16px;
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(15,23,42,0.02);
+  padding: 14px;
+}
+
+.micStateRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.micStateTitle {
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.84);
+}
+
+.micStateSub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.58);
+}
+
+.micStateSuccess {
+  background: rgba(20,169,175,0.10);
+  border-color: rgba(20,169,175,0.22);
+}
 
 
 /* =========================

@@ -40,12 +40,18 @@ function Explore() {
 
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
-  const showOverlay = !isCollapsed && width < 1000;
+const isMobile = width < 1000;
+const showOverlay = isMobile && !isCollapsed;
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+const closeSidebarIfMobile = () => {
+  if (isMobile) setIsCollapsed(true);
+};
+
+useEffect(() => {
+  if (!isMobile) return;
+  setIsCollapsed(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [location.search]);
 
   //-------------------------------------------
   // 1) Fetch top tags (on mount)
@@ -200,7 +206,7 @@ function Explore() {
   if (initialLoad && loading) {
     return (
       <div className={styles.explorePageContainer}>
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <Sidebar  />
 
         {showOverlay && (
           <div
@@ -214,7 +220,7 @@ function Explore() {
             isCollapsed ? styles.collapsed : ''
           }`}
         >
-          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title="Explore" />
+          <Header  title="Explore" />
 
           <div className={styles.exploreContent}>
             <div className={styles.skeletonTopBar}>
@@ -269,14 +275,14 @@ function Explore() {
 
   return (
     <div className={styles.explorePageContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar  />
 
       {showOverlay && (
         <div className={styles.sidebarOverlay} onClick={() => setIsCollapsed(true)} />
       )}
 
       <div className={`${styles.mainContentWrapper} ${isCollapsed ? styles.collapsed : ''}`}>
-        <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title="Explore" />
+        <Header  title="Explore" />
 
         <div className={styles.exploreContent}>
           <div className={styles.topBar}>
@@ -377,8 +383,11 @@ function Explore() {
                         <div
                           key={map.id}
                           className={styles.mapCard}
-                          onClick={() => navigate(`/map/${map.id}`)}
-                        >
+                          onClick={() => {
+                            closeSidebarIfMobile();
+                            navigate(`/map/${map.id}`);
+                          }}
+                                                  >
                           <div className={styles.thumbnail}>
                             {/* ✅ STATIC preview (no hover/zoom/pan/tooltips) */}
                             <StaticMapThumbnail map={map} background="#dddddd" />

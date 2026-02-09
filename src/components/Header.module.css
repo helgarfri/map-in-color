@@ -754,3 +754,39 @@
     right: -10px;
   }
 }
+
+
+/* =====================================================
+   Notifications: prevent overflow on small screens
+   ===================================================== */
+
+/* Default desktop stays the same */
+.notificationPopout {
+  max-width: calc(100vw - 24px); /* safety net even on desktop */
+}
+
+/* Tablet + phone: center it and clamp width */
+@media (max-width: 720px) {
+  .notificationPopout {
+    position: fixed;              /* take it out of header flow */
+    top: 58px;                    /* below header (54px-ish + a bit) */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);  /* center */
+
+    width: min(380px, calc(100vw - 20px));
+    max-width: calc(100vw - 20px);
+
+    /* optional: slightly tighter radius/spacing */
+    border-radius: 16px;
+  }
+}
+
+/* Very small phones: make it feel full-width */
+@media (max-width: 420px) {
+  .notificationPopout {
+    top: 56px;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+}

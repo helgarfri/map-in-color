@@ -22,10 +22,13 @@
   @media (max-width: 1000px) {
     .mainContentWrapper {
       margin-left: 0 !important;
+      padding:0px
     }
     .mainContentWrapper.collapsed {
       margin-left: 0 !important;
     }
+
+    
   }
   
   /* Overlay for small screens */

@@ -231,11 +231,11 @@
   margin: 0;
 }
 
-/* ===== Mobile off-canvas behavior ===== */
+/* ===== Mobile off-canvas behavior (tablets + phones) ===== */
 @media (max-width: 1000px) {
   .sidebar {
     top: 50px;
-    height: 100%;
+    height: calc(100% - 50px);
     width: 250px;
 
     transform: translateX(-100%);
@@ -249,5 +249,26 @@
   /* on mobile, "collapsed" means hidden off-canvas, not narrow */
   .collapsed {
     width: 250px;
+  }
+}
+
+/* ===== Phones: sidebar becomes full-screen ===== */
+@media (max-width: 600px) {
+  .sidebar {
+    width: 100vw;
+    max-width: 100vw;
+    border-right: none;
+  }
+
+  .collapsed {
+    width: 100vw;
+  }
+}
+
+
+@media (max-width: 1000px) {
+  .sidebarOverlay {
+    top: 50px;
+    height: calc(100% - 50px);
   }
 }

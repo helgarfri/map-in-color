@@ -16,10 +16,19 @@ import {
 } from "react-icons/fa";
 import { UserContext } from "../context/UserContext";
 import { SidebarContext } from "../context/SidebarContext";
+import useWindowSize from "../hooks/useWindowSize";
 
 function Sidebar() {
+
+  const { width } = useWindowSize();
+const isMobile = width < 1000;
+
+const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+
+const closeSidebarIfMobile = () => {
+  if (isMobile) setIsCollapsed(true);
+};
   const { profile, loadingProfile } = useContext(UserContext);
-  const { isCollapsed } = useContext(SidebarContext);
   const navigate = useNavigate();
 
   if (loadingProfile) return null;
@@ -28,6 +37,8 @@ function Sidebar() {
   const handleCreateMap = () => navigate("/create");
   const DOCS_URL = "https://mapincolor.com/docs";
   const myProfilePath = profile?.username ? `/profile/${profile.username}` : "/dashboard";
+
+  
 
   return (
     <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
@@ -49,8 +60,10 @@ function Sidebar() {
             <li>
               <NavLink
                 to="/dashboard"
+                onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                
                 }
               >
                 <FaHome className={styles.icon} />
@@ -61,6 +74,7 @@ function Sidebar() {
             <li>
               <NavLink
                 to={myProfilePath}
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
@@ -73,6 +87,7 @@ function Sidebar() {
             <li>
               <NavLink
                 to="/explore"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
@@ -85,6 +100,7 @@ function Sidebar() {
             <li>
               <NavLink
                 to="/your-maps"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
@@ -97,6 +113,7 @@ function Sidebar() {
             <li>
               <NavLink
                 to="/starred-maps"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
@@ -109,6 +126,7 @@ function Sidebar() {
             <li>
               <NavLink
                 to="/notifications"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
@@ -121,6 +139,7 @@ function Sidebar() {
             <li>
               <NavLink
                 to="/settings"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
@@ -136,6 +155,7 @@ function Sidebar() {
       <div className={styles.bottomSection}>
         <a
           className={styles.docsButton}
+            onClick={closeSidebarIfMobile}
           href={DOCS_URL}
           target="_blank"
           rel="noreferrer"

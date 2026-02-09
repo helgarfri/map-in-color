@@ -1,7 +1,7 @@
-// src/components/App.js
+// src/App.js (or src/components/App.js depending on your project)
 import "./components/App.css";
-
-import { useContext, useState, useEffect } from "react";
+import React from "react";
+import { useContext, useEffect } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -38,8 +38,11 @@ import Map from "./components/Map";
 import Explore from "./components/Explore";
 import ResetPasswordPage from "./components/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
-import { UserContext } from "./context/UserContext";
 
+import { UserContext } from "./context/UserContext";
+import { SidebarContext } from "./context/SidebarContext";
+
+/* Scroll to top on route change */
 function ScrollToTopWrapper() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -48,156 +51,155 @@ function ScrollToTopWrapper() {
   return <Outlet />;
 }
 
+function SidebarAutoCloseOnRouteChange() {
+  const { pathname } = useLocation();
+  const { setIsCollapsed } = useContext(SidebarContext);
+  const prevPathRef = React.useRef(pathname);
+
+  useEffect(() => {
+    if (prevPathRef.current === pathname) return;
+    prevPathRef.current = pathname;
+
+    const isMobile = window.innerWidth < 1000;
+    if (isMobile) setIsCollapsed(true);
+  }, [pathname, setIsCollapsed]);
+
+  return <Outlet />;
+}
+
 export default function App() {
   const { authToken, profile } = useContext(UserContext);
-  const [isCollapsed, setIsCollapsed] = useState(true);
-
   const isUserLoggedIn = !!authToken && !!profile;
 
   const router = createBrowserRouter([
     {
-      element: <ScrollToTopWrapper />,
+      element: <SidebarAutoCloseOnRouteChange />,
       children: [
-        { path: "/", element: <Home /> },
-
-        { path: "/docs", element: <Docs /> },
-
         {
-          path: "/create",
-          element: (
-            <PrivateRoute>
-              <DataIntegration
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            </PrivateRoute>
-          ),
+          element: <ScrollToTopWrapper />,
+          children: [
+            { path: "/", element: <Home /> },
+            { path: "/docs", element: <Docs /> },
+
+            {
+              path: "/create",
+              element: (
+                <PrivateRoute>
+                  <DataIntegration />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/dashboard",
+              element: (
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/map/:id",
+              element: isUserLoggedIn ? <LoggedInMapDetail /> : <PublicMapDetail />,
+            },
+
+            {
+              path: "/explore",
+              element: isUserLoggedIn ? <LoggedInExplore /> : <PublicExplore />,
+            },
+
+            {
+              path: "/your-maps",
+              element: (
+                <PrivateRoute>
+                  <YourMaps />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/starred-maps",
+              element: (
+                <PrivateRoute>
+                  <StarredMaps />
+                </PrivateRoute>
+              ),
+            },
+
+            { path: "/login", element: <Login /> },
+            { path: "/signup", element: <Signup /> },
+
+            {
+              path: "/edit/:mapId",
+              element: (
+                <PrivateRoute>
+                  <EditMap />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/profile/:username",
+              element: (
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/settings",
+              element: (
+                <PrivateRoute>
+                  <ProfileSettings />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/change-password",
+              element: (
+                <PrivateRoute>
+                  <ChangePassword />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/delete-account",
+              element: (
+                <PrivateRoute>
+                  <DeleteAccount />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/notifications",
+              element: (
+                <PrivateRoute>
+                  <NotificationList />
+                </PrivateRoute>
+              ),
+            },
+
+            { path: "/adminPanel", element: <AdminPanel /> },
+            { path: "/banned", element: <BannedUser /> },
+            { path: "/privacy", element: <PrivacyPolicy /> },
+            { path: "/terms", element: <Terms /> },
+            { path: "/verify-account", element: <VerifyAccount /> },
+            { path: "/verified", element: <Verified /> },
+            { path: "/verification-error", element: <VerificationError /> },
+
+            { path: "/map", element: <Map /> },
+
+            // legacy
+            { path: "/explore-old", element: <Explore /> },
+            { path: "/reset-password", element: <ResetPasswordPage /> },
+          ],
         },
-
-        {
-          path: "/dashboard",
-          element: (
-            <PrivateRoute>
-              <Dashboard
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            </PrivateRoute>
-          ),
-        },
-
-        {
-          path: "/map/:id",
-          element: isUserLoggedIn ? <LoggedInMapDetail /> : <PublicMapDetail />,
-        },
-
-        {
-          path: "/explore",
-          element: isUserLoggedIn ? (
-            <LoggedInExplore
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          ) : (
-            <PublicExplore />
-          ),
-        },
-
-        {
-          path: "/your-maps",
-          element: (
-            <PrivateRoute>
-              <YourMaps
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            </PrivateRoute>
-          ),
-        },
-
-        {
-          path: "/starred-maps",
-          element: (
-            <StarredMaps
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          ),
-        },
-
-        { path: "/login", element: <Login /> },
-        { path: "/signup", element: <Signup /> },
-
-        {
-          path: "/edit/:mapId",
-          element: (
-            <EditMap
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          ),
-        },
-
-        {
-          path: "/profile/:username",
-          element: (
-            <ProfilePage
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          ),
-        },
-
-        {
-          path: "/settings",
-          element: (
-            <ProfileSettings
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          ),
-        },
-
-        {
-          path: "/change-password",
-          element: (
-            <ChangePassword
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          ),
-        },
-
-        { path: "/delete-account", element: <DeleteAccount /> },
-
-        {
-          path: "/notifications",
-          element: (
-            <PrivateRoute>
-              <NotificationList
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            </PrivateRoute>
-          ),
-        },
-
-        { path: "/adminPanel", element: <AdminPanel /> },
-        { path: "/banned", element: <BannedUser /> },
-        { path: "/privacy", element: <PrivacyPolicy /> },
-        { path: "/terms", element: <Terms /> },
-        { path: "/verify-account", element: <VerifyAccount /> },
-        { path: "/verified", element: <Verified /> },
-        { path: "/verification-error", element: <VerificationError /> },
-
-        { path: "/map", element: <Map /> },
-
-        // (if you still use Explore somewhere else)
-        { path: "/explore-old", element: <Explore /> },
-        { path: "/reset-password", element: <ResetPasswordPage /> },
-
       ],
-      
     },
   ]);
 

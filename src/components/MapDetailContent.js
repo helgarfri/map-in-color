@@ -37,6 +37,8 @@ import { getAnonId } from "../utils/annonId"; // add at top
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
+
+  
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -48,7 +50,8 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const [isOwner, setIsOwner] = useState(false);
   const [is_public, setIsPublic] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [expandedReplies, setExpandedReplies] = useState({});
+  const [expandedThreads, setExpandedThreads] = useState({});   
+  
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
@@ -67,6 +70,7 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
 const [loadState, setLoadState] = useState("loading"); 
 // "loading" | "ready" | "error"
 
+  const isMobileComments = width <= 750;
 
 
     // For reporting a comment
@@ -105,7 +109,11 @@ const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [isDownloading, setIsDownloading] = useState(false);
+const [reactionLoadingById, setReactionLoadingById] = useState({}); 
 
+  const toggleThread = (commentId) => {
+  setExpandedThreads((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+};
 
   const discussionRef = useRef(null);
   const countryListRef = useRef(null);
@@ -145,7 +153,9 @@ const legendModels = useMemo(() => {
     codeToValue.set(code, d.value);
   }
 
-  // ------- categorical (groups from DB) -------
+
+
+
 // ------- categorical (groups from DB) -------
 if (type === "categorical") {
   const groups = parseJsonArray(mapData.groups);
@@ -436,6 +446,16 @@ setIsLoading(true);
   // fetchComments...
 }, [id, loadState]);
 
+function setReactionLoading(commentId, kind) {
+  setReactionLoadingById((prev) => ({ ...prev, [commentId]: kind }));
+}
+function clearReactionLoading(commentId) {
+  setReactionLoadingById((prev) => {
+    const next = { ...prev };
+    delete next[commentId];
+    return next;
+  });
+}
 
   const handleSave = async () => {
     if (!is_public) return;
@@ -499,18 +519,31 @@ setIsLoading(true);
   };
   
   
+  const MAX_DEPTH = 6;          // allow replying down to depth 6
+const PREVIEW_COUNT = 3;      // show 3 replies by default
+const MAX_SHOWN_REPLIES = 6;  // when expanded, show up to 6 replies
+
 
 const handleReplySubmit = async (e) => {
   e.preventDefault();
+
   if (!replyingTo?.content?.trim()) return;
   if (!isUserLoggedIn) return setShowLoginModal(true);
 
+  const parentId = replyingTo.parentId; // ✅ define FIRST
+
+  const parentDepth = findDepth(comments, parentId, 1);
+  if (parentDepth != null && parentDepth >= MAX_DEPTH) {
+    return;
+  }
+
   setIsPostingReply(true);
   try {
-    const parentId = replyingTo.parentId;
-    const res = await postComment(id, { content: replyingTo.content, parent_comment_id: parentId });
+    const res = await postComment(id, {
+      content: replyingTo.content,
+      parent_comment_id: parentId,
+    });
 
-    // Insert reply into the tree at the correct node (any depth)
     setComments((prev) => insertReplyIntoTree(prev, parentId, res.data));
     setReplyingTo(null);
   } catch (err) {
@@ -535,94 +568,103 @@ function insertReplyIntoTree(nodes, parentId, newReply) {
 
 // Update handleLike and handleDislike functions
 
-function handleLike(comment_id, currentReaction) {
-    if (!isUserLoggedIn) {
-        setShowLoginModal(true);
-        return;
-      }
-  // If user currently has 'like', next click => remove reaction (null)
-  const desiredReaction = currentReaction === 'like' ? null : 'like';
-  
-  setCommentReaction(comment_id, desiredReaction)
-    .then((res) => {
-      // res.data => { like_count, dislike_count, userReaction }
-      if (res.data) {
-        setComments((prevComments) =>
-          updateCommentReaction(prevComments, comment_id, {
-            like_count: res.data.like_count,
-            dislike_count: res.data.dislike_count,
-            userReaction: res.data.userReaction,
-          })
-        );
-      }
-    })
-    .catch((err) => console.error('handleLike error:', err));
+async function handleLike(comment_id, currentReaction) {
+  if (!isUserLoggedIn) {
+    setShowLoginModal(true);
+    return;
+  }
+
+  // prevent double taps while loading
+  if (reactionLoadingById[comment_id]) return;
+
+  const desiredReaction = currentReaction === "like" ? null : "like";
+
+  try {
+    setReactionLoading(comment_id, "like");
+
+    const res = await setCommentReaction(comment_id, desiredReaction);
+
+    if (res?.data) {
+      setComments((prevComments) =>
+        updateCommentReaction(prevComments, comment_id, {
+          like_count: res.data.like_count,
+          dislike_count: res.data.dislike_count,
+          userReaction: res.data.userReaction,
+        })
+      );
+    }
+  } catch (err) {
+    console.error("handleLike error:", err);
+  } finally {
+    clearReactionLoading(comment_id);
+  }
 }
 
-function handleDislike(comment_id, currentReaction) {
-    if (!isUserLoggedIn) {
-        setShowLoginModal(true);
-        return;
-      }
-  // If user currently 'dislike', clicking "Dislike" => remove reaction
-  const desiredReaction = currentReaction === 'dislike' ? null : 'dislike';
+async function handleDislike(comment_id, currentReaction) {
+  if (!isUserLoggedIn) {
+    setShowLoginModal(true);
+    return;
+  }
 
-  setCommentReaction(comment_id, desiredReaction)
-    .then((res) => {
-      if (res.data) {
-        setComments((prevComments) =>
-          updateCommentReaction(prevComments, comment_id, {
-            like_count: res.data.like_count,
-            dislike_count: res.data.dislike_count,
-            userReaction: res.data.userReaction,
-          })
-        );
-      }
-    })
-    .catch((err) => console.error('handleDislike error:', err));
+  if (reactionLoadingById[comment_id]) return;
+
+  const desiredReaction = currentReaction === "dislike" ? null : "dislike";
+
+  try {
+    setReactionLoading(comment_id, "dislike");
+
+    const res = await setCommentReaction(comment_id, desiredReaction);
+
+    if (res?.data) {
+      setComments((prevComments) =>
+        updateCommentReaction(prevComments, comment_id, {
+          like_count: res.data.like_count,
+          dislike_count: res.data.dislike_count,
+          userReaction: res.data.userReaction,
+        })
+      );
+    }
+  } catch (err) {
+    console.error("handleDislike error:", err);
+  } finally {
+    clearReactionLoading(comment_id);
+  }
 }
 
+function findDepth(nodes, targetId, depth = 1) {
+  for (const n of nodes) {
+    if (n.id === targetId) return depth;
+    if (n.Replies?.length) {
+      const d = findDepth(n.Replies, targetId, depth + 1);
+      if (d) return d;
+    }
+  }
+  return null;
+}
 
 
 // Update the helper function
-function updateCommentReaction(prevComments, comment_id, updatedData) {
-  return prevComments.map((comment) => {
-    // Check top-level comment
-    if (comment.id === comment_id) {
-      return {
-        ...comment,
-        like_count: updatedData.like_count,
-        dislike_count: updatedData.dislike_count,
-        userReaction: updatedData.userReaction
-      };
-    }
-    
-    // Check replies
-    if (comment.Replies?.length) {
-      return {
-        ...comment,
-        Replies: comment.Replies.map(reply => 
-          reply.id === comment_id ? {
-            ...reply,
+function updateCommentReaction(nodes, comment_id, updatedData) {
+  return nodes.map((n) => {
+    const isTarget = n.id === comment_id;
+
+    return {
+      ...n,
+      ...(isTarget
+        ? {
             like_count: updatedData.like_count,
             dislike_count: updatedData.dislike_count,
-            userReaction: updatedData.userReaction
-          } : reply
-        )
-      };
-    }
-    
-    return comment;
+            userReaction: updatedData.userReaction,
+          }
+        : {}),
+      Replies: n.Replies?.length
+        ? updateCommentReaction(n.Replies, comment_id, updatedData)
+        : n.Replies,
+    };
   });
 }
 
 
-  const toggleReplies = (comment_id) => {
-    setExpandedReplies((prevState) => ({
-      ...prevState,
-      [comment_id]: !prevState[comment_id],
-    }));
-  };
 
     // CANCEL REPLY => setReplyingTo(null)
   const handleReplyCancel = () => {
@@ -662,22 +704,15 @@ const confirmDelete = async () => {
     }
   };
   
-  function removeCommentOrReply(comments, comment_idToRemove) {
-    // This function returns a new array of comments 
-    // with the specified comment/reply removed.
-    return comments
-      .filter((comment) => comment.id !== comment_idToRemove) // remove top-level if matches
-      .map((comment) => {
-        // also remove from any replies
-        if (comment.Replies && comment.Replies.length > 0) {
-          return {
-            ...comment,
-            Replies: comment.Replies.filter((r) => r.id !== comment_idToRemove),
-          };
-        }
-        return comment;
-      });
-  }
+function removeCommentOrReply(nodes, idToRemove) {
+  return nodes
+    .filter((n) => n.id !== idToRemove)
+    .map((n) => ({
+      ...n,
+      Replies: n.Replies?.length ? removeCommentOrReply(n.Replies, idToRemove) : n.Replies,
+    }));
+}
+
   
   function handleToggleReason(e) {
     setReportReasons(e.target.value);
@@ -1135,7 +1170,7 @@ function getCategoricalLegendItems(groups = []) {
 
 
 
-  
+
 
 
 // ─────────────────────────────────────────────
@@ -1726,337 +1761,40 @@ if (!mapData) {
 
       {/* Comments */}
       {comments.length > 0 ? (
-        <ul className={styles.commentsList}>
-          {comments.map((comment) => {
-            const areRepliesExpanded = expandedReplies[comment.id] || false;
-            const repliesArray = comment.Replies || [];
-            const totalReplies = repliesArray.length;
-            const repliesToShow = areRepliesExpanded
-              ? repliesArray
-              : repliesArray.slice(0, 3);
+<ul className={styles.commentsList}>
+  {comments.map((comment) => (
+    <CommentNode
+      key={comment.id}
+      node={comment}
+      depth={1}
+      isMobileComments={isMobileComments}
+      {...{
+        isUserLoggedIn,
+        profile,
+        expandedThreads,
+        toggleThread,
+        MAX_DEPTH,
+        PREVIEW_COUNT,
+        MAX_SHOWN_REPLIES,
+        replyingTo,
+        setReplyingTo,
+        isPostingReply,
+        handleReplySubmit,
+        handleReplyCancel,
+        handleLike,
+        handleDislike,
+        handleDeleteCommentWithConfirm,
+        setShowLoginModal,
+        setReportTargetComment,
+        setShowReportModal,
+        styles,
+        reactionLoadingById
+      }}
+    />
+  ))}
+</ul>
 
-            return (
-              <li key={comment.id} className={styles.commentItem}>
-                <div className={styles.commentHeader}>
-                  {/* Avatar */}
-                  {comment.user && comment.user.profile_picture ? (
-                    isUserLoggedIn ? (
-                      <Link to={`/profile/${comment?.user?.username || "unknown"}`}>
-                        <img
-                          src={comment.user?.profile_picture || "/default-profile-pic.jpg"}
-                          alt={`${comment?.user?.username || "unknown"}'s profile`}
-                          className={styles.commentProfilePicture}
-                        />
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        className={styles.avatarButton}
-                        onClick={() => setShowLoginModal(true)}
-                        aria-label="Log in to view profile"
-                      >
-                        <img
-                          src={comment.user?.profile_picture || "/default-profile-pic.jpg"}
-                          alt="Profile"
-                          className={styles.commentProfilePicture}
-                        />
-                      </button>
-                    )
-                  ) : (
-                    <div className={styles.commentPlaceholder} />
-                  )}
 
-                  <div className={styles.commentContentWrapper}>
-                    <div className={styles.commentInfo}>
-                      {isUserLoggedIn ? (
-                        <Link
-                          to={`/profile/${comment?.user?.username || "unknown"}`}
-                          className={styles.commentAuthorLink}
-                        >
-                          <span className={styles.commentAuthor}>
-                            {comment.user.username || "Unknown"}
-                          </span>
-                        </Link>
-                      ) : (
-                        <button
-                          type="button"
-                          className={styles.commentAuthorBtn}
-                          onClick={() => setShowLoginModal(true)}
-                        >
-                          {comment.user.username || "Unknown"}
-                        </button>
-                      )}
-
-                      <span className={styles.dotSep}>•</span>
-
-                      <span className={styles.commentTime}>
-                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
-
-                    <p className={styles.commentContent}>{comment.content}</p>
-
-                    {/* Actions */}
-                    <div className={styles.commentActions}>
-                      <button
-                        type="button"
-                        className={`${styles.reactionButton} ${
-                        comment.userReaction === "like" ? styles.reactionButtonActive : ""
-                      }`}
-
-                        onClick={() => {
-                          if (!isUserLoggedIn) return setShowLoginModal(true);
-                          handleLike(comment.id, comment.userReaction);
-                        }}
-                      >
-                        <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                        </svg>
-                        <span>{comment.like_count}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className={`${styles.reactionButton} ${
-                          comment.userReaction === "dislike" ? styles.reactionButtonActive : ""
-                        }`}
-                        onClick={() => {
-                          if (!isUserLoggedIn) return setShowLoginModal(true);
-                          handleDislike(comment.id, comment.userReaction);
-                        }}
-                      >
-                        <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-                        </svg>
-                        <span>{comment.dislike_count}</span>
-                      </button>
-
-                      {isUserLoggedIn && (
-                        <button
-                          type="button"
-                          className={styles.reactionButton}
-                          onClick={() => setReplyingTo({ parentId: commentOrReplyId, content: "" })}
-                        >
-                          <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
-                          </svg>
-                          <span>Reply</span>
-                        </button>
-                      )}
-
-                      {comment.user?.username === profile?.username && (
-                        <button
-                          type="button"
-                          className={`${styles.reactionButton} ${styles.dangerButton}`}
-                          onClick={() => handleDeleteCommentWithConfirm(comment.id)}
-                        >
-                          <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-                          </svg>
-                          <span>Delete</span>
-                        </button>
-                      )}
-
-                      {isUserLoggedIn && comment.user?.username !== profile?.username && (
-                        <button
-                          type="button"
-                          className={styles.reactionButton}
-                          onClick={() => {
-                            setReportTargetComment(comment.id);
-                            setShowReportModal(true);
-                          }}
-                        >
-                          <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
-                          </svg>
-                          <span>Report</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Reply form (unchanged logic, new classes are already in your CSS) */}
-                    {replyingTo && replyingTo.comment_id === comment.id && (
-                      <form
-                        onSubmit={(e) => handleReplySubmit(e, comment.id)}
-                        className={styles.replyForm}
-                      >
-                        <textarea
-                          value={replyingTo.content}
-                          onChange={(e) =>
-                            setReplyingTo({ parentId: commentOrReplyId, content: "" })
-                          }
-                          placeholder="Write a reply…"
-                          required
-                          className={styles.replyTextarea}
-                        />
-                        <div className={styles.replyActions}>
-                          <button
-                            type="button"
-                            className={styles.replyCancelButton}
-                            onClick={handleReplyCancel}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            className={styles.replyButtonSubmit}
-                            disabled={isPostingReply}
-                          >
-                            <BiSend />
-                          </button>
-                        </div>
-                      </form>
-                    )}
-
-                    {/* Replies list stays same, your existing UI is already decent */}
-                    {repliesArray.length > 0 && (
-                      <ul className={styles.repliesList}>
-                       {repliesToShow.map((reply) => (
-  <li key={reply.id} className={styles.replyItem}>
-    <div className={styles.commentHeader}>
-      {reply.user?.profile_picture ? (
-        isUserLoggedIn ? (
-          <Link to={`/profile/${reply.user.username}`}>
-            <img
-              src={reply.user?.profile_picture || "/default-profile-pic.jpg"}
-              alt={`${reply.user.username}'s profile`}
-              className={styles.commentProfilePicture}
-            />
-          </Link>
-        ) : (
-          <button
-            type="button"
-            className={styles.avatarButton}
-            onClick={() => setShowLoginModal(true)}
-            aria-label="Log in to view profile"
-          >
-            <img
-              src={reply.user?.profile_picture || "/default-profile-pic.jpg"}
-              alt="Profile"
-              className={styles.commentProfilePicture}
-            />
-          </button>
-        )
-      ) : (
-        <div className={styles.commentPlaceholder} />
-      )}
-
-      <div className={styles.commentContentWrapper}>
-        <div className={styles.commentInfo}>
-          {isUserLoggedIn ? (
-            <Link
-              to={`/profile/${reply.user?.username || "unknown"}`}
-              className={styles.commentAuthorLink}
-            >
-              <span className={styles.commentAuthor}>
-                {reply.user?.username || "Unknown"}
-              </span>
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className={styles.commentAuthorBtn}
-              onClick={() => setShowLoginModal(true)}
-            >
-              {reply.user?.username || "Unknown"}
-            </button>
-          )}
-
-          <span className={styles.dotSep}>•</span>
-
-          <span className={styles.commentTime}>
-            {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-          </span>
-        </div>
-
-        <p className={styles.commentContent}>{reply.content}</p>
-
-        <div className={styles.commentActions}>
-          <button
-            type="button"
-            className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-              reply.userReaction === "like" ? styles.reactionButtonActive : ""
-            }`}
-            onClick={() => {
-              if (!isUserLoggedIn) return setShowLoginModal(true);
-              handleLike(reply.id, reply.userReaction);
-            }}
-          >
-            <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
-              <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-            </svg>
-            <span>{reply.like_count}</span>
-          </button>
-
-          <button
-            type="button"
-            className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-              reply.userReaction === "dislike" ? styles.reactionButtonActive : ""
-            }`}
-            onClick={() => {
-              if (!isUserLoggedIn) return setShowLoginModal(true);
-              handleDislike(reply.id, reply.userReaction);
-            }}
-          >
-            <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-            </svg>
-            <span>{reply.dislike_count}</span>
-          </button>
-
-      {reply.user?.username === profile?.username && (
-            <button
-              type="button"
-              className={`${styles.reactionButton} ${styles.dangerButton}`}
-              onClick={() => handleDeleteCommentWithConfirm(reply.id)}
-            >
-                          <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-                          </svg>
-                          <span>Delete</span>
-                        </button>
-                      )}
-
-          {isUserLoggedIn && reply.user?.username !== profile?.username && (
-            <button
-              type="button"
-              className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
-              onClick={() => {
-                setReportTargetComment(reply.id);
-                setShowReportModal(true);
-              }}
-            >
-              <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
-              </svg>
-              <span>Report</span>
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  </li>
-))}
-
-                        {totalReplies > 3 && (
-                          <button
-                            type="button"
-                            className={styles.toggleRepliesButton}
-                            onClick={() => toggleReplies(comment.id)}
-                          >
-                            {areRepliesExpanded
-                              ? "Show less replies"
-                              : `View more replies (${totalReplies - 3})`}
-                          </button>
-                        )}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
       ) : (
         <div className={styles.discussionEmpty}>
           <div className={styles.discussionEmptyTitle}>No comments yet</div>
@@ -2108,128 +1846,193 @@ if (!mapData) {
   
 
       </div>
+{showDeleteModal &&
+  createPortal(
+    <div
+      className={`${styles.micModalOverlay} ${styles.micOverlayBlur}`}
+      role="dialog"
+      aria-modal="true"
+      onClick={() => !isDeleting && setShowDeleteModal(false)}
+    >
+      <div
+        className={styles.micModal}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.micModalTopRow}>
+          <div className={styles.micModalTitleWrap}>
+            <div className={styles.micModalTitle}>Delete comment?</div>
+            <div className={styles.micModalSub}>This can’t be undone.</div>
+          </div>
 
-      {showDeleteModal && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      <h3>Delete comment?</h3>
-      <p>This can’t be undone.</p>
+          <button
+            type="button"
+            className={styles.micModalX}
+            onClick={() => {
+              if (isDeleting) return;
+              setShowDeleteModal(false);
+              setDeleteTargetId(null);
+            }}
+            aria-label="Close"
+            disabled={isDeleting}
+          >
+            ×
+          </button>
+        </div>
 
-      <div className={styles.modalActions}>
-        <button
-          type="button"
-          onClick={confirmDelete}
-          disabled={isDeleting}
-          className={styles.dangerButton}
-        >
-          {isDeleting ? "Deleting…" : "Delete"}
-        </button>
+        <div className={styles.micModalActions}>
+          <button
+            type="button"
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className={`${styles.micBtn} ${styles.micBtnDanger}`}
+          >
+            {isDeleting ? (
+              <span className={styles.micBtnRow}>
+                <span className={styles.micSpinner} aria-hidden="true" />
+                Deleting…
+              </span>
+            ) : (
+              "Delete"
+            )}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowDeleteModal(false);
-            setDeleteTargetId(null);
-          }}
-          disabled={isDeleting}
-        >
-          Cancel
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (isDeleting) return;
+              setShowDeleteModal(false);
+              setDeleteTargetId(null);
+            }}
+            disabled={isDeleting}
+            className={`${styles.micBtn} ${styles.micBtnGhost}`}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
-)}
+    </div>,
+    document.body
+  )}
 
 
-      {showReportModal && reportedComment && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      {isReporting ? (
-        <div className={styles.loadingContainer}>
-          <p>Submitting report...</p>
-        </div>
-      ) : showReportSuccess ? (
-        <div className={styles.successContainer}>
-          <p>Your report has been submitted.</p>
-        </div>
-      ) : (
-        <>
-          {/* Header with profile picture and name */}
-          <div className={styles.modalHeader}>
+{showReportModal && reportedComment &&
+  createPortal(
+    <div
+      className={`${styles.micModalOverlay} ${styles.micOverlayBlur}`}
+      role="dialog"
+      aria-modal="true"
+      onClick={() => !isReporting && setShowReportModal(false)}
+    >
+      <div className={styles.micModal} onClick={(e) => e.stopPropagation()}>
+
+        {/* Top row (user chip + close) */}
+        <div className={styles.micModalTopRow}>
+          <div className={styles.micUserHeader}>
             <img
-              src={reportedComment.user?.profile_picture || '/default-profile-pic.jpg'}
+              src={reportedComment.user?.profile_picture || "/default-profile-pic.jpg"}
               alt={`${reportedComment.user?.username}'s profile`}
-              className={styles.modalProfilePicture}
+              className={styles.micUserAvatar}
             />
-            <h2>{reportedComment.user?.username}</h2>
-          </div>
-
-          <h3>Report Comment</h3>
-          <p>Please let us know why you are reporting this comment:</p>
-          <div className={styles.reportOptions}>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Spam"
-                checked={reportReasons === "Spam"}
-                onChange={handleToggleReason}
-              />
-              Spam
-            </label>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Harassment"
-                checked={reportReasons === "Harassment"}
-                onChange={handleToggleReason}
-              />
-              Harassment
-            </label>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Inappropriate"
-                checked={reportReasons === "Inappropriate"}
-                onChange={handleToggleReason}
-              />
-              Inappropriate
-            </label>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Other"
-                checked={reportReasons === "Other"}
-                onChange={handleToggleReason}
-              />
-              Other
-            </label>
-          </div>
-
-          {/* Show textarea if "Other" is selected */}
-          {reportReasons === "Other" && (
-            <div className={styles.reportDetails}>
-              <label>Please describe:</label>
-              <textarea
-                value={reportDetails}
-                onChange={(e) => setReportDetails(e.target.value)}
-                placeholder="Tell us more"
-              />
+            <div className={styles.micUserText}>
+              <div className={styles.micUserName}>@{reportedComment.user?.username || "unknown"}</div>
+              <div className={styles.micUserHint}>Report comment</div>
             </div>
-          )}
-
-          <div className={styles.modalActions}>
-            <button onClick={handleSubmitReport}>Submit</button>
-            <button onClick={() => setShowReportModal(false)}>Cancel</button>
           </div>
-        </>
-      )}
-    </div>
-  </div>
-)}
+
+          <button
+            type="button"
+            className={styles.micModalX}
+            onClick={() => !isReporting && setShowReportModal(false)}
+            aria-label="Close"
+            disabled={isReporting}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body states */}
+        {isReporting ? (
+          <div className={styles.micStateBox}>
+            <div className={styles.micStateRow}>
+              <span className={styles.micSpinnerLg} aria-hidden="true" />
+              <div>
+                <div className={styles.micStateTitle}>Submitting…</div>
+                <div className={styles.micStateSub}>Thanks for helping keep MIC clean.</div>
+              </div>
+            </div>
+          </div>
+        ) : showReportSuccess ? (
+          <div className={`${styles.micStateBox} ${styles.micStateSuccess}`}>
+            <div className={styles.micStateTitle}>Report submitted</div>
+            <div className={styles.micStateSub}>We’ll review it as soon as possible.</div>
+
+            <div className={styles.micModalActions}>
+              <button
+                type="button"
+                className={`${styles.micBtn} ${styles.micBtnPrimary}`}
+                onClick={() => setShowReportModal(false)}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className={styles.micModalSectionTitle}>Why are you reporting this?</div>
+            <div className={styles.micModalSectionSub}>Choose one reason.</div>
+
+            <div className={styles.micRadioGrid}>
+              {["Spam", "Harassment", "Inappropriate", "Other"].map((r) => (
+                <label key={r} className={styles.micRadioCard}>
+                  <input
+                    type="radio"
+                    name="reportReason"
+                    value={r}
+                    checked={reportReasons === r}
+                    onChange={handleToggleReason}
+                  />
+                  <span className={styles.micRadioLabel}>{r}</span>
+                </label>
+              ))}
+            </div>
+
+            {reportReasons === "Other" && (
+              <div className={styles.micTextareaBlock}>
+                <label className={styles.micFieldLabel}>Describe</label>
+                <textarea
+                  className={styles.micTextarea}
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Tell us more (optional, but helpful)"
+                />
+              </div>
+            )}
+
+            <div className={styles.micModalActions}>
+              <button
+                type="button"
+                className={`${styles.micBtn} ${styles.micBtnPrimary}`}
+                onClick={handleSubmitReport}
+              >
+                Submit
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.micBtn} ${styles.micBtnGhost}`}
+                onClick={() => setShowReportModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 
 {showLoginModal && (
   <div className={styles.modalOverlay}>
@@ -2432,17 +2235,17 @@ async function handleSubmitReport() {
 
 
 
-function findCommentById(commentsArray, targetId) {
-  for (const c of commentsArray) {
-    if (c.id === targetId) return c;
-    if (c.Replies && c.Replies.length > 0) {
-      // Look in its replies
-      const found = c.Replies.find((r) => r.id === targetId);
+function findCommentById(nodes, targetId) {
+  for (const n of nodes) {
+    if (n.id === targetId) return n;
+    if (n.Replies?.length) {
+      const found = findCommentById(n.Replies, targetId);
       if (found) return found;
     }
   }
   return null;
 }
+
 
 /**
  * Enhanced wrapping that also breaks up super-long words 
@@ -2528,4 +2331,623 @@ function breakLongWord(word, measureFn, maxWidth) {
   // But we want to treat them as separate "words" for the line logic
   // so let's just combine them with spaces for now:
   return segments.join(' ');
+}
+
+function flattenReplies(root) {
+  // Returns a flat array of all descendants in DFS order:
+  // each item: { node, depth }
+  const out = [];
+  const stack = (root.Replies || []).map((n) => ({ node: n, depth: 2 }));
+
+  while (stack.length) {
+    const { node, depth } = stack.shift();
+    out.push({ node, depth });
+
+    const kids = node.Replies || [];
+    if (kids.length) {
+      // keep visual order: append children after their parent
+      const next = kids.map((k) => ({ node: k, depth: depth + 1 }));
+      stack.unshift(...next); // DFS-ish; use push(...next) for BFS
+    }
+  }
+
+  return out;
+}
+function CommentRow({
+  node,
+  depth,
+
+  // state + context
+  isUserLoggedIn,
+  profile,
+
+  // limits
+  MAX_DEPTH,
+
+  // reply composer
+  replyingTo,
+  setReplyingTo,
+  isPostingReply,
+  handleReplySubmit,
+  handleReplyCancel,
+
+  // reactions + actions
+  handleLike,
+  handleDislike,
+  handleDeleteCommentWithConfirm,
+
+  // modals
+  setShowLoginModal,
+  setReportTargetComment,
+  setShowReportModal,
+
+  // styles + loading
+  styles,
+  reactionLoadingById,
+  isMobileComments
+}) {
+  const isMine = isUserLoggedIn && node.user?.username === profile?.username;
+  const canReply = isUserLoggedIn && depth < MAX_DEPTH;
+
+  const reactionLoading = reactionLoadingById?.[node.id]; // "like" | "dislike" | undefined
+  const likeBusy = reactionLoading === "like";
+  const dislikeBusy = reactionLoading === "dislike";
+  const anyBusy = !!reactionLoading;
+
+  return (
+    <li
+      className={[
+        styles.commentItem,
+        depth > 1 ? styles.replyItem : "",
+        isMobileComments ? styles.commentMobile : "",
+        isMobileComments && depth > 1 ? styles.replyItemMobile : "",
+      ].join(" ")}
+    >
+      <div className={styles.commentHeader}>
+        {/* avatar */}
+        {node.user?.profile_picture ? (
+          isUserLoggedIn ? (
+            <Link to={`/profile/${node.user.username}`}>
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt={`${node.user.username}'s profile`}
+                className={styles.commentProfilePicture}
+              />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={styles.avatarButton}
+              onClick={() => setShowLoginModal(true)}
+            >
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt="Profile"
+                className={styles.commentProfilePicture}
+              />
+            </button>
+          )
+        ) : (
+          <div className={styles.commentPlaceholder} />
+        )}
+
+        <div className={styles.commentContentWrapper}>
+          <div className={styles.commentInfo}>
+            {isUserLoggedIn ? (
+              <Link
+                to={`/profile/${node.user?.username || "unknown"}`}
+                className={styles.commentAuthorLink}
+              >
+                <span className={styles.commentAuthor}>
+                  {node.user?.username || "Unknown"}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={styles.commentAuthorBtn}
+                onClick={() => setShowLoginModal(true)}
+              >
+                {node.user?.username || "Unknown"}
+              </button>
+            )}
+
+            <span className={styles.dotSep}>•</span>
+
+            <span className={styles.commentTime}>
+              {formatDistanceToNow(new Date(node.created_at), { addSuffix: true })}
+            </span>
+          </div>
+
+          <p className={styles.commentContent}>{node.content}</p>
+
+          <div className={styles.commentActions}>
+            <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "like" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return setShowLoginModal(true);
+                handleLike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+              </svg>
+              <span>{node.like_count}</span>
+              {likeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "dislike" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return setShowLoginModal(true);
+                handleDislike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+              </svg>
+              <span>{node.dislike_count}</span>
+              {dislikeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+            {canReply && (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+                onClick={() => {
+                  if (!isUserLoggedIn) return setShowLoginModal(true);
+                  setReplyingTo({ parentId: node.id, content: "" });
+                }}
+                title="Reply"
+              >
+                <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
+                </svg>
+                <span>Reply</span>
+              </button>
+            )}
+
+            {isMine ? (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.dangerButton}`}
+                onClick={() => handleDeleteCommentWithConfirm(node.id)}
+              >
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                </svg>
+              </button>
+            ) : (
+              isUserLoggedIn && (
+                <button
+                  type="button"
+                  className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+                  onClick={() => {
+                    setReportTargetComment(node.id);
+                    setShowReportModal(true);
+                  }}
+                >
+                  <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                  </svg>
+                  <span>Report</span>
+                </button>
+              )
+            )}
+          </div>
+
+          {canReply && replyingTo && replyingTo.parentId === node.id && (
+            <form onSubmit={handleReplySubmit} className={styles.replyForm}>
+              <textarea
+                value={replyingTo.content}
+                onChange={(e) =>
+                  setReplyingTo((prev) => ({ ...prev, content: e.target.value }))
+                }
+                placeholder="Write a reply…"
+                required
+                className={styles.replyTextarea}
+              />
+              <div className={styles.replyActions}>
+                <button
+                  type="button"
+                  className={styles.replyCancelButton}
+                  onClick={handleReplyCancel}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className={`${styles.replyButtonSubmit} ${
+                    isPostingReply ? styles.replyButtonSubmitLoading : ""
+                  }`}
+                  disabled={isPostingReply}
+                  title={isPostingReply ? "Posting…" : "Post reply"}
+                >
+                  {isPostingReply ? (
+                    <span className={styles.tinySpinner} aria-hidden="true" />
+                  ) : (
+                    <BiSend />
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+
+
+function CommentNode({
+  node,
+  depth = 1,
+
+  // state + context
+  isUserLoggedIn,
+  profile,
+
+  // threading UI
+  expandedThreads,
+  toggleThread,
+  MAX_DEPTH,
+  PREVIEW_COUNT,
+  MAX_SHOWN_REPLIES,
+
+  // reply composer
+  replyingTo,
+  setReplyingTo,
+  isPostingReply,
+  handleReplySubmit,
+  handleReplyCancel,
+
+  // reactions + actions
+  handleLike,
+  handleDislike,
+  handleDeleteCommentWithConfirm,
+
+  // modals
+  setShowLoginModal,
+  setReportTargetComment,
+  setShowReportModal,
+
+  // styles
+  styles,
+  reactionLoadingById,
+  isMobileComments
+}) {
+  const isMine = isUserLoggedIn && node.user?.username === profile?.username;
+
+  const replies = node.Replies || [];
+  const total = replies.length;
+
+  // collapse logic per node
+  const expanded = !!expandedThreads?.[node.id];
+  const limit = expanded ? MAX_SHOWN_REPLIES : PREVIEW_COUNT;
+  const shownReplies = replies.slice(0, limit);
+
+  const canReply = isUserLoggedIn && depth < MAX_DEPTH;
+
+  const reactionLoading = reactionLoadingById?.[node.id]; // "like" | "dislike" | undefined
+  const likeBusy = reactionLoading === "like";
+  const dislikeBusy = reactionLoading === "dislike";
+  const anyBusy = !!reactionLoading;
+
+
+
+
+  return (
+  <li
+  className={[
+    styles.commentItem,
+    depth > 1 ? styles.replyItem : "",
+    isMobileComments ? styles.commentMobile : "",
+    isMobileComments && depth > 1 ? styles.replyItemMobile : "",
+  ].join(" ")}
+>
+
+      <div className={styles.commentHeader}>
+        {/* avatar */}
+        {node.user?.profile_picture ? (
+          isUserLoggedIn ? (
+            <Link to={`/profile/${node.user.username}`}>
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt={`${node.user.username}'s profile`}
+                className={styles.commentProfilePicture}
+              />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={styles.avatarButton}
+              onClick={() => setShowLoginModal(true)}
+            >
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt="Profile"
+                className={styles.commentProfilePicture}
+              />
+            </button>
+          )
+        ) : (
+          <div className={styles.commentPlaceholder} />
+        )}
+
+        <div className={styles.commentContentWrapper}>
+          {/* author + time */}
+          <div className={styles.commentInfo}>
+            {isUserLoggedIn ? (
+              <Link
+                to={`/profile/${node.user?.username || "unknown"}`}
+                className={styles.commentAuthorLink}
+              >
+                <span className={styles.commentAuthor}>
+                  {node.user?.username || "Unknown"}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={styles.commentAuthorBtn}
+                onClick={() => setShowLoginModal(true)}
+              >
+                {node.user?.username || "Unknown"}
+              </button>
+            )}
+
+            <span className={styles.dotSep}>•</span>
+
+            <span className={styles.commentTime}>
+              {formatDistanceToNow(new Date(node.created_at), { addSuffix: true })}
+            </span>
+          </div>
+
+          {/* content */}
+          <p className={styles.commentContent}>{node.content}</p>
+
+          {/* actions (works at any depth) */}
+          <div className={styles.commentActions}>
+           <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "like" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return setShowLoginModal(true);
+                handleLike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+              </svg>
+
+              <span>{node.like_count}</span>
+
+              {likeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "dislike" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return setShowLoginModal(true);
+                handleDislike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+              </svg>
+
+              <span>{node.dislike_count}</span>
+
+              {dislikeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+
+            {canReply && (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+                onClick={() => {
+                  if (!isUserLoggedIn) return setShowLoginModal(true);
+                  setReplyingTo({ parentId: node.id, content: "" });
+                }}
+                title="Reply"
+              >
+                <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
+                </svg>
+                <span>Reply</span>
+              </button>
+            )}
+
+            {isMine ? (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.dangerButton}`}
+                onClick={() => handleDeleteCommentWithConfirm(node.id)}
+              >
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                </svg>
+              </button>
+            ) : (
+              isUserLoggedIn && (
+                <button
+                  type="button"
+                  className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+
+                  onClick={() => {
+                    setReportTargetComment(node.id);
+                    setShowReportModal(true);
+                  }}
+                >
+                  <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                  </svg>
+                  <span>Report</span>
+                </button>
+              )
+            )}
+          </div>
+
+          {/* reply form */}
+          {canReply && replyingTo && replyingTo.parentId === node.id && (
+            <form onSubmit={handleReplySubmit} className={styles.replyForm}>
+              <textarea
+                value={replyingTo.content}
+                onChange={(e) =>
+                  setReplyingTo((prev) => ({ ...prev, content: e.target.value }))
+                }
+                placeholder="Write a reply…"
+                required
+                className={styles.replyTextarea}
+              />
+              <div className={styles.replyActions}>
+                <button
+                  type="button"
+                  className={styles.replyCancelButton}
+                  onClick={handleReplyCancel}
+                >
+                  Cancel
+                </button>
+               <button
+                  type="submit"
+                  className={`${styles.replyButtonSubmit} ${
+                    isPostingReply ? styles.replyButtonSubmitLoading : ""
+                  }`}
+                  disabled={isPostingReply}
+                  title={isPostingReply ? "Posting…" : "Post reply"}
+                >
+                  {isPostingReply ? (
+                    <span className={styles.tinySpinner} aria-hidden="true" />
+                  ) : (
+                    <BiSend />
+                  )}
+                </button>
+
+              </div>
+            </form>
+          )}
+
+        {/* children */}
+{total > 0 && (
+  <>
+    {isMobileComments ? (
+      // MOBILE: flat list of all descendants (no nesting)
+      <ul className={styles.repliesListMobile}>
+        {flattenReplies(node)
+          .slice(0, expanded ? MAX_SHOWN_REPLIES : PREVIEW_COUNT)
+          .map(({ node: flatNode, depth: flatDepth }) => (
+            <CommentRow
+              key={flatNode.id}
+              node={flatNode}
+              depth={flatDepth}
+              reactionLoadingById={reactionLoadingById}
+              isMobileComments={isMobileComments}
+              {...{
+                isUserLoggedIn,
+                profile,
+                MAX_DEPTH,
+                replyingTo,
+                setReplyingTo,
+                isPostingReply,
+                handleReplySubmit,
+                handleReplyCancel,
+                handleLike,
+                handleDislike,
+                handleDeleteCommentWithConfirm,
+                setShowLoginModal,
+                setReportTargetComment,
+                setShowReportModal,
+                styles,
+              }}
+            />
+
+          ))}
+      </ul>
+    ) : (
+      // DESKTOP: normal nested tree
+      <ul className={styles.repliesList}>
+        {shownReplies.map((child) => (
+          <CommentNode
+            key={child.id}
+            node={child}
+            depth={depth + 1}
+            reactionLoadingById={reactionLoadingById}
+            isMobileComments={isMobileComments}
+            {...{
+              isUserLoggedIn,
+              profile,
+              expandedThreads,
+              toggleThread,
+              MAX_DEPTH,
+              PREVIEW_COUNT,
+              MAX_SHOWN_REPLIES,
+              replyingTo,
+              setReplyingTo,
+              isPostingReply,
+              handleReplySubmit,
+              handleReplyCancel,
+              handleLike,
+              handleDislike,
+              handleDeleteCommentWithConfirm,
+              setShowLoginModal,
+              setReportTargetComment,
+              setShowReportModal,
+              styles,
+            }}
+          />
+        ))}
+      </ul>
+    )}
+
+    {/* toggle buttons stay */}
+    {total > PREVIEW_COUNT && !expanded && (
+      <button
+        type="button"
+        className={styles.toggleRepliesButton}
+        onClick={() => toggleThread(node.id)}
+      >
+        Show rest of thread ({Math.min(total, MAX_SHOWN_REPLIES) - PREVIEW_COUNT})
+      </button>
+    )}
+
+    {expanded && (
+      <button
+        type="button"
+        className={styles.toggleRepliesButton}
+        onClick={() => toggleThread(node.id)}
+      >
+        Show less
+      </button>
+    )}
+
+    {expanded && total > MAX_SHOWN_REPLIES && (
+      <div className={styles.threadHintMuted}>
+        Showing {MAX_SHOWN_REPLIES} of {total} replies
+      </div>
+    )}
+  </>
+)}
+
+        </div>
+      </div>
+    </li>
+  );
 }
