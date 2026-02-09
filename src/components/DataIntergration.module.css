@@ -1018,6 +1018,127 @@
   justify-content: center;
 }
 
+/* ============================
+   Base palette strip (Ranges)
+   ============================ */
+.basePaletteStrip{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto; /* pushes strip to the right if rangeControls is flex */
+  padding: 6px 10px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+}
+
+.basePaletteLabel{
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.65);
+  margin-right: 4px;
+}
+
+.baseSwatchBtn{
+  width: 34px;
+  height: 32px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.baseSwatchBtn:hover{
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.baseSwatchDot{
+  width: 16px;
+  height: 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.18);
+}
+
+.baseCustomBtn{
+  padding: 7px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.baseCustomBtn:hover{
+  background: rgba(15, 23, 42, 0.04);
+}
+
+/* ============================
+   Base palette modal extras
+   ============================ */
+.baseModalGrid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 700px){
+  .baseModalGrid{ grid-template-columns: 1fr; }
+}
+
+.basePickerRow{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.baseColorInput{
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.16);
+  background: #fff;
+  padding: 0;
+  cursor: pointer;
+}
+
+.baseQuickRow{
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.basePreviewRamp{
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.basePreviewChip{
+  height: 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.10);
+}
+
+.baseCheckboxRow{
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.72);
+  user-select: none;
+}
+
+
 /* =========================
    Skeleton (MIC shimmer)
 ========================= */

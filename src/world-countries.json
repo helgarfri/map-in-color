@@ -252,7 +252,8 @@
 	  "name": "Congo",
 	  "aliases": [
 		"Republic of the Congo",
-		"Congo-Brazzaville"
+		"Congo-Brazzaville",
+		"Congo, Rep."
 	  ]
 	},
 	{
@@ -426,7 +427,8 @@
 	  "code": "EG",
 	  "name": "Egypt",
 	  "aliases": [
-		"Arab Republic of Egypt"
+		"Arab Republic of Egypt",
+		"Egypt, Arab Rep."
 	  ]
 	},
 	{
@@ -711,7 +713,8 @@
 	  "code": "IR",
 	  "name": "Iran",
 	  "aliases": [
-		"Islamic Republic of Iran"
+		"Islamic Republic of Iran",
+		"Iran, Islamic Rep."
 	  ]
 	},
 	{
@@ -791,7 +794,8 @@
 	  "code": "KN",
 	  "name": "Saint Kitts and Nevis",
 	  "aliases": [
-		"St. Kitts & Nevis"
+		"St. Kitts & Nevis",
+		"St. Kitts and Nevis"
 	  ]
 	},
 	{
@@ -808,7 +812,8 @@
 	  "aliases": [
 		"Republic of Korea",
 		"ROK",
-		"Korea (Republic of)"
+		"Korea (Republic of)",
+		"Korea"
 	  ]
 	},
 	{
@@ -1383,7 +1388,8 @@
 	  "code": "SO",
 	  "name": "Somalia",
 	  "aliases": [
-		"Federal Republic of Somalia"
+		"Federal Republic of Somalia",
+		"Somalia, Fed. Rep."
 	  ]
 	},
 	{
@@ -1515,7 +1521,8 @@
 	  "name": "Turkey",
 	  "aliases": [
 		"Türkiye",
-		"Republic of Türkiye"
+		"Republic of Türkiye",
+		"Turkiye"
 	  ]
 	},
 	{
@@ -1601,7 +1608,8 @@
 	  "code": "VE",
 	  "name": "Venezuela",
 	  "aliases": [
-		"Bolivarian Republic of Venezuela"
+		"Bolivarian Republic of Venezuela",
+		"Venezuela, RB"
 	  ]
 	},
 	{
@@ -1645,7 +1653,8 @@
 	  "code": "YE",
 	  "name": "Yemen",
 	  "aliases": [
-		"Republic of Yemen"
+		"Republic of Yemen",
+		"Yemen, Rep."
 	  ]
 	},
 	{

@@ -271,149 +271,145 @@ return;
     parseArrayOfRows(rows);
   };
 
-  // parse array of rows => build universalRows
-  const parseArrayOfRows = (rows) => {
-    const errorList = [];
-    let foundItemCount = 0;
-    let numericCount = 0;
-    let totalDataRows = 0;
-    const allRows = [];
+// parse array of rows => build universalRows (tolerant: ignores bad lines)
+const parseArrayOfRows = (rows) => {
+  const errorList = []; // we keep these as "ignored lines"
+  let foundItemCount = 0;
+  let numericCount = 0;
+  let totalDataRows = 0;
+  const allRows = [];
 
-    rows.forEach((row, index) => {
-      const safeRow = row.map(cell => String(cell ?? '').trim());
-      if (safeRow.length < 2) {
-        errorList.push({
-          line: index + 1,
-          type: 'Missing Value',
-          message: `Need at least 2 columns on line ${index+1}`
-        });
-        return;
-      }
-      const [nameRaw, secondRaw] = safeRow;
-      if (!nameRaw) {
-        errorList.push({
-          line: index+1,
-          type: 'Missing Name',
-          message: `No state/country name on line ${index+1}`
-        });
-        return;
-      }
-      if (!secondRaw) {
-        // skip quietly
-        return;
-      }
+  rows.forEach((row, index) => {
+    const safeRow = (Array.isArray(row) ? row : [])
+      .map((cell) => String(cell ?? "").trim());
 
-      // match country
-      const found = dataSource.find(item => {
-        if (item.code.toLowerCase() === nameRaw.toLowerCase()) return true;
-        const allNames = [item.name, ...(item.aliases || [])].map(n => n.toLowerCase());
-        return allNames.includes(nameRaw.toLowerCase());
+    // ignore empty lines
+    if (!safeRow.length || safeRow.every((c) => !c)) return;
+
+    // require at least 2 columns
+    if (safeRow.length < 2) {
+      errorList.push({
+        line: index + 1,
+        type: "Missing Value",
+        message: `Need at least 2 columns on line ${index + 1}`,
       });
-      if (!found) {
-        errorList.push({
-          line: index+1,
-          type: 'Invalid Name',
-          message: `No match for "${nameRaw}"`
-        });
-        return;
-      }
+      return; // ✅ ignore this line
+    }
 
-      foundItemCount++;
+    const [nameRaw, secondRaw] = safeRow;
 
-      const valAsNum = toNum(secondRaw);
-      const isNum = valAsNum != null;
-
-
-      if (isNum) numericCount++;
-      totalDataRows++;
-
-      allRows.push({
-        name: found.name,
-        code: found.code,
-        rawValue: secondRaw,
-        isNumeric: isNum,
+    if (!nameRaw) {
+      errorList.push({
+        line: index + 1,
+        type: "Missing Name",
+        message: `No state/country name on line ${index + 1}`,
       });
+      return; // ✅ ignore this line
+    }
+
+    if (!secondRaw) {
+      // optional: treat as warning OR quietly ignore
+      errorList.push({
+        line: index + 1,
+        type: "Missing Value",
+        message: `No value provided on line ${index + 1}`,
+      });
+      return; // ✅ ignore this line
+    }
+
+    // match country/state/eu item
+    const needle = String(nameRaw).toLowerCase().trim();
+    const found = dataSource.find((item) => {
+      if (String(item.code).toLowerCase() === needle) return true;
+      const allNames = [item.name, ...(item.aliases || [])]
+        .map((n) => String(n).toLowerCase().trim());
+      return allNames.includes(needle);
     });
 
-if (foundItemCount === 0 && errorList.length === 0) {
-  errorList.push({ line: 0, type: "No Data", message: "File has no valid rows." });
-  setErrors(errorList);
-  setFileIsValid(false);
+    if (!found) {
+      errorList.push({
+        line: index + 1,
+        type: "Invalid Name",
+        message: `No match for "${nameRaw}"`,
+      });
+      return; // ✅ ignore this line
+    }
 
-  log("❌ No valid rows found in file.", "error");
-  setIsParsing(false);
-  return;
-}
+    // ✅ valid matched row
+    foundItemCount++;
+    totalDataRows++;
 
+    const valAsNum = toNum(secondRaw);
+    const isNum = valAsNum != null;
+    if (isNum) numericCount++;
 
- if (errorList.length > 0) {
-  setFileIsValid(false);
-  setErrors(errorList);
-
-  log(`❌ Found ${errorList.length} error(s):`, "error");
-  errorList.slice(0, 200).forEach((err) => {
-    log(`Line ${err.line}: ${err.type} — ${err.message}`, "error");
+    allRows.push({
+      name: found.name,
+      code: found.code,
+      rawValue: secondRaw,
+      isNumeric: isNum,
+    });
   });
 
-  setIsParsing(false);
-} else {
-  setFileIsValid(true);
-  setErrors([]);
+  // ✅ If nothing valid -> hard fail (still)
+  if (allRows.length === 0) {
+    const msg =
+      errorList.length > 0
+        ? "No valid rows found. Fix the lines shown below."
+        : "File has no valid rows.";
+    setErrors([{ line: 0, type: "No Data", message: msg }]);
+    setFileIsValid(false);
 
-  log(`✅ File parsed successfully.`, "success");
-  log(`✅ Imported rows ready: ${allRows.length}`, "success");
-
-  setIsParsing(false);
-}
-
-
-    setUniversalRows(allRows);
-
-    // detect data type or mixed
-    const hasNumeric = (numericCount > 0);
-    const hasText = (numericCount < totalDataRows); // i.e. text lines exist
-
-    // We'll decide whether we can switch
-    const mixture = hasNumeric && hasText;
-    setCanManualSwitch(mixture);
-
-    // auto detect
-    let deducedType = 'categorical';
-    if (!hasNumeric && hasText) {
-      // purely text
-      deducedType = 'categorical';
-    } else if (hasNumeric && !hasText) {
-      // purely numeric
-      deducedType = 'choropleth';
-    } else if (mixture) {
-  const ratio = numericCount / totalDataRows;
-
-  // if strongly skewed, auto-pick and log it
-  if (ratio > 0.75) {
-    deducedType = "choropleth";
-  } else if (ratio < 0.25) {
-    deducedType = "categorical";
-  } else {
-    // mixed: default to choropleth but allow manual switch
-    deducedType = "choropleth";
+    log(`❌ ${msg}`, "error");
+    setIsParsing(false);
+    return;
   }
-}
 
-    setMapDataType(deducedType);
+  // ✅ IMPORTANT: we proceed even if errorList has items
+  setUniversalRows(allRows);
+  setErrors(errorList);
 
-    log(`Matched ${foundItemCount} row(s).`, "info");
-log(`Detected numeric rows: ${numericCount}/${totalDataRows}.`, "info");
+  setFileIsValid(true); // ✅ allow import
+  if (errorList.length > 0) {
+    log(`⚠ Imported with ${errorList.length} ignored line(s).`, "warn");
+    errorList.slice(0, 200).forEach((err) => {
+      log(`Ignored line ${err.line}: ${err.type} — ${err.message}`, "warn");
+    });
+  } else {
+    log(`✅ File parsed successfully. Imported rows ready: ${allRows.length}`, "success");
+  }
 
-if (mixture) {
-  log(`⚠ Mixed data detected. You can switch type manually.`, "warn");
-}
-log(`Selected mode: ${deducedType}.`, "success");
+  // detect data type or mixed
+  const hasNumeric = numericCount > 0;
+  const hasText = numericCount < totalDataRows; // i.e. at least one non-numeric row
+  const mixture = hasNumeric && hasText;
+  setCanManualSwitch(mixture);
 
+  // auto detect
+  let deducedType = "categorical";
+  if (!hasNumeric && hasText) deducedType = "categorical";
+  else if (hasNumeric && !hasText) deducedType = "choropleth";
+  else if (mixture) {
+    const ratio = numericCount / totalDataRows;
+    if (ratio > 0.75) deducedType = "choropleth";
+    else if (ratio < 0.25) deducedType = "categorical";
+    else deducedType = "choropleth";
+    log(`⚠ Mixed data detected. You can switch type manually.`, "warn");
+  }
 
-    // finalize
-    if (deducedType === 'choropleth') finalizeChoropleth(allRows);
-    else finalizeCategorical(allRows);
-  };
+  setMapDataType(deducedType);
+
+  log(`Matched ${foundItemCount} row(s).`, "info");
+  log(`Detected numeric rows: ${numericCount}/${totalDataRows}.`, "info");
+  log(`Selected mode: ${deducedType}.`, "success");
+
+  // finalize display + stats
+  if (deducedType === "choropleth") finalizeChoropleth(allRows);
+  else finalizeCategorical(allRows);
+
+  setIsParsing(false);
+};
+
 
   // finalizeChoropleth => only keep lines where isNumeric===true
   function finalizeChoropleth(allRows) {
@@ -842,7 +838,8 @@ log(`Selected mode: ${deducedType}.`, "success");
     <button
       className={`${styles.btn} ${styles.btnPrimary}`}
       type="button"
-      disabled={!fileIsValid || !mapDataType || parsedData.length === 0}
+      disabled={isParsing || !mapDataType || parsedData.length === 0}
+
       onClick={handleImportData}
     >
       Import data

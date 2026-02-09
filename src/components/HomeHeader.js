@@ -1,45 +1,54 @@
-// src/components/HomeHeader.js
-import React from 'react';
-import styles from './HomeHeader.module.css';
+import React from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import styles from "./HomeHeader.module.css";
 
-// If you use React Router, you can import { Link } from 'react-router-dom';
-// and replace <a> tags with <Link> as needed.
 export default function HomeHeader() {
-return (
-    <header className={styles.header}>
-        <div className={styles.logoSection} onClick={() => window.location.href = '/'}
-            role="button"
-            tabIndex={0}
-            onKeyPress={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                window.location.href = '/';
-            }
-            }}>
-            <img
-                src="/assets/3-0/mic-logo-2-5-text.png"
-                alt="Map in Color Logo"
-                className={styles.logo}
-            />
-            <h1 className={styles.brandTitle}>Map in Color</h1>
-        </div>
+  const navigate = useNavigate();
 
-        <nav className={styles.nav}>
-            <a href="/" className={styles.navLink}>
-                Home
-            </a>
-            <a href="/explore" className={styles.navLink}>
-                Explore
-            </a>
-            <a href="/docs" className={styles.navLink}>
-                Documentation
-            </a>
-            <button
-                className={styles.loginButton}
-                onClick={() => window.location.href = '/login'}
-            >
-                Login
-            </button>
+  return (
+    <header className={styles.headerWrap}>
+      <div className={styles.header}>
+        {/* Make the logo a Link instead of window.location */}
+        <Link className={styles.logoBtn} to="/" aria-label="Go to home">
+          <img
+            src="/assets/3-0/mic-logo-2-5-text-cropped.png"
+            alt="Map in Color"
+            className={styles.logo}
+            draggable="false"
+          />
+        </Link>
+
+        <nav className={styles.nav} aria-label="Primary navigation">
+          {/* NavLink gives you active styling if you want it later */}
+          <NavLink className={styles.navLink} to="/">
+            Home
+          </NavLink>
+          <NavLink className={styles.navLink} to="/explore">
+            Explore
+          </NavLink>
+          <NavLink className={styles.navLink} to="/docs">
+            Docs
+          </NavLink>
+
+          <div className={styles.navDivider} aria-hidden="true" />
+
+          <button
+            className={`${styles.ctaBtn} ${styles.ctaSecondary}`}
+            onClick={() => navigate("/login")}
+            type="button"
+          >
+            Login
+          </button>
+
+          <button
+            className={`${styles.ctaBtn} ${styles.ctaPrimary}`}
+            onClick={() => navigate("/signup")}
+            type="button"
+          >
+            Get started
+          </button>
         </nav>
+      </div>
     </header>
-);
+  );
 }

@@ -112,6 +112,112 @@ function clampHexInput(raw) {
   return "#" + s;
 }
 
+// ============================
+// ✅ Base color palette (choropleth)
+// ============================
+
+const BASE_SWATCHES = [
+  { key: "cyan",    name: "Cyan",    hex: "#14a9af" },
+  { key: "azure",   name: "Azure",   hex: "#28a8e1" },
+  { key: "orange",  name: "Orange",  hex: "#fc861d" },
+  { key: "magenta", name: "Magenta", hex: "#ce2292" },
+];
+
+// tiny color utils
+function hexToRgb(hex) {
+  const s = String(hex || "").replace("#", "").trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  const r = parseInt(s.slice(0, 2), 16);
+  const g = parseInt(s.slice(2, 4), 16);
+  const b = parseInt(s.slice(4, 6), 16);
+  return { r, g, b };
+}
+function rgbToHex({ r, g, b }) {
+  const clamp = (x) => Math.max(0, Math.min(255, Math.round(x)));
+  const to2 = (x) => clamp(x).toString(16).padStart(2, "0");
+  return `#${to2(r)}${to2(g)}${to2(b)}`.toLowerCase();
+}
+function mixRgb(a, b, t) {
+  return {
+    r: a.r + (b.r - a.r) * t,
+    g: a.g + (b.g - a.g) * t,
+    b: a.b + (b.b - a.b) * t,
+  };
+}
+
+// Generate a light->deep ramp based on base color.
+// - low end: mix toward white
+// - high end: slightly deepen by mixing toward a darkened base
+function rampFromBase(baseHex, steps, opts = {}) {
+  const base = hexToRgb(baseHex);
+  if (!base || steps <= 0) return Array(Math.max(steps, 0)).fill("#c0c0c0");
+
+  const white = { r: 255, g: 255, b: 255 };
+
+  // dark target: mix base toward black a bit (keeps hue)
+  const blackish = { r: 0, g: 0, b: 0 };
+  const darkTarget = mixRgb(base, blackish, 0.28); // tweak depth
+
+  const arr = [];
+  const reverse = !!opts.reverse;
+
+  for (let i = 0; i < steps; i++) {
+    const t = steps === 1 ? 1 : i / (steps - 1); // 0..1
+    // lightness curve: give more resolution to lighter colors
+    const eased = Math.pow(t, 1.15);
+
+    // 0..~0.55: from white to base
+    // ~0.55..1: from base to darkTarget
+    let c;
+    if (eased <= 0.55) {
+      const tt = eased / 0.55;
+      c = mixRgb(white, base, tt);
+    } else {
+      const tt = (eased - 0.55) / 0.45;
+      c = mixRgb(base, darkTarget, tt);
+    }
+
+    arr.push(rgbToHex(c));
+  }
+
+  return reverse ? arr.slice().reverse() : arr;
+}
+
+// Apply a ramp to your current ranges (sorted low->high)
+function applyColorsToRanges(ranges, colors) {
+  if (!Array.isArray(ranges) || ranges.length === 0) return ranges;
+
+  // stable low->high ordering by lowerBound (fallback keep order)
+  const toNum = (x) => {
+    const n = typeof x === "number" ? x : parseFloat(String(x ?? "").replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const withIdx = ranges.map((r, idx) => ({
+    r,
+    idx,
+    lo: toNum(r.lowerBound),
+  }));
+
+  withIdx.sort((a, b) => {
+    const al = a.lo ?? Number.POSITIVE_INFINITY;
+    const bl = b.lo ?? Number.POSITIVE_INFINITY;
+    if (al !== bl) return al - bl;
+    return a.idx - b.idx;
+  });
+
+  const out = ranges.map((r) => ({ ...r }));
+  const n = withIdx.length;
+
+  for (let i = 0; i < n; i++) {
+    const targetIndex = withIdx[i].idx;
+    out[targetIndex].color = colors[i] || out[targetIndex].color || "#c0c0c0";
+  }
+
+  return out;
+}
+
+
 function ColorCell({ color, onChange, styles }) {
   const colorRef = React.useRef(null);
 
@@ -295,6 +401,13 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 
 const [loading, setLoading] = useState(true);
 
+
+// custom base-color modal
+const [isBasePaletteModalOpen, setIsBasePaletteModalOpen] = useState(false);
+const [customBaseColor, setCustomBaseColor] = useState("#14a9af");
+const [customReverse, setCustomReverse] = useState(false);
+
+
   const makeGroupId = () => `group_${nextGroupIdRef.current++}`;
 
   const normalizeGroup = (g) => ({
@@ -377,56 +490,104 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
   // Upload modal
   const handleOpenUploadModal = () => setShowUploadModal(true);
 
-  const handleImportData = (parsedData, stats, importedType) => {
-    if (importedType && importedType !== mapDataType) {
-        handleChangeDataType(importedType);
-      }
+const handleImportData = (parsedData, stats, importedType) => {
+  const type = String(importedType || mapDataType || "").toLowerCase();
+  const nextType = type === "categorical" ? "categorical" : "choropleth";
 
-
-    if (importedType === "choropleth") {
-      const next = parsedData.map((r) => ({
-        code: String(r.code).trim().toUpperCase(),
-        name: r.name,
-        value: r.numericValue,
-      }));
-      setData(next);
-      setFileStats(stats);
-    }  else {
-  const next = parsedData.map((r) => ({
-    code: String(r.code).trim().toUpperCase(),
-    name: r.name,
-    value: String(r.categoryValue ?? "").trim(),
-  }));
-
-  setData(next);
-  setFileStats(stats);
-
-  // ✅ NEW: build/update groups from imported categories
-  const importedCats = Array.from(
-    new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
-  ).sort((a, b) => a.localeCompare(b));
-
-setGroups((prev) => {
-  const prevArr = (Array.isArray(prev) ? prev : []).map(normalizeGroup);
-
-  const byName = new Map(prevArr.map((g) => [g.name, g]));
-
-  const merged = [...prevArr];
-
-  for (const cat of importedCats) {
-    if (!byName.has(cat)) {
-      merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
-    }
+  // switch type if needed
+  if (nextType !== mapDataType) {
+    handleChangeDataType(nextType);
   }
 
-  merged.sort((a, b) => a.name.localeCompare(b.name));
-  return merged;
-});
+  const rows = Array.isArray(parsedData) ? parsedData : [];
 
-}
-
-    setShowUploadModal(false);
+  // helpers
+  const cleanCode = (c) => String(c ?? "").trim().toUpperCase();
+  const toNumberSafe = (x) => {
+    const n = typeof x === "number" ? x : parseFloat(String(x ?? "").trim().replace(",", "."));
+    return Number.isFinite(n) ? n : null;
   };
+
+  if (nextType === "choropleth") {
+    // ✅ keep only rows with a code + a valid number
+    const cleaned = [];
+    for (const r of rows) {
+      const code = cleanCode(r?.code);
+      if (!code) continue;
+
+      const value = toNumberSafe(r?.numericValue);
+      if (value == null) continue; // ignore invalid numeric line
+
+      cleaned.push({
+        code,
+        name: r?.name,
+        value,
+      });
+    }
+
+    // ✅ dedupe by code (last one wins)
+    const byCode = new Map();
+    for (const row of cleaned) byCode.set(row.code, row);
+
+    setData(Array.from(byCode.values()));
+    setFileStats(stats || defaultFileStats);
+  } else {
+    // ✅ categorical: keep rows with code; value can be "" (unassigned)
+    const cleaned = [];
+    for (const r of rows) {
+      const code = cleanCode(r?.code);
+      if (!code) continue;
+
+      const value = String(r?.categoryValue ?? "").trim();
+
+      cleaned.push({
+        code,
+        name: r?.name,
+        value,
+      });
+    }
+
+    // ✅ dedupe by code (last one wins)
+    const byCode = new Map();
+    for (const row of cleaned) byCode.set(row.code, row);
+
+    const next = Array.from(byCode.values());
+    setData(next);
+    setFileStats(stats || defaultFileStats);
+
+    // ✅ build/update groups from imported categories (non-empty only)
+    const importedCats = Array.from(
+      new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+
+    setGroups((prev) => {
+      const prevArr = (Array.isArray(prev) ? prev : []).map(normalizeGroup);
+      const byName = new Map(prevArr.map((g) => [g.name, g]));
+      const merged = [...prevArr];
+
+      for (const cat of importedCats) {
+        if (!byName.has(cat)) {
+          merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
+        }
+      }
+
+      merged.sort((a, b) => a.name.localeCompare(b.name));
+      return merged;
+    });
+  }
+
+  setShowUploadModal(false);
+};
+
+const applyBaseColorPalette = (baseHex, opts = {}) => {
+  if (mapDataType !== "choropleth") return;
+
+  setCustomRanges((prev) => {
+    const steps = Array.isArray(prev) ? prev.length : 0;
+    const ramp = rampFromBase(baseHex, steps, opts);
+    return applyColorsToRanges(prev, ramp);
+  });
+};
 
 
   const handleChangeDataType = (nextTypeRaw) => {
@@ -458,6 +619,197 @@ setGroups((prev) => {
         return nextType;
       });
     };
+
+  // ============================
+// ✅ Auto-generate ranges (choropleth)
+// ============================
+
+// quantile helper (0..1)
+function quantileSorted(sorted, q) {
+  if (!sorted.length) return null;
+  const pos = (sorted.length - 1) * q;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  if (sorted[base + 1] == null) return sorted[base];
+  return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+}
+
+// “nice” step for human-friendly bounds
+function niceStep(rawStep) {
+  if (!Number.isFinite(rawStep) || rawStep <= 0) return 1;
+  const exp = Math.floor(Math.log10(rawStep));
+  const f = rawStep / Math.pow(10, exp); // 1..10
+  let nf;
+  if (f <= 1) nf = 1;
+  else if (f <= 2) nf = 2;
+  else if (f <= 5) nf = 5;
+  else nf = 10;
+  return nf * Math.pow(10, exp);
+}
+
+// nice rounding to multiples of step
+function floorToStep(x, step) {
+  return Math.floor(x / step) * step;
+}
+function ceilToStep(x, step) {
+  return Math.ceil(x / step) * step;
+}
+
+// format for range labels
+function fmt(n) {
+  if (!Number.isFinite(n)) return "";
+  // keep it readable; you can tweak if you want more/less precision
+  const abs = Math.abs(n);
+  if (abs >= 1000) return String(Math.round(n));
+  if (abs >= 10) return String(Number(n.toFixed(1)));
+  return String(Number(n.toFixed(2)));
+}
+
+const generateRangesFromData = () => {
+  if (mapDataType !== "choropleth") return;
+
+  // grab numeric values
+  const values = (mapDataNormalized || [])
+    .map((d) => (typeof d.value === "number" ? d.value : null))
+    .filter((v) => Number.isFinite(v));
+
+  if (values.length < 2) {
+    alert("Not enough numeric data to generate ranges.");
+    return;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const n = sorted.length;
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+  const range = max - min;
+
+  if (!Number.isFinite(range) || range <= 0) {
+    // all values equal (or basically equal)
+    const single = [
+      {
+        id: Date.now(),
+        color: "#c0c0c0",
+        name: `= ${fmt(min)}`,
+        lowerBound: min,
+        upperBound: min + 1, // arbitrary, but avoids upper==lower
+      },
+    ];
+    setCustomRanges(single);
+    setCustomRanges((prev) => applyPalette(prev, themes.find((t) => t.name === selected_palette)?.colors || []));
+    return;
+  }
+
+  // Freedman–Diaconis bin count (good for “spread + amount of data”)
+  const q1 = quantileSorted(sorted, 0.25);
+  const q3 = quantileSorted(sorted, 0.75);
+  const iqr = (q3 != null && q1 != null) ? (q3 - q1) : 0;
+
+  // If iqr is 0 (tons of duplicates) FD breaks; we’ll fallback to quantile bins
+  const fdWidth =
+    iqr > 0 ? (2 * iqr) / Math.cbrt(n) : null;
+
+  let kFD =
+    fdWidth && fdWidth > 0 ? Math.ceil(range / fdWidth) : null;
+
+  // Sturges as a sanity check baseline
+  const kSturges = Math.ceil(Math.log2(n) + 1);
+
+  // Choose k with clamps (keeps UI sane)
+  // you can tweak min/max if you want
+  const K_MIN = 3;
+  const K_MAX = 9;
+
+  let k = kFD && Number.isFinite(kFD) ? kFD : kSturges;
+  k = Math.max(K_MIN, Math.min(K_MAX, k));
+
+  // Decide strategy:
+  // - If tons of repeated values or iqr==0 => quantile bins (balanced counts)
+  // - Otherwise => equal-width "nice step" bins
+  const uniqueCount = new Set(sorted.map((x) => String(x))).size;
+  const useQuantiles = iqr <= 0 || uniqueCount < k * 2;
+
+  let edges = [];
+
+  if (useQuantiles) {
+    // Quantile edges: 0, 1/k, 2/k, ..., 1
+    edges = [min];
+    for (let i = 1; i < k; i++) {
+      const qi = quantileSorted(sorted, i / k);
+      edges.push(qi);
+    }
+    edges.push(max);
+
+    // Ensure edges are non-decreasing & remove tiny duplicates
+    edges = edges
+      .map((x) => (Number.isFinite(x) ? x : null))
+      .filter((x) => x != null);
+
+    // if quantiles collapse too much, fallback to equal width
+    const distinctEdges = Array.from(new Set(edges.map((x) => x.toFixed(12)))).length;
+    if (distinctEdges < 3) {
+      edges = []; // force fallback below
+    }
+  }
+
+  if (!edges.length) {
+    // Equal width with "nice" step
+    const rawStep = range / k;
+    const step = niceStep(rawStep);
+
+    const start = floorToStep(min, step);
+    const end = ceilToStep(max, step);
+
+    edges = [];
+    for (let x = start; x <= end + step * 0.5; x += step) {
+      edges.push(x);
+      if (edges.length > 100) break; // safety
+    }
+
+    // ensure last edge covers max
+    if (edges[edges.length - 1] < max) {
+      edges.push(edges[edges.length - 1] + step);
+    }
+  }
+
+  // build ranges: [edge[i], edge[i+1])
+  const nextRanges = [];
+  const EPS = range / 1e9; // tiny epsilon to ensure last upper covers max
+
+  for (let i = 0; i < edges.length - 1; i++) {
+    let lo = edges[i];
+    let hi = edges[i + 1];
+
+    if (!Number.isFinite(lo) || !Number.isFinite(hi)) continue;
+    if (hi < lo) [lo, hi] = [hi, lo];
+
+    // avoid zero-width bins
+    if (hi === lo) continue;
+
+    // last bin: push upper a hair so max falls inside (< upper)
+    const isLast = i === edges.length - 2;
+    const upper = isLast ? hi + EPS : hi;
+
+    nextRanges.push({
+      id: Date.now() + i,
+      color: "#c0c0c0",
+      name: `${fmt(lo)} – ${fmt(hi)}`,
+      lowerBound: lo,
+      upperBound: upper,
+    });
+  }
+
+  if (!nextRanges.length) {
+    alert("Could not generate ranges from this data.");
+    return;
+  }
+
+  // set + apply palette
+  const paletteColors =
+    themes.find((t) => t.name === selected_palette)?.colors || [];
+
+  setCustomRanges(applyPalette(nextRanges, paletteColors));
+};
 
 
   // Palette helpers
@@ -1483,16 +1835,58 @@ const handleSaveMap = async () => {
           </tbody>
         </table>
 
-        <div className={styles.rangeControls}>
-          <button
-            className={styles.addRangeButton}
-            onClick={addRange}
-            type="button"
-          >
-            <FontAwesomeIcon icon={faPlus} />
-            Add range
-          </button>
-        </div>
+<div className={styles.rangeControls}>
+  <button className={styles.addRangeButton} onClick={addRange} type="button">
+    <FontAwesomeIcon icon={faPlus} />
+    Add range
+  </button>
+
+  <button
+    className={styles.addRangeButton}
+    type="button"
+    onClick={generateRangesFromData}
+    disabled={
+      mapDataType !== "choropleth" ||
+      (mapDataNormalized || []).filter((d) => typeof d.value === "number").length < 2
+    }
+    title="Automatically create ranges based on your current values"
+  >
+    Generate ranges
+  </button>
+
+  {/* ✅ Base palette strip */}
+  <div className={styles.basePaletteStrip} aria-label="Base palette">
+    <span className={styles.basePaletteLabel}>Base</span>
+
+    {BASE_SWATCHES.map((s) => (
+      <button
+        key={s.key}
+        type="button"
+        className={styles.baseSwatchBtn}
+        title={`${s.name} (${s.hex})`}
+        onClick={() => applyBaseColorPalette(s.hex)}
+      >
+        <span className={styles.baseSwatchDot} style={{ background: s.hex }} />
+      </button>
+    ))}
+
+    <button
+      type="button"
+      className={styles.baseCustomBtn}
+      onClick={() => {
+        setCustomBaseColor("#14a9af");
+        setCustomReverse(false);
+        setIsBasePaletteModalOpen(true);
+      }}
+      title="Choose a custom base color"
+    >
+      Custom…
+    </button>
+  </div>
+</div>
+
+
+        
       </div>
     </>
   ) : (
@@ -1877,6 +2271,136 @@ const handleSaveMap = async () => {
           pendingBlockerRef.current = null;
         }}
       />
+
+{isBasePaletteModalOpen && (
+  <div
+    className={styles.refModalOverlay}
+    onClick={() => setIsBasePaletteModalOpen(false)}
+    role="presentation"
+  >
+    <div
+      className={styles.refModalCard}
+      onClick={(e) => e.stopPropagation()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="base-palette-title"
+    >
+      <div className={styles.refModalHeader}>
+        <div>
+          <div className={styles.refModalEyebrow}>Ranges</div>
+          <h2 id="base-palette-title" className={styles.refModalTitle}>
+            Base color palette
+          </h2>
+          <p className={styles.refModalSubtitle}>
+            Pick a base color. We’ll create a light → deep ramp and apply it across your ranges (low → high).
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className={styles.refModalClose}
+          onClick={() => setIsBasePaletteModalOpen(false)}
+          aria-label="Close"
+          title="Close"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div className={styles.refModalBody}>
+        <div className={styles.baseModalGrid}>
+          <div className={styles.fieldBlock}>
+            <label className={styles.fieldLabel}>Base color</label>
+
+            <div className={styles.basePickerRow}>
+              <input
+                type="color"
+                value={customBaseColor}
+                onChange={(e) => {
+                  const v = String(e.target.value || "").toLowerCase();
+                  setCustomBaseColor(isValidHex6(v) ? v : customBaseColor);
+                }}
+                className={styles.baseColorInput}
+                aria-label="Pick base color"
+              />
+
+              <input
+                type="text"
+                className={styles.inputBox}
+                value={customBaseColor}
+                onChange={(e) => setCustomBaseColor(clampHexInput(e.target.value))}
+                spellCheck={false}
+                maxLength={7}
+                placeholder="#RRGGBB"
+              />
+            </div>
+
+            <div className={styles.baseQuickRow}>
+              {BASE_SWATCHES.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  className={styles.baseSwatchBtn}
+                  title={`${s.name} (${s.hex})`}
+                  onClick={() => setCustomBaseColor(s.hex)}
+                >
+                  <span className={styles.baseSwatchDot} style={{ background: s.hex }} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.fieldBlock}>
+            <label className={styles.fieldLabel}>Preview</label>
+
+            <div className={styles.basePreviewRamp}>
+              {rampFromBase(customBaseColor, Math.max(custom_ranges?.length || 5, 5), { reverse: customReverse })
+                .slice(0, 10)
+                .map((c, i) => (
+                  <span key={i} className={styles.basePreviewChip} style={{ background: c }} />
+                ))}
+            </div>
+
+            <label className={styles.baseCheckboxRow}>
+              <input
+                type="checkbox"
+                checked={customReverse}
+                onChange={(e) => setCustomReverse(!!e.target.checked)}
+              />
+              Reverse (deep → light)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.refModalFooter}>
+        <span />
+
+        <div className={styles.refModalFooterRight}>
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.cancelPill}`}
+            onClick={() => setIsBasePaletteModalOpen(false)}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.primaryPill}`}
+            onClick={() => {
+              applyBaseColorPalette(customBaseColor, { reverse: customReverse });
+              setIsBasePaletteModalOpen(false);
+            }}
+            disabled={mapDataType !== "choropleth" || (custom_ranges?.length || 0) === 0}
+          >
+            Apply to ranges
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
 {/* Saving modal */}
 {isSaving && (

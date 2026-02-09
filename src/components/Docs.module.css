@@ -1,206 +1,383 @@
-/* Docs.module.css */
+/* Docs.module.css (MIC theme) */
 
-/* Main documentation container */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+
+  --bg: #f6f7fb;
+  --card: rgba(255, 255, 255, 0.92);
+  --card2: rgba(255, 255, 255, 0.78);
+  --text: rgba(15, 23, 42, 0.86);
+  --muted: rgba(15, 23, 42, 0.62);
+  --muted2: rgba(15, 23, 42, 0.46);
+
+  --border: rgba(20, 24, 40, 0.10);
+  --border2: rgba(20, 24, 40, 0.14);
+
+  --shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
+  --shadowSm: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 12px;
+}
+
+/* =========================
+   Page shell
+========================= */
 .documentationContainer {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background-color: #ffffff; /* White background */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(1200px 520px at 20% 0%, rgba(40,168,225,0.10), transparent 60%),
+    radial-gradient(900px 420px at 85% 12%, rgba(20,169,175,0.10), transparent 55%),
+    var(--bg);
+
+  color: var(--text);
 }
 
-/* New wrapper to layout sidebar and content */
+/* Layout */
 .docsWrapper {
-    display: flex;
+  display: flex;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 18px 36px;
+  gap: 16px;
 }
-  
-/* Sidebar styling for the TOC */
+
+/* =========================
+   Sidebar / TOC
+========================= */
 .docsSidebar {
-    width: 250px;
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    padding: 2rem;
-    border-right: 1px solid #ddd;
+  width: 270px;
+  align-self: flex-start;
+
+  position: sticky;
+  top: 78px; /* leaves room for your sticky header */
+  max-height: calc(100vh - 90px);
+
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow: var(--shadowSm);
+  padding: 14px 14px;
+  overflow: auto;
+  scrollbar-width: thin;
 }
-  
-/* TOC container styles */
+
+.docsSidebar h2 {
+  margin: 6px 6px 10px;
+  font-size: 12px;
+  font-weight: 1000;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+/* TOC */
 .tocContainer {
-    position: relative;
+  position: relative;
 }
-  
+
 .tocList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
 }
-  
+
 .tocItem {
-    margin-bottom: 0.5rem;
+  margin: 0;
 }
-  
+
+/* Buttons inside TOC */
 .tocItem button {
-    background: none;
-    border: none;
-    text-align: left;
-    padding: 0.5rem;
-    width: 100%;
-    cursor: pointer;
-    font-size: 1rem;
-}
-  
-/* Active TOC item: adds a blue left border using the themed blue color */
-.tocItem.active button {
-    border-left: 3px solid #336699;
-    padding-left: 0.5rem;
-    font-weight: bold;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+
+  background: rgba(255,255,255,0.70);
+  border: 1px solid rgba(20,24,40,0.10);
+  border-radius: 14px;
+
+  padding: 10px 10px;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.78);
+
+  transition: transform 120ms ease, box-shadow 120ms ease,
+    border-color 120ms ease, background 120ms ease;
 }
 
-/* Main content styling */
+.tocItem button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+  border-color: rgba(40,168,225,0.18);
+  background: rgba(40,168,225,0.06);
+}
+
+/* Active state */
+.active button {
+  border-color: rgba(20,169,175,0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.12),
+    rgba(20,169,175,0.10)
+  );
+  box-shadow: 0 12px 26px rgba(40,168,225,0.10);
+  color: rgba(15,23,42,0.86);
+}
+
+/* =========================
+   Main content “paper”
+========================= */
 .docsMain {
-    flex: 1;
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto; /* Center the content */
+  flex: 1;
+  min-width: 0;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+
+  padding: 22px;
 }
 
-/* Headings */
+/* Typography */
 .docsMain h1 {
-    color: #14a9af; /* Green heading */
-    margin-bottom: 1rem;
-    font-size: 2rem;
+  margin: 0 0 14px;
+
+  font-size: 24px;
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.98),
+    rgba(20,169,175,0.96)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .docsMain h2 {
-    color: #336699; /* Blue heading */
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #336699;
-    padding-bottom: 0.5rem;
+  margin-top: 22px;
+  margin-bottom: 10px;
+
+  font-size: 17px;
+  font-weight: 1000;
+  letter-spacing: -0.01em;
+  color: rgba(15,23,42,0.88);
+
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(20,24,40,0.10);
 }
 
 .docsMain h3 {
-    color: #444; /* Dark gray heading */
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 1.2rem;
-    font-weight: bold;
+  margin-top: 18px;
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.80);
 }
 
-/* Paragraphs */
 .docsMain p {
-    color: #000; /* Black text */
-    line-height: 1.6;
-    font-size: 1rem;
+  margin: 10px 0;
+  color: rgba(15,23,42,0.78);
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.docsMain small {
+  color: var(--muted2);
+  font-weight: 800;
 }
 
 /* Links */
 .docsMain a {
-    color: #d24b4c; /* Red/Orange link color */
-    text-decoration: none;
+  color: rgba(40,168,225,0.98);
+  font-weight: 900;
+  text-decoration: none;
 }
 
 .docsMain a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* Code block styling */
-.codeBlock {
-    background: #f0f0f0;
-    padding: 1rem;
-    overflow-x: auto;
-    margin: 1rem 0;
-    border-radius: 5px;
-}
-
-/* Images in documentation */
-.docImage {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 1rem 0;
-}
-
-/* Styled ordered list */
+/* =========================
+   Lists
+========================= */
+.docsMain ul,
 .docsMain ol {
-    list-style: decimal;
-    padding-left: 1.5rem;
-    margin: 1.5rem 0;
+  margin: 12px 0;
+  padding-left: 18px;
 }
 
-.docsMain ol li {
-    line-height: 1.6;
-    font-size: 1rem;
-    padding-left: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-/* Styled unordered list */
 .docsMain ul {
-    list-style: none;
-    padding-left: 1.5rem;
-    margin: 1.5rem 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding-left: 0;
 }
 
 .docsMain ul li {
-    position: relative;
-    padding-left: 1.5rem;
-    line-height: 1.6;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+  position: relative;
+  padding-left: 18px;
+  color: rgba(15,23,42,0.78);
+  line-height: 1.6;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .docsMain ul li::before {
-    content: "-";
-    position: absolute;
-    left: 0;
-    color: #14a9af; /* Green dash */
-    font-weight: bold;
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
 }
 
-/* Responsive Adjustments for mobile devices */
+.docsMain ol {
+  color: rgba(15,23,42,0.78);
+}
+
+.docsMain ol li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* =========================
+   Buttons inside docs (download)
+========================= */
+.docsMain button {
+  all: unset;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 1000;
+
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(255,255,255,0.75);
+  color: rgba(15,23,42,0.78);
+
+  transition: transform 120ms ease, box-shadow 120ms ease,
+    border-color 120ms ease, background 120ms ease;
+}
+
+.docsMain button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+  border-color: rgba(20,169,175,0.22);
+  background: rgba(20,169,175,0.08);
+}
+
+/* If you want the very first download list to feel more “primary”,
+   this makes buttons inside lists pop a bit */
+.docsMain ul li button {
+  width: fit-content;
+}
+
+/* =========================
+   Code blocks
+========================= */
+.codeBlock {
+  margin: 12px 0;
+  padding: 12px 14px;
+
+  border-radius: var(--r-md);
+  border: 1px solid rgba(20,24,40,0.10);
+
+  background:
+    radial-gradient(900px 220px at 20% 0%, rgba(40,168,225,0.08), transparent 60%),
+    rgba(15,23,42,0.04);
+
+  overflow-x: auto;
+  scrollbar-width: thin;
+
+  font-size: 12.5px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.86);
+}
+
+/* Inline code */
+.docsMain code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 12.5px;
+  font-weight: 900;
+
+  background: rgba(15,23,42,0.06);
+  border: 1px solid rgba(20,24,40,0.10);
+  padding: 2px 6px;
+  border-radius: 10px;
+
+  color: rgba(15,23,42,0.84);
+}
+
+/* =========================
+   Images
+========================= */
+.docImage {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 14px 0;
+
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(20,24,40,0.10);
+  box-shadow: var(--shadowSm);
+}
+
+/* Divider */
+.docsMain hr {
+  border: none;
+  height: 1px;
+  background: rgba(20,24,40,0.10);
+  margin: 18px 0;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 900px) {
+  .docsWrapper {
+    padding: 14px 12px 28px;
+  }
+  .docsMain {
+    padding: 18px;
+  }
+}
+
 @media (max-width: 750px) {
-    .docsMain {
-        padding: 1rem;
-    }
-    .docsMain h1 {
-        font-size: 1.5rem;
-    }
-    .docsMain h2 {
-        font-size: 1.3rem;
-    }
-    .docsMain h3 {
-        font-size: 1.1rem;
-    }
-    .docsMain p {
-        font-size: 0.95rem;
-    }
-    
-    /* Hide the documentation sidebar (and TOC navigation) on mobile devices */
-    .docsSidebar {
-        display: none;
-    }
-    
-    /* Optional: switch docsWrapper to block layout when sidebar is hidden */
-    .docsWrapper {
-        display: block;
-    }
-}
-
-@media (max-width: 768px) {
-    .docsMain {
-        padding: 1.5rem;
-    }
-    .docsMain h1 {
-        font-size: 1.7rem;
-    }
-    .docsMain h2 {
-        font-size: 1.4rem;
-    }
-    .docsMain h3 {
-        font-size: 1.15rem;
-    }
-    .docsMain p {
-        font-size: 0.98rem;
-    }
+  .docsSidebar {
+    display: none;
+  }
+  .docsWrapper {
+    display: block;
+  }
+  .docsMain {
+    border-radius: var(--r-lg);
+  }
 }

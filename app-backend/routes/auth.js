@@ -259,7 +259,7 @@ router.post('/login', [check('password').exists()], async (req, res) => {
 
     // 4) Sign JWT if all is good
     const token = jwt.sign({ id: foundUser.id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '14d',
     });
 
     // 5) Return user & token
