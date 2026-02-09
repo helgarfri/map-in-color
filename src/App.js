@@ -1,4 +1,4 @@
-// src/components/App.js
+cd// src/components/App.js
 import './components/App.css';
 
 import Footer from './components/Footer';
