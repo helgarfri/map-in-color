@@ -43,6 +43,7 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const { id } = useParams();
   const navigate = useNavigate();
 
+
   const [mapData, setMapData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [save_count, setSaveCount] = useState(0);
@@ -105,7 +106,7 @@ const [isDeleting, setIsDeleting] = useState(false);
   const [selectedCodeNonce, setSelectedCodeNonce] = useState(0);
 
 
-  const { authToken, profile } = useContext(UserContext);
+  const { authToken, profile, isPro } = useContext(UserContext);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -1842,6 +1843,7 @@ if (!mapData) {
   anonId={getAnonId()}
   // ✅ let modal tell MapDetail the new count
   onDownloadCountUpdate={(nextCount) => setDownloadCount(nextCount)}
+  isPro={isPro}
 />
 
 {showLoginModal && (

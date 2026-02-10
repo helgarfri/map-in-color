@@ -113,6 +113,7 @@ router.post(
             status: 'pending', // <--- user is initially pending
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            plan:'free'
           },
         ])
         .select()
@@ -216,7 +217,7 @@ router.post('/login', [check('password').exists()], async (req, res) => {
     if (identifier.includes('@')) {
       const { data, error } = await supabaseAdmin
         .from('users')
-        .select('id, email, username, password, first_name, last_name, status')
+        .select('id, email, username, password, first_name, last_name, status, plan')
         .eq('email', identifier)
         .maybeSingle();
       if (error) {
@@ -228,7 +229,7 @@ router.post('/login', [check('password').exists()], async (req, res) => {
       // Probably a username
       const { data, error } = await supabaseAdmin
         .from('users')
-        .select('id, email, username, password, first_name, last_name, status')
+        .select('id, email, username, password, first_name, last_name, status, plan')
         .eq('username', identifier)
         .maybeSingle();
       if (error) {
@@ -272,6 +273,7 @@ router.post('/login', [check('password').exists()], async (req, res) => {
         first_name: foundUser.first_name,
         last_name: foundUser.last_name,
         status: foundUser.status,
+        plan: foundUser.plan || "free",
       },
     });
   } catch (err) {

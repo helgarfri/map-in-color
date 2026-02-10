@@ -10,7 +10,7 @@ export const UserProvider = ({ children }) => {
   const [profile_pictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [errorProfile, setErrorProfile] = useState('');
-
+  const isPro = String(profile?.plan || "free").toLowerCase() === "pro";
 // src/context/UserContext.js
 
 useEffect(() => {
@@ -50,6 +50,7 @@ useEffect(() => {
         setProfilePictureUrl,
         loadingProfile,
         errorProfile,
+        isPro
       }}
     >
       {children}

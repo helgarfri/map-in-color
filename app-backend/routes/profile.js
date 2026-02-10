@@ -397,7 +397,8 @@ router.get('/:username', async (req, res) => {
       show_location,
       show_date_of_birth,
       created_at,
-      updated_at
+      updated_at,
+      plan
       `)
       
       .eq('username', username)

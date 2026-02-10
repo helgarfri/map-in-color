@@ -31,6 +31,7 @@ export default function DownloadOptionsModal({
   isUserLoggedIn,
   anonId,
   onDownloadCountUpdate,
+  isPro
 }) {
   const [format, setFormat] = useState("png"); // "png" | "jpg"
   const [isDownloading, setIsDownloading] = useState(false);
@@ -77,6 +78,11 @@ const legendYDraftRef = useRef(legendYDraft);
 const defaultLegendWidthRef = useRef(900);
 const didInitLegendWidthRef = useRef(false);
 
+const [jpgPreset, setJpgPreset] = useState("high"); // "web" | "high" | "max"
+const [transparentBg, setTransparentBg] = useState(false); // pro
+const [watermarkOff, setWatermarkOff] = useState(false);   // pro
+
+
 const renderParams = useMemo(() => {
   // Only include what actually changes the output
   return {
@@ -88,9 +94,14 @@ const renderParams = useMemo(() => {
     // If mapTransform is NOT used in export anymore, remove it from here.
     // mapTransform,
     mapId: mapData?.id,
-    title: mapData?.title, // optional
+    title: mapData?.title, 
+    jpgPreset,       
+    transparentBg,  
+    watermarkOff,    
   };
-}, [format, legendPos, legendWidthPx, legendSize, crop, mapData?.id, mapData?.title]);
+}, [format, legendPos, legendWidthPx, legendSize, crop,
+  jpgPreset, transparentBg, watermarkOff,
+  mapData?.id, mapData?.title]);
 
 const debouncedRenderParams = useDebouncedValue(renderParams, 350);
 
@@ -1113,6 +1124,8 @@ const exportFromSvg = useCallback(
     const fmt = formatArg || "png";
     const params = paramsArg || {};
 
+    
+
     const container = renderStageRef.current;
     if (!container) throw new Error("Missing render stage.");
 
@@ -1121,11 +1134,21 @@ const exportFromSvg = useCallback(
 
     const svgClone = originalSvg.cloneNode(true);
 
-    // ✅ read settings from params (NOT from React state)
-    const cropLocal = params.crop ?? crop; // fallback just in case
+    const cropLocal = params.crop ?? crop;
     const legendPosLocal = params.legendPos ?? legendPos;
     const legendWidthPxLocal = params.legendWidthPx ?? legendWidthPx;
     const legendSizeLocal = params.legendSize ?? legendSize;
+
+    const jpgPresetLocal = params.jpgPreset ?? jpgPreset;
+    const transparentBgLocal = !!(params.transparentBg ?? transparentBg);
+    const watermarkOffLocal = !!(params.watermarkOff ?? watermarkOff);
+
+    // ✅ HARD GATE (so client UI can't bypass)
+    const effectiveTransparent = isPro ? transparentBgLocal : false;
+    const effectiveWatermarkOff = isPro ? watermarkOffLocal : false;
+
+    const effectiveJpgPreset =
+      isPro ? jpgPresetLocal : (jpgPresetLocal === "max" ? "high" : jpgPresetLocal);
 
     const vb = viewBoxFromInsets(cropLocal);
     svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
@@ -1193,6 +1216,21 @@ const exportFromSvg = useCallback(
       }
     });
 
+    if (fmt === "png" && effectiveTransparent) {
+  // Try removing common background rects (adjust selectors if needed)
+  svgClone.querySelectorAll("rect").forEach((r) => {
+    const fill = (r.getAttribute("fill") || "").toLowerCase();
+    // heuristic: remove big background fills
+    if (fill && fill !== "none" && fill !== "transparent") {
+      r.setAttribute("fill", "none");
+    }
+  });
+
+  // Also remove any element you KNOW is your ocean/background if you have ids/classes
+  // e.g. svgClone.querySelector("#ocean")?.setAttribute("fill", "none");
+}
+
+
     // 5) svg -> image -> canvas
     const svgData = new XMLSerializer().serializeToString(svgClone);
     const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
@@ -1243,27 +1281,35 @@ const exportFromSvg = useCallback(
     // watermark logo (bottom-center)
     const smallerSide = Math.min(canvas.width, canvas.height);
     const padding = 20;
+    if (!effectiveWatermarkOff) {
+      try {
+        const logoImg = await loadImage("/assets/3-0/mic-logo-2-5-text-cropped.png");
+        const logoRatio = 0.8;
+        const logoWidth = smallerSide * logoRatio;
+        const logoHeight = logoImg.height * (logoWidth / logoImg.width);
 
-    try {
-      const logoImg = await loadImage("/assets/3-0/mic-logo-2-5-text-cropped.png");
-      const logoRatio = 0.8;
-      const logoWidth = smallerSide * logoRatio;
-      const logoHeight = logoImg.height * (logoWidth / logoImg.width);
+        const x = (canvas.width - logoWidth) / 2;
+        const y = canvas.height - logoHeight - padding;
 
-      const x = (canvas.width - logoWidth) / 2;
-      const y = canvas.height - logoHeight - padding;
-
-      ctx.save();
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
-      ctx.restore();
-    } catch {
-      // ignore
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
+        ctx.restore();
+      } catch {
+        // ignore
+      }
     }
 
     // output
     const mime = fmt === "jpg" ? "image/jpeg" : "image/png";
-    const quality = fmt === "jpg" ? 0.92 : undefined;
+    let quality;
+    if (fmt === "jpg") {
+      quality =
+        effectiveJpgPreset === "web" ? 0.80 :
+        effectiveJpgPreset === "max" ? 0.98 :
+        0.92; // high (default)
+    }
+
 
     const blob = await canvasToBlob(canvas, mime, quality);
     const url = URL.createObjectURL(blob);
@@ -1897,163 +1943,183 @@ legendWidthDraftRef.current = String(next);
 
           </div>
 
-          {/* RIGHT: options */}
-          <div className={styles.options}>
+        {/* RIGHT: options */}
+<div className={styles.options}>
+  <div className={styles.sectionTitle}>Format</div>
 
-<div className={styles.sectionTitle}>Format</div>
+  {/* Format select */}
+  <div className={styles.selectWrap}>
+    <select
+      className={styles.select}
+      value={format}
+      onChange={(e) => setFormat(e.target.value)} // format: "jpg" | "png"
+      disabled={isDownloading}
+      aria-label="Download format"
+    >
+      <option value="jpg">JPG</option>
+      <option value="png">PNG</option>
+    </select>
 
-{/* Format select */}
-<div className={styles.selectWrap}>
-  <select
-    className={styles.select}
-    value={format}
-    onChange={(e) => setFormat(e.target.value)}
-    disabled={isDownloading}
-    aria-label="Download format"
-  >
-    <option value="jpg">JPG</option>
-    <option value="png">PNG</option>
-  </select>
+    <span className={styles.selectChevron} aria-hidden="true">
+      ▾
+    </span>
+  </div>
 
-  <span className={styles.selectChevron} aria-hidden="true">▾</span>
-</div>
+  {/* Format-specific options */}
+  {format === "jpg" ? (
+    <div className={styles.formatPanel}>
+      <div className={styles.expandTitle}>JPG quality</div>
 
-{/* Format-specific options */}
-{format === "jpg" ? (
-  <div className={styles.formatPanel}>
-    <div className={styles.expandTitle}>JPG quality</div>
-
-    <div className={styles.subList}>
-      <button type="button" className={styles.subRow} disabled={isDownloading}>
-        <div className={styles.subLeft}>
-          <div className={styles.subName}>Web</div>
-          <div className={styles.subDesc}>Fast export, lightweight file.</div>
-        </div>
-        <div className={styles.subRight}>
-          <span className={styles.subMeta}>80%</span>
-        </div>
-      </button>
-
-      <button
-        type="button"
-        className={`${styles.subRow} ${styles.subRowActive}`}
-        disabled={isDownloading}
-        title="Default"
-      >
-        <div className={styles.subLeft}>
-          <div className={styles.subName}>
-            High <span className={styles.defaultPill}>Default</span>
+      <div className={styles.subList}>
+        {/* Web */}
+        <button
+          type="button"
+          className={`${styles.subRow} ${jpgPreset === "web" ? styles.subRowActive : ""}`}
+          disabled={isDownloading}
+          onClick={() => setJpgPreset("web")}
+        >
+          <div className={styles.subLeft}>
+            <div className={styles.subName}>Web</div>
+            <div className={styles.subDesc}>Fast export, lightweight file.</div>
           </div>
-          <div className={styles.subDesc}>Best balance: sharp + smaller.</div>
-        </div>
-        <div className={styles.subRight}>
-          <span className={styles.subMeta}>92%</span>
-        </div>
-      </button>
+          <div className={styles.subRight}>
+            <span className={styles.subMeta}>80%</span>
+          </div>
+        </button>
 
-      <button
-        type="button"
-        className={`${styles.subRow} ${styles.subRowPro}`}
-        disabled={isDownloading}
-      >
-        <div className={styles.subLeft}>
-          <div className={styles.subName}>
-            Max{" "}
+        {/* High (default) */}
+        <button
+          type="button"
+          className={`${styles.subRow} ${jpgPreset === "high" ? styles.subRowActive : ""}`}
+          disabled={isDownloading}
+          title="Default"
+          onClick={() => setJpgPreset("high")}
+        >
+          <div className={styles.subLeft}>
+            <div className={styles.subName}>
+              High <span className={styles.defaultPill}>Default</span>
+            </div>
+            <div className={styles.subDesc}>Best balance: sharp + smaller.</div>
+          </div>
+          <div className={styles.subRight}>
+            <span className={styles.subMeta}>92%</span>
+          </div>
+        </button>
+
+        {/* Max (pro) */}
+        <button
+          type="button"
+          className={`${styles.subRow} ${styles.subRowPro} ${jpgPreset === "max" ? styles.subRowActive : ""}`}
+          disabled={isDownloading}
+          onClick={() => setJpgPreset("max")}
+        >
+          <div className={styles.subLeft}>
+            <div className={styles.subName}>
+              Max{" "}
+              <img
+                className={styles.proBadge}
+                src="/assets/3-0/PRO-label.png"
+                alt="Pro"
+              />
+            </div>
+            <div className={styles.subDesc}>Highest quality, biggest file.</div>
+          </div>
+          <div className={styles.subRight}>
+            <span className={styles.subMeta}>98%</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  ) : (
+    <div className={styles.formatPanel}>
+      <div className={styles.expandTitle}>PNG options</div>
+
+      <div className={styles.toggleRow}>
+        <div className={styles.toggleLeft}>
+          <div className={styles.toggleName}>
+            Transparent background{" "}
             <img
               className={styles.proBadge}
               src="/assets/3-0/PRO-label.png"
               alt="Pro"
             />
           </div>
-          <div className={styles.subDesc}>Highest quality, biggest file.</div>
+          <div className={styles.toggleDesc}>
+            Export without a background fill.
+          </div>
         </div>
-        <div className={styles.subRight}>
-          <span className={styles.subMeta}>98%</span>
-        </div>
-      </button>
-    </div>
-  </div>
-) : (
-  <div className={styles.formatPanel}>
-    <div className={styles.expandTitle}>PNG options</div>
 
+        <label className={styles.switch} aria-label="Transparent background">
+          <input type="checkbox" disabled />
+          <span className={styles.slider} />
+        </label>
+      </div>
+    </div>
+  )}
+
+  {/* Shared pro option */}
+  <div className={styles.proCallout}>
     <div className={styles.toggleRow}>
       <div className={styles.toggleLeft}>
         <div className={styles.toggleName}>
-          Transparent background{" "}
+          Toggle watermark off{" "}
           <img
             className={styles.proBadge}
             src="/assets/3-0/PRO-label.png"
             alt="Pro"
           />
         </div>
-        <div className={styles.toggleDesc}>Export without a background fill.</div>
+        <div className={styles.toggleDesc}>
+          Remove the Map in Color watermark.
+        </div>
       </div>
 
-      <label className={styles.switch} aria-label="Transparent background">
+      <label className={styles.switch} aria-label="Toggle watermark off">
         <input type="checkbox" disabled />
         <span className={styles.slider} />
       </label>
     </div>
   </div>
-)}
 
-{/* Shared pro option */}
-<div className={styles.proCallout}>
-  <div className={styles.toggleRow}>
-    <div className={styles.toggleLeft}>
-      <div className={styles.toggleName}>
-        Toggle watermark off{" "}
-        <img
-          className={styles.proBadge}
-          src="/assets/3-0/PRO-label.png"
-          alt="Pro"
-        />
-      </div>
-      <div className={styles.toggleDesc}>Remove the Map in Color watermark.</div>
-    </div>
+  {/* Actions */}
+  <div className={styles.actions}>
+    <button
+      type="button"
+      className={`${styles.primaryBtn} ${isDownloading ? styles.primaryBtnLoading : ""}`}
+      disabled={isDownloading}
+      onClick={handleDownload}
+    >
+      <span className={styles.primaryIcon}>
+        {isDownloading ? (
+          <span className={styles.spinner} aria-hidden="true" />
+        ) : (
+          <BiDownload />
+        )}
+      </span>
+      <span className={styles.primaryText}>
+        {isDownloading ? "Downloading…" : "Download"}
+      </span>
+    </button>
 
-    <label className={styles.switch} aria-label="Toggle watermark off">
-      <input type="checkbox" disabled />
-      <span className={styles.slider} />
-    </label>
+    <button
+      type="button"
+      className={styles.ghostBtn}
+      onClick={() => {
+        if (isDownloading) return;
+        onClose?.();
+      }}
+      disabled={isDownloading}
+    >
+      Cancel
+    </button>
+  </div>
+
+  <div className={styles.footnote}>
+    Tip: PNG is best for sharp edges and map details. JPG is smaller and great for
+    posting.
   </div>
 </div>
-
-
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={`${styles.primaryBtn} ${isDownloading ? styles.primaryBtnLoading : ""}`}
-                disabled={isDownloading}
-                onClick={handleDownload}
-              >
-                <span className={styles.primaryIcon}>
-                  {isDownloading ? <span className={styles.spinner} aria-hidden="true" /> : <BiDownload />}
-                </span>
-                <span className={styles.primaryText}>
-                  {isDownloading ? "Downloading…" : "Download"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.ghostBtn}
-                onClick={() => {
-                  if (isDownloading) return;
-                  onClose?.();
-                }}
-                disabled={isDownloading}
-              >
-                Cancel
-              </button>
-            </div>
-
-            <div className={styles.footnote}>
-              Tip: PNG is best for sharp edges and map details. JPG is smaller and great for posting.
-            </div>
-          </div>
-        </div>
+</div>
       </div>
     </div>,
     document.body
