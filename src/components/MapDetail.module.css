@@ -2360,9 +2360,13 @@ a {
   color: rgba(15, 23, 42, 0.92);
   line-height: 1.15;
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* allow wrapping */
+  white-space: normal;
+  word-break: break-word;    /* fallback */
+  
+  /* remove single-line truncation */
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .mapLegendSub {
@@ -2436,7 +2440,6 @@ a {
   color: rgba(15, 23, 42, 0.88);
   line-height: 1.15;
   font-weight: 800;
-  overflow-wrap: anywhere;
 }
 
 /* Optional meta chip */
@@ -2485,6 +2488,50 @@ a {
 
 .mapLegendRowActive .mapLegendHoverHint {
   color: rgba(20, 169, 175, 0.92);
+}
+
+.mapLegendHeaderRow{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* let the title wrap nicely */
+.mapLegendTitle{
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: normal;
+    word-break: normal;
+  line-height: 1.15;
+    hyphens: auto;
+}
+
+/* small clean close button */
+.legendHeaderClose{
+  all: unset;
+  cursor: pointer;
+  flex: 0 0 auto;
+
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(20,24,40,0.12);
+  background: rgba(255,255,255,0.75);
+  box-shadow: 0 8px 18px rgba(15,23,42,0.06);
+
+  font-size: 18px;
+  font-weight: 900;
+  color: rgba(15,23,42,0.65);
+}
+
+.legendHeaderClose:hover{
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.25);
 }
 
 /* =========================

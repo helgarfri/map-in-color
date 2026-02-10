@@ -58,6 +58,9 @@ export default function DataSidebar({
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [pendingType, setPendingType] = useState(null);
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+
 
 const SORT_MODES = {
 
@@ -307,6 +310,17 @@ const displayData = useMemo(() => {
   return rows.sort(compareNameAZ);
 }, [localData, mapDataType, sortMode, frozenCodes]);
 
+const filteredData = useMemo(() => {
+  const q = safeTrim(searchQuery).toLowerCase();
+  if (!q) return displayData;
+
+  return displayData.filter((r) => {
+    const name = (r?.name ?? "").toLowerCase();
+    const code = normCode(r?.code).toLowerCase();
+    return name.includes(q) || code.includes(q);
+  });
+}, [displayData, searchQuery]);
+
 
 useLayoutEffect(() => {
   if (!selectedCode) return;
@@ -402,11 +416,44 @@ useLayoutEffect(() => {
 
 </div>
 </div>
+{/* SEARCH */}
+<div className={styles.searchCard}>
+  <div className={styles.searchRow}>
+    <span className={styles.searchIcon} aria-hidden="true">⌕</span>
+    <input
+      className={styles.searchInput}
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      placeholder={
+        selectedMap === "usa"
+          ? "Search states…"
+          : selectedMap === "europe"
+          ? "Search countries…"
+          : "Search countries…"
+      }
+      type="text"
+      autoComplete="off"
+      spellCheck={false}
+    />
+
+    {!!safeTrim(searchQuery) && (
+      <button
+        type="button"
+        className={styles.searchClear}
+        onClick={() => setSearchQuery("")}
+        aria-label="Clear search"
+        title="Clear"
+      >
+        ×
+      </button>
+    )}
+  </div>
+</div>
 
      
      {/* MAIN SCROLLABLE LIST */}
 <div ref={listRef} className={styles.scrollableList}>
-  {displayData.map((region) => {
+  {filteredData.map((region) => {
     const code = normCode(region.code);
     const isHovered = hoveredCode && normCode(hoveredCode) === code;
     const isSelected = selectedCode && normCode(selectedCode) === code;
@@ -453,7 +500,7 @@ useLayoutEffect(() => {
           placeholder="Enter number..."
           onFocus={() => {
             setEditingCode(region.code);
-            if (!frozenCodes) setFrozenCodes(displayData.map((r) => r.code));
+            if (!frozenCodes) setFrozenCodes(filteredData.map((r) => r.code));
           }}
           onChange={(e) => handleValueChange(region.code, e.target.value)}
           onKeyDown={(e) => {
@@ -471,7 +518,7 @@ useLayoutEffect(() => {
           value={safeTrim(region.value)}
           onFocus={() => {
             setEditingCode(region.code);
-            if (!frozenCodes) setFrozenCodes(displayData.map((r) => r.code));
+            if (!frozenCodes) setFrozenCodes(filteredData.map((r) => r.code));
           }}
           onChange={(e) => {
             const v = e.target.value;

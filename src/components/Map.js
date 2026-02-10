@@ -14,48 +14,42 @@ const JSMap = window.Map;
 /* ───────────────── helpers ─────────────────────────────────────────── */
 
 
-function formatDotsInteger(n) {
-  // 1234567 -> "1.234.567"
+function formatCommasInteger(n) {
+  // 1234567 -> "1,234,567"
   const s = Math.trunc(Math.abs(n)).toString();
-  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function formatDotsNumber(n, maxDecimals = 5) {
-  // 1000.34598 -> "1.000,34598"
+function formatCommasNumber(n, maxDecimals = 5) {
+  // 1000.34598 -> "1,000.34598"
   if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
 
   const sign = n < 0 ? "-" : "";
   const abs = Math.abs(n);
 
-  // avoid float noise + cap decimals
   const rounded = Number(abs.toFixed(maxDecimals));
-
   const intPart = Math.trunc(rounded);
   const frac = rounded - intPart;
 
-  const intStr = formatDotsInteger(intPart);
+  const intStr = formatCommasInteger(intPart);
 
   if (frac === 0) return sign + intStr;
 
   const fracStr = frac.toFixed(maxDecimals).slice(2).replace(/0+$/, "");
-  return fracStr ? `${sign}${intStr},${fracStr}` : `${sign}${intStr}`;
+  return fracStr ? `${sign}${intStr}.${fracStr}` : `${sign}${intStr}`;
 }
 
 function formatValue(n) {
-  // ✅ handles "No data" + categorical strings safely
   if (n == null) return "No data";
   if (typeof n !== "number") return String(n);
   if (!Number.isFinite(n)) return "No data";
 
   const abs = Math.abs(n);
 
-  // full format up to < 1 quadrillion
   const ABBREV_FROM = 1e15;
   if (abs < ABBREV_FROM) {
-    return formatDotsNumber(n, 5);
+    return formatCommasNumber(n, 5);
   }
-
-  
 
   const units = [
     { value: 1e24, label: "septillion" },
@@ -71,8 +65,18 @@ function formatValue(n) {
   const u = units.find((x) => abs >= x.value) || units[units.length - 1];
   const scaled = n / u.value;
 
-  // abbreviated: keep up to 2 decimals
-  return `${formatDotsNumber(scaled, 2)} ${u.label}`;
+if (abs < ABBREV_FROM) return formatLocaleNumber(n, 5, "en-US");
+return `${formatLocaleNumber(scaled, 2, "en-US")} ${u.label}`;
+
+}
+
+
+function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
+  return n.toLocaleString(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  });
 }
 
 
@@ -84,7 +88,7 @@ const getCountryEls = (svg, code) =>
   );
 
   
-  
+
 /* ───────────────── component ───────────────────────────────────────── */
 
 export default function Map({
@@ -109,6 +113,9 @@ export default function Map({
   activeLegendModel = null,
 codeToName = {},
 onCloseActiveLegend,
+
+onTransformChange,
+  staticView = false,   // ✅ ADD
 
 
   // ✅ NEW: controlled hover/selection from parent (DataIntegration)
@@ -350,6 +357,8 @@ const [isViewReady, setIsViewReady] = useState(false);
 const didInitialFitRef = useRef(false);
 
 
+
+
 const [showResetBtn, setShowResetBtn] = useState(false);
 
 const FULLSCREEN_Y_OFFSET = 70; // ✅ move map DOWN in fullscreen
@@ -357,8 +366,29 @@ const baseX = 0;
 const baseY = isLargeMap ? FULLSCREEN_Y_OFFSET : 0;
 const baseScale = 1;
 
+const lastTransformRef = useRef({ x: baseX, y: baseY, scale: 1 });
 
+      const emitTransform = (state) => {
+  const t = { x: state.positionX, y: state.positionY, scale: state.scale };
+  onTransformChange?.(t);
+};
+  
 
+const setTransformAndTrack = useCallback(
+  (x, y, scale, ms = 0) => {
+    const api = wrapperRef.current;
+    if (!api?.setTransform) return;
+
+    api.setTransform(x, y, scale, ms, "easeOutQuart"); // ✅ call the library
+
+    lastTransformRef.current = { x, y, scale };
+    currentScaleRef.current = scale;
+    isZoomedRef.current = scale > 1.02;
+
+    onTransformChange?.({ x, y, scale }); // ✅ tell the modal
+  },
+  [onTransformChange]
+);
 
 
 
@@ -391,16 +421,14 @@ const applyNoDataBaseline = useCallback((ms = 0, { store = true } = {}) => {
     scale: GLOBAL_SCALE,
   };
 
-  api.setTransform(t.x, t.y, t.scale, ms, "easeOutQuart");
-  currentScaleRef.current = t.scale;
-  isZoomedRef.current = t.scale > 1.02;
+setTransformAndTrack(t.x, t.y, t.scale, ms);
 
-  if (store) {
-    dataFitRef.current = t;
-    lastFitBBoxRef.current = null; // important: there's no bbox for "no data"
-  }
+if (store) {
+  dataFitRef.current = t;
+  lastFitBBoxRef.current = null;
+}
+return t;
 
-  return t;
 }, [baseX, baseY]);
 
 
@@ -432,15 +460,16 @@ const resetToDataView = useCallback((ms = 220) => {
 
   if (!api) return;
 
-  // If we don't have a data-fit yet, fall back to world baseline
-  if (!t) {
-    api.setTransform(baseX, baseY, 1, ms, "easeOutQuart");
-    currentScaleRef.current = 1;
-    isZoomedRef.current = false;
-    return;
-  }
+ if (!t) {
+  setTransformAndTrack(baseX, baseY, 1, ms);
+  return;
+}
 
-  api.setTransform(t.x, t.y, t.scale, ms, "easeOutQuart");
+setTransformAndTrack(t.x, t.y, t.scale, ms);
+
+
+
+  lastTransformRef.current = { x: t.x, y: t.y, scale: t.scale };
   currentScaleRef.current = t.scale;
   isZoomedRef.current = t.scale > 1.02;
 }, [baseX, baseY]);
@@ -526,10 +555,12 @@ const resetPanZoom = useCallback((ms = 220) => {
   if (!api) return;
 
   if (typeof api.setTransform === "function") {
-    api.setTransform(baseX, baseY, 1, ms, "easeOutQuart");
+    setTransformAndTrack(baseX, baseY, 1, ms);
+    lastTransformRef.current = { x: baseX, y: baseY, scale: 1 };
   } else if (typeof api.resetTransform === "function") {
-    // fallback if setTransform doesn't exist (rare)
     api.resetTransform(ms);
+    // best guess baseline
+    lastTransformRef.current = { x: baseX, y: baseY, scale: 1 };
   }
 
   currentScaleRef.current = 1;
@@ -622,21 +653,16 @@ const resetPanZoom = useCallback((ms = 220) => {
       const cy = stripeYpx / scale0 + (bbox.y + bbox.height * 0.5) * pxPerUnit;
 
       const targetScale = Math.min(
-        4,
-        (vpW * 0.5) / (bbox.width * pxPerUnit),
-        (vpH * 0.6) / (bbox.height * pxPerUnit)
-      );
+  4,
+  (vpW * 0.5) / (bbox.width * pxPerUnit),
+  (vpH * 0.6) / (bbox.height * pxPerUnit)
+);
 
-      wrapperRef.current.setTransform(
-        vpW * 0.5 - cx * targetScale,
-        vpH * 0.5 - cy * targetScale,
-        targetScale,
-        250,
-        "easeOutQuart"
-      );
+const x = vpW * 0.5 - cx * targetScale;
+const y = vpH * 0.5 - cy * targetScale;
 
-      currentScaleRef.current = targetScale;
-      isZoomedRef.current = true;
+setTransformAndTrack(x, y, targetScale, 250);
+
     },
     [findColor, findValue]
   );
@@ -716,7 +742,6 @@ useEffect(() => {
       });
 
     };
-
 
 
  const handleMove = (e) => {
@@ -804,7 +829,7 @@ const handleClick = (e) => {
         el.removeEventListener("click", handleClick);
       });
     };
-  }, [findValue, onHoverCode, onSelectCode, selectCountryByCode]);
+  }, [findValue, onHoverCode, onSelectCode, selectCountryByCode, staticView]);
 
 
   const normalizedPlaceholders = useMemo(() => {
@@ -952,7 +977,7 @@ if (isGlobalSpread) {
     scale: GLOBAL_SCALE,
   };
 
-  api.setTransform(t.x, t.y, t.scale, ms, "easeOutQuart");
+  setTransformAndTrack(t.x, t.y, t.scale, ms);
   currentScaleRef.current = t.scale;
   isZoomedRef.current = t.scale > 1.02;
 
@@ -971,21 +996,22 @@ if (isGlobalSpread) {
     const centerX = stripeXpx + (bb.x + bb.width / 2) * pxPerUnit;
     const centerY = stripeYpx + (bb.y + bb.height / 2) * pxPerUnit;
 
-    const computedScale = Math.min(
-      6,
-      (vpW * 0.9) / (bb.width * pxPerUnit),
-      (vpH * 0.9) / (bb.height * pxPerUnit)
-    );
+      const computedScale = Math.min(
+        6,
+        (vpW * 0.94) / (bb.width * pxPerUnit),
+        (vpH * 0.94) / (bb.height * pxPerUnit)
+      );
 
-    // ✅ don’t ever zoom OUT below baseline, but zoom IN as needed
-    const scale = Math.max(1, computedScale);
+      const TIGHTNESS = 1.5; // 1.05–1.18 is realistic
+      const scale = Math.max(1, Math.min(6, computedScale * TIGHTNESS));
+
 
     const yOffsetPx = baseY;
 
     const x = vpW / 2 - centerX * scale;
     const y = vpH / 2 - centerY * scale + yOffsetPx;
 
-    api.setTransform(x, y, scale, ms, "easeOutQuart");
+    setTransformAndTrack(x, y, scale, ms);
     currentScaleRef.current = scale;
     isZoomedRef.current = scale > 1.02;
 
@@ -1303,6 +1329,7 @@ useLayoutEffect(() => {
 const handleResetViewClick = useCallback(() => {
   resetToDataView(220);
 
+
   // optional: also clear selection + close group (up to you)
   // clearAll();
 
@@ -1316,6 +1343,7 @@ const handleResetViewClick = useCallback(() => {
     {renderGroupInfoBox()}
     {renderInfoBox()}
 
+{!staticView && (
     <button
   type="button"
   className={[
@@ -1328,7 +1356,7 @@ const handleResetViewClick = useCallback(() => {
 >
   Reset view
 </button>
-
+)}
 <div className={cls.mapStage}>
   {!isViewReady && <div className={cls.mapSkeleton} aria-hidden="true" />}
 
@@ -1341,28 +1369,40 @@ const handleResetViewClick = useCallback(() => {
   >
 <TransformWrapper
   ref={wrapperRef}
-  wheel={{ step: 50 }}
+ // ✅ disable all interactivity in static mode
+  disabled={staticView}
+  wheel={{ disabled: staticView, step: 50 }}
+  panning={{ disabled: staticView, velocityDisabled: true }}
+  pinch={{ disabled: staticView }}
   doubleClick={{ disabled: true }}
-  panning={{ velocityDisabled: true }}
+
   minScale={0.9}
   limitToBounds={false}
-
   initialScale={baseScale}
   initialPositionX={baseX}
   initialPositionY={baseY}
 
-  onInit={({ state }) => {
-    currentScaleRef.current = state.scale;
-    updateResetBtn(state);
-  }}
-  onZoomStop={({ state }) => {
-    currentScaleRef.current = state.scale;
-    updateResetBtn(state);
-  }}
-  onPanningStop={({ state }) => {
-    currentScaleRef.current = state.scale;
-    updateResetBtn(state);
-  }}
+  
+
+onInit={({ state }) => {
+  currentScaleRef.current = state.scale;
+  lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
+  updateResetBtn(state);
+  emitTransform(state);
+}}
+onZoomStop={({ state }) => {
+  currentScaleRef.current = state.scale;
+  lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
+  updateResetBtn(state);
+  emitTransform(state);
+}}
+onPanningStop={({ state }) => {
+  currentScaleRef.current = state.scale;
+  lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
+  updateResetBtn(state);
+  emitTransform(state);
+}}
+
 >
 
 
@@ -1387,20 +1427,19 @@ const handleResetViewClick = useCallback(() => {
   strokeLinecap="round"
   strokeLinejoin="round"
   xmlns="http://www.w3.org/2000/svg"
-    onPointerDownCapture={(e) => {
-    const t = e.target;
+onPointerDownCapture={(e) => {
+  if (staticView) return; // ✅ don't clear stuff in static preview
 
-    // If you clicked a country shape, do nothing (country handler will run)
-    const isCountryEl =
-      t &&
-      (t.matches?.("path[id], polygon[id], rect[id]") ||
-        t.closest?.("path[id], polygon[id], rect[id]"));
+  const t = e.target;
+  const isCountryEl =
+    t &&
+    (t.matches?.("path[id], polygon[id], rect[id]") ||
+      t.closest?.("path[id], polygon[id], rect[id]"));
 
-    if (isCountryEl) return;
+  if (isCountryEl) return;
 
-    // Clicked "ocean"/svg background => clear group + selection
-    clearAll();
-  }}
+  clearAll();
+}}
 
   
 

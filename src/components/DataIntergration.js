@@ -383,6 +383,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 
   // leave confirm modal
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showGenerateRangesModal, setShowGenerateRangesModal] = useState(false);
   const pendingBlockerRef = useRef(null);
   const suppressPromptRef = useRef(false);
 
@@ -407,6 +408,22 @@ const [isBasePaletteModalOpen, setIsBasePaletteModalOpen] = useState(false);
 const [customBaseColor, setCustomBaseColor] = useState("#14a9af");
 const [customReverse, setCustomReverse] = useState(false);
 
+const [savedMapId, setSavedMapId] = useState(existingMapData?.id ?? null);
+
+const [uploadSession, setUploadSession] = useState({
+  fileName: "",
+  terminalLines: [],
+  fileIsValid: null,
+  isParsing: false,
+  errors: [],
+  mapDataType: null,
+  parsedData: [],
+  universalRows: [],
+  canManualSwitch: false,
+  numericStats: null,
+  categoricalStats: null,
+});
+
 
   const makeGroupId = () => `group_${nextGroupIdRef.current++}`;
 
@@ -416,6 +433,14 @@ const [customReverse, setCustomReverse] = useState(false);
     color: (g?.color ?? "#c0c0c0").toLowerCase(),
   });
 
+  const hasExistingUserRanges = useMemo(() => {
+  const arr = Array.isArray(custom_ranges) ? custom_ranges : [];
+  return arr.some((r) => {
+    const lo = String(r?.lowerBound ?? "").trim();
+    const hi = String(r?.upperBound ?? "").trim();
+    return lo !== "" || hi !== "";
+  });
+}, [custom_ranges]);
 
   const normCode = (c) => (c == null ? null : String(c).trim().toUpperCase());
 
@@ -486,6 +511,8 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
     setFileStats(existingMapData.file_stats || defaultFileStats);
     setPlaceholders(existingMapData.placeholders || {});
   }, [existingMapData?.id]); // important: use .id to avoid re-running on identity noise
+
+  
 
   // Upload modal
   const handleOpenUploadModal = () => setShowUploadModal(true);
@@ -664,6 +691,16 @@ function fmt(n) {
   if (abs >= 10) return String(Number(n.toFixed(1)));
   return String(Number(n.toFixed(2)));
 }
+const onClickGenerateRanges = () => {
+  // if user already entered bounds, warn them
+  if (hasExistingUserRanges) {
+    setShowGenerateRangesModal(true);
+    return;
+  }
+
+  // otherwise just generate
+  generateRangesFromData();
+};
 
 const generateRangesFromData = () => {
   if (mapDataType !== "choropleth") return;
@@ -1051,11 +1088,10 @@ const removeCategory = (id) => {
   function safeTrim(v) {
     return v == null ? "" : String(v).trim();
   }
-  function countryLabel(d) {
-  const n = d.name ? String(d.name).trim() : "";
-  const c = d.code ? String(d.code).trim() : "";
-  return n || c; // ✅ keep original form
+function countryLabel(d) {
+  return d?.code ? String(d.code).trim().toUpperCase() : "";
 }
+
 
 
 const categoryRows = useMemo(() => {
@@ -1130,7 +1166,8 @@ const renderCategoriesTable = () => {
       {rows.length === 0 ? (
         <p className={styles.mutedText}>No categories yet.</p>
       ) : (
-        <table className={styles.rangeTable}>
+     <table className={`${styles.rangeTable} ${styles.rangeTableCat}`}>
+
           <thead>
             <tr>
               <th>Countries</th>
@@ -1146,20 +1183,48 @@ const renderCategoriesTable = () => {
 
               return (
                 <tr key={row.id}>
-                  <td className={styles.countriesCell}>
-                    {row.count ? (
-                      <>
-                        <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
-                          {row.count} countries
-                        </div>
-                        <div className={styles.countriesList}>
-                          {row.countries.join(", ")}
-                        </div>
-                      </>
-                    ) : (
-                      <span className={styles.mutedText}>No countries assigned yet.</span>
-                    )}
-                  </td>
+                <td className={styles.countriesCell}>
+  {row.count ? (
+    <>
+      <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
+        {row.count} countries
+      </div>
+
+<div className={styles.countriesChips} aria-label="Countries">
+  {row.countries.map((c) => {
+    const code = normCode(c);
+    const isHovered = hoveredCode && normCode(hoveredCode) === code;
+    const isSelected = selectedCode && normCode(selectedCode) === code;
+
+    return (
+      <span
+        key={code}
+        className={[
+          styles.countryChip,
+          isHovered ? styles.countryChipHovered : "",
+          isSelected ? styles.countryChipSelected : "",
+        ].join(" ")}
+        title={code}
+        role="button"
+        tabIndex={0}
+        onMouseEnter={() => setHoveredCode(code)}
+        onMouseLeave={() => setHoveredCode(null)}
+        onClick={() => setSelectedCode(code)}
+      >
+        {code}
+      </span>
+    );
+  })}
+</div>
+
+
+    </>
+  ) : (
+    <span className={styles.mutedText}>No countries assigned yet.</span>
+  )}
+</td>
+
+
 
                   <td>
                     {canEdit ? (
@@ -1272,12 +1337,8 @@ const renderCategoriesTable = () => {
       lower: toNumLocal(r.lowerBound),
       upper: toNumLocal(r.upperBound),
     }));
-
- const rangeCountryLabel = (d) => {
-  const n = d.name ? String(d.name).trim() : "";
-  const c = d.code ? String(d.code).trim() : "";
-  return n || c; // ✅ keep original form
-};
+const rangeCountryLabel = (d) =>
+  d?.code ? String(d.code).trim().toUpperCase() : "";
 
 
     const rows = rangesClean.map((r) => {
@@ -1571,42 +1632,43 @@ const handleSaveMap = async () => {
     setSaveProgress(Math.round(p));
   }, 200);
 
-  try {
-    if (isEditing) await updateMap(existingMapData.id, payload);
-    else await createMap(payload);
+try {
+  let res;
+  if (isEditing) {
+    res = await updateMap(existingMapData.id, payload);
+    setSavedMapId(existingMapData.id);
+  } else {
+    res = await createMap(payload);
+    const newId =
+      res?.data?.id ||
+      res?.data?.map?.id ||
+      res?.data?.createdMap?.id ||
+      res?.data?.mapId;
 
-    clearInterval(timer);
-    setSaveProgress(100);
-    setSaveSuccess(true);
-
-    // ✅ allow navigation without prompt
-    suppressPromptRef.current = true;
-
-    // ✅ mark as saved (baseline)
-    initialSnapshotRef.current = currentSnapshot;
-
-    // cleanup any modal/blocker
-    setShowLeaveModal(false);
-    pendingBlockerRef.current = null;
-
-    // show success state briefly, then navigate
-    setTimeout(() => {
-      setIsSaving(false);
-      navigate("/dashboard");
-    }, 1200);
-  } catch (err) {
-    clearInterval(timer);
-
-    // if save failed, keep protection on
-    suppressPromptRef.current = false;
-
-    setIsSaving(false);
-    setSaveSuccess(false);
-    setSaveProgress(0);
-
-    console.error("❌ Save map failed:", err?.response?.data || err);
-    alert(err?.response?.data?.msg || "Failed to save map (check console).");
+    if (newId) setSavedMapId(newId);
   }
+
+  clearInterval(timer);
+  setSaveProgress(100);
+  setSaveSuccess(true);
+
+  initialSnapshotRef.current = currentSnapshot;
+
+  setShowLeaveModal(false);
+  pendingBlockerRef.current = null;
+
+} catch (err) {
+  clearInterval(timer);
+  suppressPromptRef.current = false;
+
+  setIsSaving(false);
+  setSaveSuccess(false);
+  setSaveProgress(0);
+
+  console.error("❌ Save map failed:", err?.response?.data || err);
+  alert(err?.response?.data?.msg || "Failed to save map (check console).");
+}
+
 };
 
 
@@ -1728,7 +1790,8 @@ const handleSaveMap = async () => {
 
       {/* table box ONLY wraps table + controls */}
       <div className={styles.tableBox}>
-        <table className={styles.rangeTable}>
+       <table className={`${styles.rangeTable} ${styles.rangeTableChoro}`}>
+
           <thead>
             <tr>
               <th>Countries</th>
@@ -1740,99 +1803,114 @@ const handleSaveMap = async () => {
             </tr>
           </thead>
 
-          <tbody>
-            {rangesWithCountries.map((range) => (
-              <tr key={range.id}>
-                <td style={{ maxWidth: 380 }}>
-                  {range.isValidRange ? (
-                    <>
-                      <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
-                        {range.count} countries
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          lineHeight: 1.3,
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {range.countries.join(", ")}
-                      </div>
-                    </>
-                  ) : (
-                    <span className={styles.mutedText}>
-                      Add lower/upper to see countries.
-                    </span>
-                  )}
-                </td>
+         <tbody>
+  {rangesWithCountries.map((range) => {
+    return (
+      <tr key={range.id}>
+        <td className={styles.countriesCell}>
+          {range.isValidRange ? (
+            <>
+              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
+                {range.count} countries
+              </div>
 
-                <td>
-                  <input
-                    type="number"
-                    className={styles.tableInputNumber}
-                    value={range.lowerBound}
-                    onChange={(e) =>
-                      handleRangeChange(range.id, "lowerBound", e.target.value)
-                    }
-                    placeholder="Min"
-                    inputMode="decimal"
-                  />
-                </td>
+       <div className={styles.countriesChips} aria-label="Countries">
+  {range.countries.map((c) => {
+    const code = normCode(c);
+    const isHovered = hoveredCode && normCode(hoveredCode) === code;
+    const isSelected = selectedCode && normCode(selectedCode) === code;
 
-                <td>
-                  <input
-                    type="number"
-                    className={styles.tableInputNumber}
-                    value={range.upperBound}
-                    onChange={(e) =>
-                      handleRangeChange(range.id, "upperBound", e.target.value)
-                    }
-                    placeholder="Max"
-                    inputMode="decimal"
-                  />
-                </td>
+    return (
+      <span
+        key={code}
+        className={[
+          styles.countryChip,
+          isHovered ? styles.countryChipHovered : "",
+          isSelected ? styles.countryChipSelected : "",
+        ].join(" ")}
+        title={code}
+        role="button"
+        tabIndex={0}
+        onMouseEnter={() => setHoveredCode(code)}
+        onMouseLeave={() => setHoveredCode(null)}
+        onClick={() => setSelectedCode(code)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedCode(code);
+          }
+        }}
+      >
+        {code}
+      </span>
+    );
+  })}
+</div>
 
-                <td>
-                  <input
-                    type="text"
-                    className={styles.tableInputText}
-                    value={range.name}
-                    onChange={(e) =>
-                      handleRangeChange(range.id, "name", e.target.value)
-                    }
-                    placeholder="Range name"
-                  />
-                </td>
 
-                <td>
-                  <ColorCell
-                    styles={styles}
-                    color={range.color}
-                    onChange={(next) =>
-                      handleRangeChange(range.id, "color", next)
-                    }
-                  />
-                </td>
+            </>
+          ) : (
+            <span className={styles.mutedText}>Add lower/upper to see countries.</span>
+          )}
+        </td>
 
-                <td>
-                  <button
-                    className={styles.removeButton}
-                    onClick={() => removeRange(range.id)}
-                    disabled={custom_ranges.length <= 1}
-                    type="button"
-                    aria-label="Remove range"
-                    title={
-                      custom_ranges.length <= 1
-                        ? "At least one range is required"
-                        : "Remove"
-                    }
-                  >
-                    &times;
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+        <td>
+          <input
+            type="number"
+            className={styles.tableInputNumber}
+            value={range.lowerBound}
+            onChange={(e) => handleRangeChange(range.id, "lowerBound", e.target.value)}
+            placeholder="Min"
+            inputMode="decimal"
+          />
+        </td>
+
+        <td>
+          <input
+            type="number"
+            className={styles.tableInputNumber}
+            value={range.upperBound}
+            onChange={(e) => handleRangeChange(range.id, "upperBound", e.target.value)}
+            placeholder="Max"
+            inputMode="decimal"
+          />
+        </td>
+
+        <td>
+          <input
+            type="text"
+            className={styles.tableInputText}
+            value={range.name}
+            onChange={(e) => handleRangeChange(range.id, "name", e.target.value)}
+            placeholder="Range name"
+          />
+        </td>
+
+        <td>
+          <ColorCell
+            styles={styles}
+            color={range.color}
+            onChange={(next) => handleRangeChange(range.id, "color", next)}
+          />
+        </td>
+
+        <td>
+          <button
+            className={styles.removeButton}
+            onClick={() => removeRange(range.id)}
+            disabled={custom_ranges.length <= 1}
+            type="button"
+            aria-label="Remove range"
+            title={custom_ranges.length <= 1 ? "At least one range is required" : "Remove"}
+          >
+            &times;
+          </button>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
         </table>
 
 <div className={styles.rangeControls}>
@@ -1841,18 +1919,19 @@ const handleSaveMap = async () => {
     Add range
   </button>
 
-  <button
-    className={styles.addRangeButton}
-    type="button"
-    onClick={generateRangesFromData}
-    disabled={
-      mapDataType !== "choropleth" ||
-      (mapDataNormalized || []).filter((d) => typeof d.value === "number").length < 2
-    }
-    title="Automatically create ranges based on your current values"
-  >
-    Generate ranges
-  </button>
+<button
+  className={styles.addRangeButton}
+  type="button"
+  onClick={onClickGenerateRanges}
+  disabled={
+    mapDataType !== "choropleth" ||
+    (mapDataNormalized || []).filter((d) => typeof d.value === "number").length < 2
+  }
+  title="Automatically create ranges based on your current values"
+>
+  Generate ranges
+</button>
+
 
   {/* ✅ Base palette strip */}
   <div className={styles.basePaletteStrip} aria-label="Base palette">
@@ -2249,8 +2328,28 @@ const handleSaveMap = async () => {
   </div>
 )}
 
-      {/* Upload Data Modal */}
-      <UploadDataModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} selectedMap={selected_map} onImport={handleImportData} />
+      <UploadDataModal
+  isOpen={showUploadModal}
+  onClose={() => setShowUploadModal(false)}
+  selectedMap={selected_map}
+  onImport={handleImportData}
+  session={uploadSession}
+  setSession={setUploadSession}
+/>
+
+<ConfirmModal
+  isOpen={showGenerateRangesModal}
+  title="Replace existing ranges?"
+  message="You already have ranges with lower/upper bounds set. Generating new ranges will overwrite your current ranges."
+  cancelText="Cancel"
+  confirmText="Generate"
+  danger
+  onCancel={() => setShowGenerateRangesModal(false)}
+  onConfirm={() => {
+    setShowGenerateRangesModal(false);
+    generateRangesFromData();
+  }}
+/>
 
       {/* Leave without saving */}
       <ConfirmModal
@@ -2420,7 +2519,8 @@ const handleSaveMap = async () => {
             {saveSuccess ? "Map saved!" : "Saving your map…"}
           </h2>
           <p className={styles.saveModalSubtitle}>
-            {saveSuccess ? "Redirecting to your dashboard…" : "This can take a few seconds."}
+            {saveSuccess ? "Your map is saved. Choose what to do next." : "This can take a few seconds."}
+
           </p>
         </div>
 
@@ -2431,35 +2531,76 @@ const handleSaveMap = async () => {
       </div>
 
       {/* Body */}
-      <div className={styles.saveModalBody}>
-        {saveSuccess ? (
-          <div className={styles.saveSuccessWrap}>
-            <FontAwesomeIcon icon={faCheckCircle} className={styles.saveSuccessIcon} />
-          </div>
-        ) : (
-          <div className={styles.saveIconWrap}>
-            <FontAwesomeIcon icon={faCloudArrowUp} className={styles.saveUploadIcon} />
-          </div>
-        )}
+   {/* Body */}
+<div className={styles.saveModalBody}>
+  <div className={styles.saveModalSplit}>
+    {/* LEFT */}
+    <div className={styles.saveLeft}>
+      {saveSuccess ? (
+        <div className={styles.saveSuccessWrap}>
+          <FontAwesomeIcon icon={faCheckCircle} className={styles.saveSuccessIcon} />
+        </div>
+      ) : (
+        <div className={styles.saveIconWrap}>
+          <FontAwesomeIcon icon={faCloudArrowUp} className={styles.saveUploadIcon} />
+        </div>
+      )}
+    </div>
 
-        {!saveSuccess && (
-          <>
-            <div className={styles.progressTrack}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${saveProgress}%` }}
-              />
-            </div>
+    {/* RIGHT */}
+    <div className={styles.saveRight}>
+      {!saveSuccess ? (
+        <>
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${saveProgress}%` }} />
+          </div>
 
-            <div className={styles.progressMeta}>
-              <span>{saveProgress}%</span>
-            </div>
-          </>
-        )}
-      </div>
+          <div className={styles.progressMeta}>
+            <span>{saveProgress}%</span>
+          </div>
+        </>
+      ) : (
+        <div className={styles.saveActionsRight}>
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.primaryPill}`}
+            onClick={() => {
+              // close modal and keep editing
+              setIsSaving(false);
+              setSaveSuccess(false);
+              setSaveProgress(0);
+
+              // allow unsaved prompt again
+              suppressPromptRef.current = false;
+            }}
+          >
+            Keep editing
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.actionPill} ${styles.cancelPill}`}
+            disabled={!savedMapId}
+            title={!savedMapId ? "Missing map id (backend must return it on create)" : ""}
+            onClick={() => {
+              suppressPromptRef.current = true;
+              setIsSaving(false);
+              navigate(`/map/${savedMapId}`);
+            }}
+          >
+            Go to map
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
     </div>
   </div>
 )}
+
+
 
 
     </div>

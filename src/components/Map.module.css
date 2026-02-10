@@ -688,7 +688,6 @@
   color: rgba(0,0,0,0.84);
   line-height: 1.15;
 
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

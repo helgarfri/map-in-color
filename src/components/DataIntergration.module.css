@@ -149,6 +149,96 @@
   box-shadow: none;
 }
 
+/* Countries as small chips (NO box) */
+.countriesChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+
+  /* no container styling */
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+
+  /* allow full list */
+  overflow: visible;
+}
+
+
+.countryChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 22px;
+  padding: 0 8px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+
+  background: #fbfbfd;
+  color: rgba(15, 23, 42, 0.86);
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.countryMoreChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 22px;
+  padding: 0 8px;
+
+  border-radius: 999px;
+  border: 1px dashed rgba(20, 24, 40, 0.18);
+
+  background: rgba(40, 168, 225, 0.10);
+  color: rgba(15, 23, 42, 0.78);
+
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.countryChip {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.countryChip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40, 168, 225, 0.35);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+/* driven by hoveredCode */
+.countryChipHovered {
+  border-color: rgba(40, 168, 225, 0.55);
+  box-shadow: 0 8px 18px rgba(40, 168, 225, 0.10);
+}
+
+/* driven by selectedCode */
+.countryChipSelected {
+  border-color: rgba(20, 169, 175, 0.75);
+  box-shadow:
+    0 0 0 3px rgba(20, 169, 175, 0.14),
+    0 10px 22px rgba(15, 23, 42, 0.10);
+}
+
+
+
 /* ============================
    Tabs (if used)
    ============================ */
@@ -207,19 +297,29 @@
   color: rgba(15, 23, 42, 0.80);
 }
 
-/* Fixed column widths (choropleth table: 6 columns) */
-.rangeTable th:nth-child(1),
-.rangeTable td:nth-child(1) { width: 42%; text-align: left; }
-.rangeTable th:nth-child(2),
-.rangeTable td:nth-child(2) { width: 10%; }
-.rangeTable th:nth-child(3),
-.rangeTable td:nth-child(3) { width: 10%; }
-.rangeTable th:nth-child(4),
-.rangeTable td:nth-child(4) { width: 20%; }
-.rangeTable th:nth-child(5),
-.rangeTable td:nth-child(5) { width: 12%; }
-.rangeTable th:nth-child(6),
-.rangeTable td:nth-child(6) { width: 6%; }
+/* choropleth (6 columns) */
+.rangeTableChoro th:nth-child(1),
+.rangeTableChoro td:nth-child(1) { width: 42%; text-align: left; }
+.rangeTableChoro th:nth-child(2),
+.rangeTableChoro td:nth-child(2) { width: 10%; }
+.rangeTableChoro th:nth-child(3),
+.rangeTableChoro td:nth-child(3) { width: 10%; }
+.rangeTableChoro th:nth-child(4),
+.rangeTableChoro td:nth-child(4) { width: 20%; }
+.rangeTableChoro th:nth-child(5),
+.rangeTableChoro td:nth-child(5) { width: 12%; }
+.rangeTableChoro th:nth-child(6),
+.rangeTableChoro td:nth-child(6) { width: 6%; }
+
+/* categorical (4 columns) */
+.rangeTableCat th:nth-child(1),
+.rangeTableCat td:nth-child(1) { width: 55%; text-align: left; }
+.rangeTableCat th:nth-child(2),
+.rangeTableCat td:nth-child(2) { width: 20%; }
+.rangeTableCat th:nth-child(3),
+.rangeTableCat td:nth-child(3) { width: 15%; }
+.rangeTableCat th:nth-child(4),
+.rangeTableCat td:nth-child(4) { width: 10%; }
 
 .countriesCell {
   text-align: left;
@@ -961,10 +1061,6 @@
   color: rgba(15, 23, 42, 0.62);
 }
 
-.saveModalBody {
-  padding: 16px;
-  text-align: center;
-}
 
 .saveIconWrap,
 .saveSuccessWrap {
@@ -973,8 +1069,8 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-  margin: 4px auto 12px;
   border: 1px solid rgba(20, 24, 40, 0.10);
+  margin: 0; /* IMPORTANT for split layout */
 }
 
 .saveIconWrap {
@@ -1017,6 +1113,65 @@
   display: flex;
   justify-content: center;
 }
+
+/* split layout inside save modal */
+.saveModalBody {
+  padding: 16px;
+  text-align: left; /* was center */
+}
+
+.saveModalSplit {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.saveLeft {
+  display: grid;
+  place-items: center;
+}
+
+/* make icon wrap not auto-centered anymore */
+.saveIconWrap,
+.saveSuccessWrap {
+  margin: 0; /* override the auto-center you had */
+}
+
+/* right side content */
+.saveRight {
+  min-width: 0;
+}
+
+.saveActionsRight {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* progress meta aligned left-ish */
+.progressMeta {
+  justify-content: flex-start; /* was center */
+}
+
+/* responsive: stack on small screens */
+@media (max-width: 520px) {
+  .saveModalSplit {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .saveActionsRight {
+    justify-content: center;
+  }
+
+  .progressMeta {
+    justify-content: center;
+  }
+}
+
 
 /* ============================
    Base palette strip (Ranges)

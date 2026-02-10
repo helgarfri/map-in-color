@@ -34,6 +34,7 @@ import { FaLock } from 'react-icons/fa';
 import MapView from './Map';
 import MapDetailValueTable from "./MapDetailValueTable";
 import { getAnonId } from "../utils/annonId"; // add at top
+import DownloadOptionsModal from "./DownloadOptionsModal";
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
@@ -108,8 +109,9 @@ const [isDeleting, setIsDeleting] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const [isDownloading, setIsDownloading] = useState(false);
 const [reactionLoadingById, setReactionLoadingById] = useState({}); 
+
+const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const toggleThread = (commentId) => {
   setExpandedThreads((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
@@ -244,18 +246,27 @@ if (type === "categorical") {
     const color =
       r.color ?? r.fill ?? r.hex ?? r.rangeColor ?? r.range_color ?? "#e5e7eb";
 
-    const titleOnly =
-      typeof r.title === "string" && r.title.trim() ? r.title.trim() : null;
+const nameOnly =
+  typeof r.name === "string" && r.name.trim() ? r.name.trim() : null;
 
-    const label =
-      titleOnly ??
-      (min != null && max != null
-        ? `${min} – ${max}`
-        : min != null
-        ? `≥ ${min}`
-        : max != null
-        ? `≤ ${max}`
-        : "Range");
+const titleOnly =
+  typeof r.title === "string" && r.title.trim() ? r.title.trim() : null;
+
+const labelOnly =
+  typeof r.label === "string" && r.label.trim() ? r.label.trim() : null;
+
+// ✅ Prefer DB "name" first
+const label =
+  nameOnly ??
+  titleOnly ??
+  labelOnly ??
+  (min != null && max != null
+    ? `${min} – ${max}`
+    : min != null
+    ? `≥ ${min}`
+    : max != null
+    ? `≤ ${max}`
+    : "Range");
 
     // Countries in this bucket
     const codes = new Set();
@@ -754,27 +765,49 @@ function removeCommentOrReply(nodes, idToRemove) {
 
 
 
-  function formatValue(num) {
-    if (typeof num !== 'number' || isNaN(num)) {
-      return String(num);
-    }
-    const suffixes = [
-      { value: 1e24, suffix: 'y' },
-      { value: 1e21, suffix: 'z' },
-      { value: 1e18, suffix: 'e' },
-      { value: 1e15, suffix: 'p' },
-      { value: 1e12, suffix: 't' },
-      { value: 1e9, suffix: 'b' },
-      { value: 1e6, suffix: 'm' },
-      { value: 1e3, suffix: 'k' }
-    ];
-    for (let i = 0; i < suffixes.length; i++) {
-      if (num >= suffixes[i].value) {
-        return (num / suffixes[i].value).toFixed(2) + suffixes[i].suffix;
-      }
-    }
-    return num.toFixed(2);
+function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
+  return n.toLocaleString(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  });
+}
+
+function formatValue(num) {
+  // same safety rules
+  if (num == null) return "No data";
+  if (typeof num !== "number") return String(num);
+  if (!Number.isFinite(num)) return "No data";
+
+  const abs = Math.abs(num);
+
+  // same threshold as Map.js
+  const ABBREV_FROM = 1e15;
+
+  // under 1e15 => full number with commas + up to 5 decimals
+  if (abs < ABBREV_FROM) {
+    return formatLocaleNumber(num, 5, "en-US");
   }
+
+  // huge => word-units like Map.js
+  const units = [
+    { value: 1e24, label: "septillion" },
+    { value: 1e21, label: "sextillion" },
+    { value: 1e18, label: "quintillion" },
+    { value: 1e15, label: "quadrillion" },
+    { value: 1e12, label: "trillion" },
+    { value: 1e9, label: "billion" },
+    { value: 1e6, label: "million" },
+    { value: 1e3, label: "thousand" },
+  ];
+
+  const u = units.find((x) => abs >= x.value) || units[units.length - 1];
+  const scaled = num / u.value;
+
+  // abbreviated: up to 2 decimals, with commas
+  return `${formatLocaleNumber(scaled, 2, "en-US")} ${u.label}`;
+}
+
 
   const timeAgo = mapData?.created_at
   ? formatDistanceToNow(new Date(mapData.created_at), { addSuffix: true })
@@ -830,256 +863,19 @@ const activeLegendModel = useMemo(() => {
   return legendModels.find((x) => x.key === activeLegendKey) ?? null;
 }, [activeLegendKey, legendModels]);
 
+const legendHeaderTitle = useMemo(() => {
+  // If a legend item is active, show its label (name if exists, else "min – max")
+  if (activeLegendModel?.label) return activeLegendModel.label;
+
+  // Otherwise show the map title
+  return mapData?.title || "Untitled Map";
+}, [activeLegendModel, mapData?.title]);
+
 
 const suppressInfoBox = !!activeLegendKey;
 
-function canvasToBlob(canvas, type = "image/png", quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) reject(new Error("canvas.toBlob returned null (canvas may be tainted)."));
-        else resolve(blob);
-      },
-      type,
-      quality
-    );
-  });
-}
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    // If you ever embed external images in the SVG, uncomment this:
-    // img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = (e) => reject(new Error(`Failed to load image: ${src}`));
-    img.src = src;
-  });
-}
 
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.download = filename;
-  link.href = url;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-const handleDownload = async () => {
-  if (isDownloading) return;
-
-  setIsDownloading(true);
-
-  try {
-    const originalSvg = document.querySelector(`.${styles.mapDisplay} svg`);
-    if (!originalSvg) throw new Error("Could not find SVG to download.");
-
-    // 1) Clone SVG
-    const svgClone = originalSvg.cloneNode(true);
-
-    // 2) Replace foreignObject title with <text> (your existing logic)
-    const foreignObject = svgClone.querySelector("foreignObject");
-    if (foreignObject) {
-      const div = foreignObject.querySelector("div");
-      const titleText = div ? div.textContent.trim() : "";
-
-      const x = parseFloat(foreignObject.getAttribute("x") || "170");
-      const y = parseFloat(foreignObject.getAttribute("y") || "100");
-      const width = parseFloat(foreignObject.getAttribute("width") || "250");
-      const dbFontSize = mapData.title_font_size || 28;
-
-      foreignObject.remove();
-
-      const lines = wrapTextIntoLines(
-        titleText,
-        dbFontSize,
-        width,
-        "bold",
-        mapData.font_color || "#333"
-      );
-
-      const textElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      textElement.setAttribute("x", String(x));
-      textElement.setAttribute("y", String(y));
-      textElement.setAttribute("dominant-baseline", "hanging");
-      textElement.setAttribute("fill", mapData.font_color || "#333");
-      textElement.setAttribute("font-weight", "bold");
-      textElement.setAttribute("font-size", String(dbFontSize));
-      textElement.setAttribute(
-        "font-family",
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen'," +
-          "'Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans','Helvetica Neue', sans-serif"
-      );
-
-      lines.forEach((line, index) => {
-        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        tspan.setAttribute("x", String(x));
-        const lineHeight = dbFontSize * 1.2;
-        tspan.setAttribute("y", String(y + index * lineHeight));
-        tspan.textContent = line;
-        textElement.appendChild(tspan);
-      });
-
-      svgClone.appendChild(textElement);
-    }
-
-    // 3) viewBox override
-    if (mapData?.selected_map === "europe") {
-      svgClone.setAttribute("viewBox", "-50 0 700 520");
-    } else if (mapData?.selected_map === "usa") {
-      svgClone.setAttribute("viewBox", "-90 -10 1238 610");
-    } else {
-      svgClone.setAttribute("viewBox", "0 0 2754 1398");
-    }
-
-    // 4) remove elements
-    svgClone.querySelectorAll(".circlexx, .subxx, .noxx, .unxx").forEach((el) => el.remove());
-
-    // 5) inline styles (your existing logic)
-    svgClone.querySelectorAll("*").forEach((el) => {
-      const computed = window.getComputedStyle(el);
-
-      if (["path", "polygon", "circle"].includes(el.tagName.toLowerCase())) {
-        el.setAttribute("stroke", computed.stroke || "#4b4b4b");
-        el.setAttribute("stroke-width", computed.strokeWidth || "0.5");
-        if (computed.fill && computed.fill !== "none") el.setAttribute("fill", computed.fill);
-      }
-
-      if (el.tagName.toLowerCase() === "text") {
-        el.setAttribute(
-          "font-family",
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto','Oxygen'," +
-            "'Ubuntu','Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif"
-        );
-
-        if (el.closest("#legend")) {
-          el.setAttribute("font-weight", "normal");
-        } else if (
-          el.parentElement &&
-          el.parentElement.querySelector("circle") &&
-          el.parentElement.querySelector("circle").getAttribute("cx") === "200"
-        ) {
-          el.setAttribute("font-weight", "normal");
-        } else {
-          el.setAttribute("font-weight", "bold");
-        }
-      }
-    });
-
-    // 6) Serialize to blob URL
-    const svgData = new XMLSerializer().serializeToString(svgClone);
-    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-    const svgUrl = URL.createObjectURL(svgBlob);
-
-    // ✅ Important: await the image load instead of using img.onload callback
-    const svgImg = await loadImage(svgUrl);
-    URL.revokeObjectURL(svgUrl);
-
-    // 7) Prepare canvas
-    const forcedViewBox = svgClone.getAttribute("viewBox");
-    const scaleFactor = 3;
-
-    let width, height;
-    if (forcedViewBox) {
-      const [, , vbWidth, vbHeight] = forcedViewBox.split(" ").map(parseFloat);
-      width = vbWidth * scaleFactor;
-      height = vbHeight * scaleFactor;
-    } else {
-      const rect = originalSvg.getBoundingClientRect();
-      width = rect.width * scaleFactor;
-      height = rect.height * scaleFactor;
-    }
-
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(width);
-    canvas.height = Math.round(height);
-
-    const ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-
-    ctx.drawImage(svgImg, 0, 0, canvas.width, canvas.height);
-
-    const smallerSide = Math.min(canvas.width, canvas.height);
-    const padding = 20;
-
-    // 8) Try logo (but don’t let it block download if it fails)
-    try {
-      const logoImg = await loadImage("/assets/map-in-color-logo.png");
-
-      const logoRatio = 0.1;
-      const logoWidth = smallerSide * logoRatio;
-      const logoHeight = logoImg.height * (logoWidth / logoImg.width);
-
-      ctx.save();
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(
-        logoImg,
-        padding,
-        canvas.height - logoHeight - padding,
-        logoWidth,
-        logoHeight
-      );
-      ctx.restore();
-    } catch (e) {
-      console.error("Logo failed to load, continuing without logo.", e);
-    }
-
-    // 9) Draw references (always)
-    const textRatio = 0.025;
-    const fontSize = smallerSide * textRatio;
-    const lineHeight = fontSize * 1.3;
-
-    ctx.fillStyle = mapData.font_color || "#333";
-    ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`;
-    ctx.textAlign = "right";
-    ctx.textBaseline = "bottom";
-
-    const sources = mapData.sources || [];
-    if (sources.length > 0) {
-      const refStrings = sources.map((ref) => {
-        let line = ref.sourceName || "Unknown";
-        if (ref.publicationYear) line += ` (${ref.publicationYear})`;
-        if (ref.publicator) line += `. ${ref.publicator}.`;
-        return line;
-      });
-
-      let textX = canvas.width - padding;
-      let textY = canvas.height - padding;
-
-      for (let i = refStrings.length - 1; i >= 0; i--) {
-        ctx.fillText(refStrings[i], textX, textY);
-        textY -= lineHeight;
-      }
-    }
-
-    // 10) Convert to blob + download
-    const blob = await canvasToBlob(canvas, "image/png");
-    downloadBlob(blob, `${mapData.title || "map"}.png`);
-
-    // 11) Increment download count (don’t block the download if this fails)
-    try {
-  const payload = isUserLoggedIn ? {} : { anon_id: getAnonId() };
-  const res = await incrementMapDownloadCount(mapData.id, payload);
-
-  if (res?.data?.download_count != null) {
-    setDownloadCount(res.data.download_count);
-  }
-} catch (err) {
-  console.error("Error incrementing download:", err);
-}
-
-  } catch (error) {
-    console.error("Error downloading image:", error);
-  } finally {
-    // ✅ THIS is what stops “loading forever”
-    setIsDownloading(false);
-  }
-};
 
   
   function isFiniteNumber(x) {
@@ -1372,11 +1168,14 @@ if (!mapData) {
 <div className={styles.mapLegendBox} aria-label="Legend">
   <div className={styles.mapLegendHeader}>
     {/* ✅ Only show the title in fullscreen */}
-    {isFullScreen && (
-      <div className={styles.mapLegendTitle}>
-        {mapData?.title || "Untitled Map"}
-      </div>
-    )}
+{isFullScreen && (
+  <div className={styles.mapLegendHeaderRow}>
+    <div className={styles.mapLegendTitle}>
+      {mapData?.title || "Untitled Map"}
+    </div>
+  </div>
+)}
+
 
    
   </div>
@@ -1506,23 +1305,21 @@ if (!mapData) {
               
             )}
 
-   <button
-  className={[
-    styles.statActionBtn,
-    styles.downloadBtn,
-    isDownloading ? styles.downloadLoading : ""
-  ].join(" ")}
-  onClick={handleDownload}
+<button
+  className={[styles.statActionBtn, styles.downloadBtn].join(" ")}
+  onClick={() => setShowDownloadModal(true)}
   type="button"
   title="Download map"
-  disabled={isDownloading}
 >
   <span className={styles.statActionIcon}><BiDownload /></span>
+
   <span className={styles.statActionLabel}>
-    {isDownloading ? "Downloading…" : "Downloads"}
+    {is_public ? "Downloads" : "Download"}
   </span>
-  <span className={styles.statActionValue}>{download_count}</span>
-  {isDownloading && <span className={styles.miniSpinner} aria-hidden="true" />}
+
+  {is_public && (
+    <span className={styles.statActionValue}>{download_count}</span>
+  )}
 </button>
 
 
@@ -2033,6 +1830,19 @@ if (!mapData) {
   )
 }
 
+<DownloadOptionsModal
+  isOpen={showDownloadModal}
+  onClose={() => setShowDownloadModal(false)}
+  mapData={mapData}
+  mapDataProps={mapDataProps}
+  downloadCount={download_count}
+  isPublic={is_public}
+  // ✅ pass auth info so modal can increment properly
+  isUserLoggedIn={isUserLoggedIn}
+  anonId={getAnonId()}
+  // ✅ let modal tell MapDetail the new count
+  onDownloadCountUpdate={(nextCount) => setDownloadCount(nextCount)}
+/>
 
 {showLoginModal && (
   <div className={styles.modalOverlay}>
