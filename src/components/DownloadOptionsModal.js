@@ -111,6 +111,14 @@ const clampNum = (n, a, b) => Math.max(a, Math.min(b, n));
 const renderInFlightRef = useRef(false);
 const pendingRenderRef = useRef(false);
 
+
+const isProRef = useRef(!!isPro);
+
+useEffect(() => {
+  isProRef.current = !!isPro;
+}, [isPro]);
+
+
 useEffect(() => {
   if (!isOpen) return;
 
@@ -1143,12 +1151,12 @@ const exportFromSvg = useCallback(
     const transparentBgLocal = !!(params.transparentBg ?? transparentBg);
     const watermarkOffLocal = !!(params.watermarkOff ?? watermarkOff);
 
-    // ✅ HARD GATE (so client UI can't bypass)
-    const effectiveTransparent = isPro ? transparentBgLocal : false;
-    const effectiveWatermarkOff = isPro ? watermarkOffLocal : false;
+const effectiveTransparent = isProRef.current ? transparentBgLocal : false;
+const effectiveWatermarkOff = isProRef.current ? watermarkOffLocal : false;
 
-    const effectiveJpgPreset =
-      isPro ? jpgPresetLocal : (jpgPresetLocal === "max" ? "high" : jpgPresetLocal);
+const effectiveJpgPreset =
+  isProRef.current ? jpgPresetLocal : (jpgPresetLocal === "max" ? "high" : jpgPresetLocal);
+
 
     const vb = viewBoxFromInsets(cropLocal);
     svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
@@ -2008,11 +2016,12 @@ legendWidthDraftRef.current = String(next);
 
         {/* Max (pro) */}
         <button
-          type="button"
-          className={`${styles.subRow} ${styles.subRowPro} ${jpgPreset === "max" ? styles.subRowActive : ""}`}
-          disabled={isDownloading}
-          onClick={() => setJpgPreset("max")}
-        >
+  type="button"
+  className={`${styles.subRow} ${styles.subRowPro} ${jpgPreset === "max" ? styles.subRowActive : ""}`}
+  disabled={isDownloading || !isPro}
+  onClick={() => isPro && setJpgPreset("max")}
+  title={!isPro ? "Pro feature" : undefined}
+>
           <div className={styles.subLeft}>
             <div className={styles.subName}>
               Max{" "}
@@ -2049,10 +2058,16 @@ legendWidthDraftRef.current = String(next);
           </div>
         </div>
 
-        <label className={styles.switch} aria-label="Transparent background">
-          <input type="checkbox" disabled />
-          <span className={styles.slider} />
-        </label>
+   <label className={styles.switch} aria-label="Transparent background">
+  <input
+    type="checkbox"
+    checked={transparentBg}
+    onChange={(e) => setTransparentBg(e.target.checked)}
+    disabled={!isPro || isDownloading}
+  />
+  <span className={styles.slider} />
+</label>
+
       </div>
     </div>
   )}
@@ -2074,10 +2089,15 @@ legendWidthDraftRef.current = String(next);
         </div>
       </div>
 
-      <label className={styles.switch} aria-label="Toggle watermark off">
-        <input type="checkbox" disabled />
-        <span className={styles.slider} />
-      </label>
+   <label className={styles.switch} aria-label="Toggle watermark off">
+  <input
+    type="checkbox"
+    checked={watermarkOff}
+    onChange={(e) => setWatermarkOff(e.target.checked)}
+    disabled={!isPro || isDownloading}
+  />
+  <span className={styles.slider} />
+</label>
     </div>
   </div>
 

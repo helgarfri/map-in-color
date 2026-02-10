@@ -25,6 +25,12 @@ useEffect(() => {
       try {
         const res = await fetchUserProfile();
         setProfile(res.data);
+ const plan = res.data?.plan ?? "free";
+console.log("plan from API:", plan);
+console.log("computed isPro:", String(plan).toLowerCase() === "pro");
+
+
+
       } catch (err) {
         setErrorProfile('Session expired. Please log in again.');
         setProfile(null);

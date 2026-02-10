@@ -348,7 +348,8 @@ router.get('/', auth, async (req, res) => {
         show_location,
         show_date_of_birth,
         created_at,
-        updated_at
+        updated_at,
+        plan
       `)
       .eq('id', req.user.id)
       .maybeSingle();
