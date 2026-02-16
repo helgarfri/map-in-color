@@ -23,6 +23,7 @@ import {
   FaThumbsUp,
   FaCheck,
   FaTrash,
+  FaBell,
 } from 'react-icons/fa';
 
 export default function NotificationList() {
@@ -181,7 +182,8 @@ export default function NotificationList() {
         {/* Stat box showing unread notifications */}
         <div className={styles.statsBar}>
           <div className={styles.statBox}>
-            <span className={styles.statValue}>{unreadCount}</span>
+            <FaBell className={styles.statIcon} />
+            <div className={styles.statValue}>{unreadCount}</div>
             <div className={styles.statLabel}>Unread Notifications</div>
           </div>
         </div>

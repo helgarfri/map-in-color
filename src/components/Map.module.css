@@ -18,6 +18,57 @@
   --radius-md: 14px;
 }
 
+/* =========================
+   SHARED: FROSTED CARD (legend style)
+   ========================= */
+.frostCard {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 16px;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(255,255,255,0.55) inset;
+
+  overflow: hidden; /* important for inner scroll areas */
+}
+
+.frostHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.frostTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: rgba(15, 23, 42, 0.92);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.frostSub {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.60);
+  line-height: 1.1;
+}
+
+.frostBody {
+  padding: 10px 10px 10px;
+}
+
+
 
 /* =========================
    MAP SHELL
@@ -43,7 +94,7 @@
 .mapCanvas polygon,
 .mapCanvas rect {
   stroke: rgba(0,0,0,0.22);
-  stroke-width: var(--stroke-w, 0.7);
+  stroke-width: var(--stroke-w, 1.05);
   vector-effect: non-scaling-stroke;
 
   /* base transitions */
@@ -61,9 +112,9 @@
   --stroke-active-w: 1.25;
 }
 .mapCanvas[data-stroke="thick"]{
-  --stroke-w: 0.9;
-  --stroke-hover-w: 1.35;
-  --stroke-active-w: 1.7;
+  --stroke-w: 1.0;
+  --stroke-hover-w: 1.0;
+  --stroke-active-w: 1.2;
 }
 
 /* anti-flash fill ONLY while painting */
@@ -194,7 +245,7 @@
 
   color: rgba(0,0,0,0.82);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
 
   will-change: transform;
 }
@@ -227,48 +278,46 @@
 /* =========================
    INFO BOX (MIC CARD)
    ========================= */
+/* =========================
+   INFO BOX (match legend frosted)
+   ========================= */
 .infoBox {
   position: absolute;
   top: 50%;
   right: 14px;
   transform: translateY(-50%);
 
-  width: 320px;
-  max-width: min(360px, calc(100vw - 24px));
+  width: 280px;
+  max-width: min(300px, calc(100% - 28px));
   max-height: min(78vh, calc(100vh - 120px));
 
-  /* ✅ allow inner elements to manage scroll */
-  overflow: hidden;
-
-  background: rgba(255,255,255,0.90);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-
-  padding: 12px; /* ✅ slightly tighter than 14px */
   z-index: 10;
-
-  transform-origin: right center;
   animation: popInSoft 140ms ease-out;
 }
 
-/* small premium arrow */
-.infoBox::before {
-  content: "";
-  position: absolute;
-  top: 18px;
-  right: -6px;
-  width: 12px;
-  height: 12px;
-  transform: rotate(45deg);
-
-  background: rgba(255,255,255,0.90);
-  border-top: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+/* Shrink infobox as map container gets smaller */
+@media (max-width: 960px) {
+  .infoBox {
+    width: 260px;
+    max-width: min(280px, calc(100% - 28px));
+  }
 }
+
+@media (max-width: 840px) {
+  .infoBox {
+    width: 240px;
+    max-width: min(260px, calc(100% - 28px));
+  }
+}
+
+@media (max-width: 760px) {
+  .infoBox {
+    width: 220px;
+    max-width: min(240px, calc(100% - 28px));
+  }
+}
+
+
 
 .infoBoxBody{
   display: grid;
@@ -284,23 +333,11 @@
 
 /* header with accent bar */
 .infoBoxHeader {
-  height: 45px;
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-
-  padding: 10px 12px; /* ✅ compact */
-  border-radius: 16px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(40,168,225,0.12),
-    rgba(20,169,175,0.10)
-  );
-
-  border: 1px solid rgba(0,0,0,0.06);
-  margin-bottom: 8px; /* ✅ compact */
+  /* no background/border here; shared header handles it */
 }
 
 /* left accent like notifications unread bar */
@@ -330,7 +367,7 @@
 .infoBoxHeader h2 {
   margin: 0;
   font-size: 13px;
-  font-weight: 1000;
+  font-weight: 800;
   letter-spacing: 0.2px;
   color: rgba(0,0,0,0.84);
   line-height: 1.15;
@@ -352,16 +389,21 @@
   pointer-events: none;
 
   padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.12);
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  font-weight: 600;
-  font-size: 14px;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+  font-weight: 700;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.72);
+  letter-spacing: 0.02em;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
 
-  transition: transform 180ms ease, opacity 180ms ease;
+  transition: transform 180ms ease, opacity 180ms ease, color 160ms ease;
   z-index: 20;
 }
 
@@ -373,6 +415,7 @@
 
 .resetViewBtn:hover {
   transform: translate(-50%, -2px);
+  color: rgba(15, 23, 42, 0.88);
 }
 
 .resetViewBtn:active {
@@ -383,11 +426,12 @@
 /* Close button */
 .closeBtn {
   all: unset;
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  margin-left: auto;
   width: 26px;
   height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  flex-shrink: 0;
   border-radius: 999px;
 
   display: grid;
@@ -395,15 +439,13 @@
 
   cursor: pointer;
   font-size: 16px;
-  font-weight: 1000;
-  line-height: 1;
+  font-weight: 900;
 
-  color: rgba(0,0,0,0.70);
-  border: 1px solid rgba(0,0,0,0.10);
+  color: rgba(15, 23, 42, 0.70);
+  border: 1px solid rgba(15, 23, 42, 0.10);
   background: rgba(255,255,255,0.70);
 
   box-shadow: 0 10px 22px rgba(0,0,0,0.08);
-  transition: transform 120ms ease, filter 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .closeBtn:hover {
@@ -416,25 +458,6 @@
 .closeBtn:active {
   transform: translateY(0);
   box-shadow: 0 10px 22px rgba(0,0,0,0.08);
-}
-
-/* Value row (compact) */
-.valueRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 8px 10px;     /* ✅ tighter than 10/12 */
-  border-radius: 14px;
-
-  background: rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.08);
-
-  font-size: 12.5px;     /* ✅ slightly smaller */
-  font-weight: 1000;
-  color: rgba(0,0,0,0.78);
-
-  min-width: 0;
 }
 
 
@@ -459,11 +482,9 @@
   padding: 8px 10px;
   border-radius: 14px;
 
-  background: rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.08);
 
   font-size: 12.5px;
-  font-weight: 1000;
+  font-weight: 800;
   color: rgba(0,0,0,0.78);
 
   min-width: 0;
@@ -495,9 +516,6 @@
   padding: 8px 10px 10px 10px;
   padding-left: 30px;           /* indent under the value content (after swatch) */
 
-  border-radius: 0 0 14px 14px; /* only bottom rounded */
-  background: rgba(20,169,175,0.06);
-  border: 1px solid rgba(20,169,175,0.18);
 
   /* ✅ remove the top border so it merges with valueRow */
   border-top: 0;
@@ -582,9 +600,9 @@
 }
 
 /* =========================
-   GROUP INFO BOX (legend click)
+   GROUP INFO BOX (match legend frosted)
    ========================= */
-.groupBox{
+.groupBox {
   position: absolute;
   top: 50%;
   right: 14px;
@@ -593,74 +611,22 @@
   width: 320px;
   max-width: min(360px, calc(100vw - 24px));
   max-height: min(78vh, calc(100vh - 120px));
-  overflow: hidden;
 
-  background: rgba(255,255,255,0.90);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-
-  padding: 12px;
   z-index: 11;
-
-  transform-origin: right center;
   animation: popInSoft 140ms ease-out;
 }
 
-.groupBox::before{
-  content: "";
-  position: absolute;
-  top: 18px;
-  right: -6px;
-  width: 12px;
-  height: 12px;
-  transform: rotate(45deg);
+.groupBox::before { display: none; }
 
-  background: rgba(255,255,255,0.90);
-  border-top: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-}
 
-.groupBoxHeader{
-  height: 45px;
-  position: relative;
+.groupBoxHeader {
   display: flex;
   align-items: center;
   gap: 10px;
-
-  padding: 10px 12px;
-  border-radius: 16px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(225, 182, 40, 0.014),
-    rgba(175, 172, 20, 0)
-  );
-
-  border: 1px solid rgba(0,0,0,0.06);
-  margin-bottom: 8px;
 }
+.groupBoxHeader::before { display: none; }
 
-.groupBoxHeader::before{
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 4px;
-  border-radius: 999px;
 
-  background: linear-gradient(
-    180deg,
-    var(--mic-orange),
-    rgba(252,134,29,0.75)
-  );
-
-  opacity: 0.95;
-}
 
 .groupDot{
   width: 14px;
@@ -694,7 +660,7 @@
 
 .groupCount{
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(0,0,0,0.58);
 }
 
@@ -703,15 +669,15 @@
   gap: 8px;
 }
 
-.groupList{
+.groupList {
   border-radius: 14px;
-  background: rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.08);
-
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.10);
   padding: 8px;
   max-height: 46vh;
   overflow: auto;
 }
+
 
 .groupItem{
   display: grid;
@@ -769,7 +735,7 @@
   border-radius: 12px;
 
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
   color: rgba(0,0,0,0.78);
 
   background: transparent;
@@ -787,9 +753,8 @@
   grid-template-columns: 56px 1fr 110px;
 }
 
-.groupRow:hover{
-  background: rgba(20,169,175,0.06);
-  cursor: pointer;
+.groupRow:hover {
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .groupRowHeader{

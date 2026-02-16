@@ -1,0 +1,192 @@
+/* src/components/MapLegendOverlay.module.css */
+
+.mapLegendBox {
+  position: absolute;
+  z-index: 50;
+
+  /* ✅ bottom-left */
+  left: 16px;
+  bottom: 16px;
+
+  width: fit-content;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+
+  /* ✅ light mode frosted card */
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 16px;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(255,255,255,0.55) inset;
+}
+
+/* embed variant tweaks */
+.mapLegendBox[data-embed="1"] {
+  width: fit-content;
+  border-radius: 14px;
+}
+
+.mapLegendHeader {
+  padding: 10px 12px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.mapLegendHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mapLegendTitle {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+
+  /* ✅ dark text on light */
+  color: rgba(15, 23, 42, 0.92);
+
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  flex: 1;
+}
+
+/* Toggle to collapse legend items (V chevron) – same as MapDetail */
+.mapLegendToggleBtn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(15, 23, 42, 0.7);
+  cursor: pointer;
+  transition: transform 220ms ease, background 120ms ease, color 120ms ease;
+}
+.mapLegendToggleBtn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: rgba(15, 23, 42, 0.9);
+}
+.mapLegendToggleBtnCollapsed {
+  transform: rotate(180deg);
+}
+
+/* Wrapper for legend items so we can animate collapse */
+.mapLegendItemsWrap {
+  overflow: hidden;
+  max-height: 80vh;
+  transition: max-height 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.mapLegendItemsWrapCollapsed {
+  max-height: 0 !important;
+}
+
+.mapLegendItems {
+  padding: 10px 10px 10px;
+  display: grid;
+  gap: 6px;
+
+  max-height: calc(100vh - 32px - 44px);
+  overflow: auto;
+}
+
+.mapLegendEmpty {
+  padding: 10px;
+  font-weight: 650;
+  opacity: 0.75;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.mapLegendRow {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 10px;
+  border-radius: 12px;
+
+  cursor: pointer;
+  user-select: none;
+
+  /* ✅ dark text */
+  color: rgba(15, 23, 42, 0.90);
+
+  background: transparent;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.mapLegendRow:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.mapLegendRowActive {
+  background: rgba(15, 23, 42, 0.10);
+}
+
+.mapLegendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+
+  /* ✅ subtle outline that works on light bg */
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18) inset;
+}
+
+.mapLegendText {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.mapLegendLabel {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapLegendMeta {
+  font-size: 11px;
+  font-weight: 650;
+  opacity: 0.70;
+  color: rgba(15, 23, 42, 0.70);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapLegendHoverHint {
+  opacity: 0.45;
+  font-weight: 900;
+  transform: translateY(-0.5px);
+}
+
+.mapLegendRow:hover .mapLegendHoverHint {
+  opacity: 0.65;
+}
+
+/* nicer scrollbars (optional) */
+.mapLegendBox::-webkit-scrollbar { width: 10px; }
+.mapLegendBox::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.14);
+  border: 2px solid rgba(255,255,255,0.75);
+  border-radius: 999px;
+}
+.mapLegendBox::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.20);
+}

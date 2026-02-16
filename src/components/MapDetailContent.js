@@ -6,8 +6,7 @@ import Sidebar from './Sidebar';
 import styles from './MapDetail.module.css';
 import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
-import FullScreenMap from './FullScreenMap';
-import { BiDownload, BiSend } from 'react-icons/bi';
+import { BiDownload, BiSend, BiShare } from 'react-icons/bi';
 import { createPortal } from "react-dom";
 import {
   fetchMapById,
@@ -35,6 +34,7 @@ import MapView from './Map';
 import MapDetailValueTable from "./MapDetailValueTable";
 import { getAnonId } from "../utils/annonId"; // add at top
 import DownloadOptionsModal from "./DownloadOptionsModal";
+import ShareOptionsModal from './ShareOptionsModal';
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
@@ -67,6 +67,9 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
 
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  const [showShareModal, setShowShareModal] = useState(false);
+
+
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
 
 const [loadState, setLoadState] = useState("loading"); 
@@ -98,6 +101,8 @@ const [isDeleting, setIsDeleting] = useState(false);
   const [activeLegendKey, setActiveLegendKey] = useState(null);
   const [hoverLegendKey, setHoverLegendKey] = useState(null);
 
+  // View mode only: collapse legend items (header stays visible)
+  const [legendCollapsed, setLegendCollapsed] = useState(false);
 
   // controls whether Map should zoom when syncing selection
   const [selectedCodeZoom, setSelectedCodeZoom] = useState(false);
@@ -223,7 +228,6 @@ if (type === "categorical") {
     })
     .filter((m) => m.label);
 
-  models.sort((a, b) => a.label.localeCompare(b.label));
   return models;
 }
 
@@ -1167,20 +1171,28 @@ if (!mapData) {
 )}
 
 <div className={styles.mapLegendBox} aria-label="Legend">
-  <div className={styles.mapLegendHeader}>
-    {/* ✅ Only show the title in fullscreen */}
-{isFullScreen && (
+    {/* Header with title + collapse toggle: always visible so we can collapse from anywhere */}
+    <div className={styles.mapLegendHeader}>
   <div className={styles.mapLegendHeaderRow}>
     <div className={styles.mapLegendTitle}>
       {mapData?.title || "Untitled Map"}
     </div>
+    <button
+      type="button"
+      className={`${styles.mapLegendToggleBtn} ${legendCollapsed ? styles.mapLegendToggleBtnCollapsed : ''}`}
+      onClick={() => setLegendCollapsed((c) => !c)}
+      aria-label={legendCollapsed ? 'Show legend' : 'Hide legend'}
+      aria-expanded={!legendCollapsed}
+      title={legendCollapsed ? 'Show legend' : 'Hide legend'}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </button>
   </div>
-)}
+    </div>
 
-
-   
-  </div>
-
+<div className={`${styles.mapLegendItemsWrap} ${legendCollapsed ? styles.mapLegendItemsWrapCollapsed : ''}`}>
 <div className={styles.mapLegendItems}>
   {legendModels.length === 0 ? (
     <div className={styles.mapLegendEmpty}>No legend data</div>
@@ -1221,6 +1233,7 @@ if (!mapData) {
       );
     })
   )}
+</div>
 </div>
 
 </div>
@@ -1313,14 +1326,21 @@ if (!mapData) {
   title="Download map"
 >
   <span className={styles.statActionIcon}><BiDownload /></span>
-
   <span className={styles.statActionLabel}>
     {is_public ? "Downloads" : "Download"}
   </span>
+  {is_public && <span className={styles.statActionValue}>{download_count}</span>}
+</button>
 
-  {is_public && (
-    <span className={styles.statActionValue}>{download_count}</span>
-  )}
+{/* ✅ NEW: Share */}
+<button
+  className={[styles.statActionBtn, styles.downloadBtn].join(" ")}
+  onClick={() => setShowShareModal(true)}
+  type="button"
+  title="Share map"
+>
+  <span className={styles.statActionIcon}><BiShare /></span>
+  <span className={styles.statActionLabel}>Share</span>
 </button>
 
 
@@ -1845,6 +1865,17 @@ if (!mapData) {
   onDownloadCountUpdate={(nextCount) => setDownloadCount(nextCount)}
   isPro={isPro}
 />
+
+<ShareOptionsModal
+  isOpen={showShareModal}
+  onClose={() => setShowShareModal(false)}
+  mapData={mapData}
+  mapDataProps={mapDataProps}
+  isPublic={is_public}
+  isPro={isPro}
+  isOwner={isOwner}
+/>
+
 
 {showLoginModal && (
   <div className={styles.modalOverlay}>

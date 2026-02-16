@@ -20,9 +20,17 @@ export default function Header({ title }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
 
-  const navigate = useNavigate();
-  const { profile, setAuthToken } = useContext(UserContext);
-        const { isCollapsed, toggleCollapsed } = useContext(SidebarContext);
+    const navigate = useNavigate();
+
+  // ✅ get context FIRST
+  const { profile, setAuthToken, isPro } = useContext(UserContext);
+  const { isCollapsed, toggleCollapsed } = useContext(SidebarContext);
+
+  // ✅ then compute things that depend on it
+  const isProUser = !!isPro; // uses your context logic: plan === "pro"
+  const headerLogoSrc = isProUser
+    ? "/assets/3-0/PRO-logo.png"
+    : "/assets/3-0/mic-logo-2-5.png";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,10 +111,11 @@ export default function Header({ title }) {
         <div className={styles.logoWrapper}>
           <Link to="/dashboard" className={styles.logoLink}>
             <img
-              src="/assets/3-0/mic-logo-2-5.png"
-              alt="App Logo"
-              className={styles.logo}
-            />
+                src={headerLogoSrc}
+                alt={isProUser ? "Map in Color Pro" : "Map in Color"}
+                className={`${styles.logo} ${isProUser ? styles.logoPro : ""}`}
+              />
+
           </Link>
           {title && <span className={styles.headerTitle}>{title}</span>}
         </div>

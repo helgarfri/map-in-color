@@ -10,8 +10,6 @@ import {
 } from "../api";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import { UserContext } from "../context/UserContext";
-
-// Icons
 import { FaStar, FaMap, FaCalendarAlt, FaEdit } from "react-icons/fa";
 
 import Sidebar from "./Sidebar";
@@ -23,6 +21,56 @@ import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
 
 import styles from "./Dashboard.module.css";
+
+// Daily welcome messages (rotate at 6 AM local time each day)
+const DAILY_WELCOME_MESSAGES = [
+  "🌍 Here's what's mapping today.",
+  "Let's color the world.",
+  "Your maps are waiting.",
+  "What will you visualize today?",
+  "The world is blank. Ready to fill it?",
+  "Let's turn data into geography.",
+  "Time to map something meaningful.",
+  "Your cartography lab is open.",
+  "Ready to paint the planet?",
+  "The globe is your canvas.",
+  "Let's make the invisible visible.",
+  "Another day, another map.",
+  "Data deserves borders.",
+  "What story will your map tell?",
+  "Let's give your data a home.",
+  "Your world-building tools are ready.",
+  "Today's forecast: 100% chance of mapping.",
+  "Build something worth exploring.",
+  "Ready to shape the world?",
+  "Make every country count.",
+  "Let's put things on the map.",
+  "Start mapping your next insight.",
+  "The atlas awaits.",
+  "Let's chart new territory.",
+  "Your dashboard. Your world.",
+  "Where will your data take us?",
+  "Time to zoom in on something great.",
+  "The map is yours.",
+  "Create something worth clicking.",
+  "Let's map what matters.",
+];
+
+/** Returns the message index for "today" using a 6 AM daily boundary (local time). */
+function getDailyMessageIndex() {
+  const now = new Date();
+  const hour = now.getHours();
+  const date = new Date(now);
+  // Before 6 AM counts as previous calendar day for message selection
+  if (hour < 6) date.setDate(date.getDate() - 1);
+  const dayKey = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayIndex = Math.floor(dayKey / (24 * 60 * 60 * 1000));
+  return dayIndex % DAILY_WELCOME_MESSAGES.length;
+}
+
+function getDailyWelcomeMessage() {
+  return DAILY_WELCOME_MESSAGES[getDailyMessageIndex()];
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -277,7 +325,7 @@ export default function Dashboard() {
                   <div className={styles.welcomeSub}>
                     {profileAgeDays <= 2
                       ? "Create your first map and make it yours."
-                      : "Here’s what’s mappening."}
+                      : getDailyWelcomeMessage()}
                   </div>
                 </div>
 

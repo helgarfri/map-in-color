@@ -1,262 +1,302 @@
-/* Overall container */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+
+  --bg: #f7f7f7;
+  --card: #ffffff;
+  --text: rgba(0,0,0,0.78);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+}
+
+/* ===== Page shell ===== */
 .notificationsContainer {
   display: flex;
   min-height: 100vh;
-  color: #000;
   margin-top: 60px;
-  background-color: #f7f7f7;
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* Main content styling */
 .mainContent {
   flex: 1;
-  padding: 0px 20px;
-  margin-left: 250px; /* Sidebar width when expanded */
+  padding: 0 22px 26px;
+  margin-left: 250px; /* sidebar expanded */
   transition: margin-left 0.3s ease;
 }
 
 .contentCollapsed {
-  margin-left: 70px; /* Sidebar width when collapsed */
+  margin-left: 70px; /* sidebar collapsed */
 }
 
-/* Stat box at the top */
+/* ===== Stats bar ===== */
 .statsBar {
   display: flex;
-  margin: 20px 20px;
-}
-
-.statBox {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0 18px;
   align-items: center;
 }
 
+.statBox {
+  background: rgba(255,255,255,0.90);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 12px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  box-shadow: var(--shadow-sm);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.statBox:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.20);
+  box-shadow: var(--shadow);
+}
+
+.statIcon {
+  font-size: 14px;
+  color: rgba(0,0,0,0.62);
+}
+
 .statValue {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-right: 10px;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.78);
+  line-height: 1;
 }
 
 .statLabel {
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  margin-left: 2px;
 }
 
-/* Notification List */
+/* ===== Notification list ===== */
 .notificationList {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
 }
 
-/* Each notification as a card */
+/* ===== Notification card (matches mapCard) ===== */
 .notificationItem {
-  background-color: #fff;
-  margin: 10px 20px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+  display: flex;
+  flex-direction: column;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .notificationItem:hover {
-  background-color: #f5f5f5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: var(--shadow);
 }
 
 .unread {
-  background-color: #e6f7ff;
+  background: linear-gradient(135deg, rgba(40,168,225,0.08), rgba(20,169,175,0.06));
+  border-color: rgba(20,169,175,0.18);
 }
 
 .read {
-  background-color: #fff;
+  background: var(--card);
 }
 
-/* Notification content layout */
+/* Content layout */
 .notificationContentWrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
-/* Main info section on the left */
 .mainInfo {
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 }
 
-/* Type icon */
 .typeIconWrapper {
   margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .typeIcon {
-  font-size: 20px;
-  color: #28a8e1;
+  font-size: 18px;
+  color: var(--mic-azure);
 }
 
-/* Profile picture */
 .profile_picture {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  margin-right: 10px;
+  margin-right: 12px;
+  flex-shrink: 0;
 }
 
-/* Notification text and time */
 .notificationText {
   flex: 1;
+  min-width: 0;
 }
 
 .notificationContent {
   margin: 0;
   font-size: 14px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.78);
+  line-height: 1.4;
 }
 
 .senderLink {
-  color: #000;
-  font-weight: bold;
+  color: rgba(0,0,0,0.85);
+  font-weight: 900;
   text-decoration: none;
 }
 
 .senderLink:hover {
   text-decoration: underline;
+  color: var(--mic-azure);
 }
 
 .notificationTime {
   font-size: 12px;
-  color: #999;
-  margin-top: 5px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  margin-top: 4px;
 }
 
-/* Actions on the right */
+/* ===== Actions (matches YourMaps actionsRow buttons) ===== */
 .actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
-/* Action button styling */
 .actionButton {
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 16px;
+  all: unset;
   cursor: pointer;
-  padding: 5px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: rgba(0,0,0,0.62);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.90);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .actionButton:hover {
-  color: #000;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(20,169,175,0.18);
+  color: rgba(0,0,0,0.78);
 }
 
 .actionButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  box-shadow: none;
   transform: none;
 }
 
+.actionButton:not(:disabled):last-of-type:hover {
+  border-color: rgba(210,75,76,0.25);
+}
 
-/* No notifications text */
+/* ===== Empty state ===== */
 .noNotifications {
-  text-align: center;
+  text-align: left;
   margin-top: 20px;
-  color: #666;
+  color: rgba(0,0,0,0.62);
+  font-weight: 800;
 }
 
-/* --- Skeleton Styles --- */
+/* ===== Skeleton ===== */
 @keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.skeletonShimmer {
-  position: relative;
-  overflow: hidden;
-  background-color: #eee;
-}
-
-.skeletonShimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 50%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .skeletonContainer {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin: 20px;
+  gap: 14px;
+  margin-top: 8px;
 }
 
 .skeletonNotification {
   display: flex;
   align-items: center;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.90);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .skeletonAvatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #ddd;
-  margin-right: 10px;
+  background: rgba(0,0,0,0.06);
+  margin-right: 12px;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .skeletonAvatar::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
   background: linear-gradient(
-    to right,
+    90deg,
     transparent 0%,
-    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0.60) 50%,
     transparent 100%
   );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  animation: shimmer 1.15s infinite;
 }
 
 .skeletonTextWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .skeletonLine {
   height: 12px;
-  background-color: #eee;
-  border-radius: 4px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
 }
@@ -264,102 +304,121 @@
 .skeletonLine::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
   background: linear-gradient(
-    to right,
+    90deg,
     transparent 0%,
-    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0.60) 50%,
     transparent 100%
   );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  animation: shimmer 1.15s infinite;
 }
 
-/* Skeleton actions (optional) */
 .skeletonActions {
-  width: 50px;
-  height: 20px;
-  background-color: #ddd;
-  border-radius: 4px;
+  width: 80px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
+
 .skeletonActions::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
   background: linear-gradient(
-    to right,
+    90deg,
     transparent 0%,
-    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0.60) 50%,
     transparent 100%
   );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  animation: shimmer 1.15s infinite;
 }
 
-/* Responsive adjustments */
+/* ===== Responsive ===== */
 @media (max-width: 1000px) {
-  .mainContent {
-    margin-left: 0 !important;
-    width: 100%;
-  }
+  .mainContent,
   .contentCollapsed {
     margin-left: 0 !important;
+    width: 100%;
+    padding: 0 14px 18px;
   }
 }
 
 @media (max-width: 600px) {
-
-  .mainContent {
-    padding-top: 0;
-  }
- 
-  .actions {
-    align-self: flex-end;
-    margin-top: 5px;
-  }
-  .notificationText {
-    margin-left: 0;
-  }
-  .notificationTime {
-    margin-top: 5px;
-  }
-
   .statsBar {
-    margin: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .statBox {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .notificationContentWrapper {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 4px;
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .notificationItem {
-    padding: 10px;
-    margin: 5px;
+    padding: 12px;
   }
+
   .profile_picture {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
   }
+
   .typeIcon {
     font-size: 16px;
   }
+
   .notificationContent {
+    font-size: 13px;
+  }
+
+  .notificationTime {
+    font-size: 11px;
+  }
+
+  .actionButton {
+    width: 32px;
+    height: 32px;
     font-size: 12px;
   }
-  .notificationTime {
-    font-size: 10px;
-  }
-  .actionButton {
-    font-size: 14px;
-    padding: 3px;
-  }
-  .statsBar {
-    margin: 0 10px 10px 10px;
-  }
+}
+
+/* Overflow safety (match YourMaps) */
+.notificationsContainer,
+.mainContent {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.statBox {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.statValue,
+.statLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

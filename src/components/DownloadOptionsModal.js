@@ -60,11 +60,13 @@ const defaultCropRef = useRef({ top: 0, right: 0, bottom: 0, left: 0 });
 
 const defaultLegendSizeRef = useRef(1.0);
 const didInitLegendSizeRef = useRef(false);
+const isLegendWidthAutoRef = useRef(true); // ✅ controls mode
 
 
-const [legendWidthPx, setLegendWidthPx] = useState(900); // placeholder, we’ll set real default on open
-const legendWidthDraftRef = useRef("900");
-const [legendWidthDraft, setLegendWidthDraft] = useState("900");
+const [legendWidthPx, setLegendWidthPx] = useState(null); // null = AUTO
+const legendWidthDraftRef = useRef("");                   // empty = AUTO
+const [legendWidthDraft, setLegendWidthDraft] = useState("");
+
 
 const [legendSizeDraft, setLegendSizeDraft] = useState("100"); // percent string
 const legendSizeDraftRef = useRef("100");
@@ -82,26 +84,35 @@ const [jpgPreset, setJpgPreset] = useState("high"); // "web" | "high" | "max"
 const [transparentBg, setTransparentBg] = useState(false); // pro
 const [watermarkOff, setWatermarkOff] = useState(false);   // pro
 
+const [pdfPaper, setPdfPaper] = useState("a4"); // "a4" | "letter"
+const [pdfOrientation, setPdfOrientation] = useState("landscape"); // "landscape" | "portrait"
+
+const [legendOn, setLegendOn] = useState(true); // ✅ default ON
+
 
 const renderParams = useMemo(() => {
-  // Only include what actually changes the output
   return {
     format,
+    legendOn,                 // ✅ add
     legendPos,
     legendWidthPx,
     legendSize,
     crop,
-    // If mapTransform is NOT used in export anymore, remove it from here.
-    // mapTransform,
     mapId: mapData?.id,
-    title: mapData?.title, 
-    jpgPreset,       
-    transparentBg,  
-    watermarkOff,    
+    title: mapData?.title,
+    jpgPreset,
+    transparentBg,
+    watermarkOff,
+    pdfPaper,
+    pdfOrientation,
   };
-}, [format, legendPos, legendWidthPx, legendSize, crop,
+}, [
+  format,
+  legendOn,                  // ✅ add
+  legendPos, legendWidthPx, legendSize, crop,
   jpgPreset, transparentBg, watermarkOff,
-  mapData?.id, mapData?.title]);
+  mapData?.id, mapData?.title, pdfPaper, pdfOrientation
+]);
 
 const debouncedRenderParams = useDebouncedValue(renderParams, 350);
 
@@ -111,7 +122,7 @@ const clampNum = (n, a, b) => Math.max(a, Math.min(b, n));
 const renderInFlightRef = useRef(false);
 const pendingRenderRef = useRef(false);
 
-
+const LEGEND_MIN_W = 120;
 const isProRef = useRef(!!isPro);
 
 useEffect(() => {
@@ -141,6 +152,10 @@ useEffect(() => {
   setPreviewUrl(null);
   setPreviewBlob(null);
   setPreviewFormat(null);
+
+  setPdfPaper("a4");
+  setPdfOrientation("landscape");
+  setLegendOn(true);
 
   setLegendPos({ x: 0.02, y: 0.78 });
   setLegendSizeDraft("100");
@@ -202,15 +217,35 @@ if (!bbox) {
   const exportCanvasW = Math.round(vb.w * scaleFactor);
 
 if (!didInitLegendWidthRef.current) {
-  const w0 = computeAutoLegendWidthFromCrop(fullInsets);
+  let sizeForWidth = defaultLegendSizeRef.current ?? 1.0;
+
+  if (!didInitLegendSizeRef.current) {
+    const s0 = computeAutoLegendSizeFromCrop(fullInsets);
+    defaultLegendSizeRef.current = s0;
+    didInitLegendSizeRef.current = true;
+    setLegendSize(s0);
+
+    const pct = String(Math.round(s0 * 100));
+    setLegendSizeDraft(pct);
+    legendSizeDraftRef.current = pct;
+
+    sizeForWidth = s0;
+  }
+
+  const vb2 = viewBoxFromInsets(fullInsets);
+  const exportCanvasW = Math.round(vb2.w * 3);
+
+  const w0 = computeLegendNoWrapWidthPx(mapData, exportCanvasW, sizeForWidth);
 
   defaultLegendWidthRef.current = w0;
   didInitLegendWidthRef.current = true;
 
-  setLegendWidthPx(w0);
+  isLegendWidthAutoRef.current = true;
+  setLegendWidthPx(null);
   setLegendWidthDraft(String(w0));
   legendWidthDraftRef.current = String(w0);
 }
+
 
 }
 
@@ -224,12 +259,14 @@ if (!didInitLegendWidthRef.current) {
   return;
 }
 
-
 const baseVB = buildExportViewBoxDefault(bbox);
 const insets = insetsFromViewBox(baseVB);
 
-defaultCropRef.current = insets;   // ✅ store default
+defaultCropRef.current = insets; // ✅ store default
 setCrop(insets);
+
+// ✅ always have a size value available for width calc
+let sizeForWidth = defaultLegendSizeRef.current ?? 1.0;
 
 if (!didInitLegendSizeRef.current) {
   const s0 = computeAutoLegendSizeFromCrop(insets);
@@ -242,21 +279,29 @@ if (!didInitLegendSizeRef.current) {
   const pct = String(Math.round(s0 * 100));
   setLegendSizeDraft(pct);
   legendSizeDraftRef.current = pct;
+
+  sizeForWidth = s0; // ✅ IMPORTANT (now width can safely use it)
 }
 
-
 if (!didInitLegendWidthRef.current) {
-  const w0 = computeAutoLegendWidthFromCrop(insets);
+  const vb2 = viewBoxFromInsets(insets);
+  const exportCanvasW = Math.round(vb2.w * 3);
+
+  const w0 = computeLegendNoWrapWidthPx(mapData, exportCanvasW, sizeForWidth);
 
   defaultLegendWidthRef.current = w0;
   didInitLegendWidthRef.current = true;
 
-  setLegendWidthPx(w0);
-  setLegendWidthDraft(String(w0));
+  // ✅ start in AUTO mode, BUT show the computed number in the input
+  isLegendWidthAutoRef.current = true;
+  setLegendWidthPx(null);                 // auto render
+  setLegendWidthDraft(String(w0));        // show number
   legendWidthDraftRef.current = String(w0);
 }
 
+
 didInitCropRef.current = true;
+
 
   };
 
@@ -312,19 +357,24 @@ function computeAutoLegendSizeFromCrop(initialInsets) {
 
 
 function computeAutoLegendWidthFromCrop(initialInsets) {
-  const BASE = 900;     // your baseline for full-width map
-  const MIN = 360;      // keep UI safe
-  const MAX = 1200;     // optional cap so it never looks insane
+  const scaleFactor = 3;
 
-  const l = Number(initialInsets?.left ?? 0);
-  const r = Number(initialInsets?.right ?? 0);
+  // how wide is the EXPORT actually (after crop)?
+  const vb = viewBoxFromInsets(initialInsets);
+  const exportCanvasW = Math.round(vb.w * scaleFactor);
 
-  const croppedFrac = clamp01((l + r) / 100);     // 0..1
-  const visibleFrac = Math.max(0.15, 1 - croppedFrac); // never go to zero
+  // pick a reasonable default as a fraction of export width
+  // (for tight crops this becomes smaller automatically)
+  const BASE_FRAC = 0.28; // tweak 0.24..0.32
+  const base = Math.round(exportCanvasW * BASE_FRAC);
 
-  const w = Math.round(BASE * visibleFrac);
-  return Math.max(MIN, Math.min(MAX, w));
+  // allow much smaller widths (so Nordic crops don’t look insane)
+  const MIN = 120;                    // ✅ allows ~100-ish sizes
+  const MAX = Math.round(exportCanvasW - 40); // never exceed canvas width
+
+  return Math.max(MIN, Math.min(MAX, base));
 }
+
 
 
 
@@ -351,6 +401,7 @@ function computeAutoLegendWidthFromCrop(initialInsets) {
     () => ({
       jpg: { title: "JPG", hint: "Best for sharing (smaller file size)." },
       png: { title: "PNG", hint: "Best for crisp details and complex visuals." },
+      svg: { title: "SVG", hint: "Vector export (best for editing and infinite scaling)." },
     }),
     []
   );
@@ -497,6 +548,42 @@ function getBBoxAllMapShapes(svgEl) {
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
+function svgToBlobUrl(svgEl) {
+  const svgData = new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  return { blob, url };
+}
+
+function applyWatermarkToSvg(svgEl, vb, text = "mapincolor.com") {
+  const ns = "http://www.w3.org/2000/svg";
+
+  const g = document.createElementNS(ns, "g");
+  g.setAttribute("opacity", "0.22");
+
+  const t = document.createElementNS(ns, "text");
+  const pad = Math.max(10, vb.w * 0.01);
+
+  t.setAttribute("x", String(vb.x + vb.w - pad));
+  t.setAttribute("y", String(vb.y + vb.h - pad));
+  t.setAttribute("text-anchor", "end");
+  t.setAttribute("dominant-baseline", "ideographic");
+  t.setAttribute(
+    "font-family",
+    `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
+  );
+  t.setAttribute("font-weight", "700");
+
+  const fontSize = Math.max(10, Math.round(vb.w * 0.015));
+  t.setAttribute("font-size", String(fontSize));
+  t.setAttribute("fill", "#0f172a");
+
+  t.textContent = text;
+
+  g.appendChild(t);
+  svgEl.appendChild(g);
+}
+
 
 function buildLegendItemsFromMapData(mapData) {
   const type = String(
@@ -505,7 +592,8 @@ function buildLegendItemsFromMapData(mapData) {
 
   if (type === "categorical") {
     const groups = parseJsonArray(mapData?.groups);
-    const items = groups
+
+    return groups
       .map((g, idx) => {
         const label =
           (typeof g.title === "string" && g.title.trim())
@@ -515,16 +603,14 @@ function buildLegendItemsFromMapData(mapData) {
         const color =
           g.color ?? g.fill ?? g.hex ?? g.groupColor ?? g.group_color ?? "#e5e7eb";
 
-        return { key: g.id ?? `g-${idx}`, label: String(label), color };
+        return { key: g.id ?? `g-${idx}`, label: String(label), color, idx };
       })
       .filter((x) => x.label);
-
-    items.sort((a, b) => a.label.localeCompare(b.label));
-    return items;
   }
 
   // choropleth
   const ranges = parseJsonArray(mapData?.custom_ranges ?? mapData?.customRanges);
+
   const items = ranges
     .map((r, idx) => {
       const min = numOrNull(r.lowerBound ?? r.min ?? r.from ?? r.start ?? r.low ?? r.lower ?? r.rangeMin);
@@ -533,20 +619,13 @@ function buildLegendItemsFromMapData(mapData) {
       const color =
         r.color ?? r.fill ?? r.hex ?? r.rangeColor ?? r.range_color ?? "#e5e7eb";
 
-      const nameOnly = typeof r.name === "string" && r.name.trim() ? r.name.trim() : null;
-      const titleOnly = typeof r.title === "string" && r.title.trim() ? r.title.trim() : null;
-      const labelOnly = typeof r.label === "string" && r.label.trim() ? r.label.trim() : null;
-
       const label =
-        nameOnly ??
-        titleOnly ??
-        labelOnly ??
-        (min != null && max != null
-          ? `${min} – ${max}`
-          : min != null
-          ? `≥ ${min}`
-          : max != null
-          ? `≤ ${max}`
+        (typeof r.name === "string" && r.name.trim() && r.name.trim()) ||
+        (typeof r.title === "string" && r.title.trim() && r.title.trim()) ||
+        (typeof r.label === "string" && r.label.trim() && r.label.trim()) ||
+        (min != null && max != null ? `${min} – ${max}`
+          : min != null ? `≥ ${min}`
+          : max != null ? `≤ ${max}`
           : "Range");
 
       return {
@@ -721,37 +800,185 @@ function computeLegendNoWrapWidthPx(mapData, canvasW, legendSize = 1) {
   const desired = Math.ceil(contentW + cardPad * 2);
 
   const hardMax = Math.round(canvasW - outerPad * 2);
-  const hardMin = 240;
+  const hardMin = LEGEND_MIN_W;
 
   return Math.max(hardMin, Math.min(hardMax, desired));
 }
 
 
+async function exportPdfFromSvg(paramsArg = {}) {
+  // dynamic import keeps bundles lighter + avoids SSR surprises
+  const { jsPDF } = await import("jspdf");
 
-function drawLegendBoxOnCanvas(ctx, canvas, { title, items, anchor="bottom-left", pos, widthPx = null, size = 1 }){
+  // We render the map to a canvas first (as PNG) using your existing pipeline.
+  // NOTE: We force a white background for PDF (PDF “transparent” is annoying / inconsistent).
+  const params = paramsArg || {};
+  const pdfPaperLocal = params.pdfPaper ?? pdfPaper;
+  const pdfOrientationLocal = params.pdfOrientation ?? pdfOrientation;
+
+  // ✅ Render a raster canvas using your existing exportFromSvg,
+  // but force format="png" and force non-transparent background.
+  const out = await exportFromSvg("png", {
+    ...params,
+    transparentBg: false, // force white bg for PDF
+  });
+
+  // Turn blob -> image data url
+  const imgUrl = out.url; // blob url
+  const img = await loadImage(imgUrl);
+
+  // Create PDF
+  const doc = new jsPDF({
+    orientation: pdfOrientationLocal, // "landscape" | "portrait"
+    unit: "pt",
+    format: pdfPaperLocal, // "a4" | "letter"
+    compress: true,
+  });
+
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  // simple margins
+  const margin = 28; // pt
+  const maxW = pageW - margin * 2;
+  const maxH = pageH - margin * 2;
+
+  // Fit image to page (preserve aspect ratio)
+  const imgW = img.width;
+  const imgH = img.height;
+
+  const scale = Math.min(maxW / imgW, maxH / imgH);
+  const drawW = imgW * scale;
+  const drawH = imgH * scale;
+
+  const x = (pageW - drawW) / 2;
+  const y = (pageH - drawH) / 2;
+
+  // Put image in PDF (PNG)
+  // jsPDF wants a data URL or raw image data; using the image element is fine via canvas
+  const tmpCanvas = document.createElement("canvas");
+  tmpCanvas.width = imgW;
+  tmpCanvas.height = imgH;
+  const tmpCtx = tmpCanvas.getContext("2d");
+  tmpCtx.fillStyle = "#ffffff";
+  tmpCtx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+  tmpCtx.drawImage(img, 0, 0);
+
+  const dataUrl = tmpCanvas.toDataURL("image/png");
+  doc.addImage(dataUrl, "PNG", x, y, drawW, drawH);
+
+  const pdfBlob = doc.output("blob");
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+
+  // cleanup raster url we created
+  try { URL.revokeObjectURL(out.url); } catch {}
+
+  return { blob: pdfBlob, url: pdfUrl, fmt: "pdf" };
+}
+
+function computeBaselineNudgePx(fontPx, userNudgePx) {
+  // if user passes a number, treat it as a multiplier when small (like 0.12)
+  // or absolute px when large (like 2,3,4)
+  if (Number.isFinite(userNudgePx)) {
+    // if they pass like 0.1..0.3 assume "ratio"
+    if (Math.abs(userNudgePx) <= 0.5) return fontPx * userNudgePx;
+    // else assume absolute px
+    return userNudgePx;
+  }
+
+  // default tuned ratio
+  const raw = fontPx * 0.14;
+
+  // clamp so it doesn't go crazy at big sizes
+  return Math.max(1, Math.min(raw, fontPx * 0.22));
+}
+
+function withHiddenSvgMounted(svgEl, fn) {
+  // If it's already in DOM, just run
+  if (svgEl.isConnected) return fn();
+
+  const host = document.createElement("div");
+  host.style.position = "fixed";
+  host.style.left = "-99999px";
+  host.style.top = "-99999px";
+  host.style.width = "1px";
+  host.style.height = "1px";
+  host.style.overflow = "hidden";
+  host.style.opacity = "0";
+  host.style.pointerEvents = "none";
+
+  document.body.appendChild(host);
+  host.appendChild(svgEl);
+
+  try {
+    return fn();
+  } finally {
+    host.remove(); // removes svgEl too
+  }
+}
+
+function addExportLegendToSvg(
+  svgEl,
+  vb,
+  {
+    title,
+    items,
+    pos, // {x:0..1, y:0..1}
+    widthPx = null, // raster px, convert via scaleFactor
+    size = 1,
+    scaleFactor = 3,
+  }
+) {
   if (!items?.length) return;
 
-  // ─────────────────────────────────────────────
-  // Helpers
-  // ─────────────────────────────────────────────
-  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const ns = "http://www.w3.org/2000/svg";
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const s = clamp(Number(size) || 1, 0.75, 1.8);
 
-  function wrapCanvasText(ctx, text, maxWidth) {
+  // remove prior
+  svgEl.querySelector("#export-legend")?.remove();
+  svgEl.querySelector("#export-legend-filter")?.remove();
+
+  // measure text via canvas
+  const measCanvas = document.createElement("canvas");
+  const mctx = measCanvas.getContext("2d");
+  const fontFamily = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+
+  const setFont = (fontPx, weight) => {
+    mctx.font = `${weight} ${fontPx}px ${fontFamily}`;
+  };
+
+  const measureWidth = (fontPx, weight, text) => {
+    setFont(fontPx, weight);
+    return mctx.measureText(String(text || "")).width;
+  };
+
+  const measureMetrics = (fontPx, weight) => {
+    setFont(fontPx, weight);
+    const m = mctx.measureText("Mg"); // good tall glyph sample
+    // Fallbacks if browser doesn't provide actualBoundingBox*
+    const ascent =
+      Number.isFinite(m.actualBoundingBoxAscent) ? m.actualBoundingBoxAscent : fontPx * 0.8;
+    const descent =
+      Number.isFinite(m.actualBoundingBoxDescent) ? m.actualBoundingBoxDescent : fontPx * 0.2;
+    return { ascent, descent, glyphH: ascent + descent };
+  };
+
+  const wrap = (fontPx, weight, text, maxW) => {
     const raw = String(text || "").trim();
     if (!raw) return [];
-
     const words = raw.split(/\s+/).filter(Boolean);
     const lines = [];
     let line = "";
 
-    const measure = (t) => ctx.measureText(t).width;
+    const fits = (t) => measureWidth(fontPx, weight, t) <= maxW;
 
-    function breakLongWord(word) {
+    const breakLongWord = (w) => {
       const parts = [];
       let chunk = "";
-      for (const ch of word) {
+      for (const ch of w) {
         const test = chunk + ch;
-        if (measure(test) <= maxWidth || !chunk) chunk = test;
+        if (fits(test) || !chunk) chunk = test;
         else {
           parts.push(chunk);
           chunk = ch;
@@ -759,14 +986,13 @@ function drawLegendBoxOnCanvas(ctx, canvas, { title, items, anchor="bottom-left"
       }
       if (chunk) parts.push(chunk);
       return parts;
-    }
+    };
 
-    for (let w of words) {
-      if (measure(w) > maxWidth) {
-        const pieces = breakLongWord(w);
-        for (const p of pieces) {
+    for (const w of words) {
+      if (measureWidth(fontPx, weight, w) > maxW) {
+        for (const p of breakLongWord(w)) {
           const test = line ? `${line} ${p}` : p;
-          if (measure(test) <= maxWidth) line = test;
+          if (fits(test)) line = test;
           else {
             if (line) lines.push(line);
             line = p;
@@ -776,17 +1002,404 @@ function drawLegendBoxOnCanvas(ctx, canvas, { title, items, anchor="bottom-left"
       }
 
       const test = line ? `${line} ${w}` : w;
-      if (measure(test) <= maxWidth) line = test;
+      if (fits(test)) line = test;
       else {
         if (line) lines.push(line);
         line = w;
       }
     }
+
     if (line) lines.push(line);
     return lines;
+  };
+
+  // tokens in VB units
+  const base0 = Math.max(12, Math.round(Math.min(vb.w, vb.h) * 0.022));
+  const base = Math.round(base0 * s);
+
+  const outerPad = Math.round(base * 0.9);
+  const padX = Math.round(base * 0.95);
+  const padY = Math.round(base * 0.85);
+  const radius = Math.round(base * 1.25);
+
+  const headerPadBottom = Math.round(base * 0.65);
+
+  const titleSize = Math.round(base * 1.05);
+  const itemSize = Math.round(base * 1.05);
+  const metaSize = Math.round(base * 0.9);
+
+  const dot = Math.max(8, Math.round(base * 0.8));
+  const gap = Math.round(base * 0.8);
+
+  const rowPadY = Math.round(base * 0.55);
+  const rowGap = Math.round(base * 0.35);
+
+  const titleLineH = Math.round(titleSize * 1.18);
+  const itemLineH = Math.round(itemSize * 1.18);
+
+  // widthPx comes in raster px — convert to VB units
+  const forcedW_vb =
+    Number.isFinite(Number(widthPx)) && Number(widthPx) > 0
+      ? Math.round(Number(widthPx) / Math.max(1, scaleFactor))
+      : null;
+
+  const hardMax = Math.round(vb.w - outerPad * 2);
+  const hardMin = 160;
+
+  const forcedW = forcedW_vb ? clamp(forcedW_vb, hardMin, hardMax) : null;
+  const maxW = forcedW ?? hardMax;
+
+  const maxTitleW = maxW - padX * 2;
+  const maxRowTextW = maxW - padX * 2 - (dot + gap);
+
+  // cap items
+  const maxItems = 10;
+  const shown = items.slice(0, maxItems);
+  const hiddenCount = Math.max(0, items.length - shown.length);
+
+  // wrap with maxW first
+  const titleLines_cap = wrap(titleSize, 850, title, maxTitleW);
+  const rows_cap = shown.map((it) => ({
+    ...it,
+    lines: wrap(itemSize, 750, it.label, maxRowTextW),
+  }));
+
+  const titleW = titleLines_cap.reduce((m, l) => Math.max(m, measureWidth(titleSize, 850, l)), 0);
+  const rowW = rows_cap.reduce(
+    (m, r) =>
+      Math.max(
+        m,
+        r.lines.reduce((mm, l) => Math.max(mm, measureWidth(itemSize, 750, l)), 0)
+      ),
+    0
+  );
+  const moreW = hiddenCount ? measureWidth(metaSize, 650, `+${hiddenCount} more`) : 0;
+
+  const contentW = Math.max(titleW, rowW + dot + gap, moreW);
+  const autoW = Math.ceil(contentW + padX * 2);
+
+  const boxW = forcedW ? forcedW : clamp(autoW, hardMin, hardMax);
+
+  // re-wrap to final width
+  const finalTitleW = boxW - padX * 2;
+  const finalRowTextW = boxW - padX * 2 - (dot + gap);
+
+  const titleLines = wrap(titleSize, 850, title, finalTitleW);
+  const rows = shown.map((it) => ({
+    ...it,
+    lines: wrap(itemSize, 750, it.label, finalRowTextW),
+  }));
+
+  // height
+  const headerH = titleLines.length ? titleLines.length * titleLineH : 0;
+  const dividerBlock = titleLines.length ? headerPadBottom + 1 + Math.round(base * 0.55) : 0;
+
+  const rowsH = rows.reduce((sum, r) => {
+    const rowTextH = r.lines.length * itemLineH;
+    const rowH = Math.max(dot, rowTextH) + rowPadY * 2;
+    return sum + rowH;
+  }, 0);
+
+  const rowsGaps = rows.length ? rowGap * (rows.length - 1) : 0;
+  const moreH = hiddenCount ? Math.round(metaSize * 1.25) + Math.round(base * 0.35) : 0;
+
+  const boxH = padY + headerH + dividerBlock + rowsH + rowsGaps + moreH + padY;
+
+  // position
+  const maxX = vb.x + vb.w - outerPad - boxW;
+  const maxY = vb.y + vb.h - outerPad - boxH;
+
+  let x = vb.x + outerPad;
+  let y = vb.y + vb.h - outerPad - boxH;
+
+  if (pos && typeof pos.x === "number" && typeof pos.y === "number") {
+    x = vb.x + outerPad + pos.x * Math.max(0, maxX - (vb.x + outerPad));
+    y = vb.y + outerPad + pos.y * Math.max(0, maxY - (vb.y + outerPad));
+    x = clamp(x, vb.x + outerPad, maxX);
+    y = clamp(y, vb.y + outerPad, maxY);
   }
 
-  function roundRectPath(ctx, x, y, w, h, r) {
+  // defs + filter shadow
+  const defs =
+    svgEl.querySelector("defs") ||
+    (() => {
+      const d = document.createElementNS(ns, "defs");
+      svgEl.insertBefore(d, svgEl.firstChild);
+      return d;
+    })();
+
+  const filter = document.createElementNS(ns, "filter");
+  filter.setAttribute("id", "export-legend-filter");
+  filter.setAttribute("x", "-30%");
+  filter.setAttribute("y", "-30%");
+  filter.setAttribute("width", "160%");
+  filter.setAttribute("height", "160%");
+
+  const fe = document.createElementNS(ns, "feDropShadow");
+  fe.setAttribute("dx", "0");
+  fe.setAttribute("dy", String(Math.round(base * 0.7)));
+  fe.setAttribute("stdDeviation", String(Math.round(base * 0.95)));
+  fe.setAttribute("flood-color", "rgba(0,0,0,0.18)");
+  fe.setAttribute("flood-opacity", "1");
+  filter.appendChild(fe);
+  defs.appendChild(filter);
+
+  // group
+  const g = document.createElementNS(ns, "g");
+  g.setAttribute("id", "export-legend");
+  g.setAttribute("filter", "url(#export-legend-filter)");
+
+  // card
+  const card = document.createElementNS(ns, "rect");
+  card.setAttribute("x", String(x));
+  card.setAttribute("y", String(y));
+  card.setAttribute("width", String(boxW));
+  card.setAttribute("height", String(boxH));
+  card.setAttribute("rx", String(radius));
+  card.setAttribute("ry", String(radius));
+  card.setAttribute("fill", "rgba(255,255,255,0.82)");
+  card.setAttribute("stroke", "rgba(15,23,42,0.10)");
+  card.setAttribute("stroke-width", "1");
+  g.appendChild(card);
+
+  const inner = document.createElementNS(ns, "g");
+  inner.setAttribute("filter", "none");
+  g.appendChild(inner);
+
+  let cy = y + padY;
+
+  // --- Title (metrics-based centering per line)
+  if (titleLines.length) {
+    const { ascent, descent } = measureMetrics(titleSize, 850);
+    const t = document.createElementNS(ns, "text");
+    t.setAttribute("fill", "rgba(15,23,42,0.92)");
+    t.setAttribute("font-family", fontFamily);
+    t.setAttribute("font-weight", "850");
+    t.setAttribute("font-size", String(titleSize));
+    t.setAttribute("dominant-baseline", "alphabetic");
+
+    // center glyph box inside each title line slot
+    // line slot center is (cy + i*titleLineH + titleLineH/2)
+    titleLines.forEach((line, i) => {
+      const lineCenterY = cy + i * titleLineH + titleLineH / 2;
+      const baselineY = lineCenterY + (ascent - descent) / 2;
+
+      const sp = document.createElementNS(ns, "tspan");
+      sp.setAttribute("x", String(x + padX));
+      sp.setAttribute("y", String(baselineY));
+      sp.textContent = line;
+      t.appendChild(sp);
+    });
+
+    inner.appendChild(t);
+    cy += titleLines.length * titleLineH;
+
+    cy += headerPadBottom;
+
+    const div = document.createElementNS(ns, "line");
+    div.setAttribute("x1", String(x + padX));
+    div.setAttribute("x2", String(x + boxW - padX));
+    div.setAttribute("y1", String(cy));
+    div.setAttribute("y2", String(cy));
+    div.setAttribute("stroke", "rgba(15,23,42,0.08)");
+    div.setAttribute("stroke-width", "1");
+    inner.appendChild(div);
+
+    cy += Math.round(base * 0.55);
+  }
+
+  // --- Rows (metrics-based block centering)
+  const itemMetrics = measureMetrics(itemSize, 750);
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+
+    const textBlockH = r.lines.length * itemLineH;
+    const rowH = Math.max(dot, textBlockH) + rowPadY * 2;
+    const rowY = cy;
+
+    const contentTop = rowY + rowPadY;
+    const contentH = rowH - rowPadY * 2;
+
+    // dot centered
+    const cxDot = x + padX + dot / 2;
+    const cyDot = contentTop + contentH / 2;
+
+    const c = document.createElementNS(ns, "circle");
+    c.setAttribute("cx", String(cxDot));
+    c.setAttribute("cy", String(cyDot));
+    c.setAttribute("r", String(dot / 2));
+    c.setAttribute("fill", r.color || "#e5e7eb");
+    c.setAttribute("stroke", "rgba(15,23,42,0.18)");
+    c.setAttribute("stroke-width", "1");
+    inner.appendChild(c);
+
+    // text
+    const tx = x + padX + dot + gap;
+
+    const text = document.createElementNS(ns, "text");
+    text.setAttribute("fill", "rgba(15,23,42,0.90)");
+    text.setAttribute("font-family", fontFamily);
+    text.setAttribute("font-weight", "750");
+    text.setAttribute("font-size", String(itemSize));
+    text.setAttribute("dominant-baseline", "alphabetic");
+
+    // Center the whole multi-line block around cyDot:
+    // line centers are: (topOfBlock + (j+0.5)*itemLineH)
+    const blockTop = cyDot - textBlockH / 2;
+
+    for (let j = 0; j < r.lines.length; j++) {
+      const lineCenterY = blockTop + (j + 0.5) * itemLineH;
+      const baselineY = lineCenterY + (itemMetrics.ascent - itemMetrics.descent) / 2;
+
+      const sp = document.createElementNS(ns, "tspan");
+      sp.setAttribute("x", String(tx));
+      sp.setAttribute("y", String(baselineY));
+      sp.textContent = r.lines[j];
+      text.appendChild(sp);
+    }
+
+    inner.appendChild(text);
+
+    cy += rowH;
+    if (i !== rows.length - 1) cy += rowGap;
+  }
+
+  // +N more (metrics centered in its slot)
+  if (hiddenCount) {
+    cy += Math.round(base * 0.25);
+
+    const { ascent, descent } = measureMetrics(metaSize, 650);
+    const more = document.createElementNS(ns, "text");
+    more.setAttribute("x", String(x + padX));
+    more.setAttribute("fill", "rgba(15,23,42,0.55)");
+    more.setAttribute("font-family", fontFamily);
+    more.setAttribute("font-weight", "650");
+    more.setAttribute("font-size", String(metaSize));
+    more.setAttribute("dominant-baseline", "alphabetic");
+
+    // center within one "meta line slot"
+    const slotH = Math.round(metaSize * 1.25);
+    const lineCenterY = cy + slotH / 2;
+    const baselineY = lineCenterY + (ascent - descent) / 2;
+
+    more.setAttribute("y", String(baselineY));
+    more.textContent = `+${hiddenCount} more`;
+    inner.appendChild(more);
+  }
+
+  svgEl.appendChild(g);
+}
+
+function drawLegendBoxOnCanvas(
+  ctx,
+  canvas,
+  {
+    title,
+    items,
+    pos, // {x:0..1, y:0..1}
+    widthPx = null,
+    size = 1,
+  }
+) {
+  if (!items?.length) return;
+
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const s = clamp(Number(size) || 1, 0.75, 1.8);
+
+  const base0 = Math.max(12, Math.round(Math.min(canvas.width, canvas.height) * 0.022));
+  const base = Math.round(base0 * s);
+
+  const outerPad = Math.round(base * 0.9);
+  const padX = Math.round(base * 0.95);
+  const padY = Math.round(base * 0.85);
+  const radius = Math.round(base * 1.25);
+
+  const headerPadBottom = Math.round(base * 0.65);
+  const dividerH = 1;
+
+  const titleSize = Math.round(base * 1.05);
+  const itemSize = Math.round(base * 1.05);
+  const metaSize = Math.round(base * 0.9);
+
+  const dot = Math.max(8, Math.round(base * 0.8));
+  const gap = Math.round(base * 0.8);
+
+  const rowPadY = Math.round(base * 0.55);
+  const rowGap = Math.round(base * 0.35);
+
+  const titleLineH = Math.round(titleSize * 1.18);
+  const itemLineH = Math.round(itemSize * 1.18);
+
+  const fontFamily = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+
+  const setFont = (fontPx, weight) => {
+    ctx.font = `${weight} ${fontPx}px ${fontFamily}`;
+  };
+
+  const measureMetrics = (fontPx, weight) => {
+    setFont(fontPx, weight);
+    const m = ctx.measureText("Mg");
+    const ascent =
+      Number.isFinite(m.actualBoundingBoxAscent) ? m.actualBoundingBoxAscent : fontPx * 0.8;
+    const descent =
+      Number.isFinite(m.actualBoundingBoxDescent) ? m.actualBoundingBoxDescent : fontPx * 0.2;
+    return { ascent, descent, glyphH: ascent + descent };
+  };
+
+  const wrap = (text, maxW, fontPx, weight) => {
+    const raw = String(text || "").trim();
+    if (!raw) return [];
+    const words = raw.split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = "";
+
+    const measure = (t) => {
+      setFont(fontPx, weight);
+      return ctx.measureText(t).width;
+    };
+
+    const breakLongWord = (w) => {
+      const parts = [];
+      let chunk = "";
+      for (const ch of w) {
+        const test = chunk + ch;
+        if (measure(test) <= maxW || !chunk) chunk = test;
+        else {
+          parts.push(chunk);
+          chunk = ch;
+        }
+      }
+      if (chunk) parts.push(chunk);
+      return parts;
+    };
+
+    for (const w of words) {
+      if (measure(w) > maxW) {
+        for (const p of breakLongWord(w)) {
+          const test = line ? `${line} ${p}` : p;
+          if (measure(test) <= maxW) line = test;
+          else {
+            if (line) lines.push(line);
+            line = p;
+          }
+        }
+        continue;
+      }
+
+      const test = line ? `${line} ${w}` : w;
+      if (measure(test) <= maxW) line = test;
+      else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+
+    if (line) lines.push(line);
+    return lines;
+  };
+
+  const roundRect = (x, y, w, h, r) => {
     const rr = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
     ctx.moveTo(x + rr, y);
@@ -795,268 +1408,203 @@ function drawLegendBoxOnCanvas(ctx, canvas, { title, items, anchor="bottom-left"
     ctx.arcTo(x, y + h, x, y, rr);
     ctx.arcTo(x, y, x + w, y, rr);
     ctx.closePath();
-  }
+  };
 
-  // ─────────────────────────────────────────────
-  // Base sizing (scaled)
-  // ─────────────────────────────────────────────
-  const base0 = Math.max(12, Math.round(Math.min(canvas.width, canvas.height) * 0.025));
-  const s = clamp(Number(size) || 1, 0.75, 1.8);
-  const base = Math.round(base0 * s);
-
-  const outerPad = Math.round(base * 0.9);
-
-  const cardPad = Math.round(base * 0.95);
-  const cardRadius = Math.round(base * 1.2);
-
-  const titleSize = Math.round(base * 1.05);
-  const itemSize = Math.round(base * 1.05);
-  const metaSize = Math.round(base * 0.85);
-
-  const dot = Math.round(base * 0.95);
-  const gap = Math.round(base * 0.7);
-
-  const rowPadY = Math.round(base * 0.55);
-  const rowPadX = Math.round(base * 0.75);
-  const rowRadius = Math.round(base * 1.1);
-  const rowGap = Math.round(base * 0.55);
-
-  const titleLineH = Math.round(titleSize * 1.18);
-  const itemLineH = Math.round(itemSize * 1.25);
-
-  // width controls (same behavior you had)
-const hardMax = Math.round(canvas.width - outerPad * 2);
-const hardMin = 240;
-
-const forcedBoxW = clamp(Math.round(widthPx), hardMin, hardMax);
-
-
-const maxBoxW = forcedBoxW ?? Math.round(canvas.width - outerPad * 2);
-const minBoxW = forcedBoxW ?? 260;
-
-
-  // cap items (like before)
   const maxItems = 10;
   const shown = items.slice(0, maxItems);
   const hiddenCount = Math.max(0, items.length - shown.length);
 
-  ctx.save();
-  ctx.textBaseline = "top";
+  const hardMax = Math.round(canvas.width - outerPad * 2);
+  const hardMin = 160;
 
-  // ─────────────────────────────────────────────
-  // 1) Determine card width based on content
-  // ─────────────────────────────────────────────
-  ctx.font = `800 ${itemSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+  const forcedW =
+    Number.isFinite(Number(widthPx)) && Number(widthPx) > 0
+      ? clamp(Math.round(Number(widthPx)), hardMin, hardMax)
+      : null;
 
-  // temporary wrap width assuming maxBoxW
-  const rowLabelMaxW_cap = maxBoxW - cardPad * 2 - rowPadX * 2 - dot - gap;
+  const maxW = forcedW ?? hardMax;
 
-  const wrappedRows_cap = shown.map((it) => {
-    const lines = wrapCanvasText(ctx, String(it.label || ""), rowLabelMaxW_cap);
-    return { ...it, lines: lines.length ? lines : [""] };
-  });
+  const innerW_forTitle = maxW - padX * 2;
+  const innerW_forRowText = maxW - padX * 2 - (dot + gap);
 
-  const rowsTextW = wrappedRows_cap.reduce((m, row) => {
-    const w = row.lines.reduce((mm, l) => Math.max(mm, ctx.measureText(l).width), 0);
-    return Math.max(m, w);
+  const titleLines_cap = wrap(title, innerW_forTitle, titleSize, 850);
+  const rows_cap = shown.map((it) => ({
+    ...it,
+    lines: wrap(it.label, innerW_forRowText, itemSize, 750),
+  }));
+
+  const measureLineMax = (lines, fontPx, weight) => {
+    setFont(fontPx, weight);
+    return lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
+  };
+
+  const titleW = measureLineMax(titleLines_cap, titleSize, 850);
+  const rowW = rows_cap.reduce((m, r) => Math.max(m, measureLineMax(r.lines, itemSize, 750)), 0);
+  const moreW = hiddenCount ? (() => {
+    setFont(metaSize, 650);
+    return ctx.measureText(`+${hiddenCount} more`).width;
+  })() : 0;
+
+  const contentW = Math.max(titleW, rowW + dot + gap, moreW);
+  const autoW = Math.ceil(contentW + padX * 2);
+
+  const boxW = forcedW ? forcedW : clamp(autoW, hardMin, hardMax);
+
+  const innerW_title = boxW - padX * 2;
+  const innerW_rowText = boxW - padX * 2 - (dot + gap);
+
+  const titleLines = wrap(title, innerW_title, titleSize, 850);
+  const rows = shown.map((it) => ({
+    ...it,
+    lines: wrap(it.label, innerW_rowText, itemSize, 750),
+  }));
+
+  const headerH = titleLines.length ? titleLines.length * titleLineH : 0;
+  const dividerGap = titleLines.length ? headerPadBottom : 0;
+  const dividerBlock = titleLines.length ? dividerGap + dividerH + Math.round(base * 0.55) : 0;
+
+  const rowsH = rows.reduce((sum, r) => {
+    const h = Math.max(dot, r.lines.length * itemLineH);
+    return sum + h + rowPadY * 2;
   }, 0);
 
-  ctx.font = `900 ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
-  const titleMaxW_cap = maxBoxW - cardPad * 2;
-  const titleLines_cap = wrapCanvasText(ctx, title, titleMaxW_cap);
-  const titleTextW = titleLines_cap.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
+  const rowsGaps = rows.length ? rowGap * (rows.length - 1) : 0;
+  const moreH = hiddenCount ? Math.round(metaSize * 1.25) + Math.round(base * 0.35) : 0;
 
-  ctx.font = `700 ${metaSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
-  const moreW = hiddenCount ? ctx.measureText(`+${hiddenCount} more`).width : 0;
+  const boxH = padY + headerH + dividerBlock + rowsH + rowsGaps + moreH + padY;
 
-  const contentW_fromRows = rowsTextW + dot + gap + rowPadX * 2;
-  const contentW = Math.max(contentW_fromRows, titleTextW, moreW);
+  const maxX = canvas.width - outerPad - boxW;
+  const maxY = canvas.height - outerPad - boxH;
 
-  const boxW = forcedBoxW
-    ? forcedBoxW
-    : Math.max(minBoxW, Math.min(maxBoxW, Math.ceil(contentW + cardPad * 2)));
-
-  // re-wrap rows to final width
-  ctx.font = `800 ${itemSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
-  const rowLabelMaxW = boxW - cardPad * 2 - rowPadX * 2 - dot - gap;
-
-  const rows = shown.map((it) => {
-    const lines = wrapCanvasText(ctx, String(it.label || ""), rowLabelMaxW);
-    return { ...it, lines: lines.length ? lines : [""] };
-  });
-
-  // wrap title to final width
-  ctx.font = `900 ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
-  const titleMaxW = boxW - cardPad * 2;
-  const titleLines = wrapCanvasText(ctx, title, titleMaxW);
-
-  // ─────────────────────────────────────────────
-  // 2) Height calc (includes row "pills")
-  // ─────────────────────────────────────────────
-  const headerH = titleLines.length ? titleLines.length * titleLineH + Math.round(base * 0.55) : 0;
-  const dividerH = titleLines.length ? Math.round(base * 0.9) : 0;
-
-  const rowsH = rows.reduce((sum, row) => {
-    const blockH = row.lines.length * itemLineH;
-    const pillH = blockH + rowPadY * 2;
-    return sum + pillH;
-  }, 0);
-
-  const rowsGapH = rows.length ? rowGap * (rows.length - 1) : 0;
-
-  const moreH = hiddenCount ? Math.round(metaSize * 1.25) + Math.round(base * 0.45) : 0;
-
-  const boxH = cardPad + headerH + dividerH + rowsH + rowsGapH + moreH + cardPad;
-
-  // ─────────────────────────────────────────────
-  // 3) Position
-  // ─────────────────────────────────────────────
   let x = outerPad;
   let y = canvas.height - outerPad - boxH;
 
-  if (anchor === "bottom-right") x = canvas.width - outerPad - boxW;
-  if (anchor === "top-left") y = outerPad;
-  if (anchor === "top-right") {
-    x = canvas.width - outerPad - boxW;
-    y = outerPad;
-  }
-
   if (pos && typeof pos.x === "number" && typeof pos.y === "number") {
-    const maxX = canvas.width - outerPad - boxW;
-    const maxY = canvas.height - outerPad - boxH;
-
     x = outerPad + pos.x * Math.max(0, maxX - outerPad);
     y = outerPad + pos.y * Math.max(0, maxY - outerPad);
-
     x = clamp(x, outerPad, maxX);
     y = clamp(y, outerPad, maxY);
   }
 
-  // ─────────────────────────────────────────────
-  // 4) Draw card background (THIS is what you were missing)
-  // ─────────────────────────────────────────────
+  // card
   ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.18)";
+  ctx.shadowBlur = Math.round(base * 2.0);
+  ctx.shadowOffsetY = Math.round(base * 0.7);
 
-  // shadow
-  ctx.shadowColor = "rgba(15, 23, 42, 0.18)";
-  ctx.shadowBlur = Math.round(base * 1.6);
-  ctx.shadowOffsetY = Math.round(base * 0.55);
-
-  roundRectPath(ctx, x, y, boxW, boxH, cardRadius);
-  ctx.fillStyle = "rgba(255,255,255,0.94)";
+  roundRect(x, y, boxW, boxH, radius);
+  ctx.fillStyle = "rgba(255,255,255,0.82)";
   ctx.fill();
 
-  // border (no shadow)
   ctx.shadowColor = "transparent";
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  roundRectPath(ctx, x, y, boxW, boxH, cardRadius);
-  ctx.strokeStyle = "rgba(20, 24, 40, 0.10)";
-  ctx.lineWidth = Math.max(1, Math.round(base * 0.08));
+  roundRect(x, y, boxW, boxH, radius);
+  ctx.strokeStyle = "rgba(15,23,42,0.10)";
+  ctx.lineWidth = 1;
   ctx.stroke();
-
   ctx.restore();
 
-  // ─────────────────────────────────────────────
-  // 5) Title + divider
-  // ─────────────────────────────────────────────
-  let cy = y + cardPad;
+  let cy = y + padY;
 
+  // title: center glyph box inside each title line slot
   if (titleLines.length) {
-    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
-    ctx.font = `900 ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+    const titleMetrics = measureMetrics(titleSize, 850);
 
-    for (const line of titleLines) {
-      ctx.fillText(line, x + cardPad, cy);
-      cy += titleLineH;
+    ctx.save();
+    ctx.fillStyle = "rgba(15,23,42,0.92)";
+    setFont(titleSize, 850);
+    ctx.textBaseline = "alphabetic";
+
+    for (let i = 0; i < titleLines.length; i++) {
+      const lineCenterY = cy + i * titleLineH + titleLineH / 2;
+      const baselineY = lineCenterY + (titleMetrics.ascent - titleMetrics.descent) / 2;
+      ctx.fillText(titleLines[i], x + padX, baselineY);
     }
 
-    cy += Math.round(base * 0.25);
+    cy += titleLines.length * titleLineH;
 
-    ctx.strokeStyle = "rgba(20, 24, 40, 0.08)";
-    ctx.lineWidth = Math.max(1, Math.round(base * 0.08));
+    cy += headerPadBottom;
+
     ctx.beginPath();
-    ctx.moveTo(x + cardPad, cy);
-    ctx.lineTo(x + boxW - cardPad, cy);
+    ctx.moveTo(x + padX, cy);
+    ctx.lineTo(x + boxW - padX, cy);
+    ctx.strokeStyle = "rgba(15,23,42,0.08)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    cy += Math.round(base * 0.7);
+    cy += Math.round(base * 0.55);
+    ctx.restore();
   }
 
-  // ─────────────────────────────────────────────
-  // 6) Rows as pill cards (like your screenshot)
-  // ─────────────────────────────────────────────
+  // rows: center multi-line block around dot center
+  const itemMetrics = measureMetrics(itemSize, 750);
+
   for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+    const r = rows[i];
 
-    const blockH = row.lines.length * itemLineH;
-    const pillH = blockH + rowPadY * 2;
+    const textBlockH = r.lines.length * itemLineH;
+    const rowH = Math.max(dot, textBlockH) + rowPadY * 2;
+    const rowY = cy;
 
-    const px = x + cardPad;
-    const py = cy;
-    const pw = boxW - cardPad * 2;
-
-    // pill bg
-    ctx.save();
-    roundRectPath(ctx, px, py, pw, pillH, rowRadius);
-    ctx.fillStyle = "rgba(15, 23, 42, 0.025)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(20, 24, 40, 0.09)";
-    ctx.lineWidth = Math.max(1, Math.round(base * 0.07));
-    ctx.stroke();
-    ctx.restore();
+    const contentTop = rowY + rowPadY;
+    const contentH = rowH - rowPadY * 2;
+    const centerY = contentTop + contentH / 2;
 
     // dot
-    const dx = px + rowPadX;
-    const dy = py + Math.round((pillH - dot) / 2);
+    const dotX = x + padX;
+    const dotY = contentTop + (contentH - dot) / 2;
 
-    // dot shadow
     ctx.save();
-    ctx.globalAlpha = 0.14;
-    ctx.fillStyle = "#0f172a";
     ctx.beginPath();
-    ctx.arc(dx + dot / 2, dy + dot / 2 + 1, dot / 2, 0, Math.PI * 2);
+    ctx.arc(dotX + dot / 2, dotY + dot / 2, dot / 2, 0, Math.PI * 2);
+    ctx.fillStyle = r.color || "#e5e7eb";
     ctx.fill();
-    ctx.restore();
-
-    // dot fill + stroke
-    ctx.save();
-    ctx.fillStyle = row.color || "#e5e7eb";
-    ctx.beginPath();
-    ctx.arc(dx + dot / 2, dy + dot / 2, dot / 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(15, 23, 42, 0.18)";
-    ctx.lineWidth = Math.max(1, Math.round(base * 0.08));
+    ctx.strokeStyle = "rgba(15,23,42,0.18)";
+    ctx.lineWidth = 1;
     ctx.stroke();
     ctx.restore();
 
     // text
-    ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
-    ctx.font = `800 ${itemSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+    const tx = dotX + dot + gap;
+    const blockTop = centerY - textBlockH / 2;
 
-    let ly = py + rowPadY;
-    const tx = dx + dot + gap;
+    ctx.save();
+    ctx.fillStyle = "rgba(15,23,42,0.90)";
+    setFont(itemSize, 750);
+    ctx.textBaseline = "alphabetic";
 
-    for (const line of row.lines) {
-      ctx.fillText(line, tx, ly + Math.round((itemLineH - itemSize) / 2));
-      ly += itemLineH;
+    for (let j = 0; j < r.lines.length; j++) {
+      const lineCenterY = blockTop + (j + 0.5) * itemLineH;
+      const baselineY = lineCenterY + (itemMetrics.ascent - itemMetrics.descent) / 2;
+      ctx.fillText(r.lines[j], tx, baselineY);
     }
 
-    cy += pillH;
+    ctx.restore();
+
+    cy += rowH;
     if (i !== rows.length - 1) cy += rowGap;
   }
 
   // +N more
   if (hiddenCount) {
-    cy += Math.round(base * 0.45);
-    ctx.fillStyle = "rgba(15, 23, 42, 0.50)";
-    ctx.font = `700 ${metaSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
-    ctx.fillText(`+${hiddenCount} more`, x + cardPad, cy);
-  }
+    cy += Math.round(base * 0.25);
 
-  ctx.restore();
+    const metaMetrics = measureMetrics(metaSize, 650);
+    const slotH = Math.round(metaSize * 1.25);
+    const lineCenterY = cy + slotH / 2;
+    const baselineY = lineCenterY + (metaMetrics.ascent - metaMetrics.descent) / 2;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(15,23,42,0.55)";
+    setFont(metaSize, 650);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(`+${hiddenCount} more`, x + padX, baselineY);
+    ctx.restore();
+  }
 }
+
 
 
 
@@ -1076,6 +1624,76 @@ const minBoxW = forcedBoxW ?? 260;
       );
     });
   }
+
+  // ✅ cache across renders
+const logoDataUrlRef = { current: null };
+const logoDimsRef = { current: null }; // { w, h }
+
+async function getLogoDataUrlAndDims(src = "/assets/3-0/mic-logo-2-5-text-cropped.png") {
+  if (logoDataUrlRef.current && logoDimsRef.current) {
+    return { dataUrl: logoDataUrlRef.current, dims: logoDimsRef.current };
+  }
+
+  // fetch => blob => dataURL (so SVG export is self-contained)
+  const res = await fetch(src);
+  if (!res.ok) throw new Error(`Logo fetch failed: ${res.status}`);
+
+  const blob = await res.blob();
+
+  const dataUrl = await new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+
+  // get intrinsic dimensions (for aspect ratio)
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = reject;
+    im.src = dataUrl;
+  });
+
+  logoDataUrlRef.current = dataUrl;
+  logoDimsRef.current = { w: img.width, h: img.height };
+
+  return { dataUrl, dims: logoDimsRef.current };
+}
+
+function applyLogoWatermarkToSvg(svgEl, vb, { dataUrl, dims, opacity = 0.22 } = {}) {
+  const ns = "http://www.w3.org/2000/svg";
+
+  // remove previous logo watermark if any
+  svgEl.querySelector("#mic-logo-watermark")?.remove();
+
+  if (!dataUrl || !dims?.w || !dims?.h) return;
+
+  const g = document.createElementNS(ns, "g");
+  g.setAttribute("id", "mic-logo-watermark");
+  g.setAttribute("opacity", String(opacity));
+
+  // sizing in viewBox units
+  const pad = Math.max(8, vb.w * 0.012);
+
+  // tweak this to taste:
+  const targetW = vb.w * 0.34; // ✅ logo width as fraction of export width (try 0.28..0.40)
+  const targetH = targetW * (dims.h / dims.w);
+
+  const x = vb.x + (vb.w - targetW) / 2;
+  const y = vb.y + vb.h - targetH - pad;
+
+  const img = document.createElementNS(ns, "image");
+  img.setAttribute("href", dataUrl); // modern
+  img.setAttribute("x", String(x));
+  img.setAttribute("y", String(y));
+  img.setAttribute("width", String(targetW));
+  img.setAttribute("height", String(targetH));
+  img.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+  g.appendChild(img);
+  svgEl.appendChild(g);
+}
 
   function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -1132,8 +1750,6 @@ const exportFromSvg = useCallback(
     const fmt = formatArg || "png";
     const params = paramsArg || {};
 
-    
-
     const container = renderStageRef.current;
     if (!container) throw new Error("Missing render stage.");
 
@@ -1151,14 +1767,97 @@ const exportFromSvg = useCallback(
     const transparentBgLocal = !!(params.transparentBg ?? transparentBg);
     const watermarkOffLocal = !!(params.watermarkOff ?? watermarkOff);
 
-const effectiveTransparent = isProRef.current ? transparentBgLocal : false;
-const effectiveWatermarkOff = isProRef.current ? watermarkOffLocal : false;
+    const effectiveTransparent = isProRef.current ? transparentBgLocal : false;
+    const effectiveWatermarkOff = isProRef.current ? watermarkOffLocal : false;
 
-const effectiveJpgPreset =
-  isProRef.current ? jpgPresetLocal : (jpgPresetLocal === "max" ? "high" : jpgPresetLocal);
+    const effectiveJpgPreset =
+      isProRef.current ? jpgPresetLocal : (jpgPresetLocal === "max" ? "high" : jpgPresetLocal);
+
+    const legendOnLocal = params.legendOn ?? legendOn;
+    const effectiveLegendOn = !!legendOnLocal; // no pro gating
 
 
+    // ✅ crop (same as you already do)
     const vb = viewBoxFromInsets(cropLocal);
+    svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+
+    // ✅ your foreignObject => text conversion (same as you already do)
+    // ... keep your existing section ...
+
+    // ✅ remove junk labels (same as you already do)
+    svgClone.querySelectorAll(".circlexx, .subxx, .noxx, .unxx").forEach((el) => el.remove());
+
+    // ✅ inline computed styles (same as you already do)
+    svgClone.querySelectorAll("*").forEach((el) => {
+      const computed = window.getComputedStyle(el);
+      const tag = el.tagName?.toLowerCase();
+
+      if (["path", "polygon", "circle", "rect"].includes(tag)) {
+        el.setAttribute("stroke", computed.stroke || "#4b4b4b");
+        el.setAttribute("stroke-width", computed.strokeWidth || "0.5");
+        if (computed.fill && computed.fill !== "none") el.setAttribute("fill", computed.fill);
+      }
+
+      if (tag === "text") {
+        el.setAttribute(
+          "font-family",
+          `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
+        );
+        if (el.closest("#legend")) el.setAttribute("font-weight", "normal");
+        else el.setAttribute("font-weight", "bold");
+      }
+    });
+
+    // ✅ transparent background for SVG export (if pro)
+    if (fmt === "svg" && effectiveTransparent) {
+      // remove big background rect fills (heuristic)
+      svgClone.querySelectorAll("rect").forEach((r) => {
+        const fill = (r.getAttribute("fill") || "").toLowerCase();
+        if (fill && fill !== "none" && fill !== "transparent") {
+          r.setAttribute("fill", "none");
+        }
+      });
+    }
+
+// ✅ Add export legend AS REAL SVG (before returning)
+if (fmt === "svg") {
+  if (effectiveLegendOn) {
+    try {
+      const legendItems = buildLegendItemsFromMapData(mapData);
+
+      addExportLegendToSvg(svgClone, vb, {
+        title: mapData?.title || "Untitled Map",
+        items: legendItems,
+        pos: legendPosLocal,
+        widthPx: legendWidthPxLocal,
+        size: legendSizeLocal,
+        scaleFactor: 3,
+        textNudgePx: 8
+      });
+    } catch (e) {
+      console.warn("SVG legend render failed:", e);
+    }
+  }
+
+  // ✅ logo watermark (self-contained data URL)
+  if (!effectiveWatermarkOff) {
+    try {
+      const { dataUrl, dims } = await getLogoDataUrlAndDims(
+        "/assets/3-0/mic-logo-2-5-text-cropped.png"
+      );
+      applyLogoWatermarkToSvg(svgClone, vb, { dataUrl, dims, opacity: 0.22 });
+    } catch (e) {
+      console.warn("SVG logo watermark failed:", e);
+      // fallback to text if you want
+      // applyWatermarkToSvg(svgClone, vb, "mapincolor.com");
+    }
+  }
+
+  const out = svgToBlobUrl(svgClone);
+  return { blob: out.blob, url: out.url, fmt: "svg" };
+}
+
+
     svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
 
     // 1) foreignObject title => real <text> (your logic)
@@ -1260,31 +1959,38 @@ const effectiveJpgPreset =
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // JPG background
-    if (fmt === "jpg") {
-      ctx.save();
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.restore();
-    }
+  // Background fill:
+// - JPG must be opaque
+// - PNG should be white unless "Transparent background" is enabled (pro)
+if (fmt === "jpg" || (fmt === "png" && !effectiveTransparent)) {
+  ctx.save();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
 
     ctx.drawImage(svgImg, 0, 0, canvas.width, canvas.height);
 
     // ✅ Legend box (export overlay) using params
-    try {
-      const legendItems = buildLegendItemsFromMapData(mapData);
+  if (effectiveLegendOn) {
+  try {
+    const legendItems = buildLegendItemsFromMapData(mapData);
 
-      drawLegendBoxOnCanvas(ctx, canvas, {
-        title: mapData?.title || "Untitled Map",
-        items: legendItems,
-        anchor: "bottom-left",
-        pos: legendPosLocal,
-        widthPx: legendWidthPxLocal,
-        size: legendSizeLocal,
-      });
-    } catch {
-      // ignore legend issues
-    }
+    drawLegendBoxOnCanvas(ctx, canvas, {
+      title: mapData?.title || "Untitled Map",
+      items: legendItems,
+      anchor: "bottom-left",
+      pos: legendPosLocal,
+      widthPx: legendWidthPxLocal,
+      size: legendSizeLocal,
+      textNudgePx: 8,
+    });
+  } catch {
+    // ignore
+  }
+}
+
 
     // watermark logo (bottom-center)
     const smallerSide = Math.min(canvas.width, canvas.height);
@@ -1325,9 +2031,8 @@ const effectiveJpgPreset =
     return { blob, url, fmt };
   },
   // ✅ only depends on mapData (and helpers already in closure)
-  [mapData]
+  [crop, legendPos, legendWidthPx, legendSize, jpgPreset, transparentBg, watermarkOff, mapData]
 );
-
 
   // ✅ Build the raster preview whenever modal opens / format changes / map changes
   useEffect(() => {
@@ -1345,7 +2050,9 @@ const effectiveJpgPreset =
       await new Promise((r) => requestAnimationFrame(() => r()));
 
       try {
-       const { blob, url, fmt } = await exportFromSvg(format, debouncedRenderParams);
+       const previewFmt = format === "pdf" ? "png" : format;
+      const { blob, url, fmt } = await exportFromSvg(previewFmt, debouncedRenderParams);
+
 
 
         if (cancelled) {
@@ -1381,44 +2088,230 @@ const effectiveJpgPreset =
   }, [isOpen, mapData, format, exportFromSvg, debouncedRenderParams]);
 
   // ✅ click download: reuse the exact same blob currently previewed
-  const handleDownload = async () => {
-    if (isDownloading) return;
-    setIsDownloading(true);
+const handleDownload = async () => {
+  if (isDownloading) return;
+  setIsDownloading(true);
 
+  
+
+  try {
+    const safeTitle = (mapData?.title || "map").trim() || "map";
+
+    if (format === "pdf") {
+      // ✅ Always generate a PDF on demand
+      const out = await exportPdfFromSvg(debouncedRenderParams);
+      downloadBlob(out.blob, `${safeTitle}.pdf`);
+      try { URL.revokeObjectURL(out.url); } catch {}
+
+    } else {
+  let blob = previewBlob;
+  let fmt = previewFormat;
+
+  if (!blob || fmt !== format) {
+    const out = await exportFromSvg(format, debouncedRenderParams);
+    blob = out.blob;
+    fmt = out.fmt;
+  }
+
+  const ext =
+    fmt === "jpg" ? "jpg" :
+    fmt === "svg" ? "svg" :
+    "png";
+
+  downloadBlob(blob, `${safeTitle}.${ext}`);
+}
+
+
+    // increment download count (unchanged)
     try {
-      let blob = previewBlob;
-      let fmt = previewFormat;
-
-      // if somehow not ready / mismatched, regenerate once
-      if (!blob || fmt !== format) {
-        const out = await exportFromSvg(format, debouncedRenderParams);
-        blob = out.blob;
-        fmt = out.fmt;
+      const payload = isUserLoggedIn ? {} : { anon_id: anonId };
+      const res = await incrementMapDownloadCount(mapData.id, payload);
+      if (res?.data?.download_count != null) {
+        onDownloadCountUpdate?.(res.data.download_count);
       }
-
-      const safeTitle = (mapData?.title || "map").trim() || "map";
-      const ext = fmt === "jpg" ? "jpg" : "png";
-      downloadBlob(blob, `${safeTitle}.${ext}`);
-
-      // increment download count
-      try {
-        const payload = isUserLoggedIn ? {} : { anon_id: anonId };
-        const res = await incrementMapDownloadCount(mapData.id, payload);
-        if (res?.data?.download_count != null) {
-          onDownloadCountUpdate?.(res.data.download_count);
-        }
-      } catch (err) {
-        console.error("Error incrementing download:", err);
-      }
-
-      onClose?.();
-    } finally {
-      setIsDownloading(false);
+    } catch (err) {
+      console.error("Error incrementing download:", err);
     }
-  };
+
+    
+
+    onClose?.();
+  } finally {
+    setIsDownloading(false);
+  }
+};
+
 
   if (!isOpen) return null;
 
+  const renderFormatOptions = () => {
+  if (format === "jpg") {
+    return (
+      <div className={styles.formatPanel}>
+        <div className={styles.expandTitle}>JPG quality</div>
+
+        <div className={styles.subList}>
+          {/* Web */}
+          <button
+            type="button"
+            className={`${styles.subRow} ${jpgPreset === "web" ? styles.subRowActive : ""}`}
+            disabled={isDownloading}
+            onClick={() => setJpgPreset("web")}
+          >
+            <div className={styles.subLeft}>
+              <div className={styles.subName}>Web</div>
+              <div className={styles.subDesc}>Fast export, lightweight file.</div>
+            </div>
+            <div className={styles.subRight}>
+              <span className={styles.subMeta}>80%</span>
+            </div>
+          </button>
+
+          {/* High (default) */}
+          <button
+            type="button"
+            className={`${styles.subRow} ${jpgPreset === "high" ? styles.subRowActive : ""}`}
+            disabled={isDownloading}
+            title="Default"
+            onClick={() => setJpgPreset("high")}
+          >
+            <div className={styles.subLeft}>
+              <div className={styles.subName}>
+                High <span className={styles.defaultPill}>Default</span>
+              </div>
+              <div className={styles.subDesc}>Best balance: sharp + smaller.</div>
+            </div>
+            <div className={styles.subRight}>
+              <span className={styles.subMeta}>92%</span>
+            </div>
+          </button>
+
+          {/* Max (pro) */}
+          <button
+            type="button"
+            className={`${styles.subRow} ${styles.subRowPro} ${jpgPreset === "max" ? styles.subRowActive : ""}`}
+            disabled={isDownloading || !isPro}
+            onClick={() => isPro && setJpgPreset("max")}
+            title={!isPro ? "Pro feature" : undefined}
+          >
+            <div className={styles.subLeft}>
+              <div className={styles.subName}>
+                Max{" "}
+                <img
+                  className={styles.proBadge}
+                  src="/assets/3-0/PRO-label.png"
+                  alt="Pro"
+                />
+              </div>
+              <div className={styles.subDesc}>Highest quality, biggest file.</div>
+            </div>
+            <div className={styles.subRight}>
+              <span className={styles.subMeta}>98%</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (format === "png") {
+    return (
+      <div className={styles.formatPanel}>
+        <div className={styles.expandTitle}>PNG options</div>
+
+        <div className={styles.toggleRow}>
+          <div className={styles.toggleLeft}>
+            <div className={styles.toggleName}>
+              Transparent background{" "}
+              <img
+                className={styles.proBadge}
+                src="/assets/3-0/PRO-label.png"
+                alt="Pro"
+              />
+            </div>
+            <div className={styles.toggleDesc}>
+              Export without a background fill.
+            </div>
+          </div>
+
+          <label className={styles.switch} aria-label="Transparent background">
+            <input
+              type="checkbox"
+              checked={transparentBg}
+              onChange={(e) => setTransparentBg(e.target.checked)}
+              disabled={!isPro || isDownloading}
+            />
+            <span className={styles.slider} />
+          </label>
+        </div>
+      </div>
+    );
+  }
+
+    if (format === "pdf") {
+    return (
+      <div className={styles.formatPanel}>
+        <div className={styles.expandTitle}>PDF options</div>
+
+        <div className={styles.subList}>
+          {/* Paper size */}
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleName}>Paper</div>
+              <div className={styles.toggleDesc}>A4 or US Letter</div>
+            </div>
+
+            <div className={styles.selectWrap} style={{ width: 160 }}>
+              <select
+                className={styles.select}
+                value={pdfPaper}
+                onChange={(e) => setPdfPaper(e.target.value)}
+                disabled={isDownloading}
+                aria-label="PDF paper size"
+              >
+                <option value="a4">A4</option>
+                <option value="letter">Letter</option>
+              </select>
+              <span className={styles.selectChevron} aria-hidden="true">▾</span>
+            </div>
+          </div>
+
+          {/* Orientation */}
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleName}>Orientation</div>
+              <div className={styles.toggleDesc}>Landscape or portrait</div>
+            </div>
+
+            <div className={styles.selectWrap} style={{ width: 160 }}>
+              <select
+                className={styles.select}
+                value={pdfOrientation}
+                onChange={(e) => setPdfOrientation(e.target.value)}
+                disabled={isDownloading}
+                aria-label="PDF orientation"
+              >
+                <option value="landscape">Landscape</option>
+                <option value="portrait">Portrait</option>
+              </select>
+              <span className={styles.selectChevron} aria-hidden="true">▾</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ SVG: no format-specific settings
+  if (format === "svg") return null;
+
+  return null;
+};
+
+
+
+
+  
   return createPortal(
     <div
       className={styles.overlay}
@@ -1506,7 +2399,10 @@ const effectiveJpgPreset =
  {/* ===== Legend ===== */}
 <div className={styles.sectionTitle}>Legend</div>
 
-<div className={styles.controlsCard}>
+<div
+  className={`${styles.controlsCard} ${!legendOn ? styles.controlsCardDisabled : ""}`}
+  aria-disabled={!legendOn}
+>
   <div className={styles.legendGrid}>
     {/* X */}
     <div className={styles.legendStack}>
@@ -1756,13 +2652,53 @@ const effectiveJpgPreset =
     <button
       type="button"
       className={styles.iconBtn}
-      onClick={() => {
-        const next = Math.max(240, legendWidthPx - 40);
-        setLegendWidthPx(next);
-        setLegendWidthDraft(String(next));
-legendWidthDraftRef.current = String(next);
+onClick={() => {
+  const base =
+    legendWidthPx != null
+      ? legendWidthPx
+      : (defaultLegendWidthRef.current ?? 520); // ✅ start from computed default
 
-      }}
+  const next = Math.max(LEGEND_MIN_W, base - 40);
+
+  isLegendWidthAutoRef.current = false;  // ✅ now fixed
+  setLegendWidthPx(next);
+  setLegendWidthDraft(String(next));
+  legendWidthDraftRef.current = String(next);
+}}
+
+onBlur={() => {
+  const raw = legendWidthDraftRef.current;
+
+  // ✅ blank = AUTO
+  if (raw === "") {
+    setLegendWidthPx(null);
+    return;
+  }
+
+  const n = Number(raw);
+  if (!Number.isFinite(n)) {
+    // revert to committed display
+    const back = legendWidthPx == null ? "" : String(legendWidthPx);
+    setLegendWidthDraft(back);
+    legendWidthDraftRef.current = back;
+    return;
+  }
+
+  const scaleFactor = 3;
+  const vb = viewBoxFromInsets(crop);
+  const exportCanvasW = Math.round(vb.w * scaleFactor);
+
+  const hardMax = Math.max(LEGEND_MIN_W, Math.round(exportCanvasW - 40));
+  const clamped = Math.max(LEGEND_MIN_W, Math.min(hardMax, Math.round(n)));
+
+  setLegendWidthPx(clamped);
+
+  const s = String(clamped);
+  setLegendWidthDraft(s);
+  legendWidthDraftRef.current = s;
+}}
+
+
       disabled={isDownloading}
       aria-label="Decrease legend width"
     >
@@ -1780,31 +2716,50 @@ legendWidthDraftRef.current = String(next);
     setLegendWidthDraft(cleaned);
     legendWidthDraftRef.current = cleaned;
   }}
-  onBlur={() => {
-    const raw = legendWidthDraftRef.current;
-    const n = Number(raw);
+ onBlur={() => {
+  const raw = legendWidthDraftRef.current;
 
-    if (!Number.isFinite(n) || raw === "") {
-      // snap back to current committed value
-      const back = String(legendWidthPx);
-      setLegendWidthDraft(back);
-      legendWidthDraftRef.current = back;
-      return;
-    }
+  // empty => go back to showing default (stay auto)
+  if (raw === "") {
+    const w0 = defaultLegendWidthRef.current ?? 520;
+    isLegendWidthAutoRef.current = true;
+    setLegendWidthPx(null);
+    setLegendWidthDraft(String(w0));
+    legendWidthDraftRef.current = String(w0);
+    return;
+  }
 
-    const scaleFactor = 3;
-    const vb = viewBoxFromInsets(crop);
-    const exportCanvasW = Math.round(vb.w * scaleFactor);
+  const n = Number(raw);
+  if (!Number.isFinite(n)) {
+    const back =
+      isLegendWidthAutoRef.current
+        ? String(defaultLegendWidthRef.current ?? 520)
+        : String(legendWidthPx ?? (defaultLegendWidthRef.current ?? 520));
+    setLegendWidthDraft(back);
+    legendWidthDraftRef.current = back;
+    return;
+  }
 
-    const hardMax = Math.max(240, Math.round(exportCanvasW - 40));
-    const clamped = Math.max(240, Math.min(hardMax, Math.round(n)));
+  const vb = viewBoxFromInsets(crop);
+  const exportCanvasW = Math.round(vb.w * 3);
+  const hardMax = Math.max(LEGEND_MIN_W, Math.round(exportCanvasW - 40));
+  const clamped = Math.max(LEGEND_MIN_W, Math.min(hardMax, Math.round(n)));
 
+  const w0 = defaultLegendWidthRef.current ?? 520;
+
+  // ✅ if still in auto mode and user typed the default, keep widthPx=null
+  if (isLegendWidthAutoRef.current && clamped === w0) {
+    setLegendWidthPx(null);
+  } else {
+    isLegendWidthAutoRef.current = false;
     setLegendWidthPx(clamped);
+  }
 
-    const s = String(clamped);
-    setLegendWidthDraft(s);
-    legendWidthDraftRef.current = s;
-  }}
+  const s = String(clamped);
+  setLegendWidthDraft(s);
+  legendWidthDraftRef.current = s;
+}}
+
   onKeyDown={(e) => {
     if (e.key === "Enter") e.currentTarget.blur();     // ✅ commit now
     if (e.key === "Escape") {
@@ -1823,14 +2778,23 @@ legendWidthDraftRef.current = String(next);
       type="button"
       className={styles.iconBtn}
       onClick={() => {
-        const scaleFactor = 3;
-        const exportCanvasW = Math.round(VBW * scaleFactor);
-        const hardMax = Math.round(exportCanvasW - 40);
-        const next = Math.min(hardMax, legendWidthPx + 40);
-        setLegendWidthPx(next);
-        setLegendWidthDraft(String(next));
-legendWidthDraftRef.current = String(next);
-      }}
+  const vb = viewBoxFromInsets(crop);
+  const exportCanvasW = Math.round(vb.w * 3);
+  const hardMax = Math.max(LEGEND_MIN_W, Math.round(exportCanvasW - 40));
+
+  const base =
+    legendWidthPx != null
+      ? legendWidthPx
+      : (defaultLegendWidthRef.current ?? 520); // ✅ start from computed default
+
+  const next = Math.min(hardMax, base + 40);
+
+  isLegendWidthAutoRef.current = false;  // ✅ now fixed
+  setLegendWidthPx(next);
+  setLegendWidthDraft(String(next));
+  legendWidthDraftRef.current = String(next);
+}}
+
       disabled={isDownloading}
       aria-label="Increase legend width"
     >
@@ -1846,18 +2810,24 @@ legendWidthDraftRef.current = String(next);
 <button
   type="button"
   className={styles.miniReset}
-  onClick={() => {
-    setLegendPos({ x: 0.02, y: 0.78 });
+onClick={() => {
+  setLegendPos({ x: 0.02, y: 0.78 });
 
-    setLegendSize(1.0);
-    setLegendSizeDraft("100");
-    legendSizeDraftRef.current = "100";
+  // ✅ reset to computed default size
+  const s0 = defaultLegendSizeRef.current ?? 1.0;
+  setLegendSize(s0);
+  const pct0 = String(Math.round(s0 * 100));
+  setLegendSizeDraft(pct0);
+  legendSizeDraftRef.current = pct0;
 
-    const w0 = defaultLegendWidthRef.current || 900;
-    setLegendWidthPx(w0);
-    setLegendWidthDraft(String(w0));
-    legendWidthDraftRef.current = String(w0);
-  }}
+const w0 = defaultLegendWidthRef.current ?? 900;
+isLegendWidthAutoRef.current = true;
+setLegendWidthPx(null);                 // ✅ auto mode
+setLegendWidthDraft(String(w0));        // ✅ show number
+legendWidthDraftRef.current = String(w0);
+
+}}
+
 >
   Reset
 </button>
@@ -1966,6 +2936,8 @@ legendWidthDraftRef.current = String(next);
     >
       <option value="jpg">JPG</option>
       <option value="png">PNG</option>
+        <option value="pdf">PDF</option> 
+        <option value="svg">SVG</option>
     </select>
 
     <span className={styles.selectChevron} aria-hidden="true">
@@ -1973,104 +2945,29 @@ legendWidthDraftRef.current = String(next);
     </span>
   </div>
 
-  {/* Format-specific options */}
-  {format === "jpg" ? (
-    <div className={styles.formatPanel}>
-      <div className={styles.expandTitle}>JPG quality</div>
+ {renderFormatOptions()}
 
-      <div className={styles.subList}>
-        {/* Web */}
-        <button
-          type="button"
-          className={`${styles.subRow} ${jpgPreset === "web" ? styles.subRowActive : ""}`}
-          disabled={isDownloading}
-          onClick={() => setJpgPreset("web")}
-        >
-          <div className={styles.subLeft}>
-            <div className={styles.subName}>Web</div>
-            <div className={styles.subDesc}>Fast export, lightweight file.</div>
-          </div>
-          <div className={styles.subRight}>
-            <span className={styles.subMeta}>80%</span>
-          </div>
-        </button>
-
-        {/* High (default) */}
-        <button
-          type="button"
-          className={`${styles.subRow} ${jpgPreset === "high" ? styles.subRowActive : ""}`}
-          disabled={isDownloading}
-          title="Default"
-          onClick={() => setJpgPreset("high")}
-        >
-          <div className={styles.subLeft}>
-            <div className={styles.subName}>
-              High <span className={styles.defaultPill}>Default</span>
-            </div>
-            <div className={styles.subDesc}>Best balance: sharp + smaller.</div>
-          </div>
-          <div className={styles.subRight}>
-            <span className={styles.subMeta}>92%</span>
-          </div>
-        </button>
-
-        {/* Max (pro) */}
-        <button
-  type="button"
-  className={`${styles.subRow} ${styles.subRowPro} ${jpgPreset === "max" ? styles.subRowActive : ""}`}
-  disabled={isDownloading || !isPro}
-  onClick={() => isPro && setJpgPreset("max")}
-  title={!isPro ? "Pro feature" : undefined}
->
-          <div className={styles.subLeft}>
-            <div className={styles.subName}>
-              Max{" "}
-              <img
-                className={styles.proBadge}
-                src="/assets/3-0/PRO-label.png"
-                alt="Pro"
-              />
-            </div>
-            <div className={styles.subDesc}>Highest quality, biggest file.</div>
-          </div>
-          <div className={styles.subRight}>
-            <span className={styles.subMeta}>98%</span>
-          </div>
-        </button>
+ <div className={styles.proCallout}>
+  <div className={styles.toggleRow}>
+    <div className={styles.toggleLeft}>
+      <div className={styles.toggleName}>Show legend</div>
+      <div className={styles.toggleDesc}>
+        Include the legend in exports.
       </div>
     </div>
-  ) : (
-    <div className={styles.formatPanel}>
-      <div className={styles.expandTitle}>PNG options</div>
 
-      <div className={styles.toggleRow}>
-        <div className={styles.toggleLeft}>
-          <div className={styles.toggleName}>
-            Transparent background{" "}
-            <img
-              className={styles.proBadge}
-              src="/assets/3-0/PRO-label.png"
-              alt="Pro"
-            />
-          </div>
-          <div className={styles.toggleDesc}>
-            Export without a background fill.
-          </div>
-        </div>
+    <label className={styles.switch} aria-label="Show legend">
+      <input
+        type="checkbox"
+        checked={legendOn}
+        onChange={(e) => setLegendOn(e.target.checked)}
+        disabled={isDownloading}
+      />
+      <span className={styles.slider} />
+    </label>
+  </div>
+</div>
 
-   <label className={styles.switch} aria-label="Transparent background">
-  <input
-    type="checkbox"
-    checked={transparentBg}
-    onChange={(e) => setTransparentBg(e.target.checked)}
-    disabled={!isPro || isDownloading}
-  />
-  <span className={styles.slider} />
-</label>
-
-      </div>
-    </div>
-  )}
 
   {/* Shared pro option */}
   <div className={styles.proCallout}>

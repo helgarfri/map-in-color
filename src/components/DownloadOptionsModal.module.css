@@ -325,6 +325,12 @@
   gap: 10px;
 }
 
+.controlsCardDisabled{
+  opacity: 0.55;
+  filter: grayscale(0.15);
+  pointer-events: none; /* ✅ makes the whole box inert */
+}
+
 
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -888,3 +894,4 @@
 .switch input:disabled + .slider{
   opacity: 0.75;
 }
+

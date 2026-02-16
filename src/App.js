@@ -38,6 +38,8 @@ import Map from "./components/Map";
 import Explore from "./components/Explore";
 import ResetPasswordPage from "./components/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
+import MapEmbed from "./components/MapEmbed";
+
 
 import { UserContext } from "./context/UserContext";
 import { SidebarContext } from "./context/SidebarContext";
@@ -103,6 +105,12 @@ export default function App() {
               path: "/map/:id",
               element: isUserLoggedIn ? <LoggedInMapDetail /> : <PublicMapDetail />,
             },
+
+            {
+              path: "/embed/:id",
+              element: <MapEmbed />,
+            },
+
 
             {
               path: "/explore",

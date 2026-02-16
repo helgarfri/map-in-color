@@ -107,6 +107,11 @@
   display: block;
 }
 
+/* ✅ slightly smaller PRO logo */
+.logoPro {
+  height: 32px; /* tweak: 30–34 depending on your PNG */
+}
+
 .headerTitle {
   font-size: 14px;
   font-weight: 1000;
@@ -456,6 +461,17 @@
     right: -10px;
   }
 }
+
+@media (max-width: 720px) {
+  .logo {
+    height: 34px;
+  }
+
+  .logoPro {
+    height: 28px;
+  }
+}
+
 
 
 /* =========================

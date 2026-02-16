@@ -274,6 +274,12 @@
   color: #555;
 }
 
+.mapStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .starCountContainer {
   display: flex;
   align-items: center;

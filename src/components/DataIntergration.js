@@ -16,6 +16,16 @@ import UploadDataModal from "./UploadDataModal";
 import ConfirmModal from "./ConfirmModal";
 import useUnsavedChangesPrompt from "../hooks/useUnsavedChangesPrompt";
 
+import { createPortal } from "react-dom";
+import { BiDownload } from "react-icons/bi";
+import { FaTrash } from "react-icons/fa";
+
+import DownloadOptionsModal from "./DownloadOptionsModal";
+import { deleteMap } from "../api";
+import { UserContext } from "../context/UserContext";
+import { getAnonId } from "../utils/annonId";
+
+
 // Icons, contexts, etc.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -402,6 +412,18 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 
 const [loading, setLoading] = useState(true);
 
+const { authToken, profile, isPro } = useContext(UserContext);
+const isUserLoggedIn = !!authToken && !!profile;
+
+// download modal
+const [showDownloadModal, setShowDownloadModal] = useState(false);
+
+// delete modal
+const [showDeleteMapModal, setShowDeleteMapModal] = useState(false);
+const [isDeletingMap, setIsDeletingMap] = useState(false);
+const [deleteMapError, setDeleteMapError] = useState(null);
+
+const [showDeleteReferenceModal, setShowDeleteReferenceModal] = useState(false);
 
 // custom base-color modal
 const [isBasePaletteModalOpen, setIsBasePaletteModalOpen] = useState(false);
@@ -424,14 +446,18 @@ const [uploadSession, setUploadSession] = useState({
   categoricalStats: null,
 });
 
+const [lastSavedAt, setLastSavedAt] = useState(existingMapData?.updated_at ?? null);
+
 
   const makeGroupId = () => `group_${nextGroupIdRef.current++}`;
 
-  const normalizeGroup = (g) => ({
-    id: g?.id ?? makeGroupId(),
-    name: String(g?.name ?? "").trim(),
-    color: (g?.color ?? "#c0c0c0").toLowerCase(),
-  });
+const normalizeGroup = (g) => ({
+  id: g?.id ?? makeGroupId(),
+  // ✅ DO NOT trim while editing (controlled input needs raw text)
+  name: String(g?.name ?? ""),
+  color: (g?.color ?? "#c0c0c0").toLowerCase(),
+});
+
 
   const hasExistingUserRanges = useMemo(() => {
   const arr = Array.isArray(custom_ranges) ? custom_ranges : [];
@@ -447,6 +473,17 @@ const [uploadSession, setUploadSession] = useState({
 useEffect(() => {
   setLoading(externalLoading);
 }, [externalLoading]);
+
+useEffect(() => {
+  setLastSavedAt(existingMapData?.updated_at ?? null);
+}, [existingMapData?.id]);
+
+const [timeTick, setTimeTick] = useState(0);
+useEffect(() => {
+  const t = setInterval(() => setTimeTick((x) => x + 1), 30000);
+  return () => clearInterval(t);
+}, []);
+
 
 
 
@@ -512,7 +549,43 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
     setPlaceholders(existingMapData.placeholders || {});
   }, [existingMapData?.id]); // important: use .id to avoid re-running on identity noise
 
-  
+
+
+async function confirmDeleteMap() {
+  if (isDeletingMap) return;
+
+  const mapId = existingMapData?.id ?? savedMapId;
+  if (!mapId) {
+    setDeleteMapError("Missing map id. Save the map first, then try deleting.");
+    return;
+  }
+
+  setIsDeletingMap(true);
+  setDeleteMapError(null);
+
+  try {
+    await deleteMap(mapId);
+
+    // close modal
+    setShowDeleteMapModal(false);
+
+    // navigate away
+    navigate("/your-maps"); // change if needed
+  } catch (err) {
+    console.error(err);
+    setDeleteMapError(err?.response?.data?.msg || "Delete failed. Please try again.");
+  } finally {
+    setIsDeletingMap(false);
+  }
+}
+
+function cancelDeleteMap() {
+  if (isDeletingMap) return;
+  setShowDeleteMapModal(false);
+  setDeleteMapError(null);
+}
+
+
 
   // Upload modal
   const handleOpenUploadModal = () => setShowUploadModal(true);
@@ -583,23 +656,31 @@ const handleImportData = (parsedData, stats, importedType) => {
     setFileStats(stats || defaultFileStats);
 
     // ✅ build/update groups from imported categories (non-empty only)
-    const importedCats = Array.from(
-      new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
-    ).sort((a, b) => a.localeCompare(b));
+      const importedCats = Array.from(
+        new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
+      );
+
 
     setGroups((prev) => {
       const prevArr = (Array.isArray(prev) ? prev : []).map(normalizeGroup);
-      const byName = new Map(prevArr.map((g) => [g.name, g]));
-      const merged = [...prevArr];
 
-      for (const cat of importedCats) {
-        if (!byName.has(cat)) {
-          merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
-        }
-      }
+// use trimmed keys for matching, but DO NOT reorder
+const keyOf = (s) => String(s ?? "").trim();
+const byName = new Map(prevArr.map((g) => [keyOf(g.name), g]));
 
-      merged.sort((a, b) => a.name.localeCompare(b.name));
-      return merged;
+const merged = [...prevArr];
+
+for (const cat of importedCats) {
+  const k = keyOf(cat);
+  if (!k) continue;
+  if (!byName.has(k)) {
+    merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
+    byName.set(k, true);
+  }
+}
+
+return merged;
+
     });
   }
 
@@ -646,6 +727,33 @@ const applyBaseColorPalette = (baseHex, opts = {}) => {
         return nextType;
       });
     };
+
+
+    function formatTimeAgo(iso) {
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return "—";
+
+  const diff = Date.now() - t;
+  if (diff < 0) return "just now";
+
+  const s = Math.floor(diff / 1000);
+  if (s < 5) return "just now";
+  if (s < 60) return `${s}s ago`;
+
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+
+  // fallback for older stuff
+  return new Date(t).toLocaleDateString();
+}
+
 
   // ============================
 // ✅ Auto-generate ranges (choropleth)
@@ -900,9 +1008,26 @@ const generateRangesFromData = () => {
 
 
   // Ranges logic
-  const handleRangeChange = (id, field, value) => {
-    setCustomRanges((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
-  };
+const handleRangeChange = (id, field, value) => {
+  setCustomRanges((prev) =>
+    (Array.isArray(prev) ? prev : []).map((r) =>
+      r.id === id ? { ...r, [field]: value } : r
+    )
+  );
+};
+
+const commitRangeBound = (id, field, value) => {
+  setCustomRanges((prev) => {
+    const next = (Array.isArray(prev) ? prev : []).map((r) =>
+      r.id === id ? { ...r, [field]: value } : r
+    );
+
+    // ✅ sort ONLY when user leaves the input
+    return sortRangesStable(next);
+  });
+};
+
+
 
   const addRange = () => {
     setCustomRanges((prev) => [...prev, { id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
@@ -943,7 +1068,7 @@ const updateCategory = (id, field, value) => {
  * - updates all data values that used the old name => new name
  */
 const renameCategory = (id, newNameRaw) => {
-  const newName = String(newNameRaw ?? "").trim();
+  const newName = String(newNameRaw ?? "").trim(); // ✅ trim only on blur
 
   setGroups((prevGroups) => {
     const arr = (Array.isArray(prevGroups) ? prevGroups : []).map(ensureGroupShape);
@@ -964,7 +1089,9 @@ const renameCategory = (id, newNameRaw) => {
       );
     }
 
-    return arr;
+    // ✅ sort ONLY when user commits (blur)
+    return arr; // ✅ keep order, no sorting
+
   });
 };
 
@@ -1024,13 +1151,10 @@ const removeCategory = (id) => {
     setIsReferenceModalOpen(true);
   };
 
-  const handleDeleteReference = () => {
-    if (!selectedReference) return;
-    if (window.confirm("Are you sure you want to delete this reference?")) {
-      setReferences((prev) => prev.filter((x) => x !== selectedReference));
-      setIsReferenceModalOpen(false);
-    }
-  };
+const handleDeleteReference = () => {
+  if (!selectedReference) return;
+  setShowDeleteReferenceModal(true);
+};
 
   const handleSaveReference = () => {
     if (!tempSourceName.trim() || !tempYear.trim()) {
@@ -1139,7 +1263,6 @@ const categoryRows = useMemo(() => {
     });
   }
 
-  rows.sort((a, b) => String(a.name).localeCompare(String(b.name)));
   return rows;
 }, [mapDataType, groups, mapDataNormalized]);
 
@@ -1153,8 +1276,55 @@ const categoryRows = useMemo(() => {
     .filter(Boolean);
 }, [groups]);
 
+function toSortableNum(v) {
+  // keep raw strings in state, but sort using a "best effort" parse
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+
+  // allow comma decimals
+  const n = parseFloat(s.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function sortRangesStable(arr) {
+  const withIdx = arr.map((r, idx) => ({
+    r,
+    idx,
+    lo: toSortableNum(r.lowerBound),
+    hi: toSortableNum(r.upperBound),
+  }));
+
+  withIdx.sort((a, b) => {
+    const al = a.lo ?? Number.POSITIVE_INFINITY;
+    const bl = b.lo ?? Number.POSITIVE_INFINITY;
+    if (al !== bl) return al - bl;
+
+    const ah = a.hi ?? Number.POSITIVE_INFINITY;
+    const bh = b.hi ?? Number.POSITIVE_INFINITY;
+    if (ah !== bh) return ah - bh;
+
+    // stable fallback (prevents jitter when equal)
+    return a.idx - b.idx;
+  });
+
+  return withIdx.map((x) => x.r);
+}
 
 
+function sortGroupsByName(arr) {
+  const clean = (x) => String(x ?? "").trim().toLowerCase();
+  return [...arr].sort((a, b) => {
+    const an = clean(a.name);
+    const bn = clean(b.name);
+
+    // empty names at bottom
+    if (!an && !bn) return 0;
+    if (!an) return 1;
+    if (!bn) return -1;
+
+    return an.localeCompare(bn);
+  });
+}
 
 
 
@@ -1648,6 +1818,14 @@ try {
     if (newId) setSavedMapId(newId);
   }
 
+  const serverUpdatedAt =
+    res?.data?.updated_at ||
+    res?.data?.map?.updated_at ||
+    res?.data?.updatedAt ||
+    null;
+
+  setLastSavedAt(serverUpdatedAt || new Date().toISOString());
+
   clearInterval(timer);
   setSaveProgress(100);
   setSaveSuccess(true);
@@ -1855,25 +2033,35 @@ try {
         </td>
 
         <td>
-          <input
+         <input
             type="number"
             className={styles.tableInputNumber}
             value={range.lowerBound}
             onChange={(e) => handleRangeChange(range.id, "lowerBound", e.target.value)}
+            onBlur={(e) => commitRangeBound(range.id, "lowerBound", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur(); // ✅ commit + sort
+            }}
             placeholder="Min"
             inputMode="decimal"
           />
+
         </td>
 
         <td>
-          <input
+         <input
             type="number"
             className={styles.tableInputNumber}
             value={range.upperBound}
             onChange={(e) => handleRangeChange(range.id, "upperBound", e.target.value)}
+            onBlur={(e) => commitRangeBound(range.id, "upperBound", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur(); // ✅ commit + sort
+            }}
             placeholder="Max"
             inputMode="decimal"
           />
+
         </td>
 
         <td>
@@ -2158,25 +2346,55 @@ try {
     </div>
   </div>
 
-  {/* Bottom actions (centered + save icon) */}
-<div className={styles.mapInfoActionsBottomCentered}>
-  <button
-    className={`${styles.actionPill} ${styles.cancelPill}`}
-    type="button"
-    onClick={() => navigate(-1)}
-  >
-    Cancel
-  </button>
+{/* Bottom actions */}
+<div className={styles.mapInfoActionsBottom}>
+  {/* LEFT */}
+  <div className={styles.actionsLeft}>
+    <button
+      type="button"
+      className={`${styles.actionPill} ${styles.dangerPill}`}
+      onClick={() => setShowDeleteMapModal(true)}
+      disabled={!isEditing && !savedMapId}
+    >
+      <FaTrash />
+      Delete map
+    </button>
+  </div>
 
-  <button
-    className={`${styles.actionPill} ${styles.savePill}`}
-    type="button"
-    onClick={handleSaveMap}
-  >
-    <FontAwesomeIcon icon={faSave} />
-    Save Map
-  </button>
+  {/* CENTER */}
+  <div className={styles.actionsCenter}>
+    <button
+      className={`${styles.actionPill} ${styles.cancelPill}`}
+      type="button"
+      onClick={() => navigate(-1)}
+    >
+      Cancel
+    </button>
+
+    <button
+      className={`${styles.actionPill} ${styles.savePill}`}
+      type="button"
+      onClick={handleSaveMap}
+      disabled={isSaving}
+    >
+      <FontAwesomeIcon icon={faSave} />
+      Save Map
+    </button>
+  </div>
+
+  {/* RIGHT */}
+  <div className={styles.actionsMeta} title={lastSavedAt ? new Date(lastSavedAt).toLocaleString() : ""}>
+    <span className={styles.actionsMetaLabel}>Last saved</span>
+    <span className={styles.actionsMetaDot}>·</span>
+    <span className={styles.actionsMetaValue}>
+      {formatTimeAgo(lastSavedAt)}
+      {/* force re-render for "time ago" updates if you added the tick */}
+      {timeTick ? null : null}
+    </span>
+  </div>
 </div>
+
+
 
 </div>
 
@@ -2350,6 +2568,62 @@ try {
     generateRangesFromData();
   }}
 />
+
+<ConfirmModal
+  isOpen={showDeleteMapModal}
+  title="Delete map?"
+  message={
+    <div>
+      This will permanently delete <b>{mapTitle || "this map"}</b>.
+      <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+        This can’t be undone.
+      </div>
+
+      {deleteMapError ? (
+        <div style={{ marginTop: 10, fontSize: 12, color: "#b00020" }}>
+          {deleteMapError}
+        </div>
+      ) : null}
+    </div>
+  }
+  cancelText="Cancel"
+  confirmText={isDeletingMap ? "Deleting..." : "Delete"}
+  danger
+  onCancel={cancelDeleteMap}
+  onConfirm={confirmDeleteMap}
+/>
+
+
+<ConfirmModal
+  isOpen={showDeleteReferenceModal}
+  title="Delete reference?"
+  message={
+    selectedReference ? (
+      <div>
+        This will remove <b>{selectedReference.sourceName}</b> from your map.
+        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+          This can’t be undone.
+        </div>
+      </div>
+    ) : (
+      "This can’t be undone."
+    )
+  }
+  cancelText="Cancel"
+  confirmText="Delete"
+  danger
+  onCancel={() => setShowDeleteReferenceModal(false)}
+  onConfirm={() => {
+    if (!selectedReference) return;
+
+    setReferences((prev) => prev.filter((r) => r.id !== selectedReference.id));
+
+    setShowDeleteReferenceModal(false);
+    setIsReferenceModalOpen(false);
+    setSelectedReference(null);
+  }}
+/>
+
 
       {/* Leave without saving */}
       <ConfirmModal

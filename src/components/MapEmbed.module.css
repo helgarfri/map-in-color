@@ -1,0 +1,69 @@
+.embedRoot {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.mapWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* simple skeleton */
+.skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+  background-size: 200% 100%;
+  animation: shimmer 1.1s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.errorBox {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  color: rgba(255,255,255,0.85);
+  text-align: center;
+  gap: 6px;
+}
+.errorTitle { font-weight: 800; font-size: 18px; }
+.errorSub { opacity: 0.8; font-weight: 600; font-size: 13px; }
+
+
+.watermark {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 50; /* above map, below modals if any */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+
+  pointer-events: none; /* don’t block map interactions */
+  user-select: none;
+
+  opacity: 0.45; /* tweak */
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.16));
+}
+
+.watermarkText {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(15, 23, 42, 0.75);
+  line-height: 1;
+}
+
+.watermarkLogo {
+  height: 26px;      /* tweak size */
+  width: auto;
+  display: block;
+}

@@ -629,15 +629,81 @@
   color: rgba(15, 23, 42, 0.65);
 }
 
-.mapInfoActionsBottomCentered {
+.mapInfoActionsBottom {
   margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: center;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* left | center | right */
   align-items: center;
   gap: 12px;
 }
+
+.actionsLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.actionsCenter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.actionsMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.62);
+
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.actionsMetaLabel {
+  opacity: 0.7;
+}
+
+.actionsMetaDot {
+  opacity: 0.45;
+}
+
+.actionsMetaValue {
+  color: rgba(15, 23, 42, 0.78);
+}
+
+/* Responsive: stack nicely */
+@media (max-width: 520px) {
+  .mapInfoActionsBottom {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .actionsLeft,
+  .actionsCenter,
+  .actionsMeta {
+    justify-content: space-between;
+  }
+
+  .actionsCenter {
+    justify-content: space-between;
+  }
+
+  .actionsMeta {
+    justify-content: flex-start;
+  }
+}
+
 
 /* Tags */
 .tagBoxLg {

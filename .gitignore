@@ -26,3 +26,9 @@ yarn-error.log*
 node_modules/
 .env
 profile_pictures/
+
+
+# env files
+.env
+.env.*
+!.env.example

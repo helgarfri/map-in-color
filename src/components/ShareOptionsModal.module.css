@@ -1,0 +1,276 @@
+/* src/components/ShareOptionsModal.module.css */
+
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --border: rgba(20, 24, 40, 0.10);
+  --text: rgba(15, 23, 42, 0.92);
+  --muted: rgba(15, 23, 42, 0.62);
+  --shadow: 0 20px 60px rgba(15, 23, 42, 0.20);
+  --radius: 16px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 18px;
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: min(640px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(20, 24, 40, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.08),
+    rgba(20,169,175,0.06),
+    rgba(255,255,255,0.92)
+  );
+}
+
+.titleWrap { min-width: 0; }
+
+.title {
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.sub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dot { opacity: 0.7; }
+
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(255,255,255,0.72);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: rgba(15, 23, 42, 0.78);
+}
+.closeBtn:hover {
+  background: rgba(255,255,255,0.92);
+}
+.closeBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.card {
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: 16px;
+  background:
+    radial-gradient(820px 240px at 18% 0%, rgba(40,168,225,0.10), transparent 60%),
+    radial-gradient(760px 220px at 88% 22%, rgba(20,169,175,0.10), transparent 55%),
+    rgba(255,255,255,0.92);
+  padding: 12px;
+}
+
+.cardTitle {
+  font-size: 12px;
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  color: rgba(15, 23, 42, 0.82);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* Link row */
+.linkRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.linkBox {
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255,255,255,0.78);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copyBtn {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(20,169,175,0.30);
+  background: rgba(20,169,175,0.18);
+  color: rgba(15, 23, 42, 0.92);
+  font-weight: 950;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.copyBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(20,169,175,0.24);
+  border-color: rgba(20,169,175,0.42);
+}
+.copyBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
+}
+
+/* Social grid */
+.socialGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.socialBtn {
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255,255,255,0.75);
+  border-radius: 16px;
+  padding: 12px 10px;
+  cursor: pointer;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.socialBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  background: rgba(40,168,225,0.06);
+}
+.socialBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
+.socialIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(15, 23, 42, 0.02);
+  font-size: 22px;
+  color: rgba(15, 23, 42, 0.86);
+}
+
+.socialLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(15, 23, 42, 0.82);
+}
+
+/* Hints */
+.hintOk {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(20,169,175,0.95);
+}
+
+.hintMuted {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.55);
+  line-height: 1.45;
+}
+
+/* Open page button */
+.openBtn {
+  margin-top: 10px;
+  height: 42px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  color: rgba(15, 23, 42, 0.82);
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.openBtn:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+.openBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* Embed row */
+.embedRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.embedBox {
+  min-height: 120px;
+  resize: none;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255,255,255,0.78);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 750;
+  color: rgba(15, 23, 42, 0.82);
+  line-height: 1.4;
+  outline: none;
+}
+
+
+/* Mobile */
+@media (max-width: 520px) {
+  .socialGrid {
+    grid-template-columns: 1fr;
+  }
+}

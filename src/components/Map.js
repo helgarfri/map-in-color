@@ -87,7 +87,22 @@ const getCountryEls = (svg, code) =>
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
   );
 
-  
+/** Union of getBBox() for all elements of one country (covers mainland + territories). */
+function getBBoxUnionForCountry(svg, code) {
+  const els = getCountryEls(svg, code);
+  if (!els?.length) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  els.forEach((el) => {
+    try {
+      const b = el.getBBox();
+      minX = Math.min(minX, b.x);
+      minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.width);
+      maxY = Math.max(maxY, b.y + b.height);
+    } catch {}
+  });
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
 
 /* ───────────────── component ───────────────────────────────────────── */
 
@@ -605,7 +620,8 @@ const resetPanZoom = useCallback((ms = 220) => {
 
       const name = el.getAttribute("name") || C;
       const value = findValue(C);
-      const bbox = el.getBBox();
+      // Use union of all elements so multi-part countries (USA, Russia, China, AU) zoom to full extent
+      const bbox = getBBoxUnionForCountry(svg, C) ?? el.getBBox();
       const color = findColor(C);
       const placeholder = findPlaceholder(C);
 
@@ -649,19 +665,23 @@ const resetPanZoom = useCallback((ms = 220) => {
       const stripeXpx = (vpW - vbW * fit) * 0.5;
       const stripeYpx = (vpH - vbH * fit) * 0.5;
 
-      const cx = stripeXpx / scale0 + (bbox.x + bbox.width * 0.5) * pxPerUnit;
-      const cy = stripeYpx / scale0 + (bbox.y + bbox.height * 0.5) * pxPerUnit;
+      const centerX = bbox.x + bbox.width * 0.5;
+      const centerY = bbox.y + bbox.height * 0.5;
+      const cx = stripeXpx / scale0 + centerX * pxPerUnit;
+      const cy = stripeYpx / scale0 + centerY * pxPerUnit;
 
       const targetScale = Math.min(
-  4,
-  (vpW * 0.5) / (bbox.width * pxPerUnit),
-  (vpH * 0.6) / (bbox.height * pxPerUnit)
-);
+        4,
+        (vpW * 0.5) / (bbox.width * pxPerUnit),
+        (vpH * 0.55) / (bbox.height * pxPerUnit)
+      );
 
-const x = vpW * 0.5 - cx * targetScale;
-const y = vpH * 0.5 - cy * targetScale;
+      // Center the country in the viewport; nudge up slightly so it doesn't feel too low
+      const targetCenterY = vpH * 0.48;
+      const x = vpW * 0.5 - cx * targetScale;
+      const y = targetCenterY - cy * targetScale;
 
-setTransformAndTrack(x, y, targetScale, 250);
+      setTransformAndTrack(x, y, targetScale, 250);
 
     },
     [findColor, findValue]
@@ -877,7 +897,7 @@ const groupRows = useMemo(() => {
     if (aNo && bNo) return a.name.localeCompare(b.name);
     if (aNo) return 1;
     if (bNo) return -1;
-    if (av !== bv) return av - bv;
+    if (av !== bv) return bv - av;   // ✅ DESC
     return a.name.localeCompare(b.name);
   });
 }, [activeLegendCodes, codeToName, findValue, isChoropleth, effectiveMapType]);
@@ -1016,7 +1036,10 @@ if (isGlobalSpread) {
     isZoomedRef.current = scale > 1.02;
 
     const t = { x, y, scale };
-    if (store) dataFitRef.current = t;
+    if (store) {
+      dataFitRef.current = t;
+      lastFitBBoxRef.current = bb;
+    }
     return t;
   },
   [baseX, baseY]
@@ -1098,13 +1121,6 @@ useEffect(() => {
 
 
 useEffect(() => {
-  // when switching modes, snap to that mode’s baseline
-  resetPanZoom(0);
-  setShowResetBtn(false);
-}, [isLargeMap, resetPanZoom]);
-
-
-useEffect(() => {
   didAutoFitRef.current = false;
 }, [selected_map]);
 
@@ -1149,20 +1165,20 @@ useEffect(() => {
 
 
 useEffect(() => {
-  // entering/leaving fullscreen changes vp size + baseY,
-  // so we must re-fit the same bbox.
-  if (!lastFitBBoxRef.current) return;
-
-  setIsViewReady(false);
-
-  requestAnimationFrame(() => {
-    // re-fit using stored bbox (already padded)
-    fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
-
-    // reveal after transform commits
-    requestAnimationFrame(() => setIsViewReady(true));
-  });
-}, [isLargeMap, fitBBoxToView]);
+  // When entering/leaving fullscreen: viewport size and baseY change.
+  // If we have a stored bbox (adjusted view from selected countries), re-fit it
+  // so we keep the same view instead of jumping to full world. Otherwise reset.
+  if (lastFitBBoxRef.current) {
+    setIsViewReady(false);
+    requestAnimationFrame(() => {
+      fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+      requestAnimationFrame(() => setIsViewReady(true));
+    });
+  } else {
+    resetPanZoom(0);
+    setShowResetBtn(false);
+  }
+}, [isLargeMap, fitBBoxToView, resetPanZoom]);
 
 
 
@@ -1187,14 +1203,15 @@ const renderInfoBox = () => {
   const hasDesc = desc.length > 0;
 
   return (
-    <aside className={cls.infoBox}>
-      <header className={cls.infoBoxHeader}>
+<aside className={`${cls.infoBox} ${cls.frostCard}`}>
+  <header className={`${cls.infoBoxHeader} ${cls.frostHeader}`}>
         <img
           src={`https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`}
           alt=""
           loading="lazy"
         />
-        <h2 title={selected.name}>{selected.name}</h2>
+      <h2 className={cls.frostTitle} title={selected.name}>{selected.name}</h2>
+
 
         <button
           onClick={resetView}
@@ -1206,7 +1223,8 @@ const renderInfoBox = () => {
         </button>
       </header>
 
-      <div className={cls.infoBoxBody}>
+      <div className={`${cls.infoBoxBody} ${cls.frostBody}`}>
+
         <div className={cls.valueBlock}>
           <div
             className={[
@@ -1245,20 +1263,22 @@ const renderGroupInfoBox = () => {
 
 
   return (
-    <aside className={cls.groupBox}>
-      <header className={cls.groupBoxHeader}>
+    <aside className={`${cls.groupBox} ${cls.frostCard}`}>
+  <header className={`${cls.groupBoxHeader} ${cls.frostHeader}`}>
+
         <span
           className={cls.groupDot}
           style={{ background: activeLegendModel.color }}
           aria-hidden="true"
         />
         <div className={cls.groupHeaderText}>
-          <h2 className={cls.groupTitle} title={activeLegendModel.label}>
-            {activeLegendModel.label}
-          </h2>
-          <div className={cls.groupCount}>
-            {items.length} {items.length === 1 ? "country" : "countries"}
-          </div>
+          <h2 className={cls.frostTitle} title={activeLegendModel.label}>
+  {activeLegendModel.label}
+</h2>
+<div className={cls.frostSub}>
+  {items.length} {items.length === 1 ? "country" : "countries"}
+</div>
+
         </div>
 
         <button
@@ -1271,7 +1291,8 @@ const renderGroupInfoBox = () => {
         </button>
       </header>
 
-      <div className={cls.groupBoxBody}>
+      <div className={`${cls.groupBoxBody} ${cls.frostBody}`}>
+
         <div className={cls.groupList}>
           {/* header row */}
      

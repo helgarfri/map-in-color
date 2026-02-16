@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { FaStar, FaSearch } from "react-icons/fa";
+import { FaStar, FaSearch, FaComment } from "react-icons/fa";
 import StaticMapThumbnail from "./StaticMapThumbnail";
 import styles from "./ExploreContent.module.css";
 
@@ -341,9 +341,14 @@ function ExploreContent() {
 
                       <div className={styles.mapInfoRow}>
                         <span>{displayName}</span>
-                        <span className={styles.starCountContainer}>
-                          <FaStar /> {map.save_count || 0}
-                        </span>
+                        <div className={styles.mapStats}>
+                          <span className={styles.starCountContainer}>
+                            <FaStar /> {map.save_count || 0}
+                          </span>
+                          <span className={styles.starCountContainer}>
+                            <FaComment /> {map.comments_count ?? map.comment_count ?? 0}
+                          </span>
+                        </div>
                       </div>
 
                       {map.tags && map.tags.length > 0 && (

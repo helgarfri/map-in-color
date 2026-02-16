@@ -320,6 +320,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  min-width: 0;
 
   margin: 0 12px 10px;
   font-size: 12px;
@@ -327,18 +329,39 @@
   color: rgba(0,0,0,0.60);
 }
 
+.mapInfoRow > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapStats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .starCountContainer {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
 
-  padding: 6px 10px;
+  padding: 3px 6px;
   border-radius: 999px;
+  font-size: 10px;
 
   border: 1px solid rgba(0,0,0,0.10);
   background: rgba(0,0,0,0.03);
   color: rgba(0,0,0,0.62);
   font-weight: 900;
+}
+
+.starCountContainer svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
 }
 
 /* Tag chips in card */
