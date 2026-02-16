@@ -9,7 +9,7 @@ import {
   markAllNotificationsAsRead,
 } from '../api';
 import StaticMapThumbnail from './StaticMapThumbnail';
-import { FaStar } from 'react-icons/fa';
+import { FaStar, FaComment } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { UserContext } from '../context/UserContext';
@@ -181,9 +181,14 @@ export default function StarredMaps() {
 
                   <div className={styles.mapInfoRow}>
                     <span>By {creatorUsername}</span>
-                    <span>
-                      <FaStar className={styles.starIcon} /> {map.save_count || 0}
-                    </span>
+                    <div className={styles.mapStats}>
+                      <span className={styles.starCountContainer}>
+                        <FaStar className={styles.starIcon} /> {map.save_count || 0}
+                      </span>
+                      <span className={styles.starCountContainer}>
+                        <FaComment className={styles.commentIcon} /> {map.comment_count ?? map.comments_count ?? 0}
+                      </span>
+                    </div>
                   </div>
 
                   {map.tags && map.tags.length > 0 && (

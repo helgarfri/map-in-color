@@ -29,6 +29,26 @@ function stripEmptyUpdateFields(obj) {
   return clean;
 }
 
+/** Attach comment_count to each map (visible comments only). Mutates the array. */
+async function attachCommentCounts(maps) {
+  if (!maps || maps.length === 0) return maps;
+  const mapIds = maps.map((m) => m.id);
+  const { data: commentRows, error } = await supabaseAdmin
+    .from('comments')
+    .select('map_id')
+    .in('map_id', mapIds)
+    .eq('status', 'visible');
+  const countByMap = {};
+  mapIds.forEach((id) => (countByMap[id] = 0));
+  if (!error && commentRows && commentRows.length > 0) {
+    commentRows.forEach((row) => {
+      countByMap[row.map_id] = (countByMap[row.map_id] || 0) + 1;
+    });
+  }
+  maps.forEach((m) => (m.comment_count = countByMap[m.id] ?? 0));
+  return maps;
+}
+
 /* --------------------------------------------
    GET /api/maps
    Fetch all maps for the logged-in user
@@ -50,6 +70,7 @@ router.get('/', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
+    await attachCommentCounts(userMaps || []);
     res.json(userMaps);
   } catch (err) {
     console.error('Error fetching maps:', err);
@@ -165,6 +186,7 @@ router.get('/saved', auth, async (req, res) => {
       return m.user.status !== 'banned';
     });
 
+    await attachCommentCounts(filteredMaps);
     res.json(filteredMaps);
   } catch (err) {
     console.error('Error fetching saved maps:', err);

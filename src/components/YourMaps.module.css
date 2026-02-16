@@ -189,30 +189,45 @@
   color: rgba(0,0,0,0.58);
 }
 
-/* Stars row */
+/* Stars + comments row */
 .statsRow {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.starCount {
+.mapStats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.starCount,
+.commentCount {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
 
-  padding: 6px 10px;
+  padding: 3px 6px;
   border-radius: 999px;
+  font-size: 10px;
 
   border: 1px solid rgba(0,0,0,0.10);
   background: rgba(0,0,0,0.03);
-
-  font-size: 12px;
   font-weight: 900;
   color: rgba(0,0,0,0.62);
 }
 
-.starIcon {
+.starCount svg,
+.commentCount svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.starIcon,
+.commentIcon {
   color: rgba(0,0,0,0.55);
 }
 
@@ -734,7 +749,8 @@
     align-items: center !important;
   }
 
-  .starCount {
+  .starCount,
+  .commentCount {
     width: fit-content !important;
     white-space: nowrap !important;
   }

@@ -10,7 +10,7 @@ import {
 } from "../api";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import { UserContext } from "../context/UserContext";
-import { FaStar, FaMap, FaCalendarAlt, FaEdit } from "react-icons/fa";
+import { FaStar, FaComment, FaMap, FaCalendarAlt, FaEdit } from "react-icons/fa";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -419,10 +419,16 @@ export default function Dashboard() {
                           </p>
 
                           <div className={styles.mapCardMetaRow}>
-                            <span className={styles.metaPill}>
-                              <FaStar className={styles.metaIcon} />
-                              {map.save_count || 0}
-                            </span>
+                            <div className={styles.mapStats}>
+                              <span className={styles.metaPillSmall}>
+                                <FaStar className={styles.metaIconSmall} />
+                                {map.save_count || 0}
+                              </span>
+                              <span className={styles.metaPillSmall}>
+                                <FaComment className={styles.metaIconSmall} />
+                                {map.comment_count ?? map.comments_count ?? 0}
+                              </span>
+                            </div>
 
                             <button
                               className={styles.quickAction}
@@ -491,10 +497,16 @@ export default function Dashboard() {
                             <p className={styles.mapCardTimestamp}>by {displayName}</p>
 
                             <div className={styles.mapCardMetaRow}>
-                              <span className={styles.metaPill}>
-                                <FaStar className={styles.metaIcon} />
-                                {map.save_count || 0}
-                              </span>
+                              <div className={styles.mapStats}>
+                                <span className={styles.metaPillSmall}>
+                                  <FaStar className={styles.metaIconSmall} />
+                                  {map.save_count || 0}
+                                </span>
+                                <span className={styles.metaPillSmall}>
+                                  <FaComment className={styles.metaIconSmall} />
+                                  {map.comment_count ?? map.comments_count ?? 0}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -446,6 +446,33 @@
   font-size: 12px;
 }
 
+.mapStats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.metaPillSmall {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.70);
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+}
+
+.metaIconSmall {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  color: var(--mic-azure);
+}
+
 .quickAction {
   all: unset;
   cursor: pointer;

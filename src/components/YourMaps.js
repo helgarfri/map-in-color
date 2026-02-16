@@ -13,7 +13,7 @@ import StaticMapThumbnail from './StaticMapThumbnail';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { formatDistanceToNow } from 'date-fns';
-import { FaStar, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
+import { FaStar, FaComment, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
@@ -271,8 +271,13 @@ const cancelDelete = () => {
                     </div>
 
                     <div className={styles.statsRow}>
-                      <div className={styles.starCount}>
-                        <FaStar className={styles.starIcon} /> {map.save_count || 0}
+                      <div className={styles.mapStats}>
+                        <div className={styles.starCount}>
+                          <FaStar className={styles.starIcon} /> {map.save_count || 0}
+                        </div>
+                        <div className={styles.commentCount}>
+                          <FaComment className={styles.commentIcon} /> {map.comment_count ?? map.comments_count ?? 0}
+                        </div>
                       </div>
                     </div>
 
