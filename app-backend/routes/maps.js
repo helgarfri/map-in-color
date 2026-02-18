@@ -490,11 +490,18 @@ router.get('/:id', authOptional, async (req, res) => {
         .maybeSingle();
 
       const now = new Date().toISOString();
-      const valid = !tokenErr && tokenRow && (!tokenRow.expires_at || tokenRow.expires_at > now);
-      if (valid) {
-        accessViaEmbedToken = true;
-        const tokenUser = tokenRow.user;
-        allow_unbranded = !!(tokenRow.allows_unbranded && tokenUser && tokenUser.plan === 'pro');
+      const tokenValid = !tokenErr && tokenRow && (!tokenRow.expires_at || tokenRow.expires_at > now);
+      const tokenUser = tokenRow?.user;
+      const ownerIsPro = tokenUser && tokenUser.plan === 'pro';
+
+      if (tokenValid) {
+        // Private map embeds: only allow access if the map owner (token user) is still Pro
+        if (!mapRow.is_public && !ownerIsPro) {
+          // Token exists but owner downgraded to free → show private screen, don't grant access
+        } else {
+          accessViaEmbedToken = true;
+          allow_unbranded = !!(tokenRow.allows_unbranded && ownerIsPro);
+        }
       }
     }
 

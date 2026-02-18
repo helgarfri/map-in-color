@@ -42,15 +42,16 @@ export default function MapEmbed() {
 
   // Embed options from URL (?theme=dark&branding=0&legend=0&interactive=0&token=...)
   const embedTheme = searchParams.get("theme") === "dark" ? "dark" : "light";
-  const urlWantsUnbranded = searchParams.get("branding") === "0";
-  // Only allow unbranded when API confirms allow_unbranded (Pro token); otherwise force branding
-  const showBranding = urlWantsUnbranded ? !(mapData?.allow_unbranded) : true;
   const showLegend = searchParams.get("legend") !== "0";
   const isInteractive = searchParams.get("interactive") !== "0";
   const embedToken = searchParams.get("token") || null;
 
   const [mapData, setMapData] = useState(null);
   const [loadState, setLoadState] = useState("loading"); // loading|ready|error|private
+
+  // Only allow unbranded when API confirms allow_unbranded (Pro token); otherwise force branding
+  const urlWantsUnbranded = searchParams.get("branding") === "0";
+  const showBranding = urlWantsUnbranded ? !(mapData?.allow_unbranded) : true;
 
   // legend interaction states (same as MapDetail)
   const [activeLegendKey, setActiveLegendKey] = useState(null);
