@@ -31,8 +31,86 @@
   border-radius: 14px;
 }
 
+/* non-interactive embed: no hover/click on legend rows */
+.mapLegendBox[data-interactive="0"] .mapLegendRow {
+  cursor: default;
+  pointer-events: none;
+}
+
+.mapLegendBox[data-interactive="0"] .mapLegendRow:hover,
+.mapLegendBox[data-interactive="0"] .mapLegendRowActive {
+  background: transparent;
+}
+
+/* Dark theme: frosted dark (matches MapEmbed dark + Map infobox/groupbox) */
+.mapLegendBox[data-theme="dark"] {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendTitle {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendToggleBtn {
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendToggleBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendEmpty {
+  color: rgba(226, 232, 240, 0.6);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendRow {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendRowActive {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendLabel {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendMeta {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendHoverHint {
+  color: rgba(226, 232, 240, 0.5);
+}
+
+.mapLegendBox[data-theme="dark"] .mapLegendRow:hover .mapLegendHoverHint {
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.mapLegendBox[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(30, 41, 59, 0.9);
+}
+
+.mapLegendBox[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 .mapLegendHeader {
-  padding: 10px 12px 10px;
+  padding: 6px 12px 6px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
@@ -81,6 +159,11 @@
   transform: rotate(180deg);
 }
 
+.mapLegendToggleBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* Wrapper for legend items so we can animate collapse */
 .mapLegendItemsWrap {
   overflow: hidden;
@@ -92,9 +175,9 @@
 }
 
 .mapLegendItems {
-  padding: 10px 10px 10px;
+  padding: 6px 8px 6px;
   display: grid;
-  gap: 6px;
+  gap: 2px;
 
   max-height: calc(100vh - 32px - 44px);
   overflow: auto;
@@ -111,10 +194,10 @@
   display: grid;
   grid-template-columns: 10px 1fr auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
-  padding: 8px 10px;
-  border-radius: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
 
   cursor: pointer;
   user-select: none;
@@ -147,6 +230,8 @@
   min-width: 0;
   display: grid;
   gap: 2px;
+  align-content: center;
+  margin-top: 1px; /* optical align with dot */
 }
 
 .mapLegendLabel {

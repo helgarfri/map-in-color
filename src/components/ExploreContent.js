@@ -18,6 +18,7 @@ function ExploreContent() {
 
   const [searchApplied, setSearchApplied] = useState("");
   const searchRef = useRef(null);
+  const fetchRequestIdRef = useRef(0);
 
   const [sort, setSort] = useState("newest");
   const [selectedTags, setSelectedTags] = useState([]);
@@ -74,33 +75,47 @@ function ExploreContent() {
     setPage(urlPage && urlPage > 0 ? urlPage : 1);
   }, [location.search]);
 
-  // Fetch maps
+  // Fetch maps — use URL as source of truth for tags/page so we never fetch with stale state
+  // (e.g. when navigating from MapDetail with ?tags=foo, state may not have updated yet)
   const fetchMaps = async () => {
+    const searchParams = new URLSearchParams(location.search);
+    const tagsFromUrl = searchParams.get("tags");
+    const tagsForRequest = tagsFromUrl
+      ? tagsFromUrl.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
+      : [];
+    const pageFromUrl = parseInt(searchParams.get("page"), 10);
+    const pageForRequest = pageFromUrl && pageFromUrl > 0 ? pageFromUrl : 1;
+
     setLoading(true);
+    const requestId = ++fetchRequestIdRef.current;
     try {
-      const params = { sort, page, limit: mapsPerPage };
+      const params = { sort, page: pageForRequest, limit: mapsPerPage };
       if (searchApplied.trim()) params.search = searchApplied.trim();
-      if (selectedTags.length > 0) params.tags = selectedTags.join(",");
+      if (tagsForRequest.length > 0) params.tags = tagsForRequest.join(",");
 
       const res = await axios.get("https://map-in-color.onrender.com/api/explore", {
         params,
       });
+
+      // Ignore response if a newer request was already sent (avoids showing "all maps" from stale response)
+      if (requestId !== fetchRequestIdRef.current) return;
 
       setMaps(res.data.maps);
       setTotalMaps(res.data.total);
 
       if (initialLoad) setInitialLoad(false);
     } catch (err) {
+      if (requestId !== fetchRequestIdRef.current) return;
       console.error("Error fetching maps:", err);
     } finally {
-      setLoading(false);
+      if (requestId === fetchRequestIdRef.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchMaps();
     // eslint-disable-next-line
-  }, [selectedTags, sort, searchApplied, page]);
+  }, [location.search, sort, searchApplied]);
 
   // Handlers
   const handleSearchSubmit = (e) => {

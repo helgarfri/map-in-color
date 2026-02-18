@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 
 const { supabaseAdmin } = require('../config/supabase'); // Use service_role key
@@ -433,12 +434,14 @@ router.delete('/:id', auth, async (req, res) => {
 
 /* --------------------------------------------
    GET /api/maps/:id
-   Fetch single map by ID (public or owner only)
+   Fetch single map by ID (public or owner only).
+   Query: ?token=... for embed access (private maps + optional allow_unbranded).
 -------------------------------------------- */
 router.get('/:id', authOptional, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user?.id || null;
+    const embedToken = req.query.token || null;
 
     // join with user (including status)
     const { data: mapRow, error } = await supabaseAdmin
@@ -470,18 +473,40 @@ router.get('/:id', authOptional, async (req, res) => {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
-    // If map is private and user is NOT the owner => Return partial data
-    if (!mapRow.is_public && mapRow.user_id !== user_id) {
+    let accessViaEmbedToken = false;
+    let allow_unbranded = false;
+
+    // Validate embed token when present (for private map access and/or unbranded for public maps)
+    if (embedToken) {
+      const { data: tokenRow, error: tokenErr } = await supabaseAdmin
+        .from('embed_tokens')
+        .select(`
+          allows_unbranded,
+          expires_at,
+          user:users!embed_tokens_user_id_fkey ( plan )
+        `)
+        .eq('token', embedToken)
+        .eq('map_id', mapId)
+        .maybeSingle();
+
+      const now = new Date().toISOString();
+      const valid = !tokenErr && tokenRow && (!tokenRow.expires_at || tokenRow.expires_at > now);
+      if (valid) {
+        accessViaEmbedToken = true;
+        const tokenUser = tokenRow.user;
+        allow_unbranded = !!(tokenRow.allows_unbranded && tokenUser && tokenUser.plan === 'pro');
+      }
+    }
+
+    // If map is private and not owner and no valid embed token => partial response
+    if (!mapRow.is_public && mapRow.user_id !== user_id && !accessViaEmbedToken) {
       return res.json({
         id: mapRow.id,
         user_id: mapRow.user_id,
         is_public: false,
         isOwner: false,
-
-        // Add created_at so the front end won't break:
+        allow_unbranded: false,
         created_at: mapRow.created_at,
-
-        // Minimizing or hiding the real data is optional; do as you wish:
         title: mapRow.title || 'Private Map',
         description: '',
         data: [],
@@ -494,7 +519,7 @@ router.get('/:id', authOptional, async (req, res) => {
       });
     }
 
-    // Otherwise, if it's public OR user is owner => return full data
+    // Otherwise, if it's public OR user is owner OR valid embed token => return full data
     let isSavedByCurrentUser = false;
     let isOwner = false;
 
@@ -509,12 +534,76 @@ router.get('/:id', authOptional, async (req, res) => {
       isSavedByCurrentUser = !!existingSave;
     }
 
+    // With valid embed token, treat as having access so embed shows the map (not "private" message)
+    if (accessViaEmbedToken) {
+      isOwner = true;
+    }
+
     mapRow.isSavedByCurrentUser = isSavedByCurrentUser;
     mapRow.isOwner = isOwner;
+    mapRow.allow_unbranded = allow_unbranded;
 
     return res.json(mapRow);
   } catch (err) {
     console.error('Error fetching map:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+/* --------------------------------------------
+   POST /api/maps/:id/embed-token
+   Generate an embed token for private/unbranded embeds. Owner only; unbranded requires Pro.
+-------------------------------------------- */
+router.post('/:id/embed-token', auth, async (req, res) => {
+  try {
+    const mapId = req.params.id;
+    const user_id = req.user.id;
+    const { allows_unbranded = false } = req.body || {};
+
+    const { data: mapRow, error: mapErr } = await supabaseAdmin
+      .from('maps')
+      .select('id, user_id')
+      .eq('id', mapId)
+      .maybeSingle();
+
+    if (mapErr || !mapRow) {
+      return res.status(404).json({ msg: 'Map not found' });
+    }
+    if (mapRow.user_id !== user_id) {
+      return res.status(403).json({ msg: 'Only the map owner can generate embed tokens' });
+    }
+
+    if (allows_unbranded) {
+      const { data: userRow } = await supabaseAdmin
+        .from('users')
+        .select('plan')
+        .eq('id', user_id)
+        .maybeSingle();
+      if (!userRow || userRow.plan !== 'pro') {
+        return res.status(403).json({ msg: 'Unbranded embeds require a Pro plan' });
+      }
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const { data: inserted, error: insertErr } = await supabaseAdmin
+      .from('embed_tokens')
+      .insert({
+        token,
+        user_id,
+        map_id: mapId,
+        allows_unbranded: !!allows_unbranded,
+      })
+      .select('id')
+      .single();
+
+    if (insertErr) {
+      console.error('Error inserting embed token:', insertErr);
+      return res.status(500).json({ msg: 'Failed to create embed token' });
+    }
+
+    return res.status(201).json({ token });
+  } catch (err) {
+    console.error('Error creating embed token:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });

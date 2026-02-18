@@ -143,8 +143,10 @@ onTransformChange,
   placeholders = {},
   strokeMode = "thin", // "thin" | "thick"
   viewBox,
+  theme = "light",
 
 } = {}) {
+  const isDarkTheme = theme === "dark";
 
   
 
@@ -1360,7 +1362,7 @@ const handleResetViewClick = useCallback(() => {
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
   return (
-    <div className={cls.mapRoot}>
+    <div className={cls.mapRoot} data-theme={isDarkTheme ? "dark" : "light"}>
     {renderGroupInfoBox()}
     {renderInfoBox()}
 

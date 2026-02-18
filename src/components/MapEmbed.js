@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import MapView from "../components/Map";
 import MapLegendOverlay from "../components/MapLegendOverlay";
 import { fetchMapById } from "../api";
@@ -38,9 +38,19 @@ function toBool(v) {
 
 export default function MapEmbed() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+
+  // Embed options from URL (?theme=dark&branding=0&legend=0&interactive=0&token=...)
+  const embedTheme = searchParams.get("theme") === "dark" ? "dark" : "light";
+  const urlWantsUnbranded = searchParams.get("branding") === "0";
+  // Only allow unbranded when API confirms allow_unbranded (Pro token); otherwise force branding
+  const showBranding = urlWantsUnbranded ? !(mapData?.allow_unbranded) : true;
+  const showLegend = searchParams.get("legend") !== "0";
+  const isInteractive = searchParams.get("interactive") !== "0";
+  const embedToken = searchParams.get("token") || null;
 
   const [mapData, setMapData] = useState(null);
-  const [loadState, setLoadState] = useState("loading"); // loading|ready|error
+  const [loadState, setLoadState] = useState("loading"); // loading|ready|error|private
 
   // legend interaction states (same as MapDetail)
   const [activeLegendKey, setActiveLegendKey] = useState(null);
@@ -57,7 +67,7 @@ export default function MapEmbed() {
     async function load() {
       setLoadState("loading");
       try {
-        const res = await fetchMapById(id);
+        const res = await fetchMapById(id, { embedToken: embedToken || undefined });
         if (cancelled) return;
 
         if (!res?.data) {
@@ -65,10 +75,9 @@ export default function MapEmbed() {
           return;
         }
 
-        // Optional: embed should respect privacy
-        // If private & not owner -> just show “not available”
+        // Private map & not owner → show branded “map is private” message
         if (res.data.is_public === false && !res.data.isOwner) {
-          setLoadState("error");
+          setLoadState("private");
           return;
         }
 
@@ -81,7 +90,7 @@ export default function MapEmbed() {
 
     load();
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, embedToken]);
 
   const mapType = useMemo(() => {
     const raw =
@@ -259,13 +268,32 @@ export default function MapEmbed() {
   }
 
   // ── render gates ─────────────────
+  const rootBase = `${styles.embedRoot} ${embedTheme === "dark" ? styles.embedRootDark : ""}`;
   if (loadState === "loading") {
-    return <div className={styles.embedRoot}><div className={styles.skeleton} /></div>;
+    return <div className={rootBase}><div className={styles.skeleton} /></div>;
+  }
+
+  if (loadState === "private") {
+    return (
+      <div className={rootBase}>
+        <div className={styles.privateBox}>
+          <div className={styles.privateLogoWrap}>
+            <img
+              className={styles.privateLogo}
+              src="/assets/3-0/mic-logo-2-5-text-cropped.png"
+              alt="Map in Color"
+            />
+          </div>
+          <h2 className={styles.privateTitle}>This map is private</h2>
+          <p className={styles.privateSub}>Sign in to Map in Color to view it.</p>
+        </div>
+      </div>
+    );
   }
 
   if (loadState === "error" || !mapData) {
     return (
-      <div className={styles.embedRoot}>
+      <div className={rootBase}>
         <div className={styles.errorBox}>
           <div className={styles.errorTitle}>Map not available</div>
           <div className={styles.errorSub}>This map can’t be embedded.</div>
@@ -274,18 +302,22 @@ export default function MapEmbed() {
     );
   }
 
+  const mapWrapClassName = `${styles.mapWrap} ${!isInteractive ? styles.mapWrapStatic : ""}`;
+
   return (
-    <div className={styles.embedRoot}>
-      <div className={styles.mapWrap}>
+    <div className={rootBase}>
+      <div className={mapWrapClassName}>
         <MapView
           {...mapDataProps()}
-          isLargeMap={true}                 // embed should behave like fullscreen
-          hoveredCode={hoveredCode}
-          selectedCode={selectedCode}
+          isLargeMap={true}
+          theme={embedTheme}
+          staticView={!isInteractive}
+          hoveredCode={isInteractive ? hoveredCode : null}
+          selectedCode={isInteractive ? selectedCode : null}
           selectedCodeZoom={selectedCodeZoom}
           selectedCodeNonce={selectedCodeNonce}
-          groupHoveredCodes={hoveredLegendCodes}
-          groupActiveCodes={activeLegendCodes}
+          groupHoveredCodes={isInteractive ? hoveredLegendCodes : []}
+          groupActiveCodes={isInteractive ? activeLegendCodes : []}
           suppressInfoBox={suppressInfoBox}
           activeLegendModel={activeLegendModel}
           codeToName={countryCodeToName}
@@ -293,44 +325,56 @@ export default function MapEmbed() {
             setActiveLegendKey(null);
             setHoverLegendKey(null);
           }}
-          onHoverCode={(code) => setHoveredCode(code)}
-          onSelectCode={(code) => {
-            if (code) {
-              setActiveLegendKey(null);
-              setHoverLegendKey(null);
-            }
-            setSelectedCode(code);
-            setSelectedCodeZoom(false);
-            setSelectedCodeNonce((n) => n + 1);
-          }}
+          onHoverCode={isInteractive ? (code) => setHoveredCode(code) : () => {}}
+          onSelectCode={
+            isInteractive
+              ? (code) => {
+                  if (code) {
+                    setActiveLegendKey(null);
+                    setHoverLegendKey(null);
+                  }
+                  setSelectedCode(code);
+                  setSelectedCodeZoom(false);
+                  setSelectedCodeNonce((n) => n + 1);
+                }
+              : () => {}
+          }
         />
 
-        <MapLegendOverlay
-          title={mapData?.title}
-          legendModels={legendModels}
-          activeLegendKey={activeLegendKey}
-          setActiveLegendKey={(k) => {
-            setSelectedCode(null);
-            setSelectedCodeZoom(false);
-            setSelectedCodeNonce((n) => n + 1);
-            setActiveLegendKey(k);
-          }}
-          setHoverLegendKey={setHoverLegendKey}
-          isEmbed
-        />
+        {!isInteractive && (
+          <div className={styles.mapNonInteractiveOverlay} aria-hidden="true" />
+        )}
 
-                {/* Watermark (fixed bottom-right) */}
-        <div className={styles.watermark} aria-hidden="true">
-          <div className={styles.watermarkText}>Made with</div>
-
-          <img
-            className={styles.watermarkLogo}
-            src="/assets/3-0/mic-logo-2-5-text-cropped.png"
-            alt=""
-            draggable={false}
+        {showLegend && (
+          <MapLegendOverlay
+            title={mapData?.title}
+            legendModels={legendModels}
+            activeLegendKey={activeLegendKey}
+            setActiveLegendKey={(k) => {
+              if (!isInteractive) return;
+              setSelectedCode(null);
+              setSelectedCodeZoom(false);
+              setSelectedCodeNonce((n) => n + 1);
+              setActiveLegendKey(k);
+            }}
+            setHoverLegendKey={isInteractive ? setHoverLegendKey : () => {}}
+            isEmbed
+            theme={embedTheme}
+            interactive={isInteractive}
           />
-        </div>
+        )}
 
+        {showBranding && (
+          <div className={styles.watermark} aria-hidden="true">
+            <div className={styles.watermarkText}>Made with</div>
+            <img
+              className={styles.watermarkLogo}
+              src="/assets/3-0/mic-logo-2-5-text-cropped.png"
+              alt=""
+              draggable={false}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

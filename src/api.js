@@ -47,8 +47,18 @@ export const updateUserProfile = (profileData) =>
     },
   });
 
-// Fetch a map by ID
-export const fetchMapById = (id) => API.get(`/maps/${id}`);
+// Fetch a map by ID. Optional { embedToken } for embed context (private maps + unbranded permission).
+export const fetchMapById = (id, options = {}) => {
+  const { embedToken } = options;
+  const params = embedToken ? { token: embedToken } : {};
+  return API.get(`/maps/${id}`, { params });
+};
+
+// Generate an embed token for a map (owner only). Unbranded requires Pro.
+export const generateEmbedToken = (mapId, options = {}) => {
+  const { allowsUnbranded = false } = options;
+  return API.post(`/maps/${mapId}/embed-token`, { allows_unbranded: allowsUnbranded });
+};
 
 // Save a map
 export const saveMap = (mapId) => API.post(`/maps/${mapId}/save`);

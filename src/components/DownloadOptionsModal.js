@@ -1,11 +1,29 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { BiDownload } from "react-icons/bi";
+import { BiDownload, BiImage, BiFile, BiCodeBlock, BiCrop } from "react-icons/bi";
 import MapView from "./Map";
+import MapCropModal from "./MapCropModal";
+import UpgradeProModal from "./UpgradeProModal";
 import styles from "./DownloadOptionsModal.module.css";
+import { incrementMapDownloadCount } from "../api";
+import { viewBoxFromInsets, insetsFromViewBox, VBW, VBH } from "../utils/downloadViewBoxUtils";
 
-// ✅ you already have these in MapDetail; move them here
-import { incrementMapDownloadCount } from "../api"; // adjust path if needed
+const FORMAT_OPTIONS = [
+  { value: "jpg", label: "JPG", Icon: BiImage, description: "Smaller file size, ideal for sharing and web." },
+  { value: "png", label: "PNG", Icon: BiImage, description: "Sharp edges and transparency support." },
+  { value: "pdf", label: "PDF", Icon: BiFile, description: "Vector-friendly, best for printing." },
+  { value: "svg", label: "SVG", Icon: BiCodeBlock, description: "Scalable vector, edit in design tools.", pro: true },
+];
+
+const LEGEND_POSITION_PRESETS = [
+  { id: "upper-left", label: "Upper left", x: 0.02, y: 0.08 },
+  { id: "upper-right", label: "Upper right", x: 0.98, y: 0.08 },
+  { id: "left", label: "Left", x: 0.02, y: 0.5 },
+  { id: "middle", label: "Middle", x: 0.5, y: 0.5 },
+  { id: "right", label: "Right", x: 0.98, y: 0.5 },
+  { id: "bottom-left", label: "Bottom left", x: 0.02, y: 0.92 },
+  { id: "bottom-right", label: "Bottom right", x: 0.98, y: 0.92 },
+];
 
 function useDebouncedValue(value, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -31,9 +49,12 @@ export default function DownloadOptionsModal({
   isUserLoggedIn,
   anonId,
   onDownloadCountUpdate,
-  isPro
+  isPro,
+  onUpgradeToPro,
 }) {
   const [format, setFormat] = useState("png"); // "png" | "jpg"
+  const [formatSelectOpen, setFormatSelectOpen] = useState(false);
+  const formatSelectRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
   // raster preview state
@@ -45,7 +66,7 @@ export default function DownloadOptionsModal({
   const renderStageRef = useRef(null);
 const [mapTransform, setMapTransform] = useState({ x: 0, y: 0, scale: 1 });
 
-const [legendPos, setLegendPos] = useState({ x: 0.02, y: 0.78 });
+const [legendPos, setLegendPos] = useState({ x: 0.02, y: 0.92 }); // default: bottom-left
 
 
 
@@ -53,6 +74,8 @@ const [legendSize, setLegendSize] = useState(1.0); // 0.8 .. 1.6 feels good
 
 const [crop, setCrop] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
 // meaning: crop.top = % of full VBH to remove from top, etc.
+const [cropModalOpen, setCropModalOpen] = useState(false);
+const [upgradeProModalOpen, setUpgradeProModalOpen] = useState(false);
 
 const didInitCropRef = useRef(false);
 
@@ -123,6 +146,8 @@ const renderInFlightRef = useRef(false);
 const pendingRenderRef = useRef(false);
 
 const LEGEND_MIN_W = 120;
+/** Max legend width as fraction of export width; longer titles wrap within this. */
+const LEGEND_MAX_WIDTH_FRAC = 0.5;
 const isProRef = useRef(!!isPro);
 
 useEffect(() => {
@@ -156,8 +181,9 @@ useEffect(() => {
   setPdfPaper("a4");
   setPdfOrientation("landscape");
   setLegendOn(true);
+  setWatermarkOff(!!isPro); // Pro: default to watermark off
 
-  setLegendPos({ x: 0.02, y: 0.78 });
+  setLegendPos({ x: 0.02, y: 0.92 });
   setLegendSizeDraft("100");
 legendSizeDraftRef.current = "100";
 
@@ -165,7 +191,7 @@ legendSizeDraftRef.current = "100";
   // ❌ remove this (causes full-map flash + breaks re-open if init doesn't run)
   // setCrop({ top: 0, right: 0, bottom: 0, left: 0 });
 
-}, [isOpen]);
+}, [isOpen, isPro]);
 
 useEffect(() => {
   const xStr = String(Math.round(legendPos.x * 100));
@@ -330,6 +356,7 @@ const round1 = (n) => Math.round(n * 10) / 10;
 function computeAutoLegendSizeFromCrop(initialInsets) {
   // We look at how much of the map is still visible after crop.
   // Use BOTH width and height (so tall/narrow crops also reduce size a bit).
+  // When the map is smaller (tighter crop), default legend size goes down so the legend doesn't dominate.
 
   const l = Number(initialInsets?.left ?? 0);
   const r = Number(initialInsets?.right ?? 0);
@@ -342,17 +369,17 @@ function computeAutoLegendSizeFromCrop(initialInsets) {
   // Use the smaller dimension as the limiting factor
   const visible = Math.max(0.18, Math.min(visibleW, visibleH)); // avoid insane crops
 
-  // Ease so it doesn't shrink too hard
-  const exponent = 0.85;              // smaller = less shrink
+  // Stronger curve so small maps get a smaller default legend size
+  const exponent = 0.92;
   const eased = Math.pow(visible, exponent);
 
-  // Map eased => legend size range
-  const MIN = 0.78;                   // your comfort min (0.75..)
-  const MAX = 1;                   // slightly bigger on full map if you want
+  // Map eased => legend size: full map => 1, tight crop => ~0.52 (so legend scales with map)
+  const MIN = 0.52;
+  const MAX = 1;
   const s = MIN + (MAX - MIN) * eased;
 
-  // Final clamp to your allowed range
-  return Math.max(0.75, Math.min(1.8, round1(s)));
+  // Allow down to 0.5 so small crops get a proportionally smaller legend
+  return Math.max(0.5, Math.min(1.8, round1(s)));
 }
 
 
@@ -382,11 +409,26 @@ function computeAutoLegendWidthFromCrop(initialInsets) {
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (e) => {
-      if (e.key === "Escape" && !isDownloading) onClose?.();
+      if (e.key === "Escape") {
+        setFormatSelectOpen(false);
+        if (!isDownloading) onClose?.();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen, isDownloading, onClose]);
+
+  // close format dropdown on click outside
+  useEffect(() => {
+    if (!formatSelectOpen) return;
+    const handleClick = (e) => {
+      if (formatSelectRef.current && !formatSelectRef.current.contains(e.target)) {
+        setFormatSelectOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [formatSelectOpen]);
 
   // cleanup preview url
   useEffect(() => {
@@ -406,10 +448,7 @@ function computeAutoLegendWidthFromCrop(initialInsets) {
     []
   );
 
-  const VBW = 2000;
-const VBH = 857;
-
-const norm = (c="") => String(c||"").trim().toUpperCase();
+  const norm = (c="") => String(c||"").trim().toUpperCase();
 
 function getActiveCodesFromMapData(mapData) {
   const type = String(
@@ -715,60 +754,20 @@ function clamp01(x) {
   return clamp(x, 0, 1);
 }
 
-function viewBoxFromInsets(insets) {
-  const l = clamp01((insets?.left ?? 0) / 100);
-  const r = clamp01((insets?.right ?? 0) / 100);
-  const t = clamp01((insets?.top ?? 0) / 100);
-  const b = clamp01((insets?.bottom ?? 0) / 100);
-
-  let x = VBW * l;
-  let y = VBH * t;
-  let w = VBW * (1 - l - r);
-  let h = VBH * (1 - t - b);
-
-  // prevent negative/zero (avoid broken exports)
-  const MIN = 1;
-  if (w < MIN) w = MIN;
-  if (h < MIN) h = MIN;
-
-  // if we forced w/h, keep it in bounds
-  x = clamp(x, 0, VBW - w);
-  y = clamp(y, 0, VBH - h);
-
-  return { x, y, w, h };
-}
-
-function insetsFromViewBox(vb) {
-  const left   = (vb.x / VBW) * 100;
-  const top    = (vb.y / VBH) * 100;
-  const right  = ((VBW - (vb.x + vb.w)) / VBW) * 100;
-  const bottom = ((VBH - (vb.y + vb.h)) / VBH) * 100;
-
-  // keep them clean-looking in the UI
-  const round = (n) => Math.round(n * 10) / 10;
-
-  return {
-    left: round(clamp(left, 0, 100)),
-    top: round(clamp(top, 0, 100)),
-    right: round(clamp(right, 0, 100)),
-    bottom: round(clamp(bottom, 0, 100)),
-  };
-}
-
 function computeLegendNoWrapWidthPx(mapData, canvasW, legendSize = 1) {
   const items = buildLegendItemsFromMapData(mapData);
   if (!items.length) return 520;
 
   // approximate the same sizing logic as drawLegendBoxOnCanvas
   const base0 = Math.max(12, Math.round(Math.min(canvasW, canvasW) * 0.025));
-  const s = Math.max(0.75, Math.min(1.8, Number(legendSize) || 1));
+  const s = Math.max(0.5, Math.min(1.8, Number(legendSize) || 1));
   const base = Math.round(base0 * s);
 
   const outerPad = Math.round(base * 0.9);
   const cardPad = Math.round(base * 0.95);
 
-  const dot = Math.round(base * 0.95);
-  const gap = Math.round(base * 0.7);
+  const dot = Math.max(6, Math.round(base * 0.7)); /* match drawLegendBoxOnCanvas */
+  const gap = Math.round(base * 0.65);
   const rowPadX = Math.round(base * 0.75);
 
   const itemSize = Math.round(base * 1.05);
@@ -780,11 +779,11 @@ function computeLegendNoWrapWidthPx(mapData, canvasW, legendSize = 1) {
   const ctx = measCanvas.getContext("2d");
 
   // longest row label
-  ctx.font = `800 ${itemSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+  ctx.font = `700 ${itemSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
   const maxLabelW = items.reduce((m, it) => Math.max(m, ctx.measureText(String(it.label || "")).width), 0);
 
   // title width (your card uses title too)
-  ctx.font = `900 ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+  ctx.font = `700 ${titleSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
   const titleW = ctx.measureText(String(mapData?.title || "Untitled Map")).width;
 
   // "+N more"
@@ -801,8 +800,9 @@ function computeLegendNoWrapWidthPx(mapData, canvasW, legendSize = 1) {
 
   const hardMax = Math.round(canvasW - outerPad * 2);
   const hardMin = LEGEND_MIN_W;
+  const maxAutoW = Math.round(canvasW * LEGEND_MAX_WIDTH_FRAC);
 
-  return Math.max(hardMin, Math.min(hardMax, desired));
+  return Math.max(hardMin, Math.min(hardMax, Math.min(desired, maxAutoW)));
 }
 
 
@@ -933,7 +933,7 @@ function addExportLegendToSvg(
 
   const ns = "http://www.w3.org/2000/svg";
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const s = clamp(Number(size) || 1, 0.75, 1.8);
+  const s = clamp(Number(size) || 1, 0.5, 1.8);
 
   // remove prior
   svgEl.querySelector("#export-legend")?.remove();
@@ -1013,29 +1013,51 @@ function addExportLegendToSvg(
     return lines;
   };
 
-  // tokens in VB units
-  const base0 = Math.max(12, Math.round(Math.min(vb.w, vb.h) * 0.022));
+  // tokens in VB units — scale with viewBox so legend doesn't dominate when map is small
+  const minDim = Math.min(vb.w, vb.h);
+  // Smaller viewBox => smaller base (factor 0.010–0.022) so legend stays proportional
+  const sizeFactor = 0.010 + (minDim / 2000) * 0.012;
+  const base0 = Math.max(6, Math.round(minDim * Math.min(0.022, sizeFactor)));
   const base = Math.round(base0 * s);
 
   const outerPad = Math.round(base * 0.9);
   const padX = Math.round(base * 0.95);
-  const padY = Math.round(base * 0.85);
+  const padY = Math.round(base * 0.6); /* tighter top like overlay header 6px */
   const radius = Math.round(base * 1.25);
 
-  const headerPadBottom = Math.round(base * 0.65);
+  const headerPadBottom = Math.round(base * 0.5); /* same as overlay header bottom */
 
   const titleSize = Math.round(base * 1.05);
   const itemSize = Math.round(base * 1.05);
   const metaSize = Math.round(base * 0.9);
 
-  const dot = Math.max(8, Math.round(base * 0.8));
-  const gap = Math.round(base * 0.8);
+  const dot = Math.max(4, Math.round(base * 0.7)); /* slightly smaller dot */
+  const gap = Math.round(base * 0.65); /* gap dot–text like overlay */
 
-  const rowPadY = Math.round(base * 0.55);
-  const rowGap = Math.round(base * 0.35);
+  const rowPadY = Math.round(base * 0.35); /* tighter row padding (4px feel) */
+  const rowGap = Math.round(base * 0.2); /* less space between ranges (2px feel) */
 
   const titleLineH = Math.round(titleSize * 1.18);
   const itemLineH = Math.round(itemSize * 1.18);
+
+  // Content-based width: how wide the legend needs to be for title + longest range label (one line each)
+  const maxItemsForMeasure = 10;
+  const shownForMeasure = items.slice(0, maxItemsForMeasure);
+  const titleWidthOneLine = measureWidth(titleSize, 700, title);
+  const maxLabelW = shownForMeasure.length
+    ? Math.max(...shownForMeasure.map((it) => measureWidth(itemSize, 700, it.label)))
+    : 0;
+  const contentNaturalW = Math.ceil(
+    Math.max(titleWidthOneLine, maxLabelW + dot + gap) + padX * 2
+  );
+
+  // Viewport-based max: full world → narrower legend (smaller fraction); cropped map → wider fraction so legend stays readable
+  const fullArea = VBW * VBH;
+  const visibleArea = vb.w * vb.h;
+  const visibleAreaRatio = Math.min(1, visibleArea / fullArea);
+  const maxWidthFrac = 0.14 + (1 - visibleAreaRatio) * 0.22;
+  const viewBoxBasedMax = Math.round(vb.w * maxWidthFrac);
+  const allowedMaxW = Math.min(viewBoxBasedMax, Math.round(contentNaturalW * 1.15));
 
   // widthPx comes in raster px — convert to VB units
   const forcedW_vb =
@@ -1044,10 +1066,9 @@ function addExportLegendToSvg(
       : null;
 
   const hardMax = Math.round(vb.w - outerPad * 2);
-  const hardMin = 160;
-
+  const hardMin = Math.min(160, Math.round(vb.w * 0.12));
   const forcedW = forcedW_vb ? clamp(forcedW_vb, hardMin, hardMax) : null;
-  const maxW = forcedW ?? hardMax;
+  const maxW = forcedW ?? Math.min(hardMax, allowedMaxW);
 
   const maxTitleW = maxW - padX * 2;
   const maxRowTextW = maxW - padX * 2 - (dot + gap);
@@ -1058,18 +1079,18 @@ function addExportLegendToSvg(
   const hiddenCount = Math.max(0, items.length - shown.length);
 
   // wrap with maxW first
-  const titleLines_cap = wrap(titleSize, 850, title, maxTitleW);
+  const titleLines_cap = wrap(titleSize, 700, title, maxTitleW);
   const rows_cap = shown.map((it) => ({
     ...it,
-    lines: wrap(itemSize, 750, it.label, maxRowTextW),
+    lines: wrap(itemSize, 700, it.label, maxRowTextW),
   }));
 
-  const titleW = titleLines_cap.reduce((m, l) => Math.max(m, measureWidth(titleSize, 850, l)), 0);
+  const titleW = titleLines_cap.reduce((m, l) => Math.max(m, measureWidth(titleSize, 700, l)), 0);
   const rowW = rows_cap.reduce(
     (m, r) =>
       Math.max(
         m,
-        r.lines.reduce((mm, l) => Math.max(mm, measureWidth(itemSize, 750, l)), 0)
+        r.lines.reduce((mm, l) => Math.max(mm, measureWidth(itemSize, 700, l)), 0)
       ),
     0
   );
@@ -1084,15 +1105,15 @@ function addExportLegendToSvg(
   const finalTitleW = boxW - padX * 2;
   const finalRowTextW = boxW - padX * 2 - (dot + gap);
 
-  const titleLines = wrap(titleSize, 850, title, finalTitleW);
+  const titleLines = wrap(titleSize, 700, title, finalTitleW);
   const rows = shown.map((it) => ({
     ...it,
-    lines: wrap(itemSize, 750, it.label, finalRowTextW),
+    lines: wrap(itemSize, 700, it.label, finalRowTextW),
   }));
 
   // height
   const headerH = titleLines.length ? titleLines.length * titleLineH : 0;
-  const dividerBlock = titleLines.length ? headerPadBottom + 1 + Math.round(base * 0.55) : 0;
+  const dividerBlock = titleLines.length ? headerPadBottom + 1 + Math.round(base * 0.35) : 0;
 
   const rowsH = rows.reduce((sum, r) => {
     const rowTextH = r.lines.length * itemLineH;
@@ -1170,11 +1191,11 @@ function addExportLegendToSvg(
 
   // --- Title (metrics-based centering per line)
   if (titleLines.length) {
-    const { ascent, descent } = measureMetrics(titleSize, 850);
+    const { ascent, descent } = measureMetrics(titleSize, 700);
     const t = document.createElementNS(ns, "text");
     t.setAttribute("fill", "rgba(15,23,42,0.92)");
     t.setAttribute("font-family", fontFamily);
-    t.setAttribute("font-weight", "850");
+    t.setAttribute("font-weight", "700");
     t.setAttribute("font-size", String(titleSize));
     t.setAttribute("dominant-baseline", "alphabetic");
 
@@ -1205,11 +1226,12 @@ function addExportLegendToSvg(
     div.setAttribute("stroke-width", "1");
     inner.appendChild(div);
 
-    cy += Math.round(base * 0.55);
+    cy += Math.round(base * 0.35);
   }
 
-  // --- Rows (metrics-based block centering)
-  const itemMetrics = measureMetrics(itemSize, 750);
+  // --- Rows (metrics-based block centering, small nudge so text aligns with dot)
+  const itemMetrics = measureMetrics(itemSize, 700);
+  const textNudge = Math.max(0, Math.round(base * 0.08)); /* optical align like overlay margin-top: 1px */
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
@@ -1234,19 +1256,18 @@ function addExportLegendToSvg(
     c.setAttribute("stroke-width", "1");
     inner.appendChild(c);
 
-    // text
+    // text (nudge down for optical align with dot)
     const tx = x + padX + dot + gap;
 
     const text = document.createElementNS(ns, "text");
     text.setAttribute("fill", "rgba(15,23,42,0.90)");
     text.setAttribute("font-family", fontFamily);
-    text.setAttribute("font-weight", "750");
+    text.setAttribute("font-weight", "700");
     text.setAttribute("font-size", String(itemSize));
     text.setAttribute("dominant-baseline", "alphabetic");
 
-    // Center the whole multi-line block around cyDot:
-    // line centers are: (topOfBlock + (j+0.5)*itemLineH)
-    const blockTop = cyDot - textBlockH / 2;
+    // Center the whole multi-line block around cyDot, with small nudge
+    const blockTop = cyDot - textBlockH / 2 + textNudge;
 
     for (let j = 0; j < r.lines.length; j++) {
       const lineCenterY = blockTop + (j + 0.5) * itemLineH;
@@ -1305,28 +1326,28 @@ function drawLegendBoxOnCanvas(
   if (!items?.length) return;
 
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-  const s = clamp(Number(size) || 1, 0.75, 1.8);
+  const s = clamp(Number(size) || 1, 0.5, 1.8);
 
   const base0 = Math.max(12, Math.round(Math.min(canvas.width, canvas.height) * 0.022));
   const base = Math.round(base0 * s);
 
   const outerPad = Math.round(base * 0.9);
   const padX = Math.round(base * 0.95);
-  const padY = Math.round(base * 0.85);
+  const padY = Math.round(base * 0.6); /* tighter top like overlay header 6px */
   const radius = Math.round(base * 1.25);
 
-  const headerPadBottom = Math.round(base * 0.65);
+  const headerPadBottom = Math.round(base * 0.5); /* same as overlay header bottom */
   const dividerH = 1;
 
   const titleSize = Math.round(base * 1.05);
   const itemSize = Math.round(base * 1.05);
   const metaSize = Math.round(base * 0.9);
 
-  const dot = Math.max(8, Math.round(base * 0.8));
-  const gap = Math.round(base * 0.8);
+  const dot = Math.max(6, Math.round(base * 0.7)); /* slightly smaller dot */
+  const gap = Math.round(base * 0.65); /* gap dot–text like overlay */
 
-  const rowPadY = Math.round(base * 0.55);
-  const rowGap = Math.round(base * 0.35);
+  const rowPadY = Math.round(base * 0.35); /* tighter row padding (4px feel) */
+  const rowGap = Math.round(base * 0.2); /* less space between ranges (2px feel) */
 
   const titleLineH = Math.round(titleSize * 1.18);
   const itemLineH = Math.round(itemSize * 1.18);
@@ -1415,22 +1436,23 @@ function drawLegendBoxOnCanvas(
   const hiddenCount = Math.max(0, items.length - shown.length);
 
   const hardMax = Math.round(canvas.width - outerPad * 2);
-  const hardMin = 160;
+  const hardMin = Math.min(160, Math.round(canvas.width * 0.2));
+  const autoMaxW = Math.round(canvas.width * LEGEND_MAX_WIDTH_FRAC);
 
   const forcedW =
     Number.isFinite(Number(widthPx)) && Number(widthPx) > 0
       ? clamp(Math.round(Number(widthPx)), hardMin, hardMax)
       : null;
 
-  const maxW = forcedW ?? hardMax;
+  const maxW = forcedW ?? Math.min(hardMax, autoMaxW);
 
   const innerW_forTitle = maxW - padX * 2;
   const innerW_forRowText = maxW - padX * 2 - (dot + gap);
 
-  const titleLines_cap = wrap(title, innerW_forTitle, titleSize, 850);
+  const titleLines_cap = wrap(title, innerW_forTitle, titleSize, 700);
   const rows_cap = shown.map((it) => ({
     ...it,
-    lines: wrap(it.label, innerW_forRowText, itemSize, 750),
+    lines: wrap(it.label, innerW_forRowText, itemSize, 700),
   }));
 
   const measureLineMax = (lines, fontPx, weight) => {
@@ -1438,8 +1460,8 @@ function drawLegendBoxOnCanvas(
     return lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
   };
 
-  const titleW = measureLineMax(titleLines_cap, titleSize, 850);
-  const rowW = rows_cap.reduce((m, r) => Math.max(m, measureLineMax(r.lines, itemSize, 750)), 0);
+  const titleW = measureLineMax(titleLines_cap, titleSize, 700);
+  const rowW = rows_cap.reduce((m, r) => Math.max(m, measureLineMax(r.lines, itemSize, 700)), 0);
   const moreW = hiddenCount ? (() => {
     setFont(metaSize, 650);
     return ctx.measureText(`+${hiddenCount} more`).width;
@@ -1453,15 +1475,15 @@ function drawLegendBoxOnCanvas(
   const innerW_title = boxW - padX * 2;
   const innerW_rowText = boxW - padX * 2 - (dot + gap);
 
-  const titleLines = wrap(title, innerW_title, titleSize, 850);
+  const titleLines = wrap(title, innerW_title, titleSize, 700);
   const rows = shown.map((it) => ({
     ...it,
-    lines: wrap(it.label, innerW_rowText, itemSize, 750),
+    lines: wrap(it.label, innerW_rowText, itemSize, 700),
   }));
 
   const headerH = titleLines.length ? titleLines.length * titleLineH : 0;
   const dividerGap = titleLines.length ? headerPadBottom : 0;
-  const dividerBlock = titleLines.length ? dividerGap + dividerH + Math.round(base * 0.55) : 0;
+  const dividerBlock = titleLines.length ? dividerGap + dividerH + Math.round(base * 0.35) : 0;
 
   const rowsH = rows.reduce((sum, r) => {
     const h = Math.max(dot, r.lines.length * itemLineH);
@@ -1510,11 +1532,11 @@ function drawLegendBoxOnCanvas(
 
   // title: center glyph box inside each title line slot
   if (titleLines.length) {
-    const titleMetrics = measureMetrics(titleSize, 850);
+    const titleMetrics = measureMetrics(titleSize, 700);
 
     ctx.save();
     ctx.fillStyle = "rgba(15,23,42,0.92)";
-    setFont(titleSize, 850);
+    setFont(titleSize, 700);
     ctx.textBaseline = "alphabetic";
 
     for (let i = 0; i < titleLines.length; i++) {
@@ -1534,12 +1556,13 @@ function drawLegendBoxOnCanvas(
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    cy += Math.round(base * 0.55);
+    cy += Math.round(base * 0.35);
     ctx.restore();
   }
 
-  // rows: center multi-line block around dot center
-  const itemMetrics = measureMetrics(itemSize, 750);
+  // rows: center multi-line block around dot center (small nudge so text aligns with dot)
+  const itemMetrics = measureMetrics(itemSize, 700);
+  const textNudge = Math.max(0, Math.round(base * 0.08)); /* optical align like overlay margin-top: 1px */
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
@@ -1566,13 +1589,13 @@ function drawLegendBoxOnCanvas(
     ctx.stroke();
     ctx.restore();
 
-    // text
+    // text (nudge down for optical align with dot)
     const tx = dotX + dot + gap;
-    const blockTop = centerY - textBlockH / 2;
+    const blockTop = centerY - textBlockH / 2 + textNudge;
 
     ctx.save();
     ctx.fillStyle = "rgba(15,23,42,0.90)";
-    setFont(itemSize, 750);
+    setFont(itemSize, 700);
     ctx.textBaseline = "alphabetic";
 
     for (let j = 0; j < r.lines.length; j++) {
@@ -1803,8 +1826,8 @@ const exportFromSvg = useCallback(
           "font-family",
           `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
         );
-        if (el.closest("#legend")) el.setAttribute("font-weight", "normal");
-        else el.setAttribute("font-weight", "bold");
+        if (el.closest("#legend")) el.setAttribute("font-weight", "700");
+        else el.setAttribute("font-weight", "700");
       }
     });
 
@@ -1880,7 +1903,7 @@ if (fmt === "svg") {
       textElement.setAttribute("y", String(y));
       textElement.setAttribute("dominant-baseline", "hanging");
       textElement.setAttribute("fill", mapData?.font_color || "#333");
-      textElement.setAttribute("font-weight", "bold");
+      textElement.setAttribute("font-weight", "700");
       textElement.setAttribute("font-size", String(dbFontSize));
       textElement.setAttribute(
         "font-family",
@@ -1918,8 +1941,8 @@ if (fmt === "svg") {
           "font-family",
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto','Oxygen','Ubuntu','Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif"
         );
-        if (el.closest("#legend")) el.setAttribute("font-weight", "normal");
-        else el.setAttribute("font-weight", "bold");
+        if (el.closest("#legend")) el.setAttribute("font-weight", "700");
+        else el.setAttribute("font-weight", "700");
       }
     });
 
@@ -2090,6 +2113,10 @@ if (fmt === "jpg" || (fmt === "png" && !effectiveTransparent)) {
   // ✅ click download: reuse the exact same blob currently previewed
 const handleDownload = async () => {
   if (isDownloading) return;
+  if (format === "svg" && !isPro) {
+    setUpgradeProModalOpen(true);
+    return;
+  }
   setIsDownloading(true);
 
   
@@ -2150,58 +2177,62 @@ const handleDownload = async () => {
       <div className={styles.formatPanel}>
         <div className={styles.expandTitle}>JPG quality</div>
 
-        <div className={styles.subList}>
-          {/* Web */}
-          <button
-            type="button"
-            className={`${styles.subRow} ${jpgPreset === "web" ? styles.subRowActive : ""}`}
-            disabled={isDownloading}
-            onClick={() => setJpgPreset("web")}
-          >
-            <div className={styles.subLeft}>
-              <div className={styles.subName}>Web</div>
-              <div className={styles.subDesc}>Fast export, lightweight file.</div>
-            </div>
-            <div className={styles.subRight}>
-              <span className={styles.subMeta}>80%</span>
-            </div>
-          </button>
-
-          {/* High (default) */}
-          <button
-            type="button"
-            className={`${styles.subRow} ${jpgPreset === "high" ? styles.subRowActive : ""}`}
-            disabled={isDownloading}
-            title="Default"
-            onClick={() => setJpgPreset("high")}
-          >
-            <div className={styles.subLeft}>
-              <div className={styles.subName}>
-                High <span className={styles.defaultPill}>Default</span>
+        <div className={styles.jpgQualityGrid}>
+          <div className={styles.jpgQualityRow}>
+            {/* Web */}
+            <button
+              type="button"
+              className={`${styles.subRow} ${jpgPreset === "web" ? styles.subRowActive : ""}`}
+              disabled={isDownloading}
+              onClick={() => setJpgPreset("web")}
+            >
+              <div className={styles.subLeft}>
+                <div className={styles.subName}>Web</div>
+                <div className={styles.subDesc}>Fast export, lightweight file.</div>
               </div>
-              <div className={styles.subDesc}>Best balance: sharp + smaller.</div>
-            </div>
-            <div className={styles.subRight}>
-              <span className={styles.subMeta}>92%</span>
-            </div>
-          </button>
+              <div className={styles.subRight}>
+                <span className={styles.subMeta}>80%</span>
+              </div>
+            </button>
 
-          {/* Max (pro) */}
+            {/* High (default) */}
+            <button
+              type="button"
+              className={`${styles.subRow} ${jpgPreset === "high" ? styles.subRowActive : ""}`}
+              disabled={isDownloading}
+              title="Default"
+              onClick={() => setJpgPreset("high")}
+            >
+              <div className={styles.subLeft}>
+                <div className={styles.subName}>
+                  High <span className={styles.defaultPill}>Default</span>
+                </div>
+                <div className={styles.subDesc}>Best balance: sharp + smaller.</div>
+              </div>
+              <div className={styles.subRight}>
+                <span className={styles.subMeta}>92%</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Max (pro) - full width below */}
           <button
             type="button"
             className={`${styles.subRow} ${styles.subRowPro} ${jpgPreset === "max" ? styles.subRowActive : ""}`}
-            disabled={isDownloading || !isPro}
-            onClick={() => isPro && setJpgPreset("max")}
+            disabled={isDownloading}
+            onClick={() => (isPro ? setJpgPreset("max") : setUpgradeProModalOpen(true))}
             title={!isPro ? "Pro feature" : undefined}
           >
             <div className={styles.subLeft}>
               <div className={styles.subName}>
                 Max{" "}
-                <img
-                  className={styles.proBadge}
-                  src="/assets/3-0/PRO-label.png"
-                  alt="Pro"
-                />
+                {!isPro && (
+                  <img
+                    className={styles.proBadge}
+                    src="/assets/3-0/PRO-label.png"
+                    alt="Pro"
+                  />
+                )}
               </div>
               <div className={styles.subDesc}>Highest quality, biggest file.</div>
             </div>
@@ -2219,26 +2250,38 @@ const handleDownload = async () => {
       <div className={styles.formatPanel}>
         <div className={styles.expandTitle}>PNG options</div>
 
-        <div className={styles.toggleRow}>
+        <div
+          className={styles.toggleRow}
+          onClick={(e) => {
+            if (!isPro && !isDownloading) {
+              e.preventDefault();
+              setUpgradeProModalOpen(true);
+            }
+          }}
+          role={!isPro ? "button" : undefined}
+          aria-label={!isPro ? "Transparent background — Pro feature" : undefined}
+        >
           <div className={styles.toggleLeft}>
             <div className={styles.toggleName}>
               Transparent background{" "}
-              <img
-                className={styles.proBadge}
-                src="/assets/3-0/PRO-label.png"
-                alt="Pro"
-              />
+              {!isPro && (
+                <img
+                  className={styles.proBadge}
+                  src="/assets/3-0/PRO-label.png"
+                  alt="Pro"
+                />
+              )}
             </div>
             <div className={styles.toggleDesc}>
               Export without a background fill.
             </div>
           </div>
 
-          <label className={styles.switch} aria-label="Transparent background">
+          <label className={styles.switch} aria-label="Transparent background" onClick={(e) => !isPro && e.preventDefault()}>
             <input
               type="checkbox"
               checked={transparentBg}
-              onChange={(e) => setTransparentBg(e.target.checked)}
+              onChange={(e) => (isPro ? setTransparentBg(e.target.checked) : null)}
               disabled={!isPro || isDownloading}
             />
             <span className={styles.slider} />
@@ -2312,17 +2355,20 @@ const handleDownload = async () => {
 
 
   
-  return createPortal(
-    <div
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      onClick={() => {
-        if (isDownloading) return;
-        onClose?.();
-      }}
-    >
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+  return (
+    <>
+      {createPortal(
+        <div
+          className={styles.overlay}
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (isDownloading) return;
+            if (e.target !== e.currentTarget) return;
+            onClose?.();
+          }}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Top bar */}
         <div className={styles.topRow}>
           <div className={styles.titleWrap}>
@@ -2350,8 +2396,10 @@ const handleDownload = async () => {
 
         {/* Body */}
         <div className={styles.body}>
-          {/* LEFT: raster preview */}
+          {/* LEFT: preview + legend + crop */}
+          <div className={styles.leftColumn}>
           <div className={styles.previewCard} aria-label="Download preview">
+            <div className={styles.previewTitle}>Preview</div>
             <div className={styles.previewFrame}>
               <div className={styles.previewInner}>
                 {previewUrl ? (
@@ -2392,560 +2440,196 @@ const handleDownload = async () => {
                 </div>
               </div>
             </div>
-            <div className={styles.previewHint}>This is the exact exported image</div>
-
-
-<div className={styles.leftControls}>
- {/* ===== Legend ===== */}
-<div className={styles.sectionTitle}>Legend</div>
-
-<div
-  className={`${styles.controlsCard} ${!legendOn ? styles.controlsCardDisabled : ""}`}
-  aria-disabled={!legendOn}
->
-  <div className={styles.legendGrid}>
-    {/* X */}
-    <div className={styles.legendStack}>
-      <div className={styles.legendLabel}>X</div>
-      <div className={styles.legendLine}>
-        <button
-          type="button"
-          className={styles.iconBtn}
-          onClick={() => setLegendPos((p) => ({ ...p, x: Math.max(0, p.x - 0.01) }))}
-          disabled={isDownloading}
-          aria-label="Decrease legend X"
-        >
-          −
-        </button>
-
-       <input
-  className={styles.miniInput}
-  type="text"
-  inputMode="numeric"
-  value={legendXDraft}
-  onChange={(e) => {
-    // allow empty while typing + digits only
-    const cleaned = e.target.value.replace(/[^\d]/g, "");
-    setLegendXDraft(cleaned);
-    legendXDraftRef.current = cleaned;
-  }}
-  onBlur={() => {
-    const raw = legendXDraftRef.current;
-
-    // if user left it empty, revert to committed value (no snap-to-0)
-    if (raw === "") {
-      const back = String(Math.round(legendPos.x * 100));
-      setLegendXDraft(back);
-      legendXDraftRef.current = back;
-      return;
-    }
-
-    const n = Number(raw);
-    if (!Number.isFinite(n)) return;
-
-    const clamped = Math.max(0, Math.min(100, Math.round(n)));
-    setLegendPos((p) => ({ ...p, x: clamped / 100 }));
-
-    const s = String(clamped);
-    setLegendXDraft(s);
-    legendXDraftRef.current = s;
-  }}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") e.currentTarget.blur();
-    if (e.key === "Escape") {
-      const back = String(Math.round(legendPos.x * 100));
-      setLegendXDraft(back);
-      legendXDraftRef.current = back;
-      e.currentTarget.blur();
-    }
-  }}
-  disabled={isDownloading}
-  aria-label="Legend X percent"
-/>
-
-
-        <button
-          type="button"
-          className={styles.iconBtn}
-          onClick={() => setLegendPos((p) => ({ ...p, x: Math.min(1, p.x + 0.01) }))}
-          disabled={isDownloading}
-          aria-label="Increase legend X"
-        >
-          +
-        </button>
-
-        <span className={styles.miniSuffix}></span>
-      </div>
-    </div>
-
-    {/* Y */}
-    <div className={styles.legendStack}>
-      <div className={styles.legendLabel}>Y</div>
-      <div className={styles.legendLine}>
-        <button
-          type="button"
-          className={styles.iconBtn}
-          onClick={() => setLegendPos((p) => ({ ...p, y: Math.max(0, p.y - 0.01) }))}
-          disabled={isDownloading}
-          aria-label="Decrease legend Y"
-        >
-          −
-        </button>
-
-       <input
-  className={styles.miniInput}
-  type="text"
-  inputMode="numeric"
-  value={legendYDraft}
-  onChange={(e) => {
-    // allow empty while typing + digits only
-    const cleaned = e.target.value.replace(/[^\d]/g, "");
-    setLegendYDraft(cleaned);
-    legendYDraftRef.current = cleaned;
-  }}
-  onBlur={() => {
-    const raw = legendYDraftRef.current;
-
-    // if user left it empty, revert to committed value (no snap-to-0)
-    if (raw === "") {
-      const back = String(Math.round(legendPos.y * 100));
-      setLegendYDraft(back);
-      legendYDraftRef.current = back;
-      return;
-    }
-
-    const n = Number(raw);
-    if (!Number.isFinite(n)) return;
-
-    const clamped = Math.max(0, Math.min(100, Math.round(n)));
-    setLegendPos((p) => ({ ...p, y: clamped / 100 }));
-
-    const s = String(clamped);
-    setLegendYDraft(s);
-    legendYDraftRef.current = s;
-  }}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") e.currentTarget.blur();
-    if (e.key === "Escape") {
-      const back = String(Math.round(legendPos.x * 100));
-      setLegendYDraft(back);
-      legendYDraftRef.current = back;
-      e.currentTarget.blur();
-    }
-  }}
-  disabled={isDownloading}
-  aria-label="Legend Y percent"
-/>
-
-
-        <button
-          type="button"
-          className={styles.iconBtn}
-          onClick={() => setLegendPos((p) => ({ ...p, y: Math.min(1, p.y + 0.01) }))}
-          disabled={isDownloading}
-          aria-label="Increase legend Y"
-        >
-          +
-        </button>
-
-        <span className={styles.miniSuffix}></span>
-      </div>
-    </div>
-
-{/* Size */}
-<div className={styles.legendStack}>
-  <div className={styles.legendLabel}>Size</div>
-
-  <div className={styles.legendLine}>
-    <button
-      type="button"
-      className={styles.iconBtn}
-      onClick={() => {
-        setLegendSize((s) => {
-          const next = Math.max(0.75, Math.round((s - 0.01) * 100) / 100);
-          const pct = String(Math.round(next * 100));
-          setLegendSizeDraft(pct);
-          legendSizeDraftRef.current = pct;
-          return next;
-        });
-      }}
-      disabled={isDownloading}
-      aria-label="Decrease legend size"
-    >
-      −
-    </button>
-
-    <input
-      className={styles.miniInput}
-      type="text"
-      inputMode="numeric"
-      value={legendSizeDraft}
-      onChange={(e) => {
-        // allow typing freely: "", "1", "10", "100", etc.
-        const raw = e.target.value;
-        const cleaned = raw.replace(/[^\d]/g, ""); // digits only
-        setLegendSizeDraft(cleaned);
-        legendSizeDraftRef.current = cleaned;
-      }}
-      onBlur={() => {
-        // commit on blur
-        const raw = legendSizeDraftRef.current;
-        const n = Number(raw);
-
-        if (!Number.isFinite(n)) {
-          const pct = String(Math.round(legendSize * 100));
-          setLegendSizeDraft(pct);
-          legendSizeDraftRef.current = pct;
-          return;
-        }
-
-        const clamped = Math.max(75, Math.min(180, Math.round(n)));
-        setLegendSize(clamped / 100);
-
-        const pct = String(clamped);
-        setLegendSizeDraft(pct);
-        legendSizeDraftRef.current = pct;
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") e.currentTarget.blur();
-        if (e.key === "Escape") {
-          const pct = String(Math.round(legendSize * 100));
-          setLegendSizeDraft(pct);
-          legendSizeDraftRef.current = pct;
-          e.currentTarget.blur();
-        }
-      }}
-      disabled={isDownloading}
-      aria-label="Legend size percent"
-      placeholder="100"
-    />
-
-    <button
-      type="button"
-      className={styles.iconBtn}
-      onClick={() => {
-        setLegendSize((s) => {
-          const next = Math.min(1.8, Math.round((s + 0.01) * 100) / 100);
-          const pct = String(Math.round(next * 100));
-          setLegendSizeDraft(pct);
-          legendSizeDraftRef.current = pct;
-          return next;
-        });
-      }}
-      disabled={isDownloading}
-      aria-label="Increase legend size"
-    >
-      +
-    </button>
-
-    <span className={styles.miniSuffix}></span>
-  </div>
-</div>
-
-
-    {/* Width */}
-{/* Width (px, blank = auto) */}
-<div className={styles.legendStack}>
-  <div className={styles.legendLabel}>Width</div>
-
-  <div className={styles.legendLine}>
-    <button
-      type="button"
-      className={styles.iconBtn}
-onClick={() => {
-  const base =
-    legendWidthPx != null
-      ? legendWidthPx
-      : (defaultLegendWidthRef.current ?? 520); // ✅ start from computed default
-
-  const next = Math.max(LEGEND_MIN_W, base - 40);
-
-  isLegendWidthAutoRef.current = false;  // ✅ now fixed
-  setLegendWidthPx(next);
-  setLegendWidthDraft(String(next));
-  legendWidthDraftRef.current = String(next);
-}}
-
-onBlur={() => {
-  const raw = legendWidthDraftRef.current;
-
-  // ✅ blank = AUTO
-  if (raw === "") {
-    setLegendWidthPx(null);
-    return;
-  }
-
-  const n = Number(raw);
-  if (!Number.isFinite(n)) {
-    // revert to committed display
-    const back = legendWidthPx == null ? "" : String(legendWidthPx);
-    setLegendWidthDraft(back);
-    legendWidthDraftRef.current = back;
-    return;
-  }
-
-  const scaleFactor = 3;
-  const vb = viewBoxFromInsets(crop);
-  const exportCanvasW = Math.round(vb.w * scaleFactor);
-
-  const hardMax = Math.max(LEGEND_MIN_W, Math.round(exportCanvasW - 40));
-  const clamped = Math.max(LEGEND_MIN_W, Math.min(hardMax, Math.round(n)));
-
-  setLegendWidthPx(clamped);
-
-  const s = String(clamped);
-  setLegendWidthDraft(s);
-  legendWidthDraftRef.current = s;
-}}
-
-
-      disabled={isDownloading}
-      aria-label="Decrease legend width"
-    >
-      −
-    </button>
-
-  <input
-  className={styles.miniInput}
-  type="text"
-  inputMode="numeric"
-  value={legendWidthDraft}
-  onChange={(e) => {
-    const raw = e.target.value;
-    const cleaned = raw.replace(/[^\d]/g, ""); // digits only
-    setLegendWidthDraft(cleaned);
-    legendWidthDraftRef.current = cleaned;
-  }}
- onBlur={() => {
-  const raw = legendWidthDraftRef.current;
-
-  // empty => go back to showing default (stay auto)
-  if (raw === "") {
-    const w0 = defaultLegendWidthRef.current ?? 520;
-    isLegendWidthAutoRef.current = true;
-    setLegendWidthPx(null);
-    setLegendWidthDraft(String(w0));
-    legendWidthDraftRef.current = String(w0);
-    return;
-  }
-
-  const n = Number(raw);
-  if (!Number.isFinite(n)) {
-    const back =
-      isLegendWidthAutoRef.current
-        ? String(defaultLegendWidthRef.current ?? 520)
-        : String(legendWidthPx ?? (defaultLegendWidthRef.current ?? 520));
-    setLegendWidthDraft(back);
-    legendWidthDraftRef.current = back;
-    return;
-  }
-
-  const vb = viewBoxFromInsets(crop);
-  const exportCanvasW = Math.round(vb.w * 3);
-  const hardMax = Math.max(LEGEND_MIN_W, Math.round(exportCanvasW - 40));
-  const clamped = Math.max(LEGEND_MIN_W, Math.min(hardMax, Math.round(n)));
-
-  const w0 = defaultLegendWidthRef.current ?? 520;
-
-  // ✅ if still in auto mode and user typed the default, keep widthPx=null
-  if (isLegendWidthAutoRef.current && clamped === w0) {
-    setLegendWidthPx(null);
-  } else {
-    isLegendWidthAutoRef.current = false;
-    setLegendWidthPx(clamped);
-  }
-
-  const s = String(clamped);
-  setLegendWidthDraft(s);
-  legendWidthDraftRef.current = s;
-}}
-
-  onKeyDown={(e) => {
-    if (e.key === "Enter") e.currentTarget.blur();     // ✅ commit now
-    if (e.key === "Escape") {
-      const back = String(legendWidthPx);
-      setLegendWidthDraft(back);
-      legendWidthDraftRef.current = back;
-      e.currentTarget.blur();
-    }
-  }}
-  disabled={isDownloading}
-  aria-label="Legend width in pixels"
-/>
-
-
-    <button
-      type="button"
-      className={styles.iconBtn}
-      onClick={() => {
-  const vb = viewBoxFromInsets(crop);
-  const exportCanvasW = Math.round(vb.w * 3);
-  const hardMax = Math.max(LEGEND_MIN_W, Math.round(exportCanvasW - 40));
-
-  const base =
-    legendWidthPx != null
-      ? legendWidthPx
-      : (defaultLegendWidthRef.current ?? 520); // ✅ start from computed default
-
-  const next = Math.min(hardMax, base + 40);
-
-  isLegendWidthAutoRef.current = false;  // ✅ now fixed
-  setLegendWidthPx(next);
-  setLegendWidthDraft(String(next));
-  legendWidthDraftRef.current = String(next);
-}}
-
-      disabled={isDownloading}
-      aria-label="Increase legend width"
-    >
-      +
-    </button>
-
-    <span className={styles.miniSuffix}>px</span>
-  </div>
-</div>
-
-
-
-<button
-  type="button"
-  className={styles.miniReset}
-onClick={() => {
-  setLegendPos({ x: 0.02, y: 0.78 });
-
-  // ✅ reset to computed default size
-  const s0 = defaultLegendSizeRef.current ?? 1.0;
-  setLegendSize(s0);
-  const pct0 = String(Math.round(s0 * 100));
-  setLegendSizeDraft(pct0);
-  legendSizeDraftRef.current = pct0;
-
-const w0 = defaultLegendWidthRef.current ?? 900;
-isLegendWidthAutoRef.current = true;
-setLegendWidthPx(null);                 // ✅ auto mode
-setLegendWidthDraft(String(w0));        // ✅ show number
-legendWidthDraftRef.current = String(w0);
-
-}}
-
->
-  Reset
-</button>
-
-
-  </div>
-</div>
-
-
-  {/* ===== Crop ===== */}
-  <div className={styles.sectionTitle}>Crop</div>
-
-  <div className={styles.controlsCard}>
-    <div className={styles.cropGrid}>
-      {[
-        ["Left", "left"],
-        ["Top", "top"],
-        ["Right", "right"],
-        ["Bottom", "bottom"],
-      ].map(([label, key]) => (
-        <div key={key} className={styles.cropStack}>
-          <div className={styles.cropLabel}>{label}</div>
-
-          <div className={styles.cropLine}>
-            <button
-              type="button"
-              className={styles.iconBtn}
-              onClick={() => {
-                didInitCropRef.current = true;
-                setCrop((c) => ({ ...c, [key]: Math.max(0, c[key] - 1) }));
-              }}
-              disabled={isDownloading}
-              aria-label={`Decrease crop ${label.toLowerCase()}`}
-            >
-              −
-            </button>
-
-            <input
-              className={styles.miniInput}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={100}
-              step={1}
-              value={Math.round(crop[key])}
-              onChange={(e) => {
-                const n = Number(e.target.value);
-                if (!Number.isFinite(n)) return;
-                didInitCropRef.current = true;
-                const clamped = Math.max(0, Math.min(100, Math.round(n)));
-                setCrop((c) => ({ ...c, [key]: clamped }));
-              }}
-              disabled={isDownloading}
-              aria-label={`Crop ${label} percent`}
-            />
-
-            <button
-              type="button"
-              className={styles.iconBtn}
-              onClick={() => {
-                didInitCropRef.current = true;
-                setCrop((c) => ({ ...c, [key]: Math.min(100, c[key] + 1) }));
-              }}
-              disabled={isDownloading}
-              aria-label={`Increase crop ${label.toLowerCase()}`}
-            >
-              +
-            </button>
-
-            <span className={styles.miniSuffix}></span>
+            {/* Single row: Position | Size | Crop map (all same box style) */}
+            <div className={styles.previewSettingsRow}>
+              <div className={styles.previewSettingsLegendGroup}>
+                <div className={`${styles.previewSettingsLegendInner} ${!legendOn ? styles.controlsCardDisabled : ""}`} aria-disabled={!legendOn}>
+                  <label className={styles.previewLegendPositionLabel}>Position</label>
+                  <select
+                      value={(() => {
+                        const dist = (p) => (p.x - legendPos.x) ** 2 + (p.y - legendPos.y) ** 2;
+                        const closest = LEGEND_POSITION_PRESETS.reduce((a, b) => dist(a) <= dist(b) ? a : b);
+                        return closest.id;
+                      })()}
+                      onChange={(e) => {
+                        const preset = LEGEND_POSITION_PRESETS.find((p) => p.id === e.target.value);
+                        if (preset) {
+                          setLegendPos({ x: preset.x, y: preset.y });
+                          setLegendXDraft(String(Math.round(preset.x * 100)));
+                          setLegendYDraft(String(Math.round(preset.y * 100)));
+                          legendXDraftRef.current = String(Math.round(preset.x * 100));
+                          legendYDraftRef.current = String(Math.round(preset.y * 100));
+                        }
+                      }}
+                      disabled={isDownloading || !legendOn}
+                      className={styles.previewLegendPositionSelect}
+                      aria-label="Legend position"
+                    >
+                      {LEGEND_POSITION_PRESETS.map((p) => (
+                        <option key={p.id} value={p.id}>{p.label}</option>
+                      ))}
+                    </select>
+                </div>
+                <div className={`${styles.previewSettingsLegendInner} ${!legendOn ? styles.controlsCardDisabled : ""}`} aria-disabled={!legendOn}>
+                  <label className={styles.previewLegendPositionLabel}>Size</label>
+                  <div className={styles.stepper}>
+                      <button
+                        type="button"
+                        className={styles.stepperBtn}
+                        disabled={isDownloading || !legendOn || Math.round(legendSize * 100) <= 50}
+                        onClick={() => {
+                          const n = Math.max(50, Math.min(180, Math.round(legendSize * 100) - 5));
+                          setLegendSize(n / 100);
+                          setLegendSizeDraft(String(n));
+                          legendSizeDraftRef.current = String(n);
+                        }}
+                        aria-label="Decrease legend size"
+                      >
+                        −
+                      </button>
+                      <span className={styles.stepperDisplay}>{Math.round(legendSize * 100)}%</span>
+                      <button
+                        type="button"
+                        className={styles.stepperBtn}
+                        disabled={isDownloading || !legendOn || Math.round(legendSize * 100) >= 180}
+                        onClick={() => {
+                          const n = Math.max(50, Math.min(180, Math.round(legendSize * 100) + 5));
+                          setLegendSize(n / 100);
+                          setLegendSizeDraft(String(n));
+                          legendSizeDraftRef.current = String(n);
+                        }}
+                        aria-label="Increase legend size"
+                      >
+                        +
+                      </button>
+                    </div>
+                </div>
+              </div>
+              <div className={styles.previewSettingsDivider} aria-hidden="true" />
+              <div className={styles.previewSettingsCropWrap}>
+                <div className={styles.previewSettingsLegendInner}>
+                  <button
+                    type="button"
+                    className={styles.previewSettingsCropBtn}
+                    onClick={() => setCropModalOpen(true)}
+                    disabled={isDownloading}
+                    aria-label="Crop map"
+                  >
+                    <BiCrop className={styles.previewSettingsCropBtnIcon} aria-hidden="true" />
+                    Crop map
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
-
-      <button
-        type="button"
-        className={styles.miniReset}
-        onClick={() => {
-          didInitCropRef.current = true;
-          setCrop(defaultCropRef.current || { top: 0, right: 0, bottom: 0, left: 0 });
-        }}
-        disabled={isDownloading}
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-
-</div>
-
-
           </div>
 
-        {/* RIGHT: options */}
-<div className={styles.options}>
+        {/* RIGHT: format + download */}
+        <div className={styles.options}>
+          <div className={styles.optionsScroll}>
   <div className={styles.sectionTitle}>Format</div>
 
-  {/* Format select */}
-  <div className={styles.selectWrap}>
+  <div className={styles.formatSelectWrap} ref={formatSelectRef}>
     <select
-      className={styles.select}
+      aria-label="Download format"
       value={format}
-      onChange={(e) => setFormat(e.target.value)} // format: "jpg" | "png"
+      onChange={(e) => {
+        const next = e.target.value;
+        if (next === "svg" && !isPro) {
+          setUpgradeProModalOpen(true);
+          return;
+        }
+        setFormat(next);
+      }}
       disabled={isDownloading}
+      className={styles.formatSelectNative}
+      tabIndex={-1}
+    >
+      {FORMAT_OPTIONS.map(({ value, label }) => (
+        <option key={value} value={value}>{label}</option>
+      ))}
+    </select>
+    <button
+      type="button"
+      className={styles.formatSelectTrigger}
+      onClick={() => !isDownloading && setFormatSelectOpen((o) => !o)}
+      disabled={isDownloading}
+      aria-haspopup="listbox"
+      aria-expanded={formatSelectOpen}
       aria-label="Download format"
     >
-      <option value="jpg">JPG</option>
-      <option value="png">PNG</option>
-        <option value="pdf">PDF</option> 
-        <option value="svg">SVG</option>
-    </select>
-
-    <span className={styles.selectChevron} aria-hidden="true">
-      ▾
-    </span>
+      {(() => {
+        const opt = FORMAT_OPTIONS.find((o) => o.value === format);
+        if (!opt) return null;
+        const { label, Icon, description } = opt;
+        return (
+          <>
+            <span className={styles.formatSelectIcon} aria-hidden="true">
+              <Icon />
+            </span>
+            <div className={styles.formatSelectTriggerText}>
+              <span className={styles.formatSelectLabelRow}>
+                <span className={styles.formatSelectLabel}>{label}</span>
+                {opt.pro && !isPro && (
+                  <img
+                    className={styles.proBadge}
+                    src="/assets/3-0/PRO-label.png"
+                    alt="Pro"
+                  />
+                )}
+              </span>
+              <span className={styles.formatSelectDesc}>{description}</span>
+            </div>
+            <span className={styles.formatSelectChevron} aria-hidden="true">▾</span>
+          </>
+        );
+      })()}
+    </button>
+    {formatSelectOpen && (
+      <ul
+        className={styles.formatSelectDropdown}
+        role="listbox"
+        aria-label="Download format"
+      >
+        {FORMAT_OPTIONS.map(({ value, label, Icon, description, pro }) => (
+          <li
+            key={value}
+            role="option"
+            aria-selected={format === value}
+            className={`${styles.formatSelectOption} ${format === value ? styles.formatSelectOptionActive : ""}`}
+            onClick={() => {
+              if (value === "svg" && !isPro) {
+                setUpgradeProModalOpen(true);
+                setFormatSelectOpen(false);
+                return;
+              }
+              setFormat(value);
+              setFormatSelectOpen(false);
+            }}
+          >
+            <span className={styles.formatSelectOptionIcon} aria-hidden="true">
+              <Icon />
+            </span>
+            <div className={styles.formatSelectOptionText}>
+              <span className={styles.formatSelectOptionLabelRow}>
+                <span className={styles.formatSelectOptionLabel}>{label}</span>
+                {pro && !isPro && (
+                  <img
+                    className={styles.proBadge}
+                    src="/assets/3-0/PRO-label.png"
+                    alt="Pro"
+                  />
+                )}
+              </span>
+              <span className={styles.formatSelectOptionDesc}>{description}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
 
- {renderFormatOptions()}
+  {renderFormatOptions()}
 
  <div className={styles.proCallout}>
   <div className={styles.toggleRow}>
@@ -2970,27 +2654,39 @@ legendWidthDraftRef.current = String(w0);
 
 
   {/* Shared pro option */}
-  <div className={styles.proCallout}>
+  <div
+    className={styles.proCallout}
+    onClick={(e) => {
+      if (!isPro && !isDownloading) {
+        e.preventDefault();
+        setUpgradeProModalOpen(true);
+      }
+    }}
+    role={!isPro ? "button" : undefined}
+    aria-label={!isPro ? "Toggle watermark off — Pro feature" : undefined}
+  >
     <div className={styles.toggleRow}>
       <div className={styles.toggleLeft}>
         <div className={styles.toggleName}>
           Toggle watermark off{" "}
-          <img
-            className={styles.proBadge}
-            src="/assets/3-0/PRO-label.png"
-            alt="Pro"
-          />
+          {!isPro && (
+            <img
+              className={styles.proBadge}
+              src="/assets/3-0/PRO-label.png"
+              alt="Pro"
+            />
+          )}
         </div>
         <div className={styles.toggleDesc}>
           Remove the Map in Color watermark.
         </div>
       </div>
 
-   <label className={styles.switch} aria-label="Toggle watermark off">
+   <label className={styles.switch} aria-label="Toggle watermark off" onClick={(e) => !isPro && e.preventDefault()}>
   <input
     type="checkbox"
     checked={watermarkOff}
-    onChange={(e) => setWatermarkOff(e.target.checked)}
+    onChange={(e) => (isPro ? setWatermarkOff(e.target.checked) : null)}
     disabled={!isPro || isDownloading}
   />
   <span className={styles.slider} />
@@ -2998,7 +2694,9 @@ legendWidthDraftRef.current = String(w0);
     </div>
   </div>
 
-  {/* Actions */}
+          </div>
+
+  {/* Actions - always at bottom */}
   <div className={styles.actions}>
     <button
       type="button"
@@ -3030,15 +2728,36 @@ legendWidthDraftRef.current = String(w0);
       Cancel
     </button>
   </div>
-
-  <div className={styles.footnote}>
-    Tip: PNG is best for sharp edges and map details. JPG is smaller and great for
-    posting.
   </div>
 </div>
-</div>
-      </div>
-    </div>,
-    document.body
+  </div>
+  </div>,
+        document.body
+      )}
+      {cropModalOpen && createPortal(
+        <MapCropModal
+          isOpen={true}
+          onClose={() => setCropModalOpen(false)}
+          onSave={(insets) => {
+            didInitCropRef.current = true;
+            setCrop(insets);
+            setCropModalOpen(false);
+          }}
+          initialCrop={crop}
+          originalCrop={defaultCropRef.current ?? crop}
+          mapData={mapData}
+          mapDataProps={mapDataProps}
+        />,
+        document.body
+      )}
+      <UpgradeProModal
+        isOpen={upgradeProModalOpen}
+        onClose={() => setUpgradeProModalOpen(false)}
+        onUpgrade={() => {
+          setUpgradeProModalOpen(false);
+          onUpgradeToPro?.();
+        }}
+      />
+    </>
   );
 }

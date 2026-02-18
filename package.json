@@ -72,6 +72,7 @@
   },
   "devDependencies": {
     "file-loader": "^6.2.0",
-    "sequelize-cli": "^6.6.2"
+    "sequelize-cli": "^6.6.2",
+    "supabase": "^2.76.9"
   }
 }
