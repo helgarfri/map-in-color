@@ -4,29 +4,31 @@ import styles from "./HeroSection.module.css";
 function HeroSection() {
   return (
     <div className={styles.heroContainer}>
-      <div className={styles.heroContent}>
-        <h1 className={styles.heroTitle}>Create. Explore. Share Data.</h1>
-        <p className={styles.heroSubtitle}>
-          Turn data into beautiful, interactive maps — no code required.
-        </p>
-        <a href="/signup" className={styles.signupButton}>
-          Join the mappers for free
-        </a>
-      </div>
+      <div className={styles.heroBody}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Turn data into maps people understand.
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Professional map creation for everyone.
+          </p>
+          <a href="/signup" className={styles.signupButton}>
+            Start creating for free
+          </a>
+        </div>
 
-      <div className={styles.heroImages}>
-        {/* Replace .imagePlaceholder with actual images later */}
+        <div className={styles.heroImageWrap}>
         <img
-          className={`${styles.imagePlaceholder} ${styles.imageOne}`}
-          src="assets/preview4.png"
-          alt="Map Preview"
+          className={`${styles.heroImage} ${styles.heroImageBack}`}
+          src="/assets/3-0/southkorea-preview.png"
+          alt="South Korea map preview — Map in Color 3.0"
         />
-
         <img
-          className={`${styles.imagePlaceholder} ${styles.imageTwo}`}
-          src="assets/preview2.png"
-          alt="Map Preview"
+          className={`${styles.heroImage} ${styles.heroImageFront}`}
+          src="/assets/3-0/world-dark-preview.png"
+          alt="Interactive world map — Map in Color 3.0"
         />
+        </div>
       </div>
     </div>
   );

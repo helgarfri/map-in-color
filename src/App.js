@@ -31,6 +31,7 @@ import VerifyAccount from "./components/VerifyAccount";
 import Verified from "./components/Verified";
 import VerificationError from "./components/VerificationError";
 import PublicExplore from "./components/PublicExplore";
+import PublicDataIntegration from "./components/PublicDataIntegration";
 import LoggedInExplore from "./components/LoggedInExplore";
 import PublicMapDetail from "./components/PublicMapDetail";
 import LoggedInMapDetail from "./components/LoggedInMapDetail";
@@ -82,6 +83,11 @@ export default function App() {
           children: [
             { path: "/", element: <Home /> },
             { path: "/docs", element: <Docs /> },
+
+            {
+              path: "/playground",
+              element: <PublicDataIntegration />,
+            },
 
             {
               path: "/create",

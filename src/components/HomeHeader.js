@@ -1,12 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import styles from "./HomeHeader.module.css";
 
+const SCROLL_THRESHOLD = 60;
+
 export default function HomeHeader() {
   const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > SCROLL_THRESHOLD);
+    }
+    handleScroll(); // run once in case we're already scrolled
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header className={styles.headerWrap}>
+    <header
+      className={`${styles.headerWrap} ${isScrolled ? styles.headerWrapScrolled : ""}`}
+    >
       <div className={styles.header}>
         {/* Make the logo a Link instead of window.location */}
         <Link className={styles.logoBtn} to="/" aria-label="Go to home">
@@ -28,6 +42,9 @@ export default function HomeHeader() {
           </NavLink>
           <NavLink className={styles.navLink} to="/docs">
             Docs
+          </NavLink>
+          <NavLink className={styles.navLink} to="/playground">
+            Create
           </NavLink>
 
           <div className={styles.navDivider} aria-hidden="true" />

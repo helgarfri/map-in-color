@@ -7,10 +7,11 @@ import {
   fetchNotifications,
   markNotificationAsRead,
   fetchSavedMaps,
+  resendVerificationEmail,
 } from "../api";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import { UserContext } from "../context/UserContext";
-import { FaStar, FaComment, FaMap, FaCalendarAlt, FaEdit } from "react-icons/fa";
+import { FaStar, FaComment, FaMap, FaCalendarAlt, FaEdit, FaEnvelope } from "react-icons/fa";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -85,6 +86,11 @@ export default function Dashboard() {
   // For deleting a map
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Email verification banner (resend)
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState(null);
 
   const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
@@ -180,6 +186,23 @@ export default function Dashboard() {
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setMapToDelete(null);
+  };
+
+  const handleResendVerification = async () => {
+    const email = profile?.email;
+    if (!email) return;
+    setResendError(null);
+    setResendSuccess(false);
+    setResendLoading(true);
+    try {
+      await resendVerificationEmail(email);
+      setResendSuccess(true);
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      setResendError(err?.response?.data?.msg || "Could not send. Try again in a moment.");
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   const handleNotificationClick = async (notif) => {
@@ -356,6 +379,34 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {profile && !profile.email_verified && (
+              <div className={styles.verificationBanner}>
+                <div className={styles.verificationBannerText}>
+                  <FaEnvelope style={{ marginRight: 8, verticalAlign: "middle", opacity: 0.8 }} />
+                  Please verify your email. We sent a link to <strong>{profile.email || "your email"}</strong>. Check your inbox and spam folder.
+                </div>
+                <div className={styles.verificationBannerActions}>
+                  {resendSuccess ? (
+                    <span className={styles.verificationBannerSuccess}>Sent! Check your inbox.</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.verificationBannerBtn}
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                    >
+                      {resendLoading ? "Sending…" : "Resend verification email"}
+                    </button>
+                  )}
+                  {resendError && (
+                    <span className={styles.verificationBannerSuccess} style={{ color: "var(--text)", opacity: 0.8 }}>
+                      {resendError}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             <section className={styles.sectionCard}>
               <div className={styles.cardHeaderRow}>

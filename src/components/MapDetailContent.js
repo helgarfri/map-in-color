@@ -278,8 +278,8 @@ const label =
     for (const [code, rawVal] of codeToValue.entries()) {
       const n = Number(rawVal);
       if (!Number.isFinite(n)) continue;
-      // match Map.js logic: value >= lower && value < upper
-      if (min != null && max != null && n >= min && n < max) {
+      // match Map.js logic: value >= lower && value <= upper (inclusive upper)
+      if (min != null && max != null && n >= min && n <= max) {
         codes.add(code);
       }
     }

@@ -1,6 +1,6 @@
 // Login.js
 import React, { useState, useContext, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import styles from "./Login.module.css";
 import { logIn, requestPasswordReset } from "../api"; // ✅ add this
 import { UserContext } from "../context/UserContext";
@@ -82,12 +82,6 @@ export default function Login() {
               onCloseNavigateTo: null,     // ✅ do NOT navigate
             });
 
-          } else if (String(serverMsg).toLowerCase().includes("verify")) {
-            openError({
-              title: "Verify your account",
-              message: "Please verify your account before logging in.",
-              onCloseNavigateTo: "/verify-account",
-            });
           } else {
             openError({ title: "Access denied", message: serverMsg });
           }
@@ -112,9 +106,14 @@ export default function Login() {
     }
   };
 
+  const location = useLocation();
+  const returnTo = location.state?.returnTo;
+
   useEffect(() => {
-    if (authToken && !loadingProfile) navigate("/dashboard");
-  }, [authToken, loadingProfile, navigate]);
+    if (authToken && !loadingProfile) {
+      navigate(returnTo || "/dashboard", { replace: true });
+    }
+  }, [authToken, loadingProfile, navigate, returnTo]);
 
   return (
     <div className={styles.splitContainer}>

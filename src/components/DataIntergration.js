@@ -24,14 +24,14 @@ import DownloadOptionsModal from "./DownloadOptionsModal";
 import { deleteMap } from "../api";
 import { UserContext } from "../context/UserContext";
 import { getAnonId } from "../utils/annonId";
+import HomeHeader from "./HomeHeader";
+import SignupRequiredModal from "./SignupRequiredModal";
+import { getPlaygroundDraft, setPlaygroundDraft } from "../utils/playgroundStorage";
 
 
 // Icons, contexts, etc.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faGlobe,
-  faLock,
-  faCaretDown,
   faSave,
   faCheckCircle,
   faCloudArrowUp,
@@ -133,6 +133,30 @@ const BASE_SWATCHES = [
   { key: "magenta", name: "Magenta", hex: "#ce2292" },
 ];
 
+function GlobeIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm3.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+    </svg>
+  );
+}
+
+function LockIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden>
+      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+    </svg>
+  );
+}
+
+function CaretDownIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" width="12" height="12" aria-hidden>
+      <path d="M7 10l5 5 5-5z" />
+    </svg>
+  );
+}
+
 // tiny color utils
 function hexToRgb(hex) {
   const s = String(hex || "").replace("#", "").trim();
@@ -156,8 +180,9 @@ function mixRgb(a, b, t) {
 }
 
 // Generate a light->deep ramp based on base color.
-// - low end: mix toward white
+// - low end: mix from a very light tint of base (never pure white) to base
 // - high end: slightly deepen by mixing toward a darkened base
+const LIGHT_RAMP_MIN_TINT = 0.14; // min fraction of base at light end (avoids pure white)
 function rampFromBase(baseHex, steps, opts = {}) {
   const base = hexToRgb(baseHex);
   if (!base || steps <= 0) return Array(Math.max(steps, 0)).fill("#c0c0c0");
@@ -176,11 +201,11 @@ function rampFromBase(baseHex, steps, opts = {}) {
     // lightness curve: give more resolution to lighter colors
     const eased = Math.pow(t, 1.15);
 
-    // 0..~0.55: from white to base
+    // 0..~0.55: from light tint of base to base (never pure white)
     // ~0.55..1: from base to darkTarget
     let c;
     if (eased <= 0.55) {
-      const tt = eased / 0.55;
+      const tt = LIGHT_RAMP_MIN_TINT + (eased / 0.55) * (1 - LIGHT_RAMP_MIN_TINT);
       c = mixRgb(white, base, tt);
     } else {
       const tt = (eased - 0.55) / 0.45;
@@ -327,11 +352,13 @@ function ColorCell({ color, onChange, styles }) {
 }
 
 
-export default function DataIntegration({ existingMapData = null, isEditing = false , externalLoading = false,}) {
+export default function DataIntegration({ existingMapData = null, isEditing = false, externalLoading = false, isPlayground = false }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
+  const hasHydratedFromPlaygroundRef = useRef(false);
+  const persistTimeoutRef = useRef(null);
 
   // Map selection (world only)
   const [selected_map] = useState("world");
@@ -424,6 +451,7 @@ const [isDeletingMap, setIsDeletingMap] = useState(false);
 const [deleteMapError, setDeleteMapError] = useState(null);
 
 const [showDeleteReferenceModal, setShowDeleteReferenceModal] = useState(false);
+  const [showSignupRequiredModal, setShowSignupRequiredModal] = useState(false);
 
 // custom base-color modal
 const [isBasePaletteModalOpen, setIsBasePaletteModalOpen] = useState(false);
@@ -496,6 +524,8 @@ useEffect(() => {
   // ✅ SINGLE source of truth: hydrate state from existingMapData (ONE effect)
   useEffect(() => {
     if (!existingMapData) {
+      // Playground: don't clear here; we'll hydrate from draft in a separate effect
+      if (isPlayground) return;
       // create mode: keep defaults, but clear any previous edit state
       setData([]);
       setMapTitle("");
@@ -547,11 +577,91 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
     setReferences(existingMapData.sources || []);
     setFileStats(existingMapData.file_stats || defaultFileStats);
     setPlaceholders(existingMapData.placeholders || {});
-  }, [existingMapData?.id]); // important: use .id to avoid re-running on identity noise
+  }, [existingMapData?.id, isPlayground]); // important: use .id to avoid re-running on identity noise
 
+  // ✅ Playground / logged-in create: hydrate from localStorage draft once so user's work isn't lost
+  useEffect(() => {
+    if (hasHydratedFromPlaygroundRef.current) return;
+    if (existingMapData) return; // editing a map, not create
+    const shouldLoadDraft = isPlayground || (isUserLoggedIn && !existingMapData);
+    if (!shouldLoadDraft) return;
 
+    const stored = getPlaygroundDraft();
+    if (!stored?.payload) return;
 
-async function confirmDeleteMap() {
+    hasHydratedFromPlaygroundRef.current = true;
+    const p = stored.payload;
+
+    setMapTitle(p.title ?? "");
+    setDescription(p.description ?? "");
+    setTags(Array.isArray(p.tags) ? p.tags : []);
+    setIsPublic(!!p.is_public);
+    setData(Array.isArray(p.data) ? p.data : []);
+    setMapDataType(p.map_data_type === "categorical" ? "categorical" : "choropleth");
+    setCustomRanges(
+      (Array.isArray(p.custom_ranges) ? p.custom_ranges : []).map((r, i) => ({
+        ...r,
+        id: r?.id ?? Date.now() + i,
+        color: r?.color ?? "#c0c0c0",
+        name: r?.name ?? "",
+        lowerBound: r?.lowerBound ?? "",
+        upperBound: r?.upperBound ?? "",
+      }))
+    );
+    const groupsHydrated = (Array.isArray(p.groups) ? p.groups : []).map((g, i) =>
+      normalizeGroup({ ...g, id: g?.id ?? `group_${Date.now()}_${i}` })
+    );
+    setGroups(groupsHydrated.length ? groupsHydrated : [normalizeGroup(DEFAULT_GROUP)]);
+    setOceanColor(p.ocean_color ?? "#ffffff");
+    setUnassignedColor(p.unassigned_color ?? "#c0c0c0");
+    setFontColor(p.font_color ?? "black");
+    setSelectedPalette(p.selected_palette ?? "None");
+    setSelectedMapTheme(p.selected_map_theme ?? "Default");
+    setFileStats(p.file_stats && typeof p.file_stats === "object" ? p.file_stats : defaultFileStats);
+    setIsTitleHidden(!!p.is_title_hidden);
+    setShowNoDataLegend(!!p.show_no_data_legend);
+    setTitleFontSize(p.titleFontSize ?? null);
+    setLegendFontSize(p.legendFontSize ?? null);
+    setReferences(Array.isArray(p.sources) ? p.sources : []);
+    setPlaceholders(p.placeholders && typeof p.placeholders === "object" ? p.placeholders : {});
+  }, [existingMapData, isPlayground, isUserLoggedIn]);
+
+  // ✅ Playground: debounced persist to localStorage so draft isn't lost
+  useEffect(() => {
+    if (!isPlayground) return;
+    if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current);
+    persistTimeoutRef.current = setTimeout(() => {
+      persistTimeoutRef.current = null;
+      setPlaygroundDraft(buildSavePayload());
+    }, 1500);
+    return () => {
+      if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current);
+    };
+  }, [
+    mapTitle,
+    description,
+    tags,
+    is_public,
+    data,
+    mapDataType,
+    custom_ranges,
+    groups,
+    ocean_color,
+    unassigned_color,
+    font_color,
+    selected_palette,
+    selected_map_theme,
+    file_stats,
+    is_title_hidden,
+    showNoDataLegend,
+    references,
+    titleFontSize,
+    legendFontSize,
+    placeholders,
+    isPlayground,
+  ]);
+
+  async function confirmDeleteMap() {
   if (isDeletingMap) return;
 
   const mapId = existingMapData?.id ?? savedMapId;
@@ -1118,6 +1228,20 @@ const removeCategory = (id) => {
   }
 };
 
+/**
+ * Assign all countries that are not in any category (empty value) to the given category.
+ * Used when a category has no countries assigned yet.
+ */
+const assignUnassignedToCategory = (categoryName) => {
+  const name = String(categoryName ?? "").trim();
+  setData((prev) =>
+    (Array.isArray(prev) ? prev : []).map((d) => {
+      const v = d?.value == null ? "" : String(d.value).trim();
+      if (v !== "") return d;
+      return { ...d, value: name };
+    })
+  );
+};
 
   // Tags
   const handleTagInputKeyDown = (e) => {
@@ -1266,8 +1390,11 @@ const categoryRows = useMemo(() => {
   return rows;
 }, [mapDataType, groups, mapDataNormalized]);
 
-
-
+/** Count of countries with no category assigned (categorical only). */
+const unassignedCountryCount = useMemo(() => {
+  if (mapDataType !== "categorical") return 0;
+  return (mapDataNormalized || []).filter((d) => safeTrim(d.value) === "").length;
+}, [mapDataType, mapDataNormalized]);
 
   const categoryOptions = useMemo(() => {
   const arr = Array.isArray(groups) ? groups : [];
@@ -1390,7 +1517,19 @@ const renderCategoriesTable = () => {
 
     </>
   ) : (
-    <span className={styles.mutedText}>No countries assigned yet.</span>
+    <div className={styles.emptyCountriesBlock}>
+      <span className={styles.mutedText}>No countries assigned yet.</span>
+      {canEdit && unassignedCountryCount > 0 && (
+        <button
+          type="button"
+          className={styles.assignUnassignedLink}
+          onClick={() => assignUnassignedToCategory(row.name)}
+          title={`Assign all ${unassignedCountryCount} unassigned countries to this category`}
+        >
+          Assign all unassigned
+        </button>
+      )}
+    </div>
   )}
 </td>
 
@@ -1515,7 +1654,7 @@ const rangeCountryLabel = (d) =>
       const valid = r.lower != null && r.upper != null;
       const countries = valid
         ? (mapDataNormalized || [])
-            .filter((d) => typeof d.value === "number" && d.value >= r.lower && d.value < r.upper)
+            .filter((d) => typeof d.value === "number" && d.value >= r.lower && d.value <= r.upper)
             .map(rangeCountryLabel)
             .filter(Boolean)
             .sort((a, b) => a.localeCompare(b))
@@ -1766,6 +1905,11 @@ useEffect(() => {
 const handleSaveMap = async () => {
   if (isSaving) return;
 
+  if (isPlayground) {
+    setShowSignupRequiredModal(true);
+    return;
+  }
+
   const payload = {
     title: mapTitle,
     description,
@@ -1804,9 +1948,10 @@ const handleSaveMap = async () => {
 
 try {
   let res;
-  if (isEditing) {
-    res = await updateMap(existingMapData.id, payload);
-    setSavedMapId(existingMapData.id);
+  const mapIdToUse = isEditing ? existingMapData?.id : savedMapId;
+  if (mapIdToUse) {
+    res = await updateMap(mapIdToUse, payload);
+    setSavedMapId(mapIdToUse);
   } else {
     res = await createMap(payload);
     const newId =
@@ -1853,57 +1998,62 @@ try {
   // ============================
   // Render
   // ============================
+  const layoutPadding = isPlayground ? 0 : (isCollapsed ? 70 : 250);
   if (loading) {
-  return (
-    <div className={styles.layoutContainer} style={{ paddingLeft: isCollapsed ? "70px" : "250px" }}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+    return (
+      <>
+        {isPlayground && <HomeHeader />}
+        <div className={`${styles.layoutContainer} ${isPlayground ? styles.layoutContainerPlayground : ""}`} style={{ paddingLeft: layoutPadding }}>
+          {!isPlayground && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
+          <div className={styles.contentRow}>
+            <div className={styles.leftSidebar}>
+              <div className={styles.skelBlock} style={{ height: 18, width: 160, marginBottom: 12 }} />
+              <div className={styles.skelCard}>
+                <div className={styles.skelLine} style={{ width: "70%" }} />
+                <div className={styles.skelLine} style={{ width: "90%" }} />
+                <div className={styles.skelLine} style={{ width: "85%" }} />
+                <div className={styles.skelLine} style={{ width: "60%" }} />
+              </div>
 
-      <div className={styles.contentRow}>
-        <div className={styles.leftSidebar}>
-          <div className={styles.skelBlock} style={{ height: 18, width: 160, marginBottom: 12 }} />
-          <div className={styles.skelCard}>
-            <div className={styles.skelLine} style={{ width: "70%" }} />
-            <div className={styles.skelLine} style={{ width: "90%" }} />
-            <div className={styles.skelLine} style={{ width: "85%" }} />
-            <div className={styles.skelLine} style={{ width: "60%" }} />
-          </div>
+              <div className={styles.skelCard} style={{ marginTop: 12 }}>
+                <div className={styles.skelLine} style={{ width: "50%" }} />
+                <div className={styles.skelLine} style={{ width: "88%" }} />
+                <div className={styles.skelLine} style={{ width: "76%" }} />
+              </div>
+            </div>
 
-          <div className={styles.skelCard} style={{ marginTop: 12 }}>
-            <div className={styles.skelLine} style={{ width: "50%" }} />
-            <div className={styles.skelLine} style={{ width: "88%" }} />
-            <div className={styles.skelLine} style={{ width: "76%" }} />
+            <div className={styles.rightPanel}>
+              <div className={styles.mapBox}>
+                <div className={styles.skelBlock} style={{ height: 16, width: 120, marginBottom: 12 }} />
+                <div className={styles.skelMap} />
+              </div>
+
+              <div className={styles.section}>
+                <div className={styles.skelBlock} style={{ height: 16, width: 140, marginBottom: 12 }} />
+                <div className={styles.skelTableRow} />
+                <div className={styles.skelTableRow} />
+                <div className={styles.skelTableRow} />
+              </div>
+
+              <div className={styles.section}>
+                <div className={styles.skelBlock} style={{ height: 16, width: 120, marginBottom: 12 }} />
+                <div className={styles.skelLine} style={{ width: "65%" }} />
+                <div className={styles.skelLine} style={{ width: "95%" }} />
+                <div className={styles.skelLine} style={{ width: "85%" }} />
+                <div className={styles.skelLine} style={{ width: "70%" }} />
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className={styles.rightPanel}>
-          <div className={styles.mapBox}>
-            <div className={styles.skelBlock} style={{ height: 16, width: 120, marginBottom: 12 }} />
-            <div className={styles.skelMap} />
-          </div>
-
-          <div className={styles.section}>
-            <div className={styles.skelBlock} style={{ height: 16, width: 140, marginBottom: 12 }} />
-            <div className={styles.skelTableRow} />
-            <div className={styles.skelTableRow} />
-            <div className={styles.skelTableRow} />
-          </div>
-
-          <div className={styles.section}>
-            <div className={styles.skelBlock} style={{ height: 16, width: 120, marginBottom: 12 }} />
-            <div className={styles.skelLine} style={{ width: "65%" }} />
-            <div className={styles.skelLine} style={{ width: "95%" }} />
-            <div className={styles.skelLine} style={{ width: "85%" }} />
-            <div className={styles.skelLine} style={{ width: "70%" }} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+      </>
+    );
+  }
 
   return (
-    <div className={styles.layoutContainer} style={{ paddingLeft: isCollapsed ? "70px" : "250px" }}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+    <>
+      {isPlayground && <HomeHeader />}
+      <div className={`${styles.layoutContainer} ${isPlayground ? styles.layoutContainerPlayground : ""}`} style={{ paddingLeft: layoutPadding }}>
+        {!isPlayground && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
 
       <div className={styles.contentRow}>
         <div className={styles.leftSidebar}>
@@ -1957,7 +2107,9 @@ try {
 
           {/* Settings */}
           <div className={styles.navSection}>
-            <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={isEditing ? `Edit ${mapTitle}` : "Create Map"} />
+            {!isPlayground && (
+              <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={isEditing ? `Edit ${mapTitle}` : "Create Map"} />
+            )}
 
 {/* Data & Ranges */}
 <div className={styles.section}>
@@ -2218,12 +2370,11 @@ try {
             }
           }}
         >
-          <FontAwesomeIcon
-            icon={is_public ? faGlobe : faLock}
-            className={styles.visibilityIcon}
-          />
+          <span className={styles.visibilityIcon}>
+            {is_public ? <GlobeIcon /> : <LockIcon />}
+          </span>
           {is_public ? "Public" : "Private"}
-          <FontAwesomeIcon icon={faCaretDown} className={styles.selectArrow} />
+          <CaretDownIcon className={styles.selectArrow} />
 
           {showVisibilityOptions && (
             <div
@@ -2239,7 +2390,7 @@ try {
                   setShowVisibilityOptions(false); // ✅ close on select
                 }}
               >
-                <FontAwesomeIcon icon={faGlobe} className={styles.visibilityIcon} />
+                <span className={styles.visibilityIcon}><GlobeIcon /></span>
                 Public
               </button>
 
@@ -2252,7 +2403,7 @@ try {
                   setShowVisibilityOptions(false); // ✅ close on select
                 }}
               >
-                <FontAwesomeIcon icon={faLock} className={styles.visibilityIcon} />
+                <span className={styles.visibilityIcon}><LockIcon /></span>
                 Private
               </button>
             </div>
@@ -2874,9 +3025,13 @@ try {
   </div>
 )}
 
-
-
-
-    </div>
+      </div>
+      {isPlayground && (
+        <SignupRequiredModal
+          isOpen={showSignupRequiredModal}
+          onClose={() => setShowSignupRequiredModal(false)}
+        />
+      )}
+    </>
   );
 }

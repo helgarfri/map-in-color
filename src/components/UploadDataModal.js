@@ -55,6 +55,7 @@ export default function UploadDataModal({
   onImport,
   session,
   setSession,
+  embedded = false,
 }) {
   // ---- Session-backed UI state ----
   const fileName = session?.fileName || "";
@@ -100,10 +101,10 @@ export default function UploadDataModal({
 
   // Don’t wipe session when closing; just avoid stuck "Reading…"
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen && !embedded) {
       setSession((prev) => ({ ...prev, isParsing: false }));
     }
-  }, [isOpen, setSession]);
+  }, [isOpen, embedded, setSession]);
 
   // Terminal logging
   const log = (msg, level = "info") => {
@@ -753,11 +754,10 @@ export default function UploadDataModal({
     return freqArr;
   }, [mapDataType, parsedData]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+  const content = (
+    <div className={styles.modalContent} onClick={embedded ? undefined : (e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.modalHeader}>
           <div>
@@ -769,6 +769,7 @@ export default function UploadDataModal({
             </p>
           </div>
 
+        {!embedded && (
           <button
             type="button"
             className={styles.modalClose}
@@ -778,9 +779,10 @@ export default function UploadDataModal({
           >
             &times;
           </button>
-        </div>
+        )}
+      </div>
 
-        <div className={styles.modalBody}>
+      <div className={styles.modalBody}>
           <div className={styles.topRow}>
             {/* Dropzone */}
             <div
@@ -865,8 +867,8 @@ export default function UploadDataModal({
             </div>
           </div>
 
-          {/* Optional: show a simple error hint under terminal */}
-          {fileIsValid === false && errors?.length > 0 && (
+          {/* Optional: show a simple error hint under terminal (hidden in embedded demo to keep height stable) */}
+          {!embedded && fileIsValid === false && errors?.length > 0 && (
             <div className={styles.importErrorStrip}>
               <FaExclamationTriangle /> <span>{errors[0]?.message || "Import failed."}</span>
             </div>
@@ -883,26 +885,39 @@ export default function UploadDataModal({
               </span>
             </button>
 
-            <div className={styles.actionsRight}>
-              <button className={styles.btn} type="button" onClick={onClose}>
-                Cancel
-              </button>
+            {embedded ? (
+              <p className={styles.embeddedHint}>Try processing your own file</p>
+            ) : (
+              <div className={styles.actionsRight}>
+                <button className={styles.btn} type="button" onClick={onClose}>
+                  Cancel
+                </button>
 
-              <button
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                type="button"
-                disabled={isParsing || !mapDataType || parsedData.length === 0}
-                onClick={handleImportData}
-              >
-                Import data
-              </button>
-            </div>
+                <button
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  type="button"
+                  disabled={isParsing || !mapDataType || parsedData.length === 0}
+                  onClick={handleImportData}
+                >
+                  Import data
+                </button>
+              </div>
+            )}
           </div>
 
           {/* (Optional) You can render stats/tables below if you want,
               but I’m keeping this minimal so you can compile immediately. */}
         </div>
-      </div>
+    </div>
+  );
+
+  if (embedded) {
+    return <div className={styles.embeddedWrap}>{content}</div>;
+  }
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      {content}
     </div>
   );
 }

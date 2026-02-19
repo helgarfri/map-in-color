@@ -349,7 +349,8 @@ router.get('/', auth, async (req, res) => {
         show_date_of_birth,
         created_at,
         updated_at,
-        plan
+        plan,
+        status
       `)
       .eq('id', req.user.id)
       .maybeSingle();
@@ -362,7 +363,9 @@ router.get('/', auth, async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    return res.json(userRow);
+    // Frontend uses email_verified for the verification banner (pending = not verified)
+    const payload = { ...userRow, email_verified: userRow.status === 'active' };
+    return res.json(payload);
   } catch (err) {
     console.error('Error fetching user profile:', err);
     return res.status(500).json({ msg: 'Server error' });

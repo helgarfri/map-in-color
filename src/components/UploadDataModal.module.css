@@ -8,6 +8,109 @@
   z-index: 9999;
 }
 
+/* Embedded (e.g. Steps section demo): fixed height, no growth when log fills */
+.embeddedWrap {
+  width: 100%;
+  max-width: min(680px, 100%);
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.embeddedWrap .modalContent {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.embeddedWrap .modalBody {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.embeddedWrap .topRow {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1;
+  display: grid;
+}
+
+/* Fixed heights in embedded so layout never grows when log gets more lines */
+.embeddedWrap .dropZone {
+  min-height: 140px;
+  flex-shrink: 0;
+}
+
+.embeddedWrap .terminalCard {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 1;
+}
+
+.embeddedWrap .terminalBody {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.embeddedWrap .terminalCard,
+.embeddedWrap .terminalBody {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.embeddedWrap .termLine {
+  min-width: 0;
+}
+
+.embeddedWrap .termText {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* All text in embedded modal left-aligned (except dropzone copy) */
+.embeddedWrap .modalHeader > div,
+.embeddedWrap .modalSubtitle,
+.embeddedWrap .templateLink,
+.embeddedWrap .templateLinkText,
+.embeddedWrap .terminalHeader,
+.embeddedWrap .terminalTitle,
+.embeddedWrap .terminalBody,
+.embeddedWrap .terminalHint,
+.embeddedWrap .termLine,
+.embeddedWrap .termText,
+.embeddedWrap .inlineDetected,
+.embeddedWrap .inlineTypeRow,
+.embeddedWrap .inlineTypeLabel,
+.embeddedWrap .actionsRow {
+  text-align: left;
+}
+
+.embeddedHint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #14a9af;
+  text-align: left;
+}
+
 .modalContent {
   background: #fff;
   width: 80%;

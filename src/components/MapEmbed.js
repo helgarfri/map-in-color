@@ -199,7 +199,7 @@ export default function MapEmbed() {
         for (const [code, rawVal] of codeToValue.entries()) {
           const n = Number(rawVal);
           if (!Number.isFinite(n)) continue;
-          if (min != null && max != null && n >= min && n < max) codes.add(code);
+          if (min != null && max != null && n >= min && n <= max) codes.add(code);
         }
 
         return {

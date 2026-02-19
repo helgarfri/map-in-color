@@ -263,8 +263,8 @@ export default function ShareOptionsModal({
           <div className={styles.card}>
             <div className={styles.embedCardHeader}>
               <div className={styles.cardTitle}>Embed</div>
-              <span className={styles.embedTypeBadge} aria-label={isPublic ? "Public embed" : "Private embed"}>
-                {isPublic ? "Public embed" : "Private embed"}
+              <span className={styles.embedTypeBadge} aria-label={isPublic ? "Public map" : "Private map"}>
+                {isPublic ? "Public map" : "Private map"}
               </span>
             </div>
 

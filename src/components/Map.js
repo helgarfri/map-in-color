@@ -276,7 +276,7 @@ onTransformChange,
               (d) =>
                 typeof d.value === "number" &&
                 d.value >= r.lower &&
-                d.value < r.upper
+                d.value <= r.upper
             )
             .map((d) => ({ code: d.code })),
         }));

@@ -177,5 +177,8 @@ export const banProfileReport = (reportId) => {
 export const requestPasswordReset = (email) =>
   API.post("/auth/request-password-reset", { email });
 
+export const resendVerificationEmail = (email) =>
+  API.post("/auth/resend-verification", { email });
+
 export const resetPassword = ({ token, newPassword }) =>
   API.post("/auth/reset-password", { token, newPassword });

@@ -331,26 +331,12 @@
   min-width: 0;
 }
 
-/* header with accent bar */
 .infoBoxHeader {
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
   /* no background/border here; shared header handles it */
-}
-
-/* left accent like notifications unread bar */
-.infoBoxHeader::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 4px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(40,168,225,0.95), rgba(20,169,175,0.85));
-  opacity: 0.95;
 }
 
 .infoBoxHeader img {

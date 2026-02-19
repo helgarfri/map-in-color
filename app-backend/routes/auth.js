@@ -163,8 +163,9 @@ router.post(
         { expiresIn: '1d' }
       );
 
-      // Construct the verify link
-const verifyLink = `${FRONTEND_URL}/verify-account?token=${verifyToken}`;
+      // Construct the verify link (backend endpoint updates status and redirects to /verified)
+      const apiBase = (process.env.API_URL || FRONTEND_URL).replace(/\/$/, '');
+      const verifyLink = `${apiBase}/api/auth/verify/${verifyToken}`;
 
       // 7) Send a verification email with the link
       try {
@@ -189,10 +190,20 @@ const verifyLink = `${FRONTEND_URL}/verify-account?token=${verifyToken}`;
         console.error('Failed to send verification email:', emailError);
       }
 
-      // You could optionally return a token for partial login,
-      // but if you're blocking usage until verified, skip it:
+      // Return a token so the user is logged in and can use the app; they can verify from the dashboard.
+      const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '14d' });
       return res.json({
+        token,
         msg: 'User created successfully. Please check your email to verify your account.',
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+          first_name: newUser.first_name,
+          last_name: newUser.last_name,
+          status: newUser.status,
+          plan: newUser.plan || 'free',
+        },
       });
 
     } catch (err) {
@@ -249,11 +260,7 @@ router.post('/login', [check('password').exists()], async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials (bad password)' });
     }
 
-    // 3) Check status
-    if (foundUser.status === 'pending') {
-      return res.status(403).json({ msg: 'Please verify your account before logging in.' });
-    }
-
+    // 3) Check status (allow pending users to log in; they can verify from the dashboard)
     if (foundUser.status === 'banned') {
       return res.status(403).json({ msg: 'Your account is banned.' });
     }

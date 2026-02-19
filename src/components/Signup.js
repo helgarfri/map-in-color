@@ -1,11 +1,12 @@
 // src/components/Signup.js
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Signup.module.css";
 import { signUp } from "../api";
 import countries from "../data/countries";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHome } from "@fortawesome/free-solid-svg-icons";
+import { UserContext } from "../context/UserContext";
 
 import MICMessageModal from "./MICMessageModal"; // ✅ new component
 
@@ -23,6 +24,7 @@ const PasswordRequirement = ({ text, isValid }) => {
 };
 
 export default function Signup() {
+  const { setAuthToken } = useContext(UserContext);
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [day, setDay] = useState("");
@@ -163,11 +165,12 @@ export default function Signup() {
       ]);
 
       localStorage.setItem("token", res.data.token);
+      setAuthToken(res.data.token);
 
       setSignupSuccess(true);
 
       setTimeout(() => {
-        navigate("/verify-account", { state: { email } });
+        navigate("/dashboard");
       }, 1200);
     } catch (err) {
       console.error("Signup Error:", err);
@@ -231,7 +234,7 @@ export default function Signup() {
                 </h2>
                 <p className={styles.micModalSubtitle}>
                   {signupSuccess
-                    ? "Redirecting you to verification…"
+                    ? "Redirecting you to your dashboard…"
                     : "This usually takes a couple seconds."}
                 </p>
               </div>

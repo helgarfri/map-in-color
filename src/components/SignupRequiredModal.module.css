@@ -1,0 +1,155 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.card {
+  width: 440px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: translateY(6px);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex: 0 0 auto;
+  background: rgba(20, 169, 175, 0.14);
+  border: 1px solid rgba(20, 169, 175, 0.22);
+}
+
+.headerText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(0, 0, 0, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.close:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.cancelPill,
+.secondaryPill,
+.primaryPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.cancelPill {
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.cancelPill:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.secondaryPill {
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.secondaryPill:hover {
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.primaryPill {
+  border-color: #149397;
+  background: #14a9af;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.primaryPill:hover {
+  background: #149397;
+  box-shadow: 0 8px 18px rgba(20, 169, 175, 0.35);
+}

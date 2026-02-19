@@ -488,7 +488,7 @@ function getActiveCodesFromMapData(mapData) {
   return dataArr
     .map(d => ({ code: norm(d.code), v: Number(String(d.value).replace(",", ".")) }))
     .filter(x => x.code && Number.isFinite(x.v))
-    .filter(x => ranges.some(r => x.v >= r.lo && x.v < r.hi))
+    .filter(x => ranges.some(r => x.v >= r.lo && x.v <= r.hi))
     .map(x => x.code);
 }
 
