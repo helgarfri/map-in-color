@@ -9,7 +9,8 @@ const { resend } = require('../config/resend');
 const crypto = require("crypto");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 // Base URL for the API (where this Express app is reachable). Use for verify/password links in emails.
-const API_BASE_URL = (process.env.API_URL || process.env.BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+// On Render, RENDER_EXTERNAL_URL is set automatically (e.g. https://your-service.onrender.com).
+const API_BASE_URL = (process.env.API_URL || process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:5000").replace(/\/$/, "");
 
 function passwordRuleFailures(pw) {
   const fails = [];
