@@ -8,6 +8,8 @@ const { supabaseAdmin } = require('../config/supabase');
 const { resend } = require('../config/resend');
 const crypto = require("crypto");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+// Base URL for the API (where this Express app is reachable). Use for verify/password links in emails.
+const API_BASE_URL = (process.env.API_URL || process.env.BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
 
 function passwordRuleFailures(pw) {
   const fails = [];
@@ -164,8 +166,7 @@ router.post(
       );
 
       // Construct the verify link (backend endpoint updates status and redirects to /verified)
-      const apiBase = (process.env.API_URL || FRONTEND_URL).replace(/\/$/, '');
-      const verifyLink = `${apiBase}/api/auth/verify/${verifyToken}`;
+      const verifyLink = `${API_BASE_URL}/api/auth/verify/${verifyToken}`;
 
       // 7) Send a verification email with the link
       try {
@@ -316,16 +317,15 @@ router.get('/verify/:token', async (req, res) => {
       return res.status(404).json({ msg: 'No user found to verify' });
     }
 
-    // 3) Return success as HTML or redirect
-    // Option A: Send a simple HTML response:
-    return res.redirect('https://mapincolor.com/verified');
+    // 3) Redirect to frontend /verified page
+    return res.redirect(`${FRONTEND_URL.replace(/\/$/, '')}/verified`);
 
 
     
   } catch (err) {
     console.error('Verification error:', err);
     // Token is invalid or expired
-    return res.redirect('https://mapincolor.com/verification-error');
+    return res.redirect(`${FRONTEND_URL.replace(/\/$/, '')}/verification-error`);
   }
 });
 
@@ -368,7 +368,7 @@ router.post('/resend-verification', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    const newVerifyLink = `https://mapincolor.com/api/auth/verify/${newVerifyToken}`;
+    const newVerifyLink = `${API_BASE_URL}/api/auth/verify/${newVerifyToken}`;
 
     // Send the email
     try {
