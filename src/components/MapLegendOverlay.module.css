@@ -9,6 +9,7 @@
   bottom: 16px;
 
   width: fit-content;
+  max-width: 220px;
   max-height: calc(100vh - 32px);
   overflow: auto;
 
@@ -124,14 +125,16 @@
 .mapLegendTitle {
   font-size: 13px;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
 
-  /* ✅ dark text on light */
+  /* ✅ dark text on light; wrap long titles instead of widening the box */
   color: rgba(15, 23, 42, 0.92);
 
   min-width: 0;
+  max-width: 100%;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: break-word;
   flex: 1;
 }
 
@@ -192,7 +195,7 @@
 
 .mapLegendRow {
   display: grid;
-  grid-template-columns: 10px 1fr auto;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
 
@@ -231,17 +234,18 @@
   display: grid;
   gap: 2px;
   align-content: center;
-  margin-top: 1px; /* optical align with dot */
 }
 
 .mapLegendLabel {
   font-size: 13px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.2;
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* wrap long range names instead of widening the box */
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .mapLegendMeta {
@@ -250,9 +254,10 @@
   opacity: 0.70;
   color: rgba(15, 23, 42, 0.70);
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .mapLegendHoverHint {
@@ -274,4 +279,81 @@
 }
 .mapLegendBox::-webkit-scrollbar-thumb:hover {
   background: rgba(15, 23, 42, 0.20);
+}
+
+/* =========================
+   COMPACT (small map preview, e.g. DataIntegration)
+   ========================= */
+.mapLegendBox[data-compact="1"] {
+  left: 8px;
+  bottom: 8px;
+  border-radius: 10px;
+  max-width: 140px;
+  max-height: calc(100% - 16px);
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendHeader {
+  padding: 4px 8px 4px;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendTitle {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendToggleBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendToggleBtn svg {
+  width: 10px;
+  height: 10px;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendItemsWrap {
+  max-height: 50vh;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendItems {
+  padding: 3px 6px 3px;
+  gap: 1px;
+  max-height: calc(100% - 28px);
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendRow {
+  grid-template-columns: 6px minmax(0, 1fr) auto;
+  gap: 4px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  align-items: center;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendDot {
+  width: 6px;
+  height: 6px;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 12px;
+  padding-top: 2px; /* align first line with dot center */
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendLabel {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 12px;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendMeta {
+  font-size: 9px;
+}
+
+.mapLegendBox[data-compact="1"] .mapLegendEmpty {
+  padding: 6px;
+  font-size: 10px;
 }

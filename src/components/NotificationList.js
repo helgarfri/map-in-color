@@ -35,11 +35,16 @@ export default function NotificationList() {
   const { width } = useWindowSize();
 
 
+  // Only show notifications from users that still exist (have a valid Sender)
+  const hasValidSender = (n) =>
+    n.Sender != null && (n.Sender.id != null || n.Sender.username != null);
+
   useEffect(() => {
     const getNotifications = async () => {
       try {
         const res = await fetchNotifications();
-        setNotifications(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setNotifications(list.filter(hasValidSender));
       } catch (err) {
         console.error('Error fetching notifications:', err);
       } finally {

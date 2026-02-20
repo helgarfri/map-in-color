@@ -118,17 +118,25 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
 
   const sentinelRef = useRef(null);
 
+  // Only show activities for maps that still exist and are public (no "No Map" / private thumbnails)
+  const isMapValidForFeed = (act) => {
+    const map = act?.map;
+    if (!map || map.id == null) return false;
+    return map.is_public !== false; // treat missing is_public as public
+  };
+
   const loadFirstPage = useCallback(async () => {
     if (!username) return;
 
     try {
       setIsInitialLoading(true);
       const res = await fetchUserActivity(username, 0, limit);
-      const newItems = res.data || [];
+      const raw = res.data || [];
+      const newItems = raw.filter(isMapValidForFeed);
 
       setActivities(newItems);
       setOffset(0);
-      setHasMore(newItems.length === limit);
+      setHasMore(raw.length === limit);
     } catch (err) {
       console.error('Error fetching user activity:', err);
       setHasMore(false);
@@ -145,12 +153,13 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
       const res = await fetchUserActivity(username, newOffset, limit);
-      const newItems = res.data || [];
+      const raw = res.data || [];
+      const newItems = raw.filter(isMapValidForFeed);
 
       setActivities((prev) => [...prev, ...newItems]);
       setOffset(newOffset);
 
-      if (newItems.length < limit) setHasMore(false);
+      if (raw.length < limit) setHasMore(false);
     } catch (err) {
       console.error('Error fetching more user activity:', err);
       setHasMore(false);

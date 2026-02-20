@@ -44,18 +44,124 @@
   overflow: hidden; /* keep scroll inside panels */
 }
 
-/* Playground: no top padding; fit below HomeHeader so right panel scrolls inside viewport */
+/* Playground: no top padding; horizontal margin matches header; no card look so gutters match */
 .layoutContainerPlayground {
   padding-top: 0;
-  height: calc(100vh - 64px); /* ~HomeHeader height so layout fits in one viewport */
+  height: calc(100vh - 64px);
+  margin-left: 80px;
+  margin-right: 80px;
+  width: auto;
+  max-width: none;
+  overflow: hidden;
+}
+
+@media (max-width: 1269px) {
+  .layoutContainerPlayground {
+    margin-left: 48px;
+    margin-right: 48px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .layoutContainerPlayground {
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+}
+
+@media (max-width: 960px) {
+  .layoutContainerPlayground {
+    margin-left: 32px;
+    margin-right: 32px;
+  }
+}
+
+@media (max-width: 900px) {
+  .layoutContainerPlayground {
+    margin-left: 24px;
+    margin-right: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .layoutContainerPlayground {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .layoutContainerPlayground {
+    margin-left: 96px;
+    margin-right: 96px;
+  }
 }
 
 .layoutContainerPlayground .contentRow {
   height: 100%;
 }
 
+.layoutContainerPlayground .leftSidebar {
+  padding-top: 0;
+  background: #fff;
+}
+
 .layoutContainerPlayground .rightPanel {
   padding-bottom: 32px; /* breathing room so Save button isn’t flush at bottom */
+  background: #f6f7fb; /* match gutter so right side blends */
+}
+
+.layoutContainerPlayground .mapSection,
+.layoutContainerPlayground .navSection {
+  background: #f6f7fb;
+}
+
+/* Softer cards on right in playground so they blend with gutter */
+.layoutContainerPlayground .mapBox,
+.layoutContainerPlayground .section,
+.layoutContainerPlayground .tableBox {
+  border-color: rgba(20, 24, 40, 0.07);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* Playground loading: smooth enter so transition from home feels continuous */
+.layoutSkeletonEnter {
+  animation: di_skeletonEnter 0.35s ease-out forwards;
+}
+
+.layoutSkeletonEnter .contentRow {
+  opacity: 0;
+  animation: di_contentFadeIn 0.4s ease-out 0.08s forwards;
+}
+
+.layoutSkeletonEnter .leftSidebar > *,
+.layoutSkeletonEnter .rightPanel > * {
+  opacity: 0;
+  animation: di_skeletonItemIn 0.35s ease-out forwards;
+}
+
+.layoutSkeletonEnter .leftSidebar > *:nth-child(1) { animation-delay: 0.05s; }
+.layoutSkeletonEnter .leftSidebar > *:nth-child(2) { animation-delay: 0.1s; }
+.layoutSkeletonEnter .leftSidebar > *:nth-child(3) { animation-delay: 0.15s; }
+.layoutSkeletonEnter .leftSidebar > *:nth-child(4) { animation-delay: 0.2s; }
+.layoutSkeletonEnter .rightPanel > *:nth-child(1) { animation-delay: 0.08s; }
+.layoutSkeletonEnter .rightPanel > *:nth-child(2) { animation-delay: 0.14s; }
+.layoutSkeletonEnter .rightPanel > *:nth-child(3) { animation-delay: 0.2s; }
+.layoutSkeletonEnter .rightPanel > *:nth-child(4) { animation-delay: 0.26s; }
+
+@keyframes di_skeletonEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes di_contentFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes di_skeletonItemIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .contentRow {
@@ -129,6 +235,11 @@
   font-weight: 800;
   color: var(--text);
   letter-spacing: 0.2px;
+}
+
+.mapPreviewWrap {
+  position: relative;
+  width: 100%;
 }
 
 .mapPreview {
@@ -309,6 +420,23 @@
   background: var(--card2);
   font-weight: 800;
   color: rgba(15, 23, 42, 0.80);
+}
+
+/* row hover and active (focused input) */
+.rangeTableRow {
+  transition: background-color 0.15s ease;
+}
+
+.rangeTable tbody tr.rangeTableRow:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.rangeTable tbody tr.rangeTableRowActive {
+  background: rgba(15, 23, 42, 0.07);
+}
+
+.rangeTable tbody tr.rangeTableRow.rangeTableRowActive:hover {
+  background: rgba(15, 23, 42, 0.09);
 }
 
 /* choropleth (6 columns) */
@@ -621,7 +749,7 @@
    ============================ */
 .mapInfoGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* constrain columns so tagbox can't overflow */
   gap: 16px;
   min-width: 0;
 }
@@ -629,15 +757,34 @@
 .mapInfoLeft,
 .mapInfoRight {
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden; /* keep tagbox and other content inside */
+  box-sizing: border-box;
+}
+
+/* Left column: allow visibility select dropdown to show (dropdown is in left column) */
+.mapInfoLeft {
+  overflow: visible;
 }
 
 .fieldBlock {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px;
   background: var(--card2);
   margin-bottom: 12px;
   box-shadow: none;
+}
+
+/* Allow visibility dropdown to extend outside (not clipped by overflow) */
+.fieldBlockVisibility {
+  overflow: visible;
 }
 
 .fieldLabel {
@@ -742,11 +889,59 @@
 
 
 /* Tags */
+.tagInputWrapper {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.tagSuggestionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 6px 0;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: var(--r2);
+  box-shadow: var(--shadow2);
+  max-height: 160px; /* ~4 items so dropdown stays inside field */
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 20;
+}
+
+.tagSuggestionItem {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 120ms ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.tagSuggestionItem:hover {
+  background: rgba(40, 168, 225, 0.1);
+}
+
+.tagSuggestionItemHighlight,
+.tagSuggestionItemHighlight:hover {
+  background: rgba(40, 168, 225, 0.15);
+}
+
 .tagBoxLg {
   margin-top: 10px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 78px;
   max-height: 130px;
+  box-sizing: border-box;
 
   border: 1px dashed rgba(20, 24, 40, 0.22);
   border-radius: 14px;
@@ -756,12 +951,16 @@
   flex-wrap: wrap;
   gap: 8px;
 
+  overflow-x: hidden;
   overflow-y: auto;
   align-content: flex-start;
   background: #fff;
 }
 
 .tagItem {
+  flex: 0 1 auto; /* allow shrink and wrap in tagbox */
+  max-width: 100%;
+  min-width: 0;
   background: rgba(40, 168, 225, 0.12);
   border: 1px solid rgba(40, 168, 225, 0.18);
   color: rgba(15, 23, 42, 0.90);
@@ -774,9 +973,18 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+}
+
+.tagItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .removeTagButton {
+  flex-shrink: 0;
   border: none;
   background: transparent;
   font-size: 16px;

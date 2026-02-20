@@ -89,6 +89,14 @@
   vertical-align: middle;
 }
 
+.privateTextWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
 .privateTitle {
   margin: 0;
   font-size: 22px;

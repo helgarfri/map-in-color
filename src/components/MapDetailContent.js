@@ -35,6 +35,7 @@ import MapDetailValueTable from "./MapDetailValueTable";
 import { getAnonId } from "../utils/annonId"; // add at top
 import DownloadOptionsModal from "./DownloadOptionsModal";
 import ShareOptionsModal from './ShareOptionsModal';
+import SignupPromptModal from './SignupPromptModal';
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
@@ -66,6 +67,11 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const { width } = useWindowSize();
 
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalAction, setLoginModalAction] = useState('default');
+  const openLoginModal = (action) => {
+    setLoginModalAction(action || 'default');
+    setShowLoginModal(true);
+  };
 
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -476,7 +482,7 @@ function clearReactionLoading(commentId) {
   const handleSave = async () => {
     if (!is_public) return;
     if (!isUserLoggedIn) {
-        setShowLoginModal(true);
+        openLoginModal('star');
         return;
       }
     if (isSaving) return;
@@ -513,7 +519,7 @@ function clearReactionLoading(commentId) {
     if (!newComment.trim()) return;
   
     if (!isUserLoggedIn) {
-        setShowLoginModal(true);
+        openLoginModal('comment');
         return;
       }
   
@@ -544,7 +550,7 @@ const handleReplySubmit = async (e) => {
   e.preventDefault();
 
   if (!replyingTo?.content?.trim()) return;
-  if (!isUserLoggedIn) return setShowLoginModal(true);
+  if (!isUserLoggedIn) return openLoginModal('reply');
 
   const parentId = replyingTo.parentId; // ✅ define FIRST
 
@@ -586,7 +592,7 @@ function insertReplyIntoTree(nodes, parentId, newReply) {
 
 async function handleLike(comment_id, currentReaction) {
   if (!isUserLoggedIn) {
-    setShowLoginModal(true);
+    openLoginModal('like');
     return;
   }
 
@@ -618,7 +624,7 @@ async function handleLike(comment_id, currentReaction) {
 
 async function handleDislike(comment_id, currentReaction) {
   if (!isUserLoggedIn) {
-    setShowLoginModal(true);
+    openLoginModal('like');
     return;
   }
 
@@ -1298,7 +1304,7 @@ if (!mapData) {
                 ].join(" ")}
                 onClick={() => {
                   if (!isUserLoggedIn) {
-                    setShowLoginModal(true);
+                    openLoginModal('star');
                     return;
                   }
                   handleSave();
@@ -1321,7 +1327,13 @@ if (!mapData) {
 
 <button
   className={[styles.statActionBtn, styles.downloadBtn].join(" ")}
-  onClick={() => setShowDownloadModal(true)}
+  onClick={() => {
+    if (!isUserLoggedIn) {
+      openLoginModal('download');
+      return;
+    }
+    setShowDownloadModal(true);
+  }}
   type="button"
   title="Download map"
 >
@@ -1332,10 +1344,16 @@ if (!mapData) {
   {is_public && <span className={styles.statActionValue}>{download_count}</span>}
 </button>
 
-{/* ✅ NEW: Share */}
+{/* Share */}
 <button
   className={[styles.statActionBtn, styles.downloadBtn].join(" ")}
-  onClick={() => setShowShareModal(true)}
+  onClick={() => {
+    if (!isUserLoggedIn) {
+      openLoginModal('share');
+      return;
+    }
+    setShowShareModal(true);
+  }}
   type="button"
   title="Share map"
 >
@@ -1393,7 +1411,7 @@ if (!mapData) {
           ) : (
             <button
               className={styles.creatorChipLink}
-              onClick={() => setShowLoginModal(true)}
+              onClick={() => openLoginModal('profile')}
               type="button"
             >
               <img
@@ -1570,7 +1588,7 @@ if (!mapData) {
           <button
             type="button"
             className={styles.discussionLockedBtn}
-            onClick={() => setShowLoginModal(true)}
+            onClick={() => openLoginModal('comment')}
           >
             Log in
           </button>
@@ -1602,7 +1620,7 @@ if (!mapData) {
         handleLike,
         handleDislike,
         handleDeleteCommentWithConfirm,
-        setShowLoginModal,
+        openLoginModal,
         setReportTargetComment,
         setShowReportModal,
         styles,
@@ -1877,50 +1895,15 @@ if (!mapData) {
 />
 
 
-{showLoginModal && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      {/* Close Button (X) */}
-      <button
-        className={styles.modalCloseButton}
-        onClick={() => setShowLoginModal(false)}
-      >
-        &times;
-      </button>
-
-      {/* Left Side: Title, Subtitle, CTA */}
-      <div className={styles.modalLeft}>
-        <h2 className={styles.modalTitle}>
-          See how people are mapping the world
-        </h2>
-        <p className={styles.modalSubtitle}>
-        Join a worldwide community creating and exploring meaningful maps. 
-        </p>
-        <button
-          className={styles.signupButton}
-          onClick={() => navigate('/signup')}
-        >
-          Join for free
-        </button>
-        <p className={styles.loginPrompt}>
-          Already have an account?{' '}
-          <span onClick={() => navigate('/login')} className={styles.loginLink}>
-            Log In
-          </span>
-        </p>
-      </div>
-
-      {/* Right Side: Image */}
-      <div className={styles.modalRight}>
-        <img
-          src="/assets/preview2.png"
-          alt="Preview of the mapping features"
-          className={styles.modalImage}
-        />
-      </div>
-    </div>
-  </div>
-)}
+{showLoginModal &&
+  createPortal(
+    <SignupPromptModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      action={loginModalAction}
+    />,
+    document.body
+  )}
 
 
 
@@ -2220,7 +2203,7 @@ function CommentRow({
   handleDeleteCommentWithConfirm,
 
   // modals
-  setShowLoginModal,
+  openLoginModal,
   setReportTargetComment,
   setShowReportModal,
 
@@ -2261,7 +2244,7 @@ function CommentRow({
             <button
               type="button"
               className={styles.avatarButton}
-              onClick={() => setShowLoginModal(true)}
+              onClick={() => openLoginModal('comment')}
             >
               <img
                 src={node.user.profile_picture || "/default-profile-pic.jpg"}
@@ -2289,7 +2272,7 @@ function CommentRow({
               <button
                 type="button"
                 className={styles.commentAuthorBtn}
-                onClick={() => setShowLoginModal(true)}
+                onClick={() => openLoginModal('comment')}
               >
                 {node.user?.username || "Unknown"}
               </button>
@@ -2312,7 +2295,7 @@ function CommentRow({
               }`}
               disabled={anyBusy}
               onClick={() => {
-                if (!isUserLoggedIn) return setShowLoginModal(true);
+                if (!isUserLoggedIn) return openLoginModal('like');
                 handleLike(node.id, node.userReaction);
               }}
             >
@@ -2330,7 +2313,7 @@ function CommentRow({
               }`}
               disabled={anyBusy}
               onClick={() => {
-                if (!isUserLoggedIn) return setShowLoginModal(true);
+                if (!isUserLoggedIn) return openLoginModal('like');
                 handleDislike(node.id, node.userReaction);
               }}
             >
@@ -2346,7 +2329,7 @@ function CommentRow({
                 type="button"
                 className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
                 onClick={() => {
-                  if (!isUserLoggedIn) return setShowLoginModal(true);
+                  if (!isUserLoggedIn) return openLoginModal('reply');
                   setReplyingTo({ parentId: node.id, content: "" });
                 }}
                 title="Reply"
@@ -2460,7 +2443,7 @@ function CommentNode({
   handleDeleteCommentWithConfirm,
 
   // modals
-  setShowLoginModal,
+  openLoginModal,
   setReportTargetComment,
   setShowReportModal,
 
@@ -2514,7 +2497,7 @@ function CommentNode({
             <button
               type="button"
               className={styles.avatarButton}
-              onClick={() => setShowLoginModal(true)}
+              onClick={() => openLoginModal('comment')}
             >
               <img
                 src={node.user.profile_picture || "/default-profile-pic.jpg"}
@@ -2543,7 +2526,7 @@ function CommentNode({
               <button
                 type="button"
                 className={styles.commentAuthorBtn}
-                onClick={() => setShowLoginModal(true)}
+                onClick={() => openLoginModal('comment')}
               >
                 {node.user?.username || "Unknown"}
               </button>
@@ -2568,7 +2551,7 @@ function CommentNode({
               }`}
               disabled={anyBusy}
               onClick={() => {
-                if (!isUserLoggedIn) return setShowLoginModal(true);
+                if (!isUserLoggedIn) return openLoginModal('like');
                 handleLike(node.id, node.userReaction);
               }}
             >
@@ -2588,7 +2571,7 @@ function CommentNode({
               }`}
               disabled={anyBusy}
               onClick={() => {
-                if (!isUserLoggedIn) return setShowLoginModal(true);
+                if (!isUserLoggedIn) return openLoginModal('like');
                 handleDislike(node.id, node.userReaction);
               }}
             >
@@ -2607,7 +2590,7 @@ function CommentNode({
                 type="button"
                 className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
                 onClick={() => {
-                  if (!isUserLoggedIn) return setShowLoginModal(true);
+                  if (!isUserLoggedIn) return openLoginModal('reply');
                   setReplyingTo({ parentId: node.id, content: "" });
                 }}
                 title="Reply"
@@ -2715,7 +2698,7 @@ function CommentNode({
                 handleLike,
                 handleDislike,
                 handleDeleteCommentWithConfirm,
-                setShowLoginModal,
+                openLoginModal,
                 setReportTargetComment,
                 setShowReportModal,
                 styles,
@@ -2750,7 +2733,7 @@ function CommentNode({
               handleLike,
               handleDislike,
               handleDeleteCommentWithConfirm,
-              setShowLoginModal,
+              openLoginModal,
               setReportTargetComment,
               setShowReportModal,
               styles,

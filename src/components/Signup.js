@@ -1,5 +1,5 @@
 // src/components/Signup.js
-import React, { useMemo, useState, useContext } from "react";
+import React, { useMemo, useState, useContext, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Signup.module.css";
 import { signUp } from "../api";
@@ -25,6 +25,12 @@ const PasswordRequirement = ({ text, isValid }) => {
 
 export default function Signup() {
   const { setAuthToken } = useContext(UserContext);
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
+
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [day, setDay] = useState("");
@@ -43,8 +49,6 @@ export default function Signup() {
   const [errors, setErrors] = useState({});
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
-  const [showPolicyModal, setShowPolicyModal] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // ✅ modal state (instead of alerts)
   const [msgOpen, setMsgOpen] = useState(false);
@@ -52,8 +56,6 @@ export default function Signup() {
   const [msgTitle, setMsgTitle] = useState("Notice");
   const [msgMessage, setMsgMessage] = useState("");
   const [msgDetails, setMsgDetails] = useState(null);
-
-  const navigate = useNavigate();
 
   const daysList = useMemo(() => Array.from({ length: 31 }, (_, i) => i + 1), []);
   const yearsList = useMemo(() => Array.from({ length: 100 }, (_, i) => 2025 - i), []);
@@ -166,12 +168,13 @@ export default function Signup() {
 
       localStorage.setItem("token", res.data.token);
       setAuthToken(res.data.token);
-
       setSignupSuccess(true);
 
+      // Use ref so we always call the current router's navigate (App re-creates the router when authToken changes)
       setTimeout(() => {
-        navigate("/dashboard");
-      }, 1200);
+        setIsSigningUp(false);
+        navigateRef.current("/dashboard", { replace: true });
+      }, 400);
     } catch (err) {
       console.error("Signup Error:", err);
 
@@ -258,23 +261,6 @@ export default function Signup() {
                 </>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Terms/Privacy modals (your existing ones) */}
-      {showPolicyModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowPolicyModal(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <iframe src="/privacy.html" className={styles.privacyIframe} title="Privacy Policy" />
-          </div>
-        </div>
-      )}
-
-      {showTermsModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowTermsModal(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <iframe src="/terms.html" className={styles.privacyIframe} title="Terms of Use" />
           </div>
         </div>
       )}
@@ -513,21 +499,23 @@ export default function Signup() {
                   />
                   <div className={styles.termsText}>
                     <span>I agree to the</span>
-                    <button
-                      type="button"
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={styles.privacyLink}
-                      onClick={() => setShowTermsModal(true)}
                     >
                       Terms of Use
-                    </button>
+                    </Link>
                     <span>and</span>
-                    <button
-                      type="button"
+                    <Link
+                      to="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={styles.privacyLink}
-                      onClick={() => setShowPolicyModal(true)}
                     >
                       Privacy Policy
-                    </button>
+                    </Link>
                     <span className={styles.dot}>.</span>
                   </div>
                 </label>

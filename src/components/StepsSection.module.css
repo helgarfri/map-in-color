@@ -24,8 +24,8 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.85);
-  border-right: 1px solid rgba(20, 169, 175, 0.12);
+  background: #fbfafa;
+  border-right: none;
   z-index: 10;
   flex-shrink: 0;
 }
@@ -94,7 +94,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  padding: 80px 64px 80px 72px;
+  justify-content: center;
+  padding: 80px 72px;
   box-sizing: border-box;
   scroll-margin-top: 0;
 }
@@ -162,12 +163,12 @@
   margin: 0;
 }
 
-/* Image area — right side, large */
+/* Image area — right side, fixed width so all steps align in a vertical strip; content centered */
 .stepImageWrap {
   position: relative;
-  flex: 1;
-  min-width: 320px;
-  max-width: 560px;
+  flex: 0 0 560px;
+  width: 560px;
+  min-width: 0;
   aspect-ratio: 4/3;
   border-radius: 16px;
   background: linear-gradient(
@@ -237,18 +238,18 @@
   min-height: 0;
 }
 
-/* Step 1 slot: embedded upload modal — fixed height, no growth, no extra space below */
+/* Step 1 slot: embedded upload modal — fixed height, centered in column */
 .step1 {
 }
 .stepImageWrap.step1 {
   aspect-ratio: auto;
   width: 100%;
-  max-width: min(680px, 100%);
+  max-width: 100%;
   min-width: 0;
   height: 400px;
   overflow: hidden;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
   padding: 0;
 }
 .stepImageWrap.step1::before {
@@ -264,7 +265,7 @@
   min-height: 280px;
   max-height: none;
   overflow: hidden;
-  align-items: flex-start;
+  align-items: center;
   padding: 16px;
 }
 .stepImageWrap.step5::before {
@@ -456,6 +457,12 @@
   margin: 0 auto;
 }
 
+/* Step 3: visibility demo fills the image column like other steps */
+.stepImageWrap.step3 .visibilityDemoWrap {
+  max-width: none;
+  margin: 0;
+}
+
 .visibilitySection {
   background: #fff;
   border: 1px solid rgba(20, 24, 40, 0.10);
@@ -566,11 +573,10 @@
   background: rgba(40, 168, 225, 0.08);
 }
 
-/* Step 3 slot: visibility demo */
+/* Step 3 slot: visibility demo — same width as other steps */
 .stepImageWrap.step3 {
   aspect-ratio: auto;
   min-height: 200px;
-  max-width: 420px;
   overflow: visible;
   align-items: center;
   padding: 24px;
@@ -587,12 +593,13 @@
   }
 
   .stepSection {
-    padding: 64px 48px 64px 56px;
+    padding: 64px 56px;
   }
 
   .stepImageWrap {
-    min-width: 280px;
-    max-width: 440px;
+    flex: 0 0 440px;
+    width: 440px;
+    min-width: 0;
   }
 }
 
@@ -636,7 +643,7 @@
   }
 
   .stepSection {
-    padding: 56px 24px 56px;
+    padding: 56px 24px;
     min-height: 100vh;
   }
 

@@ -72,7 +72,7 @@
   margin: 0;
 }
 
-/* ===== Right form side ===== */
+/* ===== Right form side (subtle blue/cyan like HeroSection) ===== */
 .rightSide {
   flex: 1;
   display: grid;
@@ -80,9 +80,25 @@
   padding: 30px;
 
   background:
-    radial-gradient(1000px 700px at 20% 25%, rgba(255,255,255,0.18), rgba(0,0,0,0) 55%),
-    radial-gradient(900px 600px at 80% 75%, rgba(255,255,255,0.12), rgba(0,0,0,0) 60%),
-    linear-gradient(135deg, var(--mic-azure) 0%, var(--mic-cyan) 100%);
+    radial-gradient(
+      ellipse 85% 65% at 20% 25%,
+      rgba(20, 169, 175, 0.24),
+      rgba(20, 169, 175, 0.07) 45%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 75% 70% at 88% 75%,
+      rgba(40, 168, 225, 0.22),
+      rgba(40, 168, 225, 0.06) 45%,
+      transparent 65%
+    ),
+    linear-gradient(
+      165deg,
+      #e8f4f5 0%,
+      #e3eef5 35%,
+      #e8f4f5 70%,
+      #e3eef5 100%
+    );
 }
 
 /* Form card */

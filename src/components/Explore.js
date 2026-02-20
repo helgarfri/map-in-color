@@ -245,9 +245,11 @@ useEffect(() => {
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div className={styles.skeletonMapCard} key={i}>
                     <div className={styles.skeletonThumb} />
-                    <div className={styles.skeletonLine} />
-                    <div className={styles.skeletonLine} />
-                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonCardContent}>
+                      <div className={styles.skeletonLine} />
+                      <div className={styles.skeletonLine} />
+                      <div className={styles.skeletonLine} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -364,9 +366,11 @@ useEffect(() => {
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div className={styles.skeletonMapCard} key={i}>
                       <div className={styles.skeletonThumb} />
-                      <div className={styles.skeletonLine} />
-                      <div className={styles.skeletonLine} />
-                      <div className={styles.skeletonLine} />
+                      <div className={styles.skeletonCardContent}>
+                        <div className={styles.skeletonLine} />
+                        <div className={styles.skeletonLine} />
+                        <div className={styles.skeletonLine} />
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -302,15 +302,6 @@
 	  ]
 	},
 	{
-		"code": "CC",
-		"name": "Cocos Islands",
-		"aliases": [
-			"Cocos Island",
-			"Cocos (Keeling) Islands",
-			"Cocos (Keeling) Islands (the)"
-		]
-	},
-	{
 	  "code": "CO",
 	  "name": "Colombia",
 	  "aliases": [
@@ -336,13 +327,6 @@
 	  "name": "Cabo Verde",
 	  "aliases": [
 		"Cape Verde"
-	  ]
-	},
-	{
-	  "code": "CX",
-	  "name": "Christmas Island",
-	  "aliases": [
-		"Christmas Islands"
 	  ]
 	},
 	{
@@ -591,11 +575,6 @@
 	  ]
 	},
 	{
-	  "code": "GS",
-	  "name": "South Georgia and the South Sandwich Islands",
-	  "aliases": []
-	},
-	{
 	  "code": "GT",
 	  "name": "Guatemala",
 	  "aliases": [
@@ -624,13 +603,6 @@
 	  "name": "Hong Kong",
 	  "aliases": [
 		"Hong Kong SAR"
-	  ]
-	},
-	{
-	  "code": "HM",
-	  "name": "Heard Island and Mcdonald Islands",
-	  "aliases": [
-		"Heard and McDonald Islands"
 	  ]
 	},
 	{
@@ -696,11 +668,6 @@
 		"Bharat",
 		"Republic of India"
 	  ]
-	},
-	{
-	  "code": "IO",
-	  "name": "British Indian Ocean Territory",
-	  "aliases": []
 	},
 	{
 	  "code": "IQ",
@@ -1089,13 +1056,6 @@
 	  ]
 	},
 	{
-	  "code": "NF",
-	  "name": "Norfolk Island",
-	  "aliases": [
-		"Norfolk Islands"
-	  ]
-	},
-	{
 	  "code": "NG",
 	  "name": "Nigeria",
 	  "aliases": [
@@ -1212,11 +1172,6 @@
 	  "aliases": [
 		"Saint Pierre & Miquelon"
 	  ]
-	},
-	{
-	  "code": "PN",
-	  "name": "Pitcairn Islands",
-	  "aliases": []
 	},
 	{
 	  "code": "PR",
@@ -1457,11 +1412,6 @@
 	  ]
 	},
 	{
-	  "code": "TF",
-	  "name": "French Southern Territories",
-	  "aliases": []
-	},
-	{
 	  "code": "TG",
 	  "name": "Togo",
 	  "aliases": [
@@ -1481,11 +1431,6 @@
 	  "aliases": [
 		"Republic of Tajikistan"
 	  ]
-	},
-	{
-	  "code": "TK",
-	  "name": "Tokelau",
-	  "aliases": []
 	},
 	{
 	  "code": "TL",
@@ -1635,11 +1580,6 @@
 	  "aliases": [
 		"Republic of Vanuatu"
 	  ]
-	},
-	{
-	  "code": "WF",
-	  "name": "Wallis and Futuna",
-	  "aliases": []
 	},
 	{
 	  "code": "WS",

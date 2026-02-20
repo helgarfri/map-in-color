@@ -26,7 +26,7 @@ import { UserContext } from "../context/UserContext";
 import { getAnonId } from "../utils/annonId";
 import HomeHeader from "./HomeHeader";
 import SignupRequiredModal from "./SignupRequiredModal";
-import { getPlaygroundDraft, setPlaygroundDraft } from "../utils/playgroundStorage";
+import { getPlaygroundDraft, setPlaygroundDraft, clearPlaygroundDraft } from "../utils/playgroundStorage";
 
 
 // Icons, contexts, etc.
@@ -36,15 +36,17 @@ import {
   faCheckCircle,
   faCloudArrowUp,
   faPlus,
+  faEraser,
 } from "@fortawesome/free-solid-svg-icons";
 import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
 
 // API calls
-import { updateMap, createMap } from "../api";
+import { API, updateMap, createMap } from "../api";
 
 // Map preview
 import MapPreview from "./Map";
+import MapLegendOverlay from "./MapLegendOverlay";
 
 /** Example Color Palettes **/
 const themes = [
@@ -253,7 +255,7 @@ function applyColorsToRanges(ranges, colors) {
 }
 
 
-function ColorCell({ color, onChange, styles }) {
+function ColorCell({ color, onChange, styles, onFocus, onBlur }) {
   const colorRef = React.useRef(null);
 
   const [draft, setDraft] = React.useState(
@@ -317,6 +319,8 @@ function ColorCell({ color, onChange, styles }) {
         type="button"
         className={styles.swatchButton}
         onClick={() => colorRef.current?.click()}
+        onFocus={onFocus}
+        onBlur={onBlur}
         aria-label="Pick color"
         title="Pick color"
         style={{ background: swatchColor }}
@@ -326,16 +330,18 @@ function ColorCell({ color, onChange, styles }) {
         type="text"
         className={styles.hexInput}
         value={draft}
-        onFocus={() => {
+        onFocus={(e) => {
           isEditingRef.current = true;
+          onFocus?.(e);
         }}
-        onBlur={() => {
+        onBlur={(e) => {
           isEditingRef.current = false;
           const committed = isValidHex6(color)
             ? String(color).toLowerCase()
             : lastValidRef.current;
           lastValidRef.current = committed;
           setDraft(committed);
+          onBlur?.(e);
         }}
         onChange={(e) => {
           const nextDraft = clampHexInput(e.target.value);
@@ -352,7 +358,7 @@ function ColorCell({ color, onChange, styles }) {
 }
 
 
-export default function DataIntegration({ existingMapData = null, isEditing = false, externalLoading = false, isPlayground = false }) {
+export default function DataIntegration({ existingMapData = null, isEditing = false, externalLoading = false, isPlayground = false, hideHeader = false }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
@@ -376,6 +382,10 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const [is_public, setIsPublic] = useState(!!existingMapData?.is_public);
   const [tags, setTags] = useState(existingMapData?.tags || []);
   const [tagInput, setTagInput] = useState("");
+  const [tagSuggestionHighlightIndex, setTagSuggestionHighlightIndex] = useState(-1);
+  const [tagDropdownPosition, setTagDropdownPosition] = useState(null); /* { top, left, width } for portal */
+  const [allAvailableTags, setAllAvailableTags] = useState([]);
+  const tagInputWrapperRef = useRef(null);
   const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
 
   // ranges / groups
@@ -428,6 +438,15 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const [hoveredCode, setHoveredCode] = useState(null);
   const [selectedCode, setSelectedCode] = useState(null);
 
+  // which table row has an active input (for highlight)
+  const [focusedRangeRowId, setFocusedRangeRowId] = useState(null);
+  const [focusedCategoryRowId, setFocusedCategoryRowId] = useState(null);
+  const postSortHighlightTimeoutRef = useRef(null);
+
+  // legend overlay (hover/click to highlight ranges or categories on map)
+  const [activeLegendKey, setActiveLegendKey] = useState(null);
+  const [hoverLegendKey, setHoverLegendKey] = useState(null);
+
   const [placeholders, setPlaceholders] = useState(existingMapData?.placeholders || {});
 
   const [isSaving, setIsSaving] = useState(false);
@@ -451,6 +470,7 @@ const [isDeletingMap, setIsDeletingMap] = useState(false);
 const [deleteMapError, setDeleteMapError] = useState(null);
 
 const [showDeleteReferenceModal, setShowDeleteReferenceModal] = useState(false);
+const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [showSignupRequiredModal, setShowSignupRequiredModal] = useState(false);
 
 // custom base-color modal
@@ -501,6 +521,20 @@ const normalizeGroup = (g) => ({
 useEffect(() => {
   setLoading(externalLoading);
 }, [externalLoading]);
+
+// Fetch all tags used in the app (for tag autofill suggestions)
+useEffect(() => {
+  const fetchTags = async () => {
+    try {
+      const res = await API.get("/explore/tags");
+      const tagList = Array.isArray(res.data) ? res.data.map((r) => r.tag) : [];
+      setAllAvailableTags(tagList);
+    } catch (err) {
+      console.error("Error fetching tags for autofill:", err);
+    }
+  };
+  fetchTags();
+}, []);
 
 useEffect(() => {
   setLastSavedAt(existingMapData?.updated_at ?? null);
@@ -693,6 +727,14 @@ function cancelDeleteMap() {
   if (isDeletingMap) return;
   setShowDeleteMapModal(false);
   setDeleteMapError(null);
+}
+
+function confirmClearData() {
+  setData([]);
+  setFileStats(defaultFileStats);
+  setCustomRanges([{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
+  setGroups([normalizeGroup({ id: Date.now(), name: "", color: "#c0c0c0" })]);
+  setShowClearDataModal(false);
 }
 
 
@@ -1147,6 +1189,31 @@ const commitRangeBound = (id, field, value) => {
     setCustomRanges((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
   };
 
+  // Only clear focused row when focus leaves the row (not when moving between inputs in same row)
+  const handleRangeRowBlur = (e) => {
+    const row = e.currentTarget.closest("tr");
+    const next = e.relatedTarget;
+    if (next && row && row.contains(next)) return;
+    setFocusedRangeRowId(null);
+  };
+
+  // After sort on blur: keep the moved row highlighted for a couple of seconds
+  const POST_SORT_HIGHLIGHT_MS = 2200;
+  const schedulePostSortHighlight = (rangeId) => {
+    if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+    setFocusedRangeRowId(rangeId);
+    postSortHighlightTimeoutRef.current = setTimeout(() => {
+      setFocusedRangeRowId((prev) => (prev === rangeId ? null : prev));
+      postSortHighlightTimeoutRef.current = null;
+    }, POST_SORT_HIGHLIGHT_MS);
+  };
+  const handleCategoryRowBlur = (e) => {
+    const row = e.currentTarget.closest("tr");
+    const next = e.relatedTarget;
+    if (next && row && row.contains(next)) return;
+    setFocusedCategoryRowId(null);
+  };
+
   // ============================
 // Categories (categorical)
 // Source of truth: `groups`
@@ -1243,15 +1310,86 @@ const assignUnassignedToCategory = (categoryName) => {
   );
 };
 
-  // Tags
+  // Tags: suggestions from existing app tags, add-tag helper, key handler
+  const tagSuggestions = useMemo(() => {
+    const q = tagInput.trim().toLowerCase();
+    if (q === "") return [];
+    return allAvailableTags.filter(
+      (t) => t.toLowerCase().includes(q) && !tags.includes(t)
+    );
+  }, [tagInput, allAvailableTags, tags]);
+
+  const displayedTagSuggestions = tagSuggestions.slice(0, 4);
+
+  useEffect(() => {
+    setTagSuggestionHighlightIndex(-1);
+  }, [tagInput, tagSuggestions.length]);
+
+  /* Position tag dropdown in portal so it can appear outside the field block */
+  useEffect(() => {
+    if (tagSuggestions.length === 0 || !tagInputWrapperRef.current) {
+      setTagDropdownPosition(null);
+      return;
+    }
+    const updatePosition = () => {
+      if (!tagInputWrapperRef.current) return;
+      const rect = tagInputWrapperRef.current.getBoundingClientRect();
+      setTagDropdownPosition({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [tagSuggestions.length, tagInput]);
+
+  const addTag = (tagToAdd) => {
+    const normalized = String(tagToAdd).trim().toLowerCase();
+    if (normalized === "") return;
+    setTags((prev) => (prev.includes(normalized) ? prev : [...prev, normalized]));
+    setTagInput("");
+  };
+
   const handleTagInputKeyDown = (e) => {
-    if (e.key === "Enter" && tagInput.trim() !== "") {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
-      const newTag = tagInput.trim().toLowerCase();
-      setTags((prev) => (prev.includes(newTag) ? prev : [...prev, newTag]));
-      setTagInput("");
+      if (displayedTagSuggestions.length === 0) return;
+      setTagSuggestionHighlightIndex((prev) =>
+        prev < displayedTagSuggestions.length - 1 ? prev + 1 : 0
+      );
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (displayedTagSuggestions.length === 0) return;
+      setTagSuggestionHighlightIndex((prev) =>
+        prev <= 0 ? displayedTagSuggestions.length - 1 : prev - 1
+      );
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (displayedTagSuggestions.length > 0 && tagSuggestionHighlightIndex >= 0) {
+        addTag(displayedTagSuggestions[tagSuggestionHighlightIndex]);
+        setTagSuggestionHighlightIndex(-1);
+        return;
+      }
+      if (tagSuggestions.length > 0) {
+        addTag(tagSuggestions[0]);
+        return;
+      }
+      if (tagInput.trim() !== "") {
+        addTag(tagInput.trim());
+      }
     }
   };
+
   const removeTag = (idx) => setTags((prev) => prev.filter((_, i) => i !== idx));
 
   // References
@@ -1331,6 +1469,23 @@ const handleDeleteReference = () => {
       })
       .filter((d) => d.code);
   }, [data, mapDataType]);
+
+  // code -> display name for map infobox/group box (world names + user-provided overrides)
+  const codeToName = useMemo(() => {
+    const out = {};
+    const list = Array.isArray(countryCodes) ? countryCodes : [];
+    for (const c of list) {
+      const code = c?.code ? String(c.code).trim().toUpperCase() : "";
+      if (code) out[code] = c.name ?? code;
+    }
+    for (const d of mapDataNormalized || []) {
+      const code = normCode(d.code);
+      if (code && d.name != null && String(d.name).trim() !== "") {
+        out[code] = String(d.name).trim();
+      }
+    }
+    return out;
+  }, [mapDataNormalized]);
 
   // ===== Category table helpers =====
   function safeTrim(v) {
@@ -1479,7 +1634,10 @@ const renderCategoriesTable = () => {
               const canEdit = row.isDefined;
 
               return (
-                <tr key={row.id}>
+                <tr
+                  key={row.id}
+                  className={`${styles.rangeTableRow} ${focusedCategoryRowId === row.id ? styles.rangeTableRowActive : ""}`}
+                >
                 <td className={styles.countriesCell}>
   {row.count ? (
     <>
@@ -1541,7 +1699,11 @@ const renderCategoriesTable = () => {
                         className={styles.tableInputText}
                         value={row.name}
                         onChange={(e) => updateCategory(row.id, "name", e.target.value)}
-                        onBlur={(e) => renameCategory(row.id, e.target.value)}
+                        onFocus={() => setFocusedCategoryRowId(row.id)}
+                        onBlur={(e) => {
+                          renameCategory(row.id, e.target.value);
+                          handleCategoryRowBlur(e);
+                        }}
                         placeholder="Category name"
                       />
                     ) : (
@@ -1560,6 +1722,8 @@ const renderCategoriesTable = () => {
                         styles={styles}
                         color={row.color || "#c0c0c0"}
                         onChange={(next) => updateCategory(row.id, "color", next)}
+                        onFocus={() => setFocusedCategoryRowId(row.id)}
+                        onBlur={handleCategoryRowBlur}
                       />
                     ) : (
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1582,6 +1746,8 @@ const renderCategoriesTable = () => {
                       <button
                         className={styles.removeButton}
                         onClick={() => removeCategory(row.id)}
+                        onFocus={() => setFocusedCategoryRowId(row.id)}
+                        onBlur={handleCategoryRowBlur}
                         disabled={(Array.isArray(groups) ? groups : []).length <= 1}
                         type="button"
                         aria-label="Remove category"
@@ -1597,6 +1763,8 @@ const renderCategoriesTable = () => {
                       <button
                         className={styles.addRangeButton}
                         type="button"
+                        onFocus={() => setFocusedCategoryRowId(row.id)}
+                        onBlur={handleCategoryRowBlur}
                         onClick={() => {
                           setGroups((prev) => [
                             ...(Array.isArray(prev) ? prev : []),
@@ -1635,6 +1803,7 @@ const renderCategoriesTable = () => {
 
 
   // ===== Ranges with countries (choropleth) =====
+  // Display order follows custom_ranges (sorted only on input blur via commitRangeBound)
   const rangesWithCountries = useMemo(() => {
     const toNumLocal = (x) => {
       const n = typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
@@ -1663,15 +1832,102 @@ const rangeCountryLabel = (d) =>
       return { ...r, countries, count: countries.length, isValidRange: valid };
     });
 
-    rows.sort((a, b) => {
-      if (a.lower == null && b.lower == null) return 0;
-      if (a.lower == null) return 1;
-      if (b.lower == null) return -1;
-      return a.lower - b.lower;
-    });
-
     return rows;
   }, [custom_ranges, mapDataNormalized]);
+
+  // Legend models for MapLegendOverlay (choropleth ranges or categorical groups)
+  const legendModels = useMemo(() => {
+    if (mapDataType === "categorical") {
+      const groupsArr = (Array.isArray(groups) ? groups : []).map((g) => ({
+        id: g?.id ?? `group_${g?.name}`,
+        name: String(g?.name ?? "").trim(),
+        color: (g?.color ?? "#c0c0c0").toLowerCase(),
+      }));
+      const codeToCat = new Map();
+      for (const d of mapDataNormalized || []) {
+        const code = normCode(d.code);
+        if (!code) continue;
+        codeToCat.set(code, safeTrim(d.value));
+      }
+      return groupsArr
+        .filter((g) => g.name)
+        .map((g) => {
+          const codes = new Set();
+          for (const [code, cat] of codeToCat.entries()) {
+            if (cat === g.name) codes.add(code);
+          }
+          return {
+            key: g.id,
+            label: g.name,
+            color: g.color,
+            codes,
+          };
+        });
+    }
+    // choropleth
+    const toNum = (x) => {
+      const n = typeof x === "number" ? x : parseFloat(String(x ?? "").replace(",", "."));
+      return Number.isFinite(n) ? n : null;
+    };
+    const rangesClean = (custom_ranges || []).map((r) => ({
+      ...r,
+      lower: toNum(r.lowerBound),
+      upper: toNum(r.upperBound),
+    }));
+    const codeToValue = new Map();
+    for (const d of mapDataNormalized || []) {
+      const code = normCode(d.code);
+      if (!code) continue;
+      const v = typeof d.value === "number" ? d.value : toNum(d.value);
+      if (v != null) codeToValue.set(code, v);
+    }
+    const models = rangesClean
+      .filter((r) => r.lower != null && r.upper != null)
+      .map((r, idx) => {
+        const nameOnly = String(r.name ?? "").trim() || null;
+        const label =
+          nameOnly ||
+          (r.lower != null && r.upper != null
+            ? `${r.lower} – ${r.upper}`
+            : r.lower != null
+            ? `≥ ${r.lower}`
+            : r.upper != null
+            ? `≤ ${r.upper}`
+            : "Range");
+        const codes = new Set();
+        for (const [code, val] of codeToValue.entries()) {
+          if (val >= r.lower && val <= r.upper) codes.add(code);
+        }
+        return {
+          key: r.id ?? `range-${idx}-${r.lower}-${r.upper}`,
+          label,
+          color: (r.color ?? "#c0c0c0").toLowerCase(),
+          min: r.lower,
+          max: r.upper,
+          codes,
+          sortValue: r.upper != null ? r.upper : r.lower != null ? r.lower : -Infinity,
+        };
+      });
+    models.sort((a, b) => (b.sortValue ?? -Infinity) - (a.sortValue ?? -Infinity));
+    return models;
+  }, [mapDataType, groups, custom_ranges, mapDataNormalized]);
+
+  const hoveredLegendCodes = useMemo(() => {
+    if (!hoverLegendKey) return [];
+    const item = legendModels.find((x) => x.key === hoverLegendKey);
+    return item ? Array.from(item.codes || []) : [];
+  }, [hoverLegendKey, legendModels]);
+
+  const activeLegendCodes = useMemo(() => {
+    if (!activeLegendKey) return [];
+    const item = legendModels.find((x) => x.key === activeLegendKey);
+    return item ? Array.from(item.codes || []) : [];
+  }, [activeLegendKey, legendModels]);
+
+  const activeLegendModel = useMemo(() => {
+    if (!activeLegendKey) return null;
+    return legendModels.find((x) => x.key === activeLegendKey) ?? null;
+  }, [activeLegendKey, legendModels]);
 
   // ============================
   // ✅ SMART Unsaved changes
@@ -1976,6 +2232,7 @@ try {
   setSaveSuccess(true);
 
   initialSnapshotRef.current = currentSnapshot;
+  clearPlaygroundDraft(); /* draft is now saved to account; don’t reload it next time */
 
   setShowLeaveModal(false);
   pendingBlockerRef.current = null;
@@ -2002,8 +2259,8 @@ try {
   if (loading) {
     return (
       <>
-        {isPlayground && <HomeHeader />}
-        <div className={`${styles.layoutContainer} ${isPlayground ? styles.layoutContainerPlayground : ""}`} style={{ paddingLeft: layoutPadding }}>
+        {isPlayground && !hideHeader && <HomeHeader />}
+        <div className={`${styles.layoutContainer} ${isPlayground ? styles.layoutContainerPlayground : ""} ${isPlayground && loading ? styles.layoutSkeletonEnter : ""}`} style={{ paddingLeft: layoutPadding }}>
           {!isPlayground && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
           <div className={styles.contentRow}>
             <div className={styles.leftSidebar}>
@@ -2051,7 +2308,7 @@ try {
 
   return (
     <>
-      {isPlayground && <HomeHeader />}
+      {isPlayground && !hideHeader && <HomeHeader />}
       <div className={`${styles.layoutContainer} ${isPlayground ? styles.layoutContainerPlayground : ""}`} style={{ paddingLeft: layoutPadding }}>
         {!isPlayground && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
 
@@ -2079,27 +2336,57 @@ try {
           <div className={styles.mapSection}>
             <div className={styles.mapBox}>
               <h4>Map Preview</h4>
-              <div className={styles.mapPreview}>
-                <MapPreview
-                  groups={groups}
-                  mapTitleValue={mapTitle}
-                  custom_ranges={custom_ranges}
-                  mapDataType={mapDataType}
-                  ocean_color={ocean_color}
-                  unassigned_color={unassigned_color}
-                  data={mapDataNormalized}
-                  selected_map="world"
-                  font_color={font_color}
-                  showNoDataLegend={showNoDataLegend}
-                  is_title_hidden={is_title_hidden}
-                  titleFontSize={titleFontSize}
-                  legendFontSize={legendFontSize}
-                  hoveredCode={hoveredCode}
-                  selectedCode={selectedCode}
-                  onHoverCode={(code) => setHoveredCode(normCode(code))}
-                  onSelectCode={(code) => setSelectedCode(normCode(code))}
-                  placeholders={placeholders}
-                  strokeMode="thick"
+              <div className={styles.mapPreviewWrap}>
+                <div className={styles.mapPreview}>
+                  <MapPreview
+                    groups={groups}
+                    mapTitleValue={mapTitle}
+                    custom_ranges={custom_ranges}
+                    mapDataType={mapDataType}
+                    ocean_color={ocean_color}
+                    unassigned_color={unassigned_color}
+                    data={mapDataNormalized}
+                    selected_map="world"
+                    font_color={font_color}
+                    showNoDataLegend={showNoDataLegend}
+                    is_title_hidden={is_title_hidden}
+                    titleFontSize={titleFontSize}
+                    legendFontSize={legendFontSize}
+                    hoveredCode={hoveredCode}
+                    selectedCode={selectedCode}
+                    onHoverCode={(code) => setHoveredCode(normCode(code))}
+                    onSelectCode={(code) => {
+                      setSelectedCode(normCode(code));
+                      setActiveLegendKey(null);
+                      setHoverLegendKey(null);
+                    }}
+                    placeholders={placeholders}
+                    strokeMode="thick"
+                    groupHoveredCodes={hoveredLegendCodes}
+                    groupActiveCodes={activeLegendCodes}
+                    activeLegendModel={activeLegendModel}
+                    suppressInfoBox={!!activeLegendKey}
+                    onCloseActiveLegend={() => {
+                      setActiveLegendKey(null);
+                      setHoverLegendKey(null);
+                    }}
+                    compactUi={true}
+                    codeToName={codeToName}
+                  />
+                </div>
+                <MapLegendOverlay
+                  title={mapTitle || "Untitled Map"}
+                  legendModels={legendModels}
+                  activeLegendKey={activeLegendKey}
+                  setActiveLegendKey={(k) => {
+                    setSelectedCode(null);
+                    setActiveLegendKey(k);
+                  }}
+                  setHoverLegendKey={setHoverLegendKey}
+                  isEmbed={false}
+                  theme="light"
+                  interactive={true}
+                  compact={true}
                 />
               </div>
             </div>
@@ -2136,7 +2423,10 @@ try {
          <tbody>
   {rangesWithCountries.map((range) => {
     return (
-      <tr key={range.id}>
+      <tr
+        key={range.id}
+        className={`${styles.rangeTableRow} ${focusedRangeRowId === range.id ? styles.rangeTableRowActive : ""}`}
+      >
         <td className={styles.countriesCell}>
           {range.isValidRange ? (
             <>
@@ -2190,7 +2480,15 @@ try {
             className={styles.tableInputNumber}
             value={range.lowerBound}
             onChange={(e) => handleRangeChange(range.id, "lowerBound", e.target.value)}
-            onBlur={(e) => commitRangeBound(range.id, "lowerBound", e.target.value)}
+            onFocus={() => {
+              if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+              postSortHighlightTimeoutRef.current = null;
+              setFocusedRangeRowId(range.id);
+            }}
+            onBlur={(e) => {
+              commitRangeBound(range.id, "lowerBound", e.target.value);
+              schedulePostSortHighlight(range.id);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur(); // ✅ commit + sort
             }}
@@ -2206,7 +2504,15 @@ try {
             className={styles.tableInputNumber}
             value={range.upperBound}
             onChange={(e) => handleRangeChange(range.id, "upperBound", e.target.value)}
-            onBlur={(e) => commitRangeBound(range.id, "upperBound", e.target.value)}
+            onFocus={() => {
+              if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+              postSortHighlightTimeoutRef.current = null;
+              setFocusedRangeRowId(range.id);
+            }}
+            onBlur={(e) => {
+              commitRangeBound(range.id, "upperBound", e.target.value);
+              schedulePostSortHighlight(range.id);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur(); // ✅ commit + sort
             }}
@@ -2222,6 +2528,12 @@ try {
             className={styles.tableInputText}
             value={range.name}
             onChange={(e) => handleRangeChange(range.id, "name", e.target.value)}
+            onFocus={() => {
+              if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+              postSortHighlightTimeoutRef.current = null;
+              setFocusedRangeRowId(range.id);
+            }}
+            onBlur={handleRangeRowBlur}
             placeholder="Range name"
           />
         </td>
@@ -2231,6 +2543,12 @@ try {
             styles={styles}
             color={range.color}
             onChange={(next) => handleRangeChange(range.id, "color", next)}
+            onFocus={() => {
+              if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+              postSortHighlightTimeoutRef.current = null;
+              setFocusedRangeRowId(range.id);
+            }}
+            onBlur={handleRangeRowBlur}
           />
         </td>
 
@@ -2238,6 +2556,12 @@ try {
           <button
             className={styles.removeButton}
             onClick={() => removeRange(range.id)}
+            onFocus={() => {
+              if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+              postSortHighlightTimeoutRef.current = null;
+              setFocusedRangeRowId(range.id);
+            }}
+            onBlur={handleRangeRowBlur}
             disabled={custom_ranges.length <= 1}
             type="button"
             aria-label="Remove range"
@@ -2354,8 +2678,8 @@ try {
         />
       </div>
 
-      {/* Visibility */}
-      <div className={styles.fieldBlock}>
+      {/* Visibility — fieldBlockVisibility allows dropdown to escape overflow */}
+      <div className={`${styles.fieldBlock} ${styles.fieldBlockVisibility}`}>
         <label className={styles.fieldLabel}>Visibility</label>
 
         <div
@@ -2418,14 +2742,52 @@ try {
       <div className={styles.fieldBlock}>
         <label className={styles.fieldLabel}>Tags</label>
 
-        <input
-          type="text"
-          className={styles.inputBox}
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value.replace(/\s/g, ""))}
-          onKeyDown={handleTagInputKeyDown}
-          placeholder="Type a tag and press Enter"
-        />
+        <div className={styles.tagInputWrapper} ref={tagInputWrapperRef}>
+          <input
+            type="text"
+            className={styles.inputBox}
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value.replace(/\s/g, ""))}
+            onKeyDown={handleTagInputKeyDown}
+            placeholder="Type a tag and press Enter"
+            autoComplete="off"
+            aria-autocomplete="list"
+            aria-expanded={tagSuggestions.length > 0}
+            aria-controls={tagSuggestions.length > 0 ? "tag-suggestions-listbox" : undefined}
+          />
+          {tagSuggestions.length > 0 && tagDropdownPosition &&
+            createPortal(
+              <ul
+                id="tag-suggestions-listbox"
+                className={styles.tagSuggestionsList}
+                role="listbox"
+                aria-activedescendant={tagSuggestionHighlightIndex >= 0 ? `tag-suggestion-${tagSuggestionHighlightIndex}` : undefined}
+                style={{
+                  position: "fixed",
+                  top: tagDropdownPosition.top,
+                  left: tagDropdownPosition.left,
+                  width: tagDropdownPosition.width,
+                  margin: 0,
+                  zIndex: 9999,
+                }}
+              >
+                {displayedTagSuggestions.map((suggestion, i) => (
+                  <li
+                    key={suggestion}
+                    id={`tag-suggestion-${i}`}
+                    className={`${styles.tagSuggestionItem} ${i === tagSuggestionHighlightIndex ? styles.tagSuggestionItemHighlight : ""}`}
+                    role="option"
+                    aria-selected={i === tagSuggestionHighlightIndex}
+                    onClick={() => addTag(suggestion)}
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>,
+              document.body
+            )}
+        </div>
 
         <div className={styles.tagBoxLg}>
           {tags.length === 0 ? (
@@ -2433,7 +2795,7 @@ try {
           ) : (
             tags.map((tag, i) => (
               <div key={i} className={styles.tagItem}>
-                {tag}
+                <span className={styles.tagItemText}>{tag}</span>
                 <button
                   className={styles.removeTagButton}
                   onClick={() => removeTag(i)}
@@ -2501,6 +2863,16 @@ try {
 <div className={styles.mapInfoActionsBottom}>
   {/* LEFT */}
   <div className={styles.actionsLeft}>
+    <button
+      type="button"
+      className={`${styles.actionPill} ${styles.dangerPill}`}
+      onClick={() => setShowClearDataModal(true)}
+      disabled={!isEditing && !savedMapId && !isPlayground && existingMapData != null}
+      title="Remove all data from the map (keeps title and settings)"
+    >
+      <FontAwesomeIcon icon={faEraser} />
+      Clear data
+    </button>
     <button
       type="button"
       className={`${styles.actionPill} ${styles.dangerPill}`}
@@ -2721,6 +3093,17 @@ try {
 />
 
 <ConfirmModal
+  isOpen={showClearDataModal}
+  title="Clear all data?"
+  message="This will remove all data from the map. The map title and settings will be kept. This can't be undone."
+  cancelText="Cancel"
+  confirmText="Clear data"
+  danger
+  onCancel={() => setShowClearDataModal(false)}
+  onConfirm={confirmClearData}
+/>
+
+<ConfirmModal
   isOpen={showDeleteMapModal}
   title="Delete map?"
   message={
@@ -2791,6 +3174,7 @@ try {
         }}
         onConfirm={() => {
           setShowLeaveModal(false);
+          clearPlaygroundDraft(); /* so next "create new map" doesn’t reload this abandoned state */
           pendingBlockerRef.current?.proceed?.();
           pendingBlockerRef.current = null;
         }}
@@ -3030,6 +3414,16 @@ try {
         <SignupRequiredModal
           isOpen={showSignupRequiredModal}
           onClose={() => setShowSignupRequiredModal(false)}
+          onNavigateToLogin={() => {
+            suppressPromptRef.current = true;
+            setShowSignupRequiredModal(false);
+            navigate("/login", { state: { returnTo: "/create" } });
+          }}
+          onNavigateToSignup={() => {
+            suppressPromptRef.current = true;
+            setShowSignupRequiredModal(false);
+            navigate("/signup", { state: { returnTo: "/create" } });
+          }}
         />
       )}
     </>

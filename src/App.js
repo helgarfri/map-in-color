@@ -22,7 +22,7 @@ import StarredMaps from "./components/StarredMaps";
 import NotificationList from "./components/NotificationList";
 import ChangePassword from "./components/ChangePassword";
 import DeleteAccount from "./components/DeleteAccount";
-import Docs from "./components/Docs";
+import DocsLayout, { DocsLanding, DocPage } from "./components/Docs";
 import AdminPanel from "./components/AdminPanel";
 import BannedUser from "./components/BannedUser";
 import PrivacyPolicy from "./components/PrivacyPolicy";
@@ -32,6 +32,7 @@ import Verified from "./components/Verified";
 import VerificationError from "./components/VerificationError";
 import PublicExplore from "./components/PublicExplore";
 import PublicDataIntegration from "./components/PublicDataIntegration";
+import PublicLayout from "./components/PublicLayout";
 import LoggedInExplore from "./components/LoggedInExplore";
 import PublicMapDetail from "./components/PublicMapDetail";
 import LoggedInMapDetail from "./components/LoggedInMapDetail";
@@ -40,7 +41,8 @@ import Explore from "./components/Explore";
 import ResetPasswordPage from "./components/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
 import MapEmbed from "./components/MapEmbed";
-
+import NotFound from "./components/NotFound";
+import FAQ from "./components/FAQ";
 
 import { UserContext } from "./context/UserContext";
 import { SidebarContext } from "./context/SidebarContext";
@@ -81,13 +83,23 @@ export default function App() {
         {
           element: <ScrollToTopWrapper />,
           children: [
-            { path: "/", element: <Home /> },
-            { path: "/docs", element: <Docs /> },
-
             {
-              path: "/playground",
-              element: <PublicDataIntegration />,
+              path: "/",
+              element: <PublicLayout />,
+              children: [
+                { index: true, element: <Home /> },
+                { path: "playground", element: <PublicDataIntegration /> },
+              ],
             },
+            {
+              path: "/docs",
+              element: <DocsLayout />,
+              children: [
+                { index: true, element: <DocsLanding /> },
+                { path: ":topic", element: <DocPage /> },
+              ],
+            },
+            { path: "/faq", element: <FAQ /> },
 
             {
               path: "/create",
@@ -211,6 +223,8 @@ export default function App() {
             // legacy
             { path: "/explore-old", element: <Explore /> },
             { path: "/reset-password", element: <ResetPasswordPage /> },
+
+            { path: "*", element: <NotFound /> },
           ],
         },
       ],

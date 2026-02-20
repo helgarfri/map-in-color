@@ -10,6 +10,7 @@ export default function MapLegendOverlay({
   isEmbed = false,
   theme = "light",
   interactive = true,
+  compact = false,
 }) {
   const [legendCollapsed, setLegendCollapsed] = useState(false);
   const isDark = theme === "dark";
@@ -21,6 +22,7 @@ export default function MapLegendOverlay({
       data-embed={isEmbed ? "1" : "0"}
       data-theme={isDark ? "dark" : "light"}
       data-interactive={interactive ? "1" : "0"}
+      data-compact={compact ? "1" : "0"}
     >
       <div className={styles.mapLegendHeader}>
         <div className={styles.mapLegendHeaderRow}>

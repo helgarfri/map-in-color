@@ -146,8 +146,10 @@ const renderInFlightRef = useRef(false);
 const pendingRenderRef = useRef(false);
 
 const LEGEND_MIN_W = 120;
-/** Max legend width as fraction of export width; longer titles wrap within this. */
-const LEGEND_MAX_WIDTH_FRAC = 0.5;
+/** Max legend width as fraction of export width (SVG and default width suggestion). */
+const LEGEND_MAX_WIDTH_FRAC = 0.30;
+/** Tighter max for raster (PNG, JPG, PDF) so legend stays narrow. */
+const LEGEND_MAX_WIDTH_FRAC_RASTER = 0.18;
 const isProRef = useRef(!!isPro);
 
 useEffect(() => {
@@ -1067,8 +1069,9 @@ function addExportLegendToSvg(
 
   const hardMax = Math.round(vb.w - outerPad * 2);
   const hardMin = Math.min(160, Math.round(vb.w * 0.12));
+  const absoluteCapW = Math.round(vb.w * LEGEND_MAX_WIDTH_FRAC);
   const forcedW = forcedW_vb ? clamp(forcedW_vb, hardMin, hardMax) : null;
-  const maxW = forcedW ?? Math.min(hardMax, allowedMaxW);
+  const maxW = forcedW ?? Math.min(hardMax, allowedMaxW, absoluteCapW);
 
   const maxTitleW = maxW - padX * 2;
   const maxRowTextW = maxW - padX * 2 - (dot + gap);
@@ -1099,7 +1102,8 @@ function addExportLegendToSvg(
   const contentW = Math.max(titleW, rowW + dot + gap, moreW);
   const autoW = Math.ceil(contentW + padX * 2);
 
-  const boxW = forcedW ? forcedW : clamp(autoW, hardMin, hardMax);
+  let boxW = forcedW ? forcedW : clamp(autoW, hardMin, hardMax);
+  if (!forcedW) boxW = Math.min(boxW, absoluteCapW);
 
   // re-wrap to final width
   const finalTitleW = boxW - padX * 2;
@@ -1444,7 +1448,8 @@ function drawLegendBoxOnCanvas(
       ? clamp(Math.round(Number(widthPx)), hardMin, hardMax)
       : null;
 
-  const maxW = forcedW ?? Math.min(hardMax, autoMaxW);
+  const capW = Math.round(canvas.width * LEGEND_MAX_WIDTH_FRAC_RASTER);
+  const maxW = forcedW ?? Math.min(hardMax, autoMaxW, capW);
 
   const innerW_forTitle = maxW - padX * 2;
   const innerW_forRowText = maxW - padX * 2 - (dot + gap);
@@ -1470,7 +1475,8 @@ function drawLegendBoxOnCanvas(
   const contentW = Math.max(titleW, rowW + dot + gap, moreW);
   const autoW = Math.ceil(contentW + padX * 2);
 
-  const boxW = forcedW ? forcedW : clamp(autoW, hardMin, hardMax);
+  let boxW = forcedW ? forcedW : clamp(autoW, hardMin, hardMax);
+  if (!forcedW) boxW = Math.min(boxW, capW);
 
   const innerW_title = boxW - padX * 2;
   const innerW_rowText = boxW - padX * 2 - (dot + gap);

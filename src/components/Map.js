@@ -82,6 +82,33 @@ function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
 
 const norm = (c = "") => String(c || "").trim().toUpperCase();
 
+/**
+ * Small countries drawn as custom SVG paths (not in the main map source).
+ * Map viewBox is "0 0 2000 857". To adjust position:
+ *   - Change the first M x y in "d" to move the shape (x = horizontal, y = vertical).
+ *   - Increase x = move right; increase y = move down.
+ *   - You can also use absolute L x y or relative l dx dy to resize or reshape.
+ */
+const MICROSTATE_PATHS = [
+  { id: "AX", name: "Åland Islands", d: "M1076 116l1.2 0.8 0.8 1.4-0.4 1.2-1.3 0.3-1.2-0.9-0.4-1.3z" },
+  { id: "AD", name: "Andorra", d: "M996.5 225.5l2.2 1.2 2 2.2-0.5 2.2-2.2 1-2.5-0.8-1.5-2.2 0.5-2.1z" },
+  { id: "CK", name: "Cook Islands", d: "M95 640l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "GI", name: "Gibraltar", d: "M960 267l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "HK", name: "Hong Kong", d: "M1619 357l1 0.6 0.5 1.1-0.3 0.9-1 0.2-0.9-0.7-0.4-1.1z" },
+  { id: "IM", name: "Isle of Man", d: "M965 155l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "JE", name: "Jersey", d: "M973 184l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "KI", name: "Kiribati", d: "M105 460l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "LI", name: "Liechtenstein", d: "M1035.5 197.8l1.2 0.8 0.8 1.5-0.5 1.2-1.4 0.2-1.3-1-0.3-1.5z" },
+  { id: "MC", name: "Monaco", d: "M1020.2 220.2l1.2 0.8 0.6 1.2-0.4 1-1.1 0.2-1.1-0.8-0.4-1.2z" },
+  { id: "MO", name: "Macao", d: "M1615 358l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "NU", name: "Niue", d: "M50 630l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "SG", name: "Singapore", d: "M1575 492l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "SH", name: "Saint Helena", d: "M955 570l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "PM", name: "Saint Pierre and Miquelon", d: "M702 200l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "SM", name: "San Marino", d: "M1049.2 220.5l1.2 0.6 0.5 1.2-0.3 1.1-1.1 0.3-1.1-0.5-0.5-1.2z" },
+  { id: "VA", name: "Vatican City", d: "M1049.8 232.8l0.6 0.8 0.2 0.6-0.5 0.4-0.7-0.2-0.4-0.8z" },
+];
+
 const getCountryEls = (svg, code) =>
   svg.querySelectorAll(
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
@@ -144,6 +171,7 @@ onTransformChange,
   strokeMode = "thin", // "thin" | "thick"
   viewBox,
   theme = "light",
+  compactUi = false,
 
 } = {}) {
   const isDarkTheme = theme === "dark";
@@ -1362,7 +1390,7 @@ const handleResetViewClick = useCallback(() => {
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
   return (
-    <div className={cls.mapRoot} data-theme={isDarkTheme ? "dark" : "light"}>
+    <div className={cls.mapRoot} data-theme={isDarkTheme ? "dark" : "light"} data-compact-ui={compactUi ? "1" : "0"}>
     {renderGroupInfoBox()}
     {renderInfoBox()}
 
@@ -1788,11 +1816,11 @@ onPointerDownCapture={(e) => {
             </path>
             <path class="Norway" id="NO" name="Norway" d="M 1113.7 67.5 1107.3 69.6 1104.1 70.1 1104.9 66.3 1099.1 64.2 1093.2 66 1092.1 70 1088.7 72.4 1084 71.1 1078.7 71.3 1073.6 68.5 1071.4 69.9 1068.8 70.1 1068.9 73.7 1060.9 72.8 1060.3 75.9 1056.3 75.9 1054 79.8 1050.6 85.9 1044.9 93.8 1046.7 95.8 1045.4 98 1041.1 97.9 1038.7 103.3 1039.7 111 1042.8 113.9 1042 120.8 1038.6 124.8 1036.8 128.2 1033.5 124.6 1024.9 131.4 1018.8 132.8 1012.3 129.8 1010.5 123.5 1008.5 110 1012.5 106.3 1023.8 101.4 1031.9 95.5 1039.1 87.7 1048 77 1054.4 72.9 1064.7 66.1 1073.2 63.7 1079.9 64 1085.1 59.6 1092.5 59.8 1099.5 58.8 1113.2 62.7 1108.3 64.1 1113.7 67.5 Z">
             </path>
-            <path class="Norway" id="NO" name="Norway" d="M 1076.6 25.2 1069 27.1 1062.2 26 1064.4 24.8 1061.8 23.3 1069.1 22.4 1071 24.1 1076.6 25.2 Z">
+            <path class="Svalbard and Jan Mayen" id="SJ" name="Svalbard and Jan Mayen" d="M 1076.6 25.2 1069 27.1 1062.2 26 1064.4 24.8 1061.8 23.3 1069.1 22.4 1071 24.1 1076.6 25.2 Z">
             </path>
-            <path class="Norway" id="NO" name="Norway" d="M 1051 16.7 1063.6 20.1 1055 21.9 1053.8 25.3 1050.8 26.2 1049.9 30.2 1045.5 30.4 1037 27.5 1040 25.8 1034.3 24.4 1026.6 20.5 1023.4 17 1032.7 15.4 1035 16.9 1040 16.9 1041 15.4 1046.2 15.2 1051 16.7 Z">
+            <path class="Svalbard and Jan Mayen" id="SJ" name="Svalbard and Jan Mayen" d="M 1051 16.7 1063.6 20.1 1055 21.9 1053.8 25.3 1050.8 26.2 1049.9 30.2 1045.5 30.4 1037 27.5 1040 25.8 1034.3 24.4 1026.6 20.5 1023.4 17 1032.7 15.4 1035 16.9 1040 16.9 1041 15.4 1046.2 15.2 1051 16.7 Z">
             </path>
-            <path class="Norway" id="NO" name="Norway" d="M 1075.4 13.7 1082.8 15.2 1078.4 17.6 1068.3 18.1 1057.6 17.3 1056.6 16.1 1051.5 16.1 1047.2 14.1 1057.7 12.9 1063.1 13.9 1066.2 12.6 1075.4 13.7 Z">
+            <path class="Svalbard and Jan Mayen" id="SJ" name="Svalbard and Jan Mayen" d="M 1075.4 13.7 1082.8 15.2 1078.4 17.6 1068.3 18.1 1057.6 17.3 1056.6 16.1 1051.5 16.1 1047.2 14.1 1057.7 12.9 1063.1 13.9 1066.2 12.6 1075.4 13.7 Z">
             </path>
             <path d="M1469 322.9l0.2 2.7 1.5 4.1-0.1 2.5-4.6 0.1-6.9-1.5-4.3-0.6-3.8-3.2-7.7-0.9-7.8-3.6-5.8-3.1-5.8-2.4 0.9-6 2.8-3 1.9-1.5 4.8 2 6.4 4.2 3.3 0.9 2.5 3.1 4.5 1.2 5 2.9 6.5 1.4 6.5 0.7z" id="NP" name="Nepal">
             </path>
@@ -2284,11 +2312,11 @@ onPointerDownCapture={(e) => {
             </path>
             <path class="Seychelles" id="SC" name="Seychelles" d="M 1300.4 531.5 1300.8 531.9 1300.6 532.2 1300.4 531.9 1300.1 531.7 1300.3 531.2 1300.4 531.5 Z">
             </path>
-            <path class="Turks and Caicos Islands" d="M 587.7 361.6 588.4 361.6 588.7 362 588.4 362 588.1 361.9 587.6 362 587.5 361.7 587.7 361.6 Z">
+            <path class="Turks and Caicos Islands" id="TC" name="Turks and Caicos Islands" d="M 587.7 361.6 588.4 361.6 588.7 362 588.4 362 588.1 361.9 587.6 362 587.5 361.7 587.7 361.6 Z">
             </path>
-            <path class="Turks and Caicos Islands" d="M 585 361.5 585.3 361.9 585.9 361.8 585.7 362 585.1 362 584.7 361.8 585 361.5 Z">
+            <path class="Turks and Caicos Islands" id="TC" name="Turks and Caicos Islands" d="M 585 361.5 585.3 361.9 585.9 361.8 585.7 362 585.1 362 584.7 361.8 585 361.5 Z">
             </path>
-            <path class="Turks and Caicos Islands" d="M 587.2 360.9 587.2 361.4 586.7 361.2 586.6 360.9 586.7 360.8 587.2 360.9 Z">
+            <path class="Turks and Caicos Islands" id="TC" name="Turks and Caicos Islands" d="M 587.2 360.9 587.2 361.4 586.7 361.2 586.6 360.9 586.7 360.8 587.2 360.9 Z">
             </path>
             <path class="Tonga" id="TO" name="Tonga" d="M 14.7 639.5 14.2 639.2 14.2 639 14.5 638.8 14.7 639.5 Z">
             </path>
@@ -2406,6 +2434,9 @@ onPointerDownCapture={(e) => {
             </path>
             <path class="Fiji" id="FJ" name="Fiji"d="M 1993.4 611 1993.2 610.8 1993.3 610.6 1993.8 610.1 1994.1 609.6 1993.8 610.7 1993.4 611 Z">
             </path>
+            {MICROSTATE_PATHS.map(({ id, name, d }) => (
+              <path key={id} d={d} id={id} name={name} />
+            ))}
             <path class="Fiji" id="FJ" name="Fiji"d="M 1994.4 606 1994 606.4 1993.2 607.5 1992.9 607.6 1992.2 608 1992 608.6 1991.6 608.8 1991.4 609.1 1991.3 609.3 1991.6 609.4 1992.2 609.1 1992.3 609 1992.6 608.7 1992.8 608.4 1993.4 608.1 1993.7 607.8 1994.3 607.5 1994.3 607.8 1993.8 608.5 1993.6 608.6 1993.7 609.2 1993.4 609.5 1993.1 609.2 1992.7 609.2 1992.2 609.3 1991.8 609.6 1991.1 609.7 1990.1 609.7 1990.6 609.2 1990.2 609 1989.6 609.2 1989.2 609.4 1989.2 609.6 1988.9 609.7 1988.7 609.8 1988.6 610.2 1988.4 610.5 1988.1 610.4 1988.1 610.2 1987.7 610.1 1987.3 610.3 1987.1 610.8 1986.8 611 1986.5 611 1986.5 610.7 1986.5 610.3 1986.3 609.9 1986.4 609.7 1986.3 609.6 1985.7 609.8 1985.7 609.4 1986.1 609.1 1986.2 609.1 1986.1 608.6 1986.4 608.5 1986.9 608.8 1987.5 608.4 1987.7 608.4 1988 608.1 1988.2 608.1 1988.5 607.8 1988.5 607.6 1989.3 607.5 1990.2 607.2 1990.5 607.1 1990.9 607.2 1991.4 607 1991.6 606.6 1991.8 606.6 1992 606.2 1992.4 606.3 1992.5 606.1 1992.7 606.2 1993.7 605.7 1993.8 606 1994 605.9 1994.2 606 1994.5 605.7 1995 605.5 1995.1 605.6 1994.6 606 1994.4 606 Z">
             </path>
             <circle cx="997.9" cy="189.1" id="0">

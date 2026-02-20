@@ -344,8 +344,9 @@ const handleSubmit = async (e) => {
 
     const res = await updateUserProfile(payload);
 
-    // keep UI + context in sync
-    setProfile(res.data);
+    // keep UI + context in sync; merge with existing profile so fields not returned
+    // by the update API (e.g. email_verified) are preserved and don't flash incorrectly
+    setProfile((prev) => (prev ? { ...prev, ...res.data } : res.data));
 
     stopFakeProgress();
     setSaveProgress(100);

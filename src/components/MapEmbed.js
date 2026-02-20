@@ -2,9 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import MapView from "../components/Map";
 import MapLegendOverlay from "../components/MapLegendOverlay";
+import useWindowSize from "../hooks/useWindowSize";
 import { fetchMapById } from "../api";
 import countries from "../world-countries.json";
 import styles from "./MapEmbed.module.css";
+
+const EMBED_COMPACT_WIDTH = 720;
+const EMBED_COMPACT_HEIGHT = 480;
 
 // reuse your helpers (paste from MapDetail or import them)
 function parseJsonArray(x) {
@@ -61,6 +65,10 @@ export default function MapEmbed() {
   const [selectedCode, setSelectedCode] = useState(null);
   const [selectedCodeZoom, setSelectedCodeZoom] = useState(false);
   const [selectedCodeNonce, setSelectedCodeNonce] = useState(0);
+
+  const { width: embedWidth, height: embedHeight } = useWindowSize();
+  const isSmallEmbed =
+    embedWidth < EMBED_COMPACT_WIDTH || embedHeight < EMBED_COMPACT_HEIGHT;
 
   useEffect(() => {
     let cancelled = false;
@@ -285,8 +293,10 @@ export default function MapEmbed() {
               alt="Map in Color"
             />
           </div>
-          <h2 className={styles.privateTitle}>This map is private</h2>
-          <p className={styles.privateSub}>Sign in to Map in Color to view it.</p>
+          <div className={styles.privateTextWrap}>
+            <h2 className={styles.privateTitle}>This map is private</h2>
+            <p className={styles.privateSub}>Sign in to Map in Color to view it.</p>
+          </div>
         </div>
       </div>
     );
@@ -313,6 +323,7 @@ export default function MapEmbed() {
           isLargeMap={true}
           theme={embedTheme}
           staticView={!isInteractive}
+          compactUi={isSmallEmbed}
           hoveredCode={isInteractive ? hoveredCode : null}
           selectedCode={isInteractive ? selectedCode : null}
           selectedCodeZoom={selectedCodeZoom}
@@ -362,6 +373,7 @@ export default function MapEmbed() {
             isEmbed
             theme={embedTheme}
             interactive={isInteractive}
+            compact={isSmallEmbed}
           />
         )}
 

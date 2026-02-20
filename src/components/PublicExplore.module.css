@@ -1,0 +1,60 @@
+/* Match Docs background so transparent header looks consistent */
+.publicExploreContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f6f7fb;
+}
+
+/* Wrapper so explore content width matches HomeHeader horizontal padding. */
+.exploreContentWrap {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0 80px;
+  background: #f6f7fb;
+}
+
+@media (max-width: 1269px) {
+  .exploreContentWrap {
+    padding: 0 48px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .exploreContentWrap {
+    padding: 0 40px;
+  }
+}
+
+@media (max-width: 960px) {
+  .exploreContentWrap {
+    padding: 0 32px;
+  }
+}
+
+@media (max-width: 900px) {
+  .exploreContentWrap {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .exploreContentWrap {
+    padding: 0 20px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .exploreContentWrap {
+    padding: 0 80px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .exploreContentWrap {
+    padding: 0 96px;
+  }
+}

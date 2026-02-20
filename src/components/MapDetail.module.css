@@ -2298,7 +2298,7 @@ a {
   bottom: 16px;
 
   width: fit-content;
-  max-width: calc(100vw - 32px);
+  max-width: min(220px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   overflow: auto;
 
@@ -2339,12 +2339,14 @@ a {
 .mapLegendTitle{
   font-size: 13px;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
   color: rgba(15, 23, 42, 0.92);
 
   min-width: 0;
+  max-width: 100%;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: break-word;
   flex: 1;
 }
 
@@ -2406,7 +2408,7 @@ a {
 
 .mapLegendRow{
   display: grid;
-  grid-template-columns: 10px 1fr auto;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
 
@@ -2448,11 +2450,12 @@ a {
 .mapLegendLabel{
   font-size: 13px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.2;
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .mapLegendMeta{
@@ -2461,9 +2464,10 @@ a {
   opacity: 0.70;
   color: rgba(15, 23, 42, 0.70);
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .mapLegendHoverHint{

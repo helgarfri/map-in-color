@@ -32,11 +32,16 @@ export default function Header({ title }) {
     ? "/assets/3-0/PRO-logo.png"
     : "/assets/3-0/mic-logo-2-5.png";
 
+  // Only show notifications from users that still exist (have a valid Sender)
+  const hasValidSender = (n) =>
+    n.Sender != null && (n.Sender.id != null || n.Sender.username != null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetchNotifications();
-        setNotifications(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setNotifications(list.filter(hasValidSender));
       } catch (err) {
         console.error("Error fetching notifications:", err);
       }

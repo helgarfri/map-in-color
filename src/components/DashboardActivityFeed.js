@@ -135,13 +135,21 @@ export default function DashboardActivityFeed({ userProfile }) {
   // sentinel for infinite scroll
   const sentinelRef = useRef(null);
 
+  // Only show activities for maps that still exist and are public (no "No Map" / private thumbnails)
+  const isMapValidForFeed = (act) => {
+    const map = act?.map;
+    if (!map || map.id == null) return false;
+    return map.is_public !== false; // treat missing is_public as public
+  };
+
   const loadFirstPage = useCallback(async () => {
     try {
       setIsInitialLoading(true);
       const res = await fetchDashboardActivity(0, limit);
-      const newBatch = res.data || [];
+      const raw = res.data || [];
+      const newBatch = raw.filter(isMapValidForFeed);
       setActivities(newBatch);
-      setHasMore(newBatch.length === limit);
+      setHasMore(raw.length === limit);
       setOffset(0);
     } catch (err) {
       console.error('Error loading feed:', err);
@@ -155,12 +163,13 @@ export default function DashboardActivityFeed({ userProfile }) {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
       const res = await fetchDashboardActivity(newOffset, limit);
-      const newBatch = res.data || [];
+      const raw = res.data || [];
+      const newBatch = raw.filter(isMapValidForFeed);
 
       setActivities((prev) => [...prev, ...newBatch]);
       setOffset(newOffset);
 
-      if (newBatch.length < limit) {
+      if (raw.length < limit) {
         setHasMore(false);
       }
     } catch (err) {

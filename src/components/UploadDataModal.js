@@ -8,7 +8,7 @@ import countryCodes from "../world-countries.json";
 import usStatesCodes from "../united-states.json";
 import euCodes from "../european-countries.json";
 
-import { FaDownload, FaUpload, FaExclamationTriangle } from "react-icons/fa";
+import { FaDownload, FaUpload } from "react-icons/fa";
 import styles from "./UploadDataModal.module.css";
 
 function toNum(x) {
@@ -350,6 +350,7 @@ export default function UploadDataModal({
         "info"
       );
 
+      const matchLogs = [];
       for (let r = headerIndex + 1; r < cleanedRows.length; r++) {
         const row = cleanedRows[r];
 
@@ -413,14 +414,25 @@ export default function UploadDataModal({
           pickedYear,
         });
 
-        if (allRows.length <= 12) {
-          log(
-            `Matched ${found.code}: newest value ${pickedValue}${
-              pickedYear ? ` (${pickedYear})` : ""
-            }`,
-            "info"
-          );
-        }
+        matchLogs.push({
+          code: found.code,
+          value: pickedValue,
+          year: pickedYear,
+        });
+      }
+
+      // Log all matches in one batch, then we'll add warnings after
+      if (matchLogs.length > 0) {
+        const newLines = matchLogs.map(({ code, value, year }) => ({
+          id: `${Date.now()}-${Math.random()}-${code}`,
+          ts: new Date(),
+          level: "info",
+          msg: `Matched ${code}: newest value ${value}${year ? ` (${year})` : ""}`,
+        }));
+        setSession((prev) => ({
+          ...prev,
+          terminalLines: [...(prev.terminalLines || []), ...newLines],
+        }));
       }
 
       if (allRows.length === 0) {
@@ -428,13 +440,22 @@ export default function UploadDataModal({
           errorList.length > 0
             ? "No valid rows found in wide table. (Countries might not match your map's dataset.)"
             : "File has no valid rows.";
+        const errorLogLines = [
+          ...errorList.map((err) => ({
+            id: `err-${err.line}-${Date.now()}-${Math.random()}`,
+            ts: new Date(),
+            level: "error",
+            msg: `Line ${err.line}: ${err.message}`,
+          })),
+          { id: `no-data-${Date.now()}`, ts: new Date(), level: "error", msg: `❌ ${msg}` },
+        ];
         setSession((prev) => ({
           ...prev,
-          errors: [{ line: 0, type: "No Data", message: msg }],
+          errors: [{ line: 0, type: "No Data", message: msg }, ...errorList],
+          terminalLines: [...(prev.terminalLines || []), ...errorLogLines],
           fileIsValid: false,
           isParsing: false,
         }));
-        log(`❌ ${msg}`, "error");
         return;
       }
 
@@ -515,15 +536,24 @@ export default function UploadDataModal({
     if (allRows.length === 0) {
       const msg =
         errorList.length > 0
-          ? "No valid rows found. Fix the lines shown below."
+          ? "No valid rows found. Fix the lines shown above."
           : "File has no valid rows.";
+      const errorLogLines = [
+        ...errorList.map((err) => ({
+          id: `err-${err.line}-${Date.now()}-${Math.random()}`,
+          ts: new Date(),
+          level: "error",
+          msg: `Line ${err.line}: ${err.message}`,
+        })),
+        { id: `no-data-${Date.now()}`, ts: new Date(), level: "error", msg: `❌ ${msg}` },
+      ];
       setSession((prev) => ({
         ...prev,
-        errors: [{ line: 0, type: "No Data", message: msg }],
+        errors: [{ line: 0, type: "No Data", message: msg }, ...errorList],
+        terminalLines: [...(prev.terminalLines || []), ...errorLogLines],
         fileIsValid: false,
         isParsing: false,
       }));
-      log(`❌ ${msg}`, "error");
       return;
     }
 
@@ -866,13 +896,6 @@ export default function UploadDataModal({
               )}
             </div>
           </div>
-
-          {/* Optional: show a simple error hint under terminal (hidden in embedded demo to keep height stable) */}
-          {!embedded && fileIsValid === false && errors?.length > 0 && (
-            <div className={styles.importErrorStrip}>
-              <FaExclamationTriangle /> <span>{errors[0]?.message || "Import failed."}</span>
-            </div>
-          )}
 
           {/* Action row */}
           <div className={styles.actionsRow}>

@@ -12,7 +12,7 @@ function HeroSection() {
           <p className={styles.heroSubtitle}>
             Professional map creation for everyone.
           </p>
-          <a href="/signup" className={styles.signupButton}>
+          <a href="/playground" className={styles.signupButton}>
             Start creating for free
           </a>
         </div>

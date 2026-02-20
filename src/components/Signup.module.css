@@ -87,7 +87,7 @@
   margin: 0;
 }
 
-/* ===== Right form side ===== */
+/* ===== Right form side (subtle orange/pink like HeroSection) ===== */
 .rightSide {
   flex: 1;
   display: grid;
@@ -95,9 +95,25 @@
   padding: 30px;
 
   background:
-    radial-gradient(1000px 700px at 20% 25%, rgba(255,255,255,0.18), rgba(0,0,0,0) 55%),
-    radial-gradient(900px 600px at 80% 75%, rgba(255,255,255,0.12), rgba(0,0,0,0) 60%),
-    linear-gradient(135deg, var(--mic-orange) 0%, var(--mic-magenta) 100%);
+    radial-gradient(
+      ellipse 85% 65% at 20% 25%,
+      rgba(252, 134, 29, 0.2),
+      rgba(252, 134, 29, 0.05) 45%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 75% 70% at 88% 75%,
+      rgba(206, 34, 146, 0.18),
+      rgba(206, 34, 146, 0.05) 45%,
+      transparent 65%
+    ),
+    linear-gradient(
+      165deg,
+      #f5ebe5 0%,
+      #f8e8f0 35%,
+      #f5ebe5 70%,
+      #f0e8f2 100%
+    );
 }
 
 /* Form card */
@@ -272,7 +288,7 @@
 .termsText {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   font-size: 13px;
   line-height: 1.35;
   flex-wrap: wrap;
@@ -284,7 +300,8 @@
   color: #ce2292;
   cursor: pointer;
   padding: 0;
-  font-size: 13px;
+  margin: 0;
+  font-size: inherit;
   font-weight: 900;
 }
 

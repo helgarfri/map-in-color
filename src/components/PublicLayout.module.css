@@ -1,0 +1,24 @@
+/*
+  Public layout: HomeHeader + outlet.
+  Wrap has Docs bg so transparent header shows #f6f7fb (not white) on playground.
+  On home, hero (margin-top -80px) paints over this so header still shows hero.
+*/
+.wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f6f7fb;
+}
+
+.outletWrap {
+  flex: 1;
+  background: #f6f7fb; /* playground: same as DataIntegration --bg */
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+/* Home: transparent so hero (with margin-top -80px) can show behind header */
+.outletWrapHome {
+  background: transparent;
+  overflow: visible;
+}

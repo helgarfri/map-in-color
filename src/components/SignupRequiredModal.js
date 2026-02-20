@@ -4,7 +4,7 @@ import styles from "./SignupRequiredModal.module.css";
 
 const RETURN_TO_CREATE = "/create";
 
-export default function SignupRequiredModal({ isOpen, onClose }) {
+export default function SignupRequiredModal({ isOpen, onClose, onNavigateToLogin, onNavigateToSignup }) {
   const navigate = useNavigate();
   const cancelRef = useRef(null);
 
@@ -21,13 +21,21 @@ export default function SignupRequiredModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const goToLogin = () => {
-    onClose?.();
-    navigate("/login", { state: { returnTo: RETURN_TO_CREATE } });
+    if (onNavigateToLogin) {
+      onNavigateToLogin();
+    } else {
+      onClose?.();
+      navigate("/login", { state: { returnTo: RETURN_TO_CREATE } });
+    }
   };
 
   const goToSignup = () => {
-    onClose?.();
-    navigate("/signup", { state: { returnTo: RETURN_TO_CREATE } });
+    if (onNavigateToSignup) {
+      onNavigateToSignup();
+    } else {
+      onClose?.();
+      navigate("/signup", { state: { returnTo: RETURN_TO_CREATE } });
+    }
   };
 
   return (

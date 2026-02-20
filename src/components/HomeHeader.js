@@ -37,14 +37,14 @@ export default function HomeHeader() {
           <NavLink className={styles.navLink} to="/">
             Home
           </NavLink>
+          <NavLink className={styles.navLink} to="/playground">
+            Create
+          </NavLink>
           <NavLink className={styles.navLink} to="/explore">
             Explore
           </NavLink>
           <NavLink className={styles.navLink} to="/docs">
             Docs
-          </NavLink>
-          <NavLink className={styles.navLink} to="/playground">
-            Create
           </NavLink>
 
           <div className={styles.navDivider} aria-hidden="true" />
