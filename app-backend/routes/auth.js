@@ -158,13 +158,8 @@ router.post(
         { expiresIn: '1d' }
       );
 
-<<<<<<< HEAD
       // Construct the verify link (same origin as frontend; API is typically at /api)
       const verifyLink = `${FRONTEND_BASE}/api/auth/verify/${verifyToken}`;
-=======
-      // Construct the verify link (backend endpoint updates status and redirects to /verified)
-      const verifyLink = `${API_BASE_URL}/api/auth/verify/${verifyToken}`;
->>>>>>> 8a69153cd7413ef6650049c256b41bd243b84c3a
 
       // 7) Send a verification email with the link
       try {
@@ -315,24 +310,15 @@ router.get('/verify/:token', async (req, res) => {
       return res.status(404).json({ msg: 'No user found to verify' });
     }
 
-<<<<<<< HEAD
     // 3) Return success as HTML or redirect
     return res.redirect(`${FRONTEND_BASE}/verified`);
-=======
-    // 3) Redirect to frontend /verified page
-    return res.redirect(`${FRONTEND_URL.replace(/\/$/, '')}/verified`);
->>>>>>> 8a69153cd7413ef6650049c256b41bd243b84c3a
 
 
     
   } catch (err) {
     console.error('Verification error:', err);
     // Token is invalid or expired
-<<<<<<< HEAD
     return res.redirect(`${FRONTEND_BASE}/verification-error`);
-=======
-    return res.redirect(`${FRONTEND_URL.replace(/\/$/, '')}/verification-error`);
->>>>>>> 8a69153cd7413ef6650049c256b41bd243b84c3a
   }
 });
 
@@ -375,11 +361,7 @@ router.post('/resend-verification', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-<<<<<<< HEAD
     const newVerifyLink = `${FRONTEND_BASE}/api/auth/verify/${newVerifyToken}`;
-=======
-    const newVerifyLink = `${API_BASE_URL}/api/auth/verify/${newVerifyToken}`;
->>>>>>> 8a69153cd7413ef6650049c256b41bd243b84c3a
 
     // Send the email
     try {
