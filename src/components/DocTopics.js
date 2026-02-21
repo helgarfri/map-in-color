@@ -206,6 +206,7 @@ function CreatingMapsContent() {
 const dataImportSections = [
   { id: 'data-format-guide', title: 'Data Format Guide', level: 2 },
   { id: 'smart-upload', title: 'Smart Upload Detection', level: 2 },
+  { id: 'description-column', title: 'Optional Description Column', level: 2 },
   { id: 'supported-files', title: 'Supported File Types', level: 2 },
   { id: 'supported-country-coverage', title: 'Supported Country Coverage', level: 2 },
   { id: 'common-errors', title: 'Common Errors', level: 2 },
@@ -228,10 +229,10 @@ function DataImportContent() {
       <p><strong>2) Parse the file format</strong></p>
       <p>The uploader automatically parses CSV (including semicolon-separated, common in European exports), TSV (tab-separated), and Excel (first sheet converted to rows). Comment lines starting with <code>#</code> are ignored.</p>
       <p><strong>3) Match rows to countries (smart country detection)</strong></p>
-      <p>Each row is matched against the Map in Color country dataset using ISO country codes (e.g., US, IS, DE), country names, and aliases (alternate spellings and official names). For example, Turkey matches: Türkiye, Republic of Türkiye, Turkiye.</p>
+      <p>Each row is matched against the Map in Color country dataset using 2-letter ISO codes (e.g. US, IS, DE), 3-letter ISO codes (e.g. USA, ISL, DEU — common in World Bank and many international datasets), country names, and aliases (alternate spellings and official names). For example, Turkey matches: Türkiye, Republic of Türkiye, Turkiye.</p>
       <p><strong>4) Detect the file structure</strong></p>
-      <p>Map in Color supports two common data layouts:</p>
-      <p><strong>A) Simple 2-column layout (most common)</strong></p>
+      <p>Map in Color supports a variety of data layouts, including:</p>
+      <p><strong>A) Simple 2-column layout</strong></p>
       <p>Column 1 — country name or code; Column 2 — numeric value or category label.</p>
       <pre className={styles.codeBlock}>
         {`Country,Value
@@ -240,7 +241,23 @@ Spain,95.1
 Brazil,89.7`}
       </pre>
       <p><strong>B) Wide &quot;year columns&quot; layout (World Bank / WDI-style)</strong></p>
-      <p>Map in Color detects header rows with &quot;Country Name&quot;, &quot;Country Code&quot;, and year columns. It picks the most recent available numeric value per country.</p>
+      <p>Map in Color detects header rows with &quot;Country Code&quot; and year columns. A &quot;Country Name&quot; column is optional: files with only &quot;Country Code&quot; and year columns (e.g. 3-letter codes like AFG, COD, KOR) are supported. It picks the most recent available numeric value per country.</p>
+      <p>Example (code-only with year columns):</p>
+      <pre className={styles.codeBlock}>
+        {`Country Code,Indicator,1990,2000,2010,2020
+AFG,Inflation (%),,,5.2,6.1
+ALB,Inflation (%),2.1,3.4,4.0,4.2
+USA,Inflation (%),5.4,3.4,1.6,1.2`}
+      </pre>
+      <h2 id="description-column">Optional Description Column</h2>
+      <p>You can include a third column to attach a short description to each country. The uploader looks for a column whose header contains or equals one of: <code>description</code>, <code>desc</code>, <code>notes</code>, <code>note</code>, <code>comment</code>, <code>details</code>, <code>detail</code>, <code>info</code>, or <code>text</code>. If present, that column&apos;s value is stored as the per-country description and can be shown on the map (e.g. in tooltips). Without a header row, the third column is treated as the description column.</p>
+      <p>Example with a description column:</p>
+      <pre className={styles.codeBlock}>
+        {`Country,Value,Description
+Iceland,99.3,Highest renewable share in Europe
+Spain,95.1,Strong solar and wind growth
+Brazil,89.7,Hydropower-dominated grid`}
+      </pre>
       <p><strong>Automatic Map Type Detection</strong></p>
       <p>If the value column is numeric → Choropleth; if text → Categorical. When mixed data is detected, the import modal shows an &quot;Interpret as&quot; selector so you can override.</p>
       <h2 id="supported-files">Supported File Types</h2>
@@ -285,7 +302,7 @@ Brazil,89.7`}
         <li><strong>No numeric values found</strong> — For choropleth imports, the value column must contain numbers.</li>
         <li><strong>Rows skipped</strong> — Parsing problems (e.g., encoding, malformed CSV).</li>
       </ul>
-      <p>Recommended: use ISO codes (e.g., IS, DE, BR) and standard English country names. Local spellings and aliases are supported when available. Invalid rows are skipped; the remainder is imported successfully.</p>
+      <p>Recommended: use ISO codes — 2-letter (e.g. IS, DE, BR) or 3-letter (e.g. ISL, DEU, BRA) — and standard English country names. Local spellings and aliases are supported when available. Invalid rows are skipped; the remainder is imported successfully.</p>
     </>
   );
 }

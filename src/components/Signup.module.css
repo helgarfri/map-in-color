@@ -26,7 +26,13 @@
     background: var(--mic-offwhite);
 }
 
-/* top-left */
+/* Header slot: shown only below 1200px (replaces left side) */
+.signupPageHeader {
+  display: none;
+  flex: 0 0 auto;
+}
+
+/* top-left (hidden below 1200px when HomeHeader is used) */
 .goBackButton {
   position: fixed;
   top: 20px;
@@ -90,6 +96,7 @@
 /* ===== Right form side (subtle orange/pink like HeroSection) ===== */
 .rightSide {
   flex: 1;
+  min-width: 0; /* allow shrinking so form doesn't overflow at ~1550px */
   display: grid;
   place-items: center;
   padding: 30px;
@@ -160,6 +167,7 @@
 .leftColumn,
 .rightColumn {
   flex: 1;
+  min-width: 0; /* allow columns to shrink with form */
 }
 
 /* Row container for First/Last Name */
@@ -389,14 +397,64 @@
 }
 
 /* ===== Responsive ===== */
+/* Shrink form in split layout before it overflows (~1550px) */
+@media (max-width: 1600px) {
+  .signupBox {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 1200px) {
   .splitContainer {
     flex-direction: column;
+    /* Same orange/pink gradient as .rightSide so transparent header fits (like HeroSection) */
+    background:
+      radial-gradient(
+        ellipse 85% 65% at 20% 25%,
+        rgba(252, 134, 29, 0.2),
+        rgba(252, 134, 29, 0.05) 45%,
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 75% 70% at 88% 75%,
+        rgba(206, 34, 146, 0.18),
+        rgba(206, 34, 146, 0.05) 45%,
+        transparent 65%
+      ),
+      linear-gradient(
+        165deg,
+        #f5ebe5 0%,
+        #f8e8f0 35%,
+        #f5ebe5 70%,
+        #f0e8f2 100%
+      );
+  }
+
+  /* Use HomeHeader instead of left brand side (transparent over gradient) */
+  .signupPageHeader {
+    display: block;
+  }
+
+  .goBackButton {
+    display: none;
   }
 
   .leftSide {
-    flex: 0;
-    padding: 22px;
+    display: none;
+  }
+
+  .rightSide {
+    padding: 28px 24px;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .signupBox {
+    width: 100%;
+    max-width: 640px;
+    padding: 24px;
   }
 
   .brandText {
@@ -404,11 +462,7 @@
   }
 
   .logo {
-    width: 600px;
-  }
-
-  .signupBox {
-    width: 560px;
+    width: 80px;
   }
 }
 
@@ -418,14 +472,71 @@
   }
 }
 
-@media (max-width: 450px) {
+/* Narrower form on small tablets / large phones */
+@media (max-width: 600px) {
+  .rightSide {
+    padding: 20px 16px;
+  }
+
   .signupBox {
-    padding: 18px;
+    max-width: 440px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rightSide {
+    padding: 16px 20px;
+  }
+
+  .signupBox {
+    max-width: calc(100% - 16px);
+    width: 100%;
+    padding: 16px;
     border-radius: 14px;
+    box-sizing: border-box;
   }
 
   .signupTitle {
-    font-size: 22px;
+    font-size: 24px;
+  }
+
+  .signupSubtitle {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .formGroup input,
+  .formGroup select {
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+
+  .signupButton {
+    height: 42px;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .signupFooter {
+    margin-top: 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 450px) {
+  .rightSide {
+    padding: 14px 18px;
+  }
+
+  .signupBox {
+    max-width: calc(100% - 12px);
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .signupTitle {
+    font-size: 20px;
   }
 
   .brandText {
@@ -458,6 +569,9 @@
   place-items: center;
   z-index: 9999;
   padding: 18px;
+  overflow-y: auto;
+  align-items: center;
+  justify-items: center;
 }
 
 .micModalCard {
@@ -469,6 +583,41 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   animation: popIn 140ms ease-out;
+  margin: auto;
+}
+
+@media (max-width: 520px) {
+  .micModalOverlay {
+    padding: 12px;
+    align-items: safe center;
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+
+  .micModalCard {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    border-radius: 14px;
+    margin: auto;
+  }
+
+  .micModalHeader {
+    padding: 14px 12px 10px;
+  }
+
+  .micModalTitle {
+    font-size: 16px;
+  }
+
+  .micModalSubtitle {
+    font-size: 12px;
+  }
+
+  .micModalBody {
+    padding: 12px;
+  }
 }
 
 @keyframes popIn {

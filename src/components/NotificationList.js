@@ -39,12 +39,15 @@ export default function NotificationList() {
   const hasValidSender = (n) =>
     n.Sender != null && (n.Sender.id != null || n.Sender.username != null);
 
+  // Only show notifications for maps that still exist (hide notifications for deleted maps)
+  const hasValidMap = (n) => !n.map_id || n.Map != null;
+
   useEffect(() => {
     const getNotifications = async () => {
       try {
         const res = await fetchNotifications();
         const list = Array.isArray(res.data) ? res.data : [];
-        setNotifications(list.filter(hasValidSender));
+        setNotifications(list.filter((n) => hasValidSender(n) && hasValidMap(n)));
       } catch (err) {
         console.error('Error fetching notifications:', err);
       } finally {

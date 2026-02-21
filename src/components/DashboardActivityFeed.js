@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { fetchDashboardActivity, markNotificationAsRead, fetchMapById } from '../api';
+import useWindowSize from '../hooks/useWindowSize';
 
 
 import {
@@ -115,13 +116,19 @@ function normalizeMapForPreview(mapObj) {
 }
 
 
+const MOBILE_BREAKPOINT = 700;
+const DESKTOP_LIMIT = 15;
+const MOBILE_LIMIT = 5;
+
 export default function DashboardActivityFeed({ userProfile }) {
   const navigate = useNavigate();
+  const { width } = useWindowSize();
+  const isMobile = width !== undefined && width < MOBILE_BREAKPOINT;
+  const limit = isMobile ? MOBILE_LIMIT : DESKTOP_LIMIT;
 
   // feed data + pagination
   const [activities, setActivities] = useState([]);
   const [offset, setOffset] = useState(0);
-  const limit = 15;
   const [hasMore, setHasMore] = useState(true);
 
   // loading states
@@ -149,16 +156,17 @@ export default function DashboardActivityFeed({ userProfile }) {
       const raw = res.data || [];
       const newBatch = raw.filter(isMapValidForFeed);
       setActivities(newBatch);
-      setHasMore(raw.length === limit);
+      setHasMore(isMobile ? false : raw.length === limit);
       setOffset(0);
     } catch (err) {
       console.error('Error loading feed:', err);
     } finally {
       setIsInitialLoading(false);
     }
-  }, []);
+  }, [limit, isMobile]);
 
   const loadMore = useCallback(async () => {
+    if (isMobile) return; /* never load more below 700px */
     try {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
@@ -177,9 +185,9 @@ export default function DashboardActivityFeed({ userProfile }) {
     } finally {
       setIsFetchingMore(false);
     }
-  }, [offset]);
+  }, [offset, limit, isMobile]);
 
-  // reset + initial load
+  // reset + initial load (reload when limit changes e.g. crossing 700px)
   useEffect(() => {
     if (!userProfile) return;
     setActivities([]);

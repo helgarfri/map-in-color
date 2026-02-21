@@ -166,7 +166,7 @@ router.post(
           <p>Welcome to Map in Color! Please verify your account by clicking the link below:</p>
           <p><a href="${verifyLink}">Verify Your Account</a></p>
           <p>Once verified, you can log in and start creating and exploring data through maps!</p>
-          <p>Cheers,<br/>Helgi</p>
+          <p>Cheers,<br/>The Map in Color team</p>
         `;
 
         await resend.emails.send({
@@ -372,7 +372,7 @@ router.post('/resend-verification', async (req, res) => {
           <p>We noticed you haven't verified your account yet. Here's a new link:</p>
           <p><a href="${newVerifyLink}">Verify Your Account</a></p>
           <p>If you didn't request this email, you can ignore it.</p>
-          <p>Cheers,<br/>Helgi</p>
+          <p>Cheers,<br/>The Map in Color team</p>
         `,
       });
 
@@ -452,7 +452,7 @@ router.post("/request-password-reset", async (req, res) => {
           <p><a href="${resetLink}">Reset password</a></p>
           <p>This link expires in 30 minutes.</p>
           <p>If you didn't request this, you can ignore this email.</p>
-          <p>Cheers,<br/>Helgi</p>
+          <p>Cheers,<br/>The Map in Color team</p>
         `,
       });
     } catch (mailErr) {

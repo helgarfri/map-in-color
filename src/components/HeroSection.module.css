@@ -5,11 +5,10 @@
 */
 /* 3.0 background: cyan, azure, magenta, orange — on the container so it always shows */
 /* margin-top pulls hero behind sticky header so transparent header shows hero gradient */
+/* height set via inline style from JS (window.innerHeight + header offset) so hero exactly fills viewport */
 .heroContainer {
   position: relative;
   width: 100%;
-  height: 100vh;
-  min-height: 0;
   margin-top: -80px;
   display: flex;
   flex-direction: column;
@@ -368,7 +367,6 @@
 @media (max-width: 650px) {
   .heroContainer {
     flex-direction: column;
-    min-height: 100vh;
     text-align: center;
   }
 
@@ -522,13 +520,10 @@
 
 /* Extra-large screens — even bigger, centered so gap between title and images doesn’t grow */
 @media (min-width: 1920px) {
-  .heroContainer {
+  .heroBody {
     max-width: 1920px;
     margin-left: auto;
     margin-right: auto;
-  }
-
-  .heroBody {
     padding: 168px 96px 96px;
   }
 

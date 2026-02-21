@@ -462,13 +462,24 @@
   }
 }
 
-@media (max-width: 720px) {
+/* iPad / tablet: slightly smaller logo */
+@media (max-width: 1024px) {
   .logo {
-    height: 34px;
+    height: 32px;
   }
 
   .logoPro {
     height: 28px;
+  }
+}
+
+@media (max-width: 720px) {
+  .logo {
+    height: 30px;
+  }
+
+  .logoPro {
+    height: 26px;
   }
 }
 
@@ -530,7 +541,7 @@
   top: 52px;
   width: 320px;
 
-  background: rgba(255,255,255,0.88);
+  background: rgba(255,255,255,0.98);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 
@@ -553,7 +564,7 @@
   height: 12px;
   transform: rotate(45deg);
 
-  background: rgba(255,255,255,0.88);
+  background: rgba(255,255,255,0.98);
   border-left: 1px solid rgba(0,0,0,0.10);
   border-top: 1px solid rgba(0,0,0,0.10);
 }
@@ -567,11 +578,11 @@
 
   padding: 14px 14px 14px 14px;
 
-  /* tinted + subtle gradient */
+  /* tinted + subtle gradient (more opaque) */
   background: linear-gradient(
     135deg,
-    rgba(40, 169, 225, 0.411),
-    rgba(20,169,175,0.10)
+    rgba(40, 169, 225, 0.18),
+    rgba(20,169,175,0.06)
   );
 
   border-bottom: 1px solid rgba(0,0,0,0.06);
@@ -633,7 +644,7 @@
   padding: 6px 10px;
   border-radius: 999px;
 
-  background: rgba(255,255,255,0.70);
+  background: rgba(255,255,255,0.92);
   border: 1px solid rgba(0,0,0,0.08);
 
   overflow: hidden;
@@ -666,7 +677,7 @@
   font-weight: 1000;
   font-size: 13px;
 
-  background: rgba(255,255,255,0.78);
+  background: rgba(255,255,255,0.95);
   border: 1px solid rgba(0,0,0,0.06);
 
   box-shadow: 0 10px 22px rgba(0,0,0,0.06);
@@ -744,7 +755,11 @@
   }
 
   .logo {
-    height: 34px;
+    height: 30px;
+  }
+
+  .logoPro {
+    height: 26px;
   }
 
   .headerTitle {

@@ -1,6 +1,6 @@
 // src/components/Dashboard.js
 import React, { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   fetchMaps,
   deleteMap,
@@ -20,6 +20,7 @@ import StaticMapThumbnail from "./StaticMapThumbnail";
 
 import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
+import UpgradeProModal from "./UpgradeProModal";
 
 import styles from "./Dashboard.module.css";
 
@@ -75,9 +76,11 @@ function getDailyWelcomeMessage() {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
 
   const [maps, setMaps] = useState([]);
   const [savedMaps, setSavedMaps] = useState([]);
@@ -112,6 +115,14 @@ export default function Dashboard() {
   const profileAgeDays = profile?.created_at
     ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
+
+  // Show Upgrade Pro modal when arriving from Pro page CTA (login → dashboard with showUpgradeModal)
+  useEffect(() => {
+    if (location.state?.showUpgradeModal) {
+      setShowUpgradeProModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.showUpgradeModal, location.pathname, navigate]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -598,6 +609,12 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <UpgradeProModal
+        isOpen={showUpgradeProModal}
+        onClose={() => setShowUpgradeProModal(false)}
+        onUpgrade={() => setShowUpgradeProModal(false)}
+      />
     </div>
   );
 }

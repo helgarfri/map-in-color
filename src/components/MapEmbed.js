@@ -7,8 +7,8 @@ import { fetchMapById } from "../api";
 import countries from "../world-countries.json";
 import styles from "./MapEmbed.module.css";
 
-const EMBED_COMPACT_WIDTH = 720;
-const EMBED_COMPACT_HEIGHT = 480;
+const EMBED_COMPACT_WIDTH = 520;
+const EMBED_COMPACT_HEIGHT = 360;
 
 // reuse your helpers (paste from MapDetail or import them)
 function parseJsonArray(x) {
@@ -69,6 +69,7 @@ export default function MapEmbed() {
   const { width: embedWidth, height: embedHeight } = useWindowSize();
   const isSmallEmbed =
     embedWidth < EMBED_COMPACT_WIDTH || embedHeight < EMBED_COMPACT_HEIGHT;
+  const isNarrowPortrait = embedWidth < embedHeight && embedWidth < 700;
 
   useEffect(() => {
     let cancelled = false;
@@ -355,6 +356,20 @@ export default function MapEmbed() {
 
         {!isInteractive && (
           <div className={styles.mapNonInteractiveOverlay} aria-hidden="true" />
+        )}
+
+        {loadState === "ready" && isNarrowPortrait && (
+          <div
+            className={`${styles.turnScreenPrompt} ${embedTheme === "dark" ? styles.turnScreenPromptDark : ""}`}
+            role="status"
+            aria-live="polite"
+          >
+            <svg className={styles.turnScreenIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+              <path d="M21 3v6h-6" />
+            </svg>
+            <span>Turn your screen for a better experience</span>
+          </div>
         )}
 
         {showLegend && (

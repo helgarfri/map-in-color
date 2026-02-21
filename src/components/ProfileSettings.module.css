@@ -259,6 +259,19 @@
   opacity: 0.9;
 }
 
+/* Pro CTA in hero */
+.pillPro {
+  border-color: rgba(20, 169, 175, 0.3);
+  background: linear-gradient(135deg, #28a8e1 0%, #14a9af 100%);
+  color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 10px 24px rgba(40, 168, 225, 0.22);
+}
+
+.pillPro:hover {
+  box-shadow: 0 14px 30px rgba(40, 168, 225, 0.28);
+  filter: brightness(1.03);
+}
+
 /* ===== page grid ===== */
 .grid {
   max-width: 1100px;
@@ -893,6 +906,18 @@
   border-color: rgba(20, 169, 175, 0.25);
   background: linear-gradient(135deg, rgba(40, 168, 225, 0.92), rgba(20, 169, 175, 0.88));
   color: rgba(255, 255, 255, 0.96);
+}
+
+.pillPro {
+  border-color: rgba(20, 169, 175, 0.3);
+  background: linear-gradient(135deg, #28a8e1 0%, #14a9af 100%);
+  color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 10px 24px rgba(40, 168, 225, 0.22);
+}
+
+.pillPro:hover {
+  box-shadow: 0 14px 30px rgba(40, 168, 225, 0.28);
+  filter: brightness(1.03);
 }
 
 .pillIcon {
@@ -1598,6 +1623,49 @@
   margin: 6px 0 2px;
 }
 
+.pwGeneralError {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(180, 35, 24, 0.95);
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  border-radius: 12px;
+}
+
+.pwSuccessWrap {
+  padding: 8px 0 16px;
+  text-align: center;
+}
+
+.pwSuccessIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: rgba(46, 163, 106, 0.12);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 14px;
+  font-size: 28px;
+  font-weight: 1000;
+  color: rgba(46, 163, 106, 0.95);
+  line-height: 1;
+}
+
+.pwSuccessMessage {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.pwSuccessEmailNote {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.62);
+}
 
 /* ============================
    Saving modal (Profile)
@@ -1757,4 +1825,67 @@
   .cropArea {
     height: 280px;
   }
+}
+
+/* Subscription section */
+.subscriptionBlock {
+  padding: 4px 0;
+}
+
+.subscriptionPlanRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.subscriptionPlanLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.subscriptionPlanBadge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.subscriptionPlanPro {
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.18), rgba(20, 169, 175, 0.14));
+  border-color: rgba(20, 169, 175, 0.25);
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.subscriptionDesc {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.subscriptionManageBtn {
+  display: inline-block;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.88);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.subscriptionManageBtn:hover {
+  background: #fff;
+  box-shadow: var(--shadowSm);
+}
+
+.subscriptionUpgradeBtn {
+  margin-top: 4px;
 }

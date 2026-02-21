@@ -16,13 +16,19 @@
   --radius-sm: 10px;
 }
 
-/* ===== Page ===== */
+/* ===== Page =====
+   Full viewport width, no horizontal white space.
+---------------------------- */
 .exploreContentContainer {
   min-height: 100vh;
   color: var(--text);
   background: var(--bg);
   padding: 26px;
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* ===== Top Bar ===== */
@@ -199,17 +205,17 @@
 .selectedTagBox {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
-  padding: 7px 10px;
+  padding: 6px 8px 6px 12px;
   border-radius: 999px;
 
-  border: 1px solid rgba(20,169,175,0.18);
+  border: 1px solid rgba(20,169,175,0.22);
   background: rgba(20,169,175,0.08);
 
   font-size: 12px;
   font-weight: 900;
-  color: rgba(0,0,0,0.70);
+  color: rgba(0,0,0,0.72);
 }
 
 .selectedTagText {
@@ -219,27 +225,41 @@
 .removeTagButton {
   all: unset;
   cursor: pointer;
+  box-sizing: border-box;
 
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  border-radius: 50%;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 12px;
-  font-weight: 900;
-  color: rgba(0,0,0,0.55);
-
-  background: rgba(255,255,255,0.8);
+  color: rgba(0,0,0,0.5);
+  background: rgba(255,255,255,0.9);
   border: 1px solid rgba(0,0,0,0.08);
 
-  transition: transform 120ms ease, filter 120ms ease;
+  transition: color 120ms ease, background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.removeTagButton svg {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
 }
 
 .removeTagButton:hover {
-  transform: translateY(-1px);
-  filter: brightness(0.98);
+  color: #fff;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+.removeTagButton:focus-visible {
+  outline: 2px solid var(--mic-cyan);
+  outline-offset: 2px;
 }
 
 /* ===== Main layout ===== */
@@ -247,6 +267,11 @@
   display: flex;
   align-items: flex-start;
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .mapsSection {
@@ -254,13 +279,19 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
-/* Grid */
+/* Grid: default wide layout */
 .mapsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 14px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* ===== Map card ===== */
@@ -273,6 +304,7 @@
 
   display: flex;
   flex-direction: column;
+  min-width: 0;
 
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
@@ -285,10 +317,15 @@
 
 .thumbnail {
   width: 100%;
+  height: 140px;
   overflow: hidden;
 
   position: relative;
   isolation: isolate;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   background: linear-gradient(135deg, rgba(40,168,225,0.18), rgba(20,169,175,0.14));
   border-bottom: 1px solid rgba(0,0,0,0.08);
@@ -300,6 +337,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center; /* center map in thumbnail (e.g. single-column layout) */
+}
+
+.thumbnail > * {
+  min-width: 0; /* allow shrinking in narrow/flex contexts */
 }
 
 /* Title */
@@ -438,11 +480,17 @@
   background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan)) !important;
 }
 
-/* ===== Tags sidebar ===== */
+/* ===== Tags sidebar =====
+   Respects container width; no overflow to the right.
+---------------------------- */
 .tagsSidebar {
   width: 240px;
   min-width: 240px;
   flex-shrink: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  min-width: 0; /* allow shrinking when container is narrow */
 
   background: rgba(255,255,255,0.88);
   border: 1px solid rgba(0,0,0,0.10);
@@ -466,8 +514,10 @@
   flex-direction: column;
   gap: 8px;
   max-height: 70vh;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 6px;
+  min-width: 0;
 }
 
 /* Checkbox rows become pill cards */
@@ -475,6 +525,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 
   padding: 10px 10px;
   border-radius: 14px;
@@ -504,6 +555,9 @@
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 
   font-size: 12px;
   font-weight: 900;
@@ -549,13 +603,24 @@
 .skeletonSearchButton { width: 38px; height: 38px; border-radius: 999px; }
 .skeletonResultsText { width: 160px; height: 18px; border-radius: 999px; }
 
+.skeletonTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 .skeletonMainContent {
   display: flex;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .skeletonMapsGrid {
   flex: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 14px;
@@ -567,28 +632,35 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .skeletonThumb {
   width: 100%;
-  height: 100px;
+  height: 140px;
   border-radius: 14px;
+  flex-shrink: 0;
 }
 
 .skeletonLine {
   width: 100%;
   height: 12px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .skeletonTagsSidebar {
   width: 240px;
   min-width: 240px;
+  flex-shrink: 0;
   border-radius: var(--radius-lg);
+  padding: 12px;
+  overflow-x: hidden;
 }
 
-.skeletonTagTitle { width: 120px; height: 16px; margin-bottom: 10px; }
-.skeletonTagLine { width: 100%; height: 12px; border-radius: 10px; }
+.skeletonTagTitle { width: 120px; height: 16px; margin-bottom: 10px; flex-shrink: 0; }
+.skeletonTagLine { width: 100%; height: 12px; border-radius: 10px; min-width: 0; }
 
 .skeletonPagination {
   display: flex;
@@ -626,16 +698,67 @@
   animation: shimmer 1.15s infinite;
 }
 
-/* ===== Responsive ===== */
+/* ===== Responsive =====
+   When tagbox goes below (~1000px): force 3 columns, then 2 at 768px, then 1 at 640px.
+   Cards always fill row (1fr) so no empty space.
+---------------------------- */
 @media (max-width: 1000px) {
+  .exploreContentContainer {
+    padding: 20px 16px;
+  }
+
   .mainContent {
     flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .mapsSection {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+
+  /* Force 3 columns so we use the full width; cards get narrower together */
+  .mapsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .thumbnail {
+    height: 120px;
+  }
+
+  /* Skeleton: stack like real content (maps above, tags below) */
+  .skeletonMainContent {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .skeletonMapsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .skeletonThumb {
+    height: 120px;
   }
 
   .tagsSidebar,
   .skeletonTagsSidebar {
     width: 100%;
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .tagsList {
@@ -645,7 +768,7 @@
 
 @media (max-width: 768px) {
   .exploreContentContainer {
-    padding: 18px;
+    padding: 18px 14px;
   }
 
   .topBar {
@@ -665,9 +788,85 @@
     flex: 1;
     width: auto;
   }
+
+  /* 2 columns; still full width (1fr each) */
+  .mapsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .skeletonMapsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Skeleton top bar: stack like real top bar on mobile */
+  .skeletonTopBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .skeletonSearchForm {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .skeletonSearchInput {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+
+  .skeletonSearchButton {
+    flex-shrink: 0;
+  }
+}
+
+/* Single column: cards use full width so no empty space */
+@media (max-width: 640px) {
+  .mapsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mapCard {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .skeletonMapsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .skeletonMapCard {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .skeletonThumb {
+    height: 120px;
+  }
+
+  .skeletonTagsSidebar {
+    overflow-x: hidden;
+  }
+
+  .skeletonTagLine {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 420px) {
+  .exploreContentContainer {
+    padding: 14px 12px;
+  }
+
   .mapsGrid,
   .skeletonMapsGrid {
     grid-template-columns: 1fr;

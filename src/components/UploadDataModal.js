@@ -150,10 +150,10 @@ export default function UploadDataModal({
 
   const looksLikeWDIHeader = (row) => {
     const r = row.map(normKey);
-    const hasCountryName = r.some((c) => c.includes("country name"));
     const hasCountryCode = r.some((c) => c.includes("country code"));
     const hasYears = row.some(isYear);
-    return hasCountryName && hasCountryCode && hasYears;
+    // Accept both full WDI (name + code + years) and code-only (code + years, e.g. 3-char ISO)
+    return hasCountryCode && hasYears;
   };
 
   function buildDataSourceIndex(src) {
@@ -163,6 +163,10 @@ export default function UploadDataModal({
     for (const item of src) {
       const code = String(item.code ?? "").trim().toUpperCase();
       if (code) byCode.set(code, item);
+
+      // Also index by 3-character ISO 3166 country code (e.g. World Bank uses COD, KOR, PRK)
+      const code3 = String(item.code3 ?? "").trim().toUpperCase();
+      if (code3 && code3.length === 3) byCode.set(code3, item);
 
       const names = [item.name, ...(item.aliases || [])]
         .map((n) => normKey(n))
@@ -340,7 +344,7 @@ export default function UploadDataModal({
 
       log(`✅ Detected wide format header at row ${headerIndex + 1}`, "success");
       log(
-        `Country Name col: ${countryNameCol + 1}, Country Code col: ${countryCodeCol + 1}`,
+        `Country Name col: ${countryNameCol >= 0 ? countryNameCol + 1 : "—"}, Country Code col: ${countryCodeCol + 1}`,
         "info"
       );
       log(
@@ -354,8 +358,10 @@ export default function UploadDataModal({
       for (let r = headerIndex + 1; r < cleanedRows.length; r++) {
         const row = cleanedRows[r];
 
-        const rawCode = normCell(row[countryCodeCol]).toUpperCase();
-        const rawName = normCell(row[countryNameCol]);
+        const rawCode = (countryCodeCol >= 0 && row[countryCodeCol] != null
+          ? String(normCell(row[countryCodeCol]) ?? "").trim().toUpperCase()
+          : "");
+        const rawName = countryNameCol >= 0 && row[countryNameCol] != null ? normCell(row[countryNameCol]) : "";
 
         const found =
           (rawCode && byCode.get(rawCode)) || (rawName && byName.get(normKey(rawName)));
@@ -477,61 +483,163 @@ export default function UploadDataModal({
       return;
     }
 
-    // 2) Fallback: simple 2-column
-    cleanedRows.forEach((row, index) => {
-      if (row.length < 2) {
-        errorList.push({
-          line: index + 1,
-          type: "Missing Value",
-          message: `Need at least 2 columns on line ${index + 1}`,
-        });
-        return;
-      }
-
-      const [nameRaw, secondRaw] = row;
-      if (!nameRaw) {
-        errorList.push({
-          line: index + 1,
-          type: "Missing Name",
-          message: `No state/country name on line ${index + 1}`,
-        });
-        return;
-      }
-      if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
-        errorList.push({
-          line: index + 1,
-          type: "Missing Value",
-          message: `No value provided on line ${index + 1}`,
-        });
-        return;
-      }
-
-      const needleKey = normKey(nameRaw);
-      const found =
-        byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
-
-      if (!found) {
-        errorList.push({
-          line: index + 1,
-          type: "Invalid Name",
-          message: `No match for "${nameRaw}"`,
-        });
-        return;
-      }
-
-      totalDataRows++;
-
-      const valAsNum = toNum(secondRaw);
-      const isNum = valAsNum != null;
-      if (isNum) numericCount++;
-
-      allRows.push({
-        name: found.name,
-        code: found.code,
-        rawValue: String(secondRaw),
-        isNumeric: isNum,
-      });
+    // 2) Fallback: simple 2-or-more column (optionally with header and description)
+    const firstRow = cleanedRows[0] || [];
+    const headerKeys = firstRow.map(normKey);
+    const hasNameCol = headerKeys.some((k) => k.includes("country") || k === "name");
+    const hasValueCol = headerKeys.some((k) => k === "value" || k.includes("value"));
+    const descColIndex = headerKeys.findIndex((k) => {
+      if (!k) return false;
+      return (
+        k.includes("description") ||
+        k === "desc" ||
+        k === "notes" ||
+        k.includes("note") ||
+        k === "comment" ||
+        k.includes("comment") ||
+        k === "details" ||
+        k.includes("detail") ||
+        k === "info" ||
+        k === "text"
+      );
     });
+    const nameColIndex = headerKeys.findIndex(
+      (k) => k.includes("country") || k === "name"
+    );
+    const valueColIndex = headerKeys.findIndex(
+      (k) => k === "value" || k.includes("value")
+    );
+    const useHeader =
+      cleanedRows.length >= 2 &&
+      firstRow.length >= 2 &&
+      hasNameCol &&
+      hasValueCol &&
+      nameColIndex >= 0 &&
+      valueColIndex >= 0;
+
+    if (useHeader) {
+      log(`Detected header row with columns: name, value${descColIndex >= 0 ? ", description" : ""}`, "info");
+      for (let index = 1; index < cleanedRows.length; index++) {
+        const row = cleanedRows[index];
+        if (row.length < 2) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `Need at least 2 columns on line ${index + 1}`,
+          });
+          continue;
+        }
+
+        const nameRaw = normCell(row[nameColIndex]);
+        const secondRaw = normCell(row[valueColIndex]);
+        const descriptionRaw =
+          descColIndex >= 0 && row[descColIndex] != null
+            ? normCell(row[descColIndex])
+            : "";
+
+        if (!nameRaw) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Name",
+            message: `No state/country name on line ${index + 1}`,
+          });
+          continue;
+        }
+        if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `No value provided on line ${index + 1}`,
+          });
+          continue;
+        }
+
+        const needleKey = normKey(nameRaw);
+        const found =
+          byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
+
+        if (!found) {
+          errorList.push({
+            line: index + 1,
+            type: "Invalid Name",
+            message: `No match for "${nameRaw}"`,
+          });
+          continue;
+        }
+
+        totalDataRows++;
+        const valAsNum = toNum(secondRaw);
+        const isNum = valAsNum != null;
+        if (isNum) numericCount++;
+
+        allRows.push({
+          name: found.name,
+          code: found.code,
+          rawValue: String(secondRaw),
+          isNumeric: isNum,
+          description: descriptionRaw ? String(descriptionRaw).trim() : undefined,
+        });
+      }
+    } else {
+      cleanedRows.forEach((row, index) => {
+        if (row.length < 2) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `Need at least 2 columns on line ${index + 1}`,
+          });
+          return;
+        }
+
+        const nameRaw = row[0];
+        const secondRaw = row[1];
+        const descriptionRaw = row.length >= 3 && row[2] != null ? normCell(row[2]) : "";
+
+        if (!nameRaw) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Name",
+            message: `No state/country name on line ${index + 1}`,
+          });
+          return;
+        }
+        if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `No value provided on line ${index + 1}`,
+          });
+          return;
+        }
+
+        const needleKey = normKey(nameRaw);
+        const found =
+          byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
+
+        if (!found) {
+          errorList.push({
+            line: index + 1,
+            type: "Invalid Name",
+            message: `No match for "${nameRaw}"`,
+          });
+          return;
+        }
+
+        totalDataRows++;
+
+        const valAsNum = toNum(secondRaw);
+        const isNum = valAsNum != null;
+        if (isNum) numericCount++;
+
+        allRows.push({
+          name: found.name,
+          code: found.code,
+          rawValue: String(secondRaw),
+          isNumeric: isNum,
+          description: descriptionRaw ? String(descriptionRaw).trim() : undefined,
+        });
+      });
+    }
 
     if (allRows.length === 0) {
       const msg =
@@ -609,6 +717,7 @@ export default function UploadDataModal({
       name: r.name,
       code: r.code,
       numericValue: toNum(r.rawValue),
+      ...(r.description != null && r.description !== "" ? { description: r.description } : {}),
     }));
 
     setSession((prev) => ({ ...prev, parsedData: numericParsed }));
@@ -634,6 +743,7 @@ export default function UploadDataModal({
       name: r.name,
       code: r.code,
       categoryValue: r.rawValue,
+      ...(r.description != null && r.description !== "" ? { description: r.description } : {}),
     }));
 
     setSession((prev) => ({ ...prev, parsedData: catParsed }));

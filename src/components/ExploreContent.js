@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { FaStar, FaSearch, FaComment } from "react-icons/fa";
+import { FaStar, FaSearch, FaComment, FaTimes } from "react-icons/fa";
 import StaticMapThumbnail from "./StaticMapThumbnail";
 import styles from "./ExploreContent.module.css";
 
@@ -305,10 +305,12 @@ function ExploreContent() {
                 <div key={t} className={styles.selectedTagBox}>
                   <span className={styles.selectedTagText}>{t}</span>
                   <button
+                    type="button"
                     className={styles.removeTagButton}
                     onClick={() => handleRemoveSelectedTag(t)}
+                    aria-label={`Remove filter ${t}`}
                   >
-                    x
+                    <FaTimes />
                   </button>
                 </div>
               ))}

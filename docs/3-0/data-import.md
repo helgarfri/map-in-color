@@ -20,13 +20,17 @@ The uploader automatically parses CSV (including semicolon-separated, common in 
 
 **3) Match rows to countries (smart country detection)**
 
-Each row is matched against the Map in Color country dataset using ISO country codes (e.g., US, IS, DE), country names, and aliases (alternate spellings and official names). For example, Turkey matches: Türkiye, Republic of Türkiye, Turkiye.
+Each row is matched against the Map in Color country dataset using:
+
+- **2-letter ISO country codes** (ISO 3166-1 alpha-2), e.g. US, IS, DE
+- **3-letter ISO country codes** (ISO 3166-1 alpha-3), e.g. USA, ISL, DEU — common in World Bank (WDI) and many international datasets
+- **Country names and aliases** (alternate spellings and official names). For example, Turkey matches: Türkiye, Republic of Türkiye, Turkiye.
 
 **4) Detect the file structure**
 
-Map in Color supports two common data layouts:
+Map in Color supports a variety of data layouts, including:
 
-**A) Simple 2-column layout (most common)**
+**A) Simple 2-column layout**
 
 Column 1 — country name or code; Column 2 — numeric value or category label.
 
@@ -39,7 +43,29 @@ Brazil,89.7
 
 **B) Wide "year columns" layout (World Bank / WDI-style)**
 
-Map in Color detects header rows with "Country Name", "Country Code", and year columns. It picks the most recent available numeric value per country.
+Map in Color detects header rows with "Country Code" and year columns (e.g. 1990, 2000, 2020). A "Country Name" column is optional: files that contain only "Country Code" and year columns (e.g. 3-letter codes like AFG, COD, KOR) are supported. The uploader picks the most recent available numeric value per country.
+
+Example (code-only with year columns):
+
+```
+Country Code,Indicator,1990,2000,2010,2020
+AFG,Inflation (%),,,5.2,6.1
+ALB,Inflation (%),2.1,3.4,4.0,4.2
+USA,Inflation (%),5.4,3.4,1.6,1.2
+```
+
+**C) Optional description column**
+
+You can include a third column to attach a short description to each country. The uploader looks for a column whose header contains or equals one of: `description`, `desc`, `notes`, `note`, `comment`, `details`, `detail`, `info`, or `text`. If present, that column’s value is stored as the per-country description and can be shown on the map (e.g. in tooltips). Without a header row, the third column is treated as the description column.
+
+Example with a description column:
+
+```
+Country,Value,Description
+Iceland,99.3,Highest renewable share in Europe
+Spain,95.1,Strong solar and wind growth
+Brazil,89.7,Hydropower-dominated grid
+```
 
 **Automatic Map Type Detection**
 
@@ -91,4 +117,4 @@ During import, Map in Color displays an import log. Common warnings and errors i
 - **No numeric values found** — For choropleth imports, the value column must contain numbers.
 - **Rows skipped** — Parsing problems (e.g., encoding, malformed CSV).
 
-Recommended: use ISO codes (e.g., IS, DE, BR) and standard English country names. Local spellings and aliases are supported when available. Invalid rows are skipped; the remainder is imported successfully.
+Recommended: use ISO codes — either 2-letter (e.g. IS, DE, BR) or 3-letter (e.g. ISL, DEU, BRA) — and standard English country names. Local spellings and aliases are supported when available. Invalid rows are skipped; the remainder is imported successfully.

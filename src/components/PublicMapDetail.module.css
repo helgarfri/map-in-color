@@ -1,11 +1,20 @@
-/* PublicMapDetail.module.css — match Docs background (#f6f7fb), content width aligned with HomeHeader */
+/* PublicMapDetail.module.css — match Docs background (#f6f7fb), content width aligned with HomeHeader.
+   Lock width to viewport: no extra space on the right, no horizontal scroll. */
 .publicMapDetailContainer {
   min-height: 100vh;
   background: #f6f7fb;
+
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Wrapper so map detail content aligns with HomeHeader .header horizontal padding */
 .publicMapDetailContentWrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding-left: 80px;
   padding-right: 80px;
   box-sizing: border-box;
@@ -18,8 +27,13 @@
 }
 
 .publicMapDetailContentWrapFullScreen {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding-left: 0;
   padding-right: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 @media (max-width: 1269px) {

@@ -342,8 +342,8 @@ function DocContentV3() {
       <p><strong>3) Match rows to countries (smart country detection)</strong></p>
       <p>Each row is matched against the Map in Color country dataset using ISO country codes (e.g., US, IS, DE), country names, and aliases (alternate spellings and official names). For example, Turkey matches: Türkiye, Republic of Türkiye, Turkiye. This allows the uploader to handle real-world datasets where country naming varies.</p>
       <p><strong>4) Detect the file structure</strong></p>
-      <p>Map in Color supports two common data layouts:</p>
-      <p><strong>A) Simple 2-column layout (most common)</strong></p>
+      <p>Map in Color supports a variety of data layouts, including:</p>
+      <p><strong>A) Simple 2-column layout</strong></p>
       <p>The uploader expects at least two columns: Column 1 — country name or code; Column 2 — numeric value or category label.</p>
       <p>Example (numeric → choropleth):</p>
       <pre className={styles.codeBlock}>
@@ -360,7 +360,22 @@ Spain,Winner
 Iceland,Never won`}
       </pre>
       <p><strong>B) Wide &quot;year columns&quot; layout (World Bank / WDI-style)</strong></p>
-      <p>Some datasets include many year columns. Map in Color detects this by looking for a header row with &quot;Country Name&quot;, &quot;Country Code&quot;, and one or more year columns (e.g., 1960, …, 2024). In wide format files, Map in Color will match each row to a country, scan from the latest year backwards, pick the most recent available numeric value for that country, and store the chosen year internally. This makes it possible to upload World Bank indicator files directly without manually filtering to a single year.</p>
+      <p>Some datasets include many year columns. Map in Color detects this by looking for a header row with &quot;Country Code&quot; and one or more year columns (e.g., 1990, 2000, 2020). A &quot;Country Name&quot; column is optional. In wide format files, Map in Color will match each row to a country, scan from the latest year backwards, pick the most recent available numeric value for that country, and store the chosen year internally. This makes it possible to upload World Bank indicator files directly without manually filtering to a single year.</p>
+      <p>Example (code-only with year columns):</p>
+      <pre className={styles.codeBlock}>
+        {`Country Code,Indicator,1990,2000,2010,2020
+AFG,Inflation (%),,,5.2,6.1
+ALB,Inflation (%),2.1,3.4,4.0,4.2
+USA,Inflation (%),5.4,3.4,1.6,1.2`}
+      </pre>
+      <p><strong>C) Optional description column</strong></p>
+      <p>You can include a third column to attach a short description to each country. The uploader detects a column whose header contains or equals one of: <code>description</code>, <code>desc</code>, <code>notes</code>, <code>note</code>, <code>comment</code>, <code>details</code>, <code>detail</code>, <code>info</code>, or <code>text</code>. If present, that column&apos;s value is stored as the per-country description and can be shown on the map (e.g. in tooltips). Without a header row, the third column is treated as the description column.</p>
+      <pre className={styles.codeBlock}>
+        {`Country,Value,Description
+Iceland,99.3,Highest renewable share in Europe
+Spain,95.1,Strong solar and wind growth
+Brazil,89.7,Hydropower-dominated grid`}
+      </pre>
       <p><strong>Automatic Map Type Detection</strong></p>
       <p>After parsing, Map in Color determines the map type: if the value column is numeric → Choropleth; if the value column is text → Categorical. If the file contains mixed numeric and text rows, Map in Color defaults to choropleth and allows a manual switch. When mixed data is detected, the import modal shows an &quot;Interpret as&quot; selector so you can override the automatic decision.</p>
       <p><strong>Import Log, Warnings, and Errors</strong></p>
@@ -838,7 +853,7 @@ const DOC_CARDS = [
   { slug: 'introduction', title: 'Introduction', subtitle: 'What is Map in Color? · Who is it for?' },
   { slug: 'getting-started', title: 'Getting Started', subtitle: 'Start Creating Immediately · Saving Your Map · Creating an Account' },
   { slug: 'creating-maps', title: 'Creating Maps', subtitle: 'Map Types · Choropleth · Categorical · Ranges · Colors' },
-  { slug: 'data-import', title: 'Data Import', subtitle: 'Data Format Guide · Smart Upload · File Types · Common Errors' },
+  { slug: 'data-import', title: 'Data Import', subtitle: 'Data Format Guide · Smart Upload · Description Column · File Types · Common Errors' },
   { slug: 'ownership-sharing', title: 'Ownership & Sharing', subtitle: 'Map Ownership · Public vs Private · Embedding · Profile Privacy' },
   { slug: 'explore-community', title: 'Explore & Community', subtitle: 'Browsing · Interactions · Search & Tags · Trending' },
 ];

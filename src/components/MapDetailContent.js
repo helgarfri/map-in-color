@@ -64,7 +64,8 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [isPostingReply, setIsPostingReply] = useState(false);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const { width } = useWindowSize();
+  const { width, height } = useWindowSize();
+  const isNarrowPortrait = width < height && width < 700;
 
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginModalAction, setLoginModalAction] = useState('default');
@@ -462,6 +463,22 @@ setIsLoading(true);
     };
     getNotifications();
   }, []);
+
+  // Prevent MapDetailContent (body) from scrolling while Download or Share modal is open
+  useEffect(() => {
+    const locked = showDownloadModal || showShareModal;
+    if (locked) {
+      document.documentElement.classList.add('scrollLocked');
+      document.body.classList.add('scrollLocked');
+    } else {
+      document.documentElement.classList.remove('scrollLocked');
+      document.body.classList.remove('scrollLocked');
+    }
+    return () => {
+      document.documentElement.classList.remove('scrollLocked');
+      document.body.classList.remove('scrollLocked');
+    };
+  }, [showDownloadModal, showShareModal]);
 
   useEffect(() => {
   if (loadState !== "ready") return;
@@ -1137,6 +1154,7 @@ if (!mapData) {
   <MapView
   {...mapDataProps()}
   isLargeMap={isFullScreen}
+  compactUi={width < 400}
   hoveredCode={hoveredCode}
   selectedCode={selectedCode}
   selectedCodeZoom={selectedCodeZoom}
@@ -1174,6 +1192,16 @@ if (!mapData) {
   >
     <FaEyeSlash />
   </button>
+)}
+
+{isFullScreen && isNarrowPortrait && (
+  <div className={styles.turnScreenPrompt} role="status" aria-live="polite">
+    <svg className={styles.turnScreenIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+      <path d="M21 3v6h-6" />
+    </svg>
+    <span>Turn your screen for a better experience</span>
+  </div>
 )}
 
 <div className={styles.mapLegendBox} aria-label="Legend">

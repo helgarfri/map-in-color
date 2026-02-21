@@ -14,6 +14,7 @@ export default function PublicLayout() {
 
   return (
     <div className={styles.wrap}>
+      {isHome && <div className={styles.heroBackgroundLayer} aria-hidden="true" />}
       <HomeHeader />
       <div className={`${styles.outletWrap} ${isHome ? styles.outletWrapHome : ""}`}>
         <Outlet />

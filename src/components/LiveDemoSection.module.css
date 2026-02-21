@@ -2,11 +2,13 @@
 
 .demoSection {
   width: 100%;
+  max-width: 100vw;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   padding: 48px 24px 64px;
   gap: 32px;
+  overflow-x: hidden;
 }
 
 .contentRow {
@@ -14,9 +16,11 @@
   gap: 48px;
   align-items: stretch;
   justify-content: center;
-  max-width: 1400px;
+  max-width: min(1400px, 100%);
   margin: 0 auto;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .errorMessage {
@@ -58,7 +62,7 @@
 /* Right: info card (defines row height; map stretches to match) */
 .infoCard {
   flex: 0 0 380px;
-  max-width: 420px;
+  max-width: min(420px, 100%);
   align-self: flex-start;
   display: flex;
   flex-direction: column;
@@ -69,6 +73,9 @@
   border: 1px solid rgba(20, 24, 40, 0.08);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   text-align: left;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cardEyebrow {
@@ -86,6 +93,8 @@
   margin: 0;
   color: #0f172a;
   line-height: 1.25;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .cardDescription {
@@ -93,6 +102,8 @@
   color: rgba(15, 23, 42, 0.75);
   line-height: 1.55;
   margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Stats row */
@@ -136,6 +147,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
 }
 
 .tagChip {
@@ -149,6 +161,9 @@
   border: 1px solid rgba(20, 169, 175, 0.2);
   text-decoration: none;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .tagChip:hover {
@@ -184,6 +199,8 @@
   color: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: fit-content;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .creatorChip:hover {
@@ -205,6 +222,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .creatorName {
@@ -212,6 +230,9 @@
   font-weight: 700;
   color: rgba(15, 23, 42, 0.88);
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .creatorUsername {
@@ -219,6 +240,9 @@
   font-weight: 600;
   color: rgba(15, 23, 42, 0.55);
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* CTA */
@@ -236,6 +260,10 @@
   border-radius: 10px;
   text-decoration: none;
   transition: background 0.15s ease, transform 0.1s ease;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .ctaButton:hover {
@@ -263,13 +291,20 @@
   .mapContainer {
     width: 100%;
     max-width: 700px;
+    height: 320px;
+    min-height: 320px;
+    flex: none;
+  }
+
+  .embedWrap {
     min-height: 320px;
   }
 
   .infoCard {
     flex: 0 0 auto;
     width: 100%;
-    max-width: 560px;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -278,15 +313,24 @@
     padding: 32px 16px 48px;
   }
 
+  .mapContainer {
+    max-width: 100%;
+    height: 280px;
+    min-height: 280px;
+  }
+
+  .embedWrap {
+    min-height: 280px;
+  }
+
   .infoCard {
     padding: 20px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .cardTitle {
     font-size: 1.25rem;
-  }
-
-  .ctaButton {
-    width: 100%;
   }
 }

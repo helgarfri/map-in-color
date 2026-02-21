@@ -47,10 +47,11 @@ export default function HomeFooter() {
           <a href="mailto:hello@mapincolor.com">hello@mapincolor.com</a>
         </div>
 
-        {/* Terms and Privacy Links */}
+        {/* Terms, Privacy, and Refund Links */}
         <div className={styles.linkGroup}>
           <Link to="/terms">Terms of Use</Link>
           <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/refund">Refund Policy</Link>
         </div>
 
         {/* Copyright */}

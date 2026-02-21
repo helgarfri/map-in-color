@@ -9,7 +9,28 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  background: #fbfafa;
+  background:
+    radial-gradient(
+      ellipse 90% 60% at 15% 20%,
+      rgba(20, 169, 175, 0.12) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 90% 30%,
+      rgba(40, 168, 225, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 70% 70% at 85% 85%,
+      rgba(206, 34, 146, 0.08) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 10% 70%,
+      rgba(252, 134, 29, 0.08) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #f5f8fa 0%, #fbfafa 35%, #f8f5fa 70%, #fbfafa 100%);
 }
 
 /* ——— Sidebar ——— */
@@ -20,27 +41,56 @@
   width: 220px;
   min-width: 220px;
   height: 100vh;
-  padding: 48px 24px 48px 32px;
+  padding: 48px 24px 48px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: #fbfafa;
-  border-right: none;
+  background: rgba(251, 250, 250, 0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(20, 169, 175, 0.08);
   z-index: 10;
   flex-shrink: 0;
+}
+
+/* Timeline line behind nav */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  left: 32px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(20, 169, 175, 0.18);
+  border-radius: 2px;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  left: 32px;
+  bottom: 0;
+  width: 2px;
+  height: calc((var(--active-step, 0) + 1) * 20vh);
+  background: linear-gradient(to top, #14a9af, rgba(40, 168, 225, 0.85));
+  border-radius: 2px;
+  transition: height 0.4s ease;
+  pointer-events: none;
 }
 
 .sidebarNav {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebarItem {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 18px;
   border: none;
   border-radius: 10px;
   background: transparent;
@@ -48,6 +98,28 @@
   text-align: left;
   font-family: inherit;
   transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sidebarItem::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(20, 169, 175, 0.3);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebarItem:hover::before {
+  background: rgba(20, 169, 175, 0.5);
+}
+
+.sidebarItemActive::before {
+  background: #14a9af;
+  box-shadow: 0 0 0 3px rgba(20, 169, 175, 0.28);
 }
 
 .sidebarItem:hover {
@@ -100,36 +172,74 @@
   scroll-margin-top: 0;
 }
 
-.stepSection:nth-child(odd) {
+.stepSection:nth-child(1) {
   background: linear-gradient(
-    135deg,
-    rgba(20, 169, 175, 0.04) 0%,
-    transparent 50%
+    165deg,
+    rgba(20, 169, 175, 0.08) 0%,
+    rgba(20, 169, 175, 0.02) 40%,
+    transparent 70%
   );
 }
 
-.stepSection:nth-child(even) {
+.stepSection:nth-child(2) {
   background: linear-gradient(
-    135deg,
-    rgba(40, 168, 225, 0.04) 0%,
-    transparent 50%
+    165deg,
+    rgba(40, 168, 225, 0.08) 0%,
+    rgba(40, 168, 225, 0.02) 40%,
+    transparent 70%
+  );
+}
+
+.stepSection:nth-child(3) {
+  background: linear-gradient(
+    165deg,
+    rgba(206, 34, 146, 0.06) 0%,
+    rgba(206, 34, 146, 0.02) 40%,
+    transparent 70%
+  );
+}
+
+.stepSection:nth-child(4) {
+  background: linear-gradient(
+    165deg,
+    rgba(252, 134, 29, 0.07) 0%,
+    rgba(252, 134, 29, 0.02) 40%,
+    transparent 70%
+  );
+}
+
+.stepSection:nth-child(5) {
+  background: linear-gradient(
+    165deg,
+    rgba(20, 169, 175, 0.06) 0%,
+    rgba(40, 168, 225, 0.03) 40%,
+    transparent 70%
   );
 }
 
 .stepContent {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 64px;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1320px;
   margin: 0 auto;
+  padding: 32px 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(20, 169, 175, 0.08);
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.04);
 }
 
 /* Text block — left side */
 .stepTextBlock {
+  position: relative;
   flex: 0 1 480px;
   min-width: 0;
 }
+
 
 .stepNumber {
   display: inline-block;
@@ -457,10 +567,10 @@
   margin: 0 auto;
 }
 
-/* Step 3: visibility demo fills the image column like other steps */
+/* Step 3: keep Map Info box narrow and centered */
 .stepImageWrap.step3 .visibilityDemoWrap {
-  max-width: none;
-  margin: 0;
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .visibilitySection {
@@ -608,6 +718,11 @@
     flex-direction: column;
   }
 
+  .sidebar::before,
+  .sidebar::after {
+    display: none;
+  }
+
   .sidebar {
     position: relative;
     width: 100%;
@@ -622,6 +737,14 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .sidebarItem::before {
+    display: none;
+  }
+
+  .sidebarItem {
+    padding: 10px 16px;
+  }
+
   .sidebarNav {
     flex-direction: row;
     gap: 0;
@@ -630,7 +753,6 @@
 
   .sidebarItem {
     flex-shrink: 0;
-    padding: 10px 16px;
     border-radius: 8px;
   }
 
@@ -645,12 +767,20 @@
   .stepSection {
     padding: 56px 24px;
     min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .stepContent {
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 40px;
     text-align: center;
+    padding: 24px 16px;
+    width: 100%;
   }
 
   .stepTextBlock {
@@ -658,16 +788,60 @@
     max-width: 100%;
   }
 
+  /* Steps 1 and 5: hide upload modal and comments demo on small widths */
+  .stepImageWrap.step1,
+  .stepImageWrap.step5 {
+    display: none;
+  }
+
+  /* Steps 2, 3, 4: wrap only as tall as the image/content — no extra height */
   .stepImageWrap {
+    flex: none;
     min-width: 100%;
     max-width: 100%;
-    aspect-ratio: 16/10;
+    width: 100%;
+    aspect-ratio: auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .stepImageWrap.step2 {
+    display: block;
+  }
+
+  .stepImageWrap.step2 img {
+    width: 100%;
+    height: auto;
+    display: block;
+    vertical-align: top;
+  }
+
+  .stepImageWrap.step3 {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .stepImageWrap.step3 .visibilityDemoWrap {
+    max-width: 100%;
+  }
+
+  .stepImageWrap.step4 {
+    display: block;
+  }
+
+  .stepImageWrap.step4 img {
+    width: 100%;
+    height: auto;
+    display: block;
+    vertical-align: top;
   }
 }
 
 @media (max-width: 600px) {
   .stepSection {
-    padding: 40px 20px 40px;
+    padding: 40px 20px;
+    min-height: 100dvh;
   }
 
   .stepTitle {
@@ -676,9 +850,5 @@
 
   .stepDescription {
     font-size: 1.1rem;
-  }
-
-  .stepImageWrap {
-    aspect-ratio: 4/3;
   }
 }

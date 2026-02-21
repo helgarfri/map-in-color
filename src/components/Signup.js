@@ -9,6 +9,7 @@ import { faHome } from "@fortawesome/free-solid-svg-icons";
 import { UserContext } from "../context/UserContext";
 
 import MICMessageModal from "./MICMessageModal"; // ✅ new component
+import HomeHeader from "./HomeHeader";
 
 const PasswordRequirement = ({ text, isValid }) => {
   return (
@@ -102,7 +103,18 @@ export default function Signup() {
     } else {
       const dob = new Date(`${year}-${month}-${day}`);
       const now = new Date();
-      if (dob > now) newErrors.date_of_birth = "Date of birth cannot be in the future.";
+      if (dob > now) {
+        newErrors.date_of_birth = "Date of birth cannot be in the future.";
+      } else {
+        let age = now.getFullYear() - dob.getFullYear();
+        const monthDiff = now.getMonth() - dob.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) {
+          age--;
+        }
+        if (age < 13) {
+          newErrors.date_of_birth = "You must be at least 13 years old to sign up.";
+        }
+      }
     }
 
     if (!gender) newErrors.gender = "Gender is required.";
@@ -276,20 +288,25 @@ export default function Signup() {
         onClose={() => setMsgOpen(false)}
       />
 
-      <button onClick={() => navigate("/")} className={styles.goBackButton}>
+      <button onClick={() => navigate("/")} className={styles.goBackButton} type="button">
         <FontAwesomeIcon icon={faHome} />
       </button>
 
-<div className={styles.leftSide}>
-<div className={styles.brandContainer}>
-  <img
-    src="/assets/3-0/mic-logo-2-5-text.png"
-    alt="Map in Color Logo"
-    className={styles.logo}
-  />
-</div>
+      {/* Header for narrow viewports (replaces left side below 1200px) */}
+      <div className={styles.signupPageHeader}>
+        <HomeHeader />
+      </div>
 
-</div>
+      {/* Left side (hidden below 1200px) */}
+      <div className={styles.leftSide}>
+        <div className={styles.brandContainer}>
+          <img
+            src="/assets/3-0/mic-logo-2-5-text.png"
+            alt="Map in Color Logo"
+            className={styles.logo}
+          />
+        </div>
+      </div>
 
       <div className={styles.rightSide}>
         <div className={styles.signupBox}>

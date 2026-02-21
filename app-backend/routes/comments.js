@@ -539,7 +539,7 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
                `We have received your report regarding comment #${comment_id}.\n` +
                `Reasons: ${reasons}\nDetails: ${details}\n\n` +
                `Thank you for helping us keep the community safe.\n` +
-               `- Helgi from Map in Color`
+               `- The Map in Color team`
        });
      } catch (emailErr) {
        console.error('Error sending user confirmation email:', emailErr);

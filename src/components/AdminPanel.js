@@ -1,6 +1,5 @@
 // AdminPanel.js
 import React, { useEffect, useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 
 import {
@@ -14,6 +13,7 @@ import {
   banProfileReport
 } from '../api';
 
+import Forbidden from './Forbidden';
 import styles from './AdminPanel.module.css';
 
 export default function AdminPanel() {
@@ -21,30 +21,21 @@ export default function AdminPanel() {
   const [commentReports, setCommentReports] = useState([]);
   const [profileReports, setProfileReports] = useState([]);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const { profile } = useContext(UserContext);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const { profile, loadingProfile } = useContext(UserContext);
 
-  // Check if current user is admin (from backend is_admin) => if not, redirect
+  // Fetch reports only after we know the user is admin (no API calls for non-admins)
   useEffect(() => {
-    if (!profile) return;
-    if (!profile.is_admin) {
-      navigate('/');
-    }
-  }, [profile, navigate]);
+    if (!profile?.is_admin) return;
 
-  // Fetch both comment + profile reports in one go
-  useEffect(() => {
     async function loadAllReports() {
       setIsLoading(true);
       try {
-        // 1) Load comment reports
         const resComments = await fetchPendingReports();
-        setCommentReports(resComments.data);
+        setCommentReports(resComments.data ?? []);
 
-        // 2) Load profile reports
         const resProfiles = await fetchPendingProfileReports();
-        setProfileReports(resProfiles.data);
+        setProfileReports(resProfiles.data ?? []);
       } catch (err) {
         console.error('Error loading reports:', err);
       } finally {
@@ -52,7 +43,7 @@ export default function AdminPanel() {
       }
     }
     loadAllReports();
-  }, []);
+  }, [profile?.is_admin]);
 
   // Handlers for COMMENT reports
   async function handleApproveComment(reportId) {
@@ -94,6 +85,15 @@ export default function AdminPanel() {
     } catch (err) {
       console.error('Error banning user:', err);
     }
+  }
+
+  // Wait for UserContext to finish loading profile (use loadingProfile so we don't get stuck when not logged in)
+  if (loadingProfile) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
+  // No user or not admin => show 403 (don't show admin UI or fetch reports)
+  if (!profile || !profile.is_admin) {
+    return <Forbidden />;
   }
 
   if (isLoading) {

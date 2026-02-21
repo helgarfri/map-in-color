@@ -5,12 +5,12 @@ import { fetchMapById, fetchComments } from '../api';
 import { FaStar, FaDownload, FaComment } from 'react-icons/fa';
 import LoadingSpinner from './LoadingSpinner';
 
-// Featured map shown in the live demo (FIFA World Cup Winners)
-const FEATURED_MAP_ID = 78;
+// Featured map shown in the live demo
+const FEATURED_MAP_ID = 89;
 // Embed token for unbranded embed (set REACT_APP_FEATURED_MAP_EMBED_TOKEN to override)
 const FEATURED_MAP_EMBED_TOKEN =
   process.env.REACT_APP_FEATURED_MAP_EMBED_TOKEN ||
-  '0724e98f9da367c46426d4316cf1fffe4f26fe5c680955a7b0df70494aff5447';
+  'c8f7b552ffd2b53c7366fcaf8e0e6deb8afb15081675f0c18d98a5843de427aa';
 
 function buildEmbedUrl(mapId, token) {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';

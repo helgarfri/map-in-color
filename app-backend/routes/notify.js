@@ -53,7 +53,7 @@ router.post('/', notifyLimiter, async (req, res) => {
         <p>Hey there!</p>
         <p>Thanks for signing up to get notified about <strong>Map in Color v2</strong>—you're officially among the first to know what's coming!</p>
         <p>We’re excited to release on <strong>March 28th</strong>, and we’ll be sure to keep you updated along the way.</p>
-        <p>Cheers,<br/>Helgi from Map in Color</p>
+        <p>Cheers,<br/>The Map in Color team</p>
       `,
     });
 

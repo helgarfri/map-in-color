@@ -314,22 +314,21 @@ onTransformChange,
       return [];
     }
 
-    // CATEGORICAL
+    // CATEGORICAL: data.value is group id; resolve id -> name/color from parsedGroups
     if (hasOldGroups) return normalizeGroups(parsedGroups);
 
-    const colorByCategory = (() => {
+    const idToGroup = (() => {
       const m = new JSMap();
       const arr = Array.isArray(parsedGroups) ? parsedGroups : [];
       for (const g of arr) {
         if (!g) continue;
-        const key = (g.name ?? g.category ?? g.label ?? "").toString().trim();
-        const color = (g.color ?? g.hex ?? g.fill ?? "").toString().trim();
-        if (key) m.set(key, color || "#c0c0c0");
+        const id = g.id != null ? String(g.id) : "";
+        if (id) m.set(id, g);
       }
       return m;
     })();
 
-    const categories = Array.from(
+    const categoryIds = Array.from(
       new Set(
         data
           .map((d) => (d.value == null ? "" : String(d.value).trim()))
@@ -337,13 +336,18 @@ onTransformChange,
       )
     );
 
-    return categories.map((cat) => ({
-      name: cat,
-      color: colorByCategory.get(cat) || "#c0c0c0",
-      countries: data
-        .filter((d) => String(d.value).trim() === cat)
-        .map((d) => ({ code: d.code })),
-    }));
+    return categoryIds.map((catId) => {
+      const g = idToGroup.get(catId);
+      const name = (g?.name ?? g?.category ?? g?.label ?? catId).toString().trim() || "(Unnamed)";
+      const color = (g?.color ?? g?.hex ?? g?.fill ?? "#c0c0c0").toString().trim();
+      return {
+        name,
+        color: color || "#c0c0c0",
+        countries: data
+          .filter((d) => String(d.value).trim() === catId)
+          .map((d) => ({ code: d.code })),
+      };
+    });
   }, [effectiveMapType, parsedRanges, parsedGroups, data, normalizeGroups]);
 
   
@@ -536,8 +540,16 @@ const findValue = useCallback((code) => {
   if (v == null) return "No data";
   if (typeof v === "string" && v.trim() === "") return "No data";
 
+  // Categorical: display group name, not raw id (e.g. "group_2" -> "Winners")
+  if (effectiveMapType === "categorical" && Array.isArray(parsedGroups) && parsedGroups.length > 0) {
+    const g = parsedGroups.find((x) => String(x?.id) === String(v));
+    if (g) {
+      const name = (g.name ?? g.category ?? g.label ?? "").toString().trim();
+      return name || "(Unnamed)";
+    }
+  }
   return v;
-}, [data]);
+}, [data, effectiveMapType, parsedGroups]);
 
 
   const findColor = useCallback(
@@ -1226,7 +1238,7 @@ useEffect(() => {
   );
 
 const renderInfoBox = () => {
-  if (suppressInfoBox) return null;
+  if (suppressInfoBox || compactUi) return null;
   if (!selected) return null;
 
   const desc = (selected.placeholder ?? "").trim();
@@ -1284,7 +1296,7 @@ const renderInfoBox = () => {
 };
 
 const renderGroupInfoBox = () => {
-  if (!activeLegendModel) return null;
+  if (compactUi || !activeLegendModel) return null;
 
   const codes = activeLegendCodes;
 

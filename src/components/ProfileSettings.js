@@ -13,13 +13,15 @@ import { SidebarContext } from '../context/SidebarContext';
 import { UserContext } from '../context/UserContext';
 import useWindowSize from '../hooks/useWindowSize';
 import { changeUserPassword } from '../api'; // add at top
+import UpgradeProModal from './UpgradeProModal';
+import ComingSoonProModal from './ComingSoonProModal';
 
 export default function ProfileSettings() {
   // ----------------------------
   // Contexts for sidebar & user
   // ----------------------------
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const { profile, setProfile } = useContext(UserContext);
+  const { profile, setProfile, isPro } = useContext(UserContext);
   const { width } = useWindowSize();
   const navigate = useNavigate();
 
@@ -78,6 +80,8 @@ export default function ProfileSettings() {
 
   // add with your other modal states
 const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
+  const [showComingSoonProModal, setShowComingSoonProModal] = useState(false);
 
 // Saving modal states (like DataIntegration)
 const [isSaving, setIsSaving] = useState(false);
@@ -408,7 +412,7 @@ function ChangePasswordModal({ onClose }) {
 
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [success, setSuccess] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Validation
@@ -424,7 +428,6 @@ function ChangePasswordModal({ onClose }) {
     e.preventDefault();
     setErrors({});
     setGeneralError('');
-    setSuccessMessage('');
 
     const newErrors = {};
     if (!oldPassword) newErrors.oldPassword = 'Please enter your current password.';
@@ -441,11 +444,10 @@ function ChangePasswordModal({ onClose }) {
     setIsUpdating(true);
     try {
       await changeUserPassword({ oldPassword, newPassword });
-      setSuccessMessage('Password updated successfully!');
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(() => setSuccessMessage(''), 2500);
+      setSuccess(true);
     } catch (err) {
       if (err.response?.data?.msg) setGeneralError(err.response.data.msg);
       else setGeneralError('Failed to change password. Please try again.');
@@ -458,75 +460,88 @@ function ChangePasswordModal({ onClose }) {
     <div className={`${styles.modalOverlay} ${styles.modalOverlayBlur}`} onMouseDown={onClose}>
       <div className={`${styles.modalContent} ${styles.pwModal}`} onMouseDown={(e) => e.stopPropagation()}>
         <div className={styles.pwHeaderRow}>
-          <h2 className={styles.pwTitle}>Change password</h2>
+          <h2 className={styles.pwTitle}>{success ? 'Password updated' : 'Change password'}</h2>
           <button type="button" className={styles.modalX} onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
 
-
-
-        <form onSubmit={handleSubmit} className={styles.pwForm}>
-          <div className={styles.pwField}>
-            <label className={styles.pwLabel} htmlFor="oldPassword">Current password</label>
-            <input
-              className={styles.input}
-              type="password"
-              id="oldPassword"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-            {errors.oldPassword && <div className={styles.pwError}>{errors.oldPassword}</div>}
+        {success ? (
+          <div className={styles.pwSuccessWrap}>
+            <div className={styles.pwSuccessIcon}>✓</div>
+            <p className={styles.pwSuccessMessage}>Your password has been updated successfully.</p>
+            <div className={styles.modalButtons}>
+              <button type="button" className={styles.confirmDelete} onClick={onClose}>
+                Done
+              </button>
+            </div>
           </div>
+        ) : (
+          <>
+            {generalError && <div className={styles.pwGeneralError}>{generalError}</div>}
+            <form onSubmit={handleSubmit} className={styles.pwForm}>
+              <div className={styles.pwField}>
+                <label className={styles.pwLabel} htmlFor="oldPassword">Current password</label>
+                <input
+                  className={styles.input}
+                  type="password"
+                  id="oldPassword"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+                {errors.oldPassword && <div className={styles.pwError}>{errors.oldPassword}</div>}
+              </div>
 
-          <div className={styles.pwField}>
-            <label className={styles.pwLabel} htmlFor="newPassword">New password</label>
-            <input
-              className={styles.input}
-              type="password"
-              id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            {errors.newPassword && <div className={styles.pwError}>{errors.newPassword}</div>}
-          </div>
+              <div className={styles.pwField}>
+                <label className={styles.pwLabel} htmlFor="newPassword">New password</label>
+                <input
+                  className={styles.input}
+                  type="password"
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+                {errors.newPassword && <div className={styles.pwError}>{errors.newPassword}</div>}
+              </div>
 
-          <div className={styles.pwReqGrid}>
-            <PasswordRequirement text="At least 6 characters" isValid={isLongEnough} />
-            <PasswordRequirement text="One uppercase letter" isValid={hasUpperCase} />
-            <PasswordRequirement text="One number" isValid={hasNumber} />
-            <PasswordRequirement text="One special (! ? . #)" isValid={hasSpecial} />
-          </div>
+              <div className={styles.pwReqGrid}>
+                <PasswordRequirement text="At least 6 characters" isValid={isLongEnough} />
+                <PasswordRequirement text="One uppercase letter" isValid={hasUpperCase} />
+                <PasswordRequirement text="One number" isValid={hasNumber} />
+                <PasswordRequirement text="One special (! ? . #)" isValid={hasSpecial} />
+              </div>
 
-          <div className={styles.pwField}>
-            <label className={styles.pwLabel} htmlFor="confirmPassword">Confirm new password</label>
-            <input
-              className={styles.input}
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            {errors.confirmPassword && <div className={styles.pwError}>{errors.confirmPassword}</div>}
-          </div>
+              <div className={styles.pwField}>
+                <label className={styles.pwLabel} htmlFor="confirmPassword">Confirm new password</label>
+                <input
+                  className={styles.input}
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+                {errors.confirmPassword && <div className={styles.pwError}>{errors.confirmPassword}</div>}
+              </div>
 
-          <div className={styles.pwMatchRow}>
-            <span className={`${styles.pwDot} ${passwordsMatch ? styles.pwValid : styles.pwInvalid}`} />
-            <span>Passwords match</span>
-          </div>
+              <div className={styles.pwMatchRow}>
+                <span className={`${styles.pwDot} ${passwordsMatch ? styles.pwValid : styles.pwInvalid}`} />
+                <span>Passwords match</span>
+              </div>
 
-          <div className={styles.modalButtons}>
-            <button type="button" className={styles.cancelDelete} onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className={styles.confirmDelete} disabled={isUpdating}>
-              {isUpdating ? 'Updating…' : 'Update password'}
-            </button>
-          </div>
-        </form>
+              <div className={styles.modalButtons}>
+                <button type="button" className={styles.cancelDelete} onClick={onClose}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.confirmDelete} disabled={isUpdating}>
+                  {isUpdating ? 'Updating…' : 'Update password'}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
@@ -591,6 +606,15 @@ function ChangePasswordModal({ onClose }) {
                 </div>
 
                 <div className={styles.heroRight}>
+                  {!isPro && (
+                    <button
+                      type="button"
+                      className={`${styles.pillBtn} ${styles.pillPro}`}
+                      onClick={() => setShowUpgradeProModal(true)}
+                    >
+                      Upgrade to Pro
+                    </button>
+                  )}
                   <button
                     type="button"
                     className={styles.pillBtn}
@@ -638,6 +662,13 @@ function ChangePasswordModal({ onClose }) {
   window.history.replaceState(null, "", "#privacy");
 }}>
   Privacy
+</button>
+
+<button type="button" className={styles.sideNavLink} onClick={() => {
+  document.getElementById("subscription")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.history.replaceState(null, "", "#subscription");
+}}>
+  Subscription
 </button>
 
 <button type="button" className={`${styles.sideNavLink} ${styles.sideNavDanger}`} onClick={() => {
@@ -860,6 +891,54 @@ function ChangePasswordModal({ onClose }) {
                     </div>
                   </section>
 
+                  {/* SUBSCRIPTION */}
+                  <section id="subscription" className={styles.card}>
+                    <div className={styles.cardHeader}>
+                      <h2 className={styles.cardTitle}>Subscription</h2>
+                      <div className={styles.cardSub}>
+                        {isPro
+                          ? "Manage your Pro plan and billing"
+                          : "Upgrade to Pro for watermark-free exports and more"}
+                      </div>
+                    </div>
+
+                    <div className={styles.subscriptionBlock}>
+                      <div className={styles.subscriptionPlanRow}>
+                        <span className={styles.subscriptionPlanLabel}>Current plan</span>
+                        <span className={`${styles.subscriptionPlanBadge} ${isPro ? styles.subscriptionPlanPro : ""}`}>
+                          {isPro ? "Pro" : "Free"}
+                        </span>
+                      </div>
+                      {isPro ? (
+                        <>
+                          <p className={styles.subscriptionDesc}>
+                            You have access to all Pro features: no watermark, high-quality exports, SVG, transparent PNG, and unbranded embeds.
+                          </p>
+                          <button
+                            type="button"
+                            className={styles.subscriptionManageBtn}
+                            onClick={() => setShowComingSoonProModal(true)}
+                          >
+                            Manage subscription
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p className={styles.subscriptionDesc}>
+                            Unlock watermark-free exports, SVG and transparent PNG, and unbranded embeds. Less than a coffee per month.
+                          </p>
+                          <button
+                            type="button"
+                            className={`${styles.pillBtn} ${styles.pillPrimary} ${styles.subscriptionUpgradeBtn}`}
+                            onClick={() => setShowUpgradeProModal(true)}
+                          >
+                            Upgrade to Pro
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </section>
+
                   {/* DANGER ZONE */}
                   <section id="danger" className={`${styles.card} ${styles.cardDanger}`}>
                     <div className={styles.cardHeader}>
@@ -1002,6 +1081,22 @@ function ChangePasswordModal({ onClose }) {
     onClose={() => setShowPasswordModal(false)}
   />
 )}
+
+      {/* Upgrade to Pro Modal */}
+      <UpgradeProModal
+        isOpen={showUpgradeProModal}
+        onClose={() => setShowUpgradeProModal(false)}
+        onUpgrade={() => {
+          setShowUpgradeProModal(false);
+          navigate("/signup", { state: { returnTo: "/settings" } });
+        }}
+      />
+
+      {/* Coming soon (manage subscription) Modal */}
+      <ComingSoonProModal
+        isOpen={showComingSoonProModal}
+        onClose={() => setShowComingSoonProModal(false)}
+      />
 
     </div>
   );

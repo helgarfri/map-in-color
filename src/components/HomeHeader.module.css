@@ -12,22 +12,33 @@
   --header-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 }
 
-/* Sticky header — transparent over hero; glass when scrolled (via .headerWrapScrolled) */
+/* Sticky header — transparent over hero; glass when scrolled (via .headerWrapScrolled).
+   z-index high so hamburger stays clickable over StepsSection and other content when scrolled.
+   font-family set so header looks identical on Login/Signup (Arial) vs other pages (Open Sans). */
 .headerWrap {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1000;
   margin: 0;
   padding: 0;
-  background: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
   border-bottom: 1px solid rgba(20, 24, 40, 0.06);
   overflow: hidden;
   transition: background 0.25s ease, backdrop-filter 0.25s ease, box-shadow 0.25s ease;
+  font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Ensure inner bar has no background by default (only when menu open on mobile) */
+.header {
+  background: none;
+  background-color: transparent;
 }
 
 /* Glassy look when scrolled past the hero */
 .headerWrapScrolled {
-  background: rgba(246, 247, 251, 0.72);
+  background: rgba(246, 247, 251, 0.72) !important;
+  background-color: rgba(246, 247, 251, 0.72) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom-color: rgba(20, 24, 40, 0.08);
@@ -65,6 +76,17 @@
   min-width: 0;
 }
 
+/* Hamburger: hidden on desktop */
+.hamburger {
+  display: none;
+}
+
+/* Mobile-only right block (Login button); hidden on desktop */
+.mobileHeaderRight {
+  display: none;
+}
+
+
 /* Logo — clean hover (subtle opacity) */
 .logoBtn {
   all: unset;
@@ -89,8 +111,16 @@
   height: 36px;
   width: auto;
   object-fit: contain;
-  display: block;
   flex-shrink: 0;
+}
+
+/* Desktop: text logo; Mobile (886px and below): icon logo */
+.logoDesktop {
+  display: block;
+}
+
+.logoMobile {
+  display: none;
 }
 
 /* Nav */
@@ -213,6 +243,241 @@
 @media (max-width: 900px) {
   .header {
     padding: 10px 24px;
+  }
+}
+
+/* ----- Mobile layout: hamburger + centered logo ----- */
+@media (max-width: 886px) {
+  /* Non-sticky on mobile so hamburger/menu are always reachable when scrolled */
+  .headerWrap {
+    position: relative;
+  }
+
+  .headerWrap:not(.headerWrapScrolled) {
+    border-bottom-color: rgba(20, 24, 40, 0.04);
+  }
+
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    justify-items: center;
+    padding: 10px 20px 12px;
+    position: relative;
+    z-index: 1001; /* above full-screen overlay so X + logo stay visible */
+  }
+
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    justify-self: start;
+    transition: background 0.2s ease;
+  }
+
+  .hamburger:hover {
+    background: rgba(20, 169, 175, 0.1);
+  }
+
+  .hamburger:focus-visible {
+    outline: 2px solid var(--mic-azure);
+    outline-offset: 2px;
+  }
+
+  .hamburgerBar {
+    display: block;
+    width: 22px;
+    height: 2.5px;
+    border-radius: 2px;
+    background: var(--header-text);
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+
+  .hamburger[aria-expanded="true"] .hamburgerBar:nth-child(1) {
+    transform: translateY(7.5px) rotate(45deg);
+  }
+
+  .hamburger[aria-expanded="true"] .hamburgerBar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger[aria-expanded="true"] .hamburgerBar:nth-child(3) {
+    transform: translateY(-7.5px) rotate(-45deg);
+  }
+
+  .logoBtn {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  .mobileHeaderRight {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    justify-self: end;
+  }
+
+  .mobileLoginBtn {
+    all: unset;
+    cursor: pointer;
+    padding: 0 16px;
+    height: 38px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(20, 24, 40, 0.06);
+    color: var(--header-text);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .mobileLoginBtn:hover {
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(20, 24, 40, 0.1);
+  }
+
+  .mobileLoginBtn:focus-visible {
+    outline: 2px solid var(--mic-azure);
+    outline-offset: 2px;
+  }
+
+  /* Hide desktop nav on mobile */
+  .nav {
+    display: none;
+  }
+
+  .logoDesktop {
+    display: none;
+  }
+
+  .logoMobile {
+    display: block;
+  }
+
+  .logo {
+    height: 30px;
+  }
+
+  /* When menu is open, header bar stays on top; use hero-tinted background to match HeroSection */
+  .headerWrap.mobileMenuOpen .header {
+    background: rgba(232, 244, 245, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 0 rgba(20, 24, 40, 0.06);
+  }
+}
+
+/* Mobile full-screen menu overlay — hero-tinted to match HeroSection (#e8f4f5).
+   z-index below header bar so close (X) and logo stay on top. */
+.mobileMenu {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(232, 244, 245, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.mobileMenuOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mobileNav {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 80px 24px 40px;
+  gap: 8px;
+}
+
+.mobileNavLink {
+  display: block;
+  text-decoration: none;
+  color: var(--header-text);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mobileNavLink:hover {
+  background: rgba(20, 169, 175, 0.1);
+  color: rgba(15, 23, 42, 0.95);
+}
+
+.mobileNavLink[aria-current="page"] {
+  background: rgba(20, 169, 175, 0.12);
+  color: var(--mic-cyan);
+}
+
+.mobileMenuDivider {
+  height: 1px;
+  background: var(--header-border);
+  margin: 12px 0;
+}
+
+.mobileCtaSecondary,
+.mobileCtaPrimary {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  border: none;
+  margin-top: 4px;
+}
+
+.mobileCtaSecondary {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--header-border);
+  color: var(--header-text);
+  box-shadow: var(--header-shadow);
+}
+
+.mobileCtaSecondary:hover {
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.mobileCtaPrimary {
+  color: #fff;
+  background: linear-gradient(135deg, #28a8e1 0%, #14a9af 100%);
+  box-shadow: 0 14px 26px rgba(40, 168, 225, 0.25);
+}
+
+.mobileCtaPrimary:hover {
+  box-shadow: 0 18px 34px rgba(40, 168, 225, 0.3);
+  filter: brightness(1.02);
+}
+
+/* Show mobile menu only when hamburger is visible */
+@media (min-width: 887px) {
+  .mobileMenu {
+    display: none;
   }
 }
 

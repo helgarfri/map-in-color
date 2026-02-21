@@ -301,7 +301,7 @@ function StepsSection() {
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
-      <aside className={styles.sidebar}>
+      <aside className={styles.sidebar} style={{ '--active-step': activeIndex }}>
         <nav className={styles.sidebarNav} aria-label="How it works">
           {STEPS.map((step, index) => (
             <button

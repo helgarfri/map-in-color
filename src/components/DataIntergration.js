@@ -397,7 +397,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const [groups, setGroups] = useState(
     (existingMapData?.groups && existingMapData.groups.length > 0)
       ? existingMapData.groups
-      : [DEFAULT_GROUP]
+      : []
   );
 
   // theme/colors
@@ -583,7 +583,6 @@ useEffect(() => {
       return;
     }
 
-    setData(existingMapData.data || []);
     setMapTitle(existingMapData.title || "");
     setDescription(existingMapData.description || "");
     setTags(existingMapData.tags || []);
@@ -594,8 +593,21 @@ useEffect(() => {
     );
 
 const hydrated = (existingMapData.groups || []).map(normalizeGroup);
-setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
-
+const groupsToSet = hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)];
+setGroups(groupsToSet);
+// Categorical: value is stored as group id in DB; keep id as-is, only migrate legacy names -> id
+const rawData = existingMapData.data || [];
+const migratedData = (existingMapData.map_data_type === "categorical" || existingMapData.mapDataType === "categorical")
+  ? rawData.map((d) => {
+      const v = d?.value == null ? "" : String(d.value).trim();
+      if (!v) return { ...d, value: "" };
+      const byId = groupsToSet.find((gr) => String(gr?.id) === v);
+      if (byId) return d;
+      const byName = groupsToSet.find((gr) => String(gr?.name ?? "").trim() === v);
+      return { ...d, value: byName ? String(byName.id) : "" };
+    })
+  : rawData;
+setData(migratedData);
 
     setOceanColor(existingMapData.ocean_color || "#ffffff");
     setUnassignedColor(existingMapData.unassigned_color || "#c0c0c0");
@@ -630,7 +642,6 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
     setDescription(p.description ?? "");
     setTags(Array.isArray(p.tags) ? p.tags : []);
     setIsPublic(!!p.is_public);
-    setData(Array.isArray(p.data) ? p.data : []);
     setMapDataType(p.map_data_type === "categorical" ? "categorical" : "choropleth");
     setCustomRanges(
       (Array.isArray(p.custom_ranges) ? p.custom_ranges : []).map((r, i) => ({
@@ -645,7 +656,20 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
     const groupsHydrated = (Array.isArray(p.groups) ? p.groups : []).map((g, i) =>
       normalizeGroup({ ...g, id: g?.id ?? `group_${Date.now()}_${i}` })
     );
-    setGroups(groupsHydrated.length ? groupsHydrated : [normalizeGroup(DEFAULT_GROUP)]);
+    const groupsToSet = groupsHydrated.length ? groupsHydrated : [];
+    setGroups(groupsToSet);
+    const draftData = Array.isArray(p.data) ? p.data : [];
+    const migratedDraftData = p.map_data_type === "categorical"
+      ? draftData.map((d) => {
+          const v = d?.value == null ? "" : String(d.value).trim();
+          if (!v) return { ...d, value: "" };
+          const byId = groupsToSet.find((gr) => String(gr?.id) === v);
+          if (byId) return d;
+          const byName = groupsToSet.find((gr) => String(gr?.name ?? "").trim() === v);
+          return { ...d, value: byName ? String(byName.id) : "" };
+        })
+      : draftData;
+    setData(migratedDraftData);
     setOceanColor(p.ocean_color ?? "#ffffff");
     setUnassignedColor(p.unassigned_color ?? "#c0c0c0");
     setFontColor(p.font_color ?? "black");
@@ -713,6 +737,8 @@ setGroups(hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)]);
     // close modal
     setShowDeleteMapModal(false);
 
+    // don't show "unsaved changes" when leaving after delete
+    suppressPromptRef.current = true;
     // navigate away
     navigate("/your-maps"); // change if needed
   } catch (err) {
@@ -732,9 +758,11 @@ function cancelDeleteMap() {
 function confirmClearData() {
   setData([]);
   setFileStats(defaultFileStats);
+  setPlaceholders({});
   setCustomRanges([{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
   setGroups([normalizeGroup({ id: Date.now(), name: "", color: "#c0c0c0" })]);
   setShowClearDataModal(false);
+  clearPlaygroundDraft();
 }
 
 
@@ -774,6 +802,7 @@ const handleImportData = (parsedData, stats, importedType) => {
         code,
         name: r?.name,
         value,
+        ...(r?.description != null && String(r.description).trim() !== "" ? { description: String(r.description).trim() } : {}),
       });
     }
 
@@ -783,6 +812,17 @@ const handleImportData = (parsedData, stats, importedType) => {
 
     setData(Array.from(byCode.values()));
     setFileStats(stats || defaultFileStats);
+
+    // ✅ apply imported descriptions to placeholders immediately so the map shows them without user having to click in/out
+    setPlaceholders((prev) => {
+      const next = { ...(prev && typeof prev === "object" ? prev : {}) };
+      for (const row of cleaned) {
+        if (row.description != null && String(row.description).trim() !== "") {
+          next[cleanCode(row.code)] = String(row.description).trim();
+        }
+      }
+      return next;
+    });
   } else {
     // ✅ categorical: keep rows with code; value can be "" (unassigned)
     const cleaned = [];
@@ -796,6 +836,7 @@ const handleImportData = (parsedData, stats, importedType) => {
         code,
         name: r?.name,
         value,
+        ...(r?.description != null && String(r.description).trim() !== "" ? { description: String(r.description).trim() } : {}),
       });
     }
 
@@ -804,35 +845,44 @@ const handleImportData = (parsedData, stats, importedType) => {
     for (const row of cleaned) byCode.set(row.code, row);
 
     const next = Array.from(byCode.values());
-    setData(next);
     setFileStats(stats || defaultFileStats);
 
-    // ✅ build/update groups from imported categories (non-empty only)
-      const importedCats = Array.from(
-        new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
-      );
+    // ✅ Build merged groups from imported category names (same logic as before)
+    const importedCats = Array.from(
+      new Set(next.map((x) => String(x.value ?? "").trim()).filter(Boolean))
+    );
+    const keyOf = (s) => String(s ?? "").trim();
+    const prevArr = (Array.isArray(groups) ? groups : []).map(normalizeGroup);
+    const byName = new Map(prevArr.map((g) => [keyOf(g.name), g]));
+    const merged = [...prevArr];
+    for (const cat of importedCats) {
+      const k = keyOf(cat);
+      if (!k) continue;
+      if (!byName.has(k)) {
+        merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
+        byName.set(k, true);
+      }
+    }
 
+    // ✅ Store category by group id so renaming the category later doesn't lose countries
+    const nextWithIds = next.map((d) => {
+      const nameVal = String(d?.value ?? "").trim();
+      if (!nameVal) return { ...d, value: "" };
+      const g = merged.find((gr) => keyOf(gr.name) === nameVal);
+      return { ...d, value: g ? String(g.id) : nameVal };
+    });
+    setData(nextWithIds);
+    setGroups(merged);
 
-    setGroups((prev) => {
-      const prevArr = (Array.isArray(prev) ? prev : []).map(normalizeGroup);
-
-// use trimmed keys for matching, but DO NOT reorder
-const keyOf = (s) => String(s ?? "").trim();
-const byName = new Map(prevArr.map((g) => [keyOf(g.name), g]));
-
-const merged = [...prevArr];
-
-for (const cat of importedCats) {
-  const k = keyOf(cat);
-  if (!k) continue;
-  if (!byName.has(k)) {
-    merged.push(normalizeGroup({ name: cat, color: "#c0c0c0" }));
-    byName.set(k, true);
-  }
-}
-
-return merged;
-
+    // ✅ apply imported descriptions to placeholders immediately so the map shows them without user having to click in/out
+    setPlaceholders((prev) => {
+      const nextPlaceholders = { ...(prev && typeof prev === "object" ? prev : {}) };
+      for (const row of next) {
+        if (row.description != null && String(row.description).trim() !== "") {
+          nextPlaceholders[cleanCode(row.code)] = String(row.description).trim();
+        }
+      }
+      return nextPlaceholders;
     });
   }
 
@@ -857,28 +907,26 @@ const applyBaseColorPalette = (baseHex, opts = {}) => {
   setMapDataType((prevType) => {
     if (prevType === nextType) return prevType;
 
-    // ✅ clear the "other table" so it doesn't come back with old values
+    // ✅ Clear all data when switching: descriptions, range/category names, values, file stats
+    setPlaceholders({});
     if (nextType === "categorical") {
       setCustomRanges(DEFAULT_RANGES());
-      // optional but recommended: clear numeric values (so categories start clean)
+      setGroups([]); // start with 0 categories; user adds via "Add category"
+      // Keep existing data rows (country codes) but clear value so all are unassigned → "Assign all unassigned" works
       setData((prev) =>
-        (Array.isArray(prev) ? prev : []).map((d) => ({
-          ...d,
-          value: "", // categorical expects string
-        }))
+        (Array.isArray(prev) ? prev : []).map((d) => ({ ...d, value: "" }))
       );
-    }  else {
-      // ✅ don't clear groups; keep them so switching back doesn't feel destructive
+      setFileStats(defaultFileStats);
+    } else {
+      setCustomRanges(DEFAULT_RANGES());
       setData((prev) =>
         (Array.isArray(prev) ? prev : []).map((d) => ({ ...d, value: null }))
       );
       setFileStats(defaultFileStats);
     }
-
-
-        return nextType;
-      });
-    };
+    return nextType;
+  });
+};
 
 
     function formatTimeAgo(iso) {
@@ -1240,72 +1288,47 @@ const updateCategory = (id, field, value) => {
 };
 
 /**
- * Rename category:
- * - updates the group name
- * - updates all data values that used the old name => new name
+ * Rename category: updates the group name only.
+ * Data stores group id, so countries stay in the same group when name changes.
  */
 const renameCategory = (id, newNameRaw) => {
   const newName = String(newNameRaw ?? "").trim(); // ✅ trim only on blur
-
   setGroups((prevGroups) => {
     const arr = (Array.isArray(prevGroups) ? prevGroups : []).map(ensureGroupShape);
     const idx = arr.findIndex((g) => g.id === id);
     if (idx === -1) return arr;
-
-    const oldName = String(arr[idx].name ?? "").trim();
     arr[idx] = { ...arr[idx], name: newName };
-
-    // update data values old -> new
-    if (oldName && newName && oldName !== newName) {
-      setData((prevData) =>
-        (Array.isArray(prevData) ? prevData : []).map((d) => {
-          const v = d?.value == null ? "" : String(d.value).trim();
-          if (v !== oldName) return d;
-          return { ...d, value: newName };
-        })
-      );
-    }
-
-    // ✅ sort ONLY when user commits (blur)
-    return arr; // ✅ keep order, no sorting
-
+    return arr;
   });
 };
 
 
 const removeCategory = (id) => {
-  // ✅ block removing the last category
-  if ((Array.isArray(groups) ? groups : []).length <= 1) return;
-
-  const removedName = (() => {
-    const g = (Array.isArray(groups) ? groups : []).find((x) => x.id === id);
-    return String(g?.name ?? "").trim();
-  })();
-
+  const idStr = String(id);
   setGroups((prev) => (Array.isArray(prev) ? prev.filter((g) => g.id !== id) : []));
-
-  if (removedName) {
-    setData((prev) =>
-      (Array.isArray(prev) ? prev : []).map((d) => {
-        const v = d?.value == null ? "" : String(d.value).trim();
-        if (v !== removedName) return d;
-        return { ...d, value: "" };
-      })
-    );
-  }
-};
-
-/**
- * Assign all countries that are not in any category (empty value) to the given category.
- * Used when a category has no countries assigned yet.
- */
-const assignUnassignedToCategory = (categoryName) => {
-  const name = String(categoryName ?? "").trim();
   setData((prev) =>
     (Array.isArray(prev) ? prev : []).map((d) => {
       const v = d?.value == null ? "" : String(d.value).trim();
-      if (v !== "") return d;
-      return { ...d, value: name };
+      if (v === idStr) return { ...d, value: "" };
+      return d;
+    })
+  );
+};
+
+/**
+ * Assign all unassigned countries to the category with the given group id.
+ * Uses group id so it works for categories with empty or renamed labels.
+ */
+const assignUnassignedToCategory = (groupId) => {
+  const idStr = groupId != null ? String(groupId).trim() : "";
+  if (!idStr) return;
+  const groupsArr = (Array.isArray(groups) ? groups : []).map(ensureGroupShape);
+  if (!groupsArr.some((g) => String(g.id) === idStr)) return;
+  setData((prev) =>
+    (Array.isArray(prev) ? prev : []).map((d) => {
+      const resolved = resolveValueToGroupId(d?.value, groupsArr);
+      if (resolved !== "") return d;
+      return { ...d, value: idStr };
     })
   );
 };
@@ -1459,12 +1482,14 @@ const handleDeleteReference = () => {
         const code = pick(d, ["code", "countryCode", "iso2", "ISO2", "Country Code", "country_code"]);
         const name = pick(d, ["name", "countryName", "Country", "country_name"]);
         const valueRaw = pick(d, ["value", "Value", "val"]);
+        const descRaw = pick(d, ["description", "Description", "desc"]);
 
         return {
           ...d,
           code: code ? String(code).trim().toUpperCase() : "",
           name: name ? String(name) : undefined,
           value: mapDataType === "choropleth" ? toNumber(valueRaw) : valueRaw == null ? "" : String(valueRaw),
+          ...(descRaw != null && String(descRaw).trim() !== "" ? { description: String(descRaw).trim() } : {}),
         };
       })
       .filter((d) => d.code);
@@ -1495,29 +1520,35 @@ function countryLabel(d) {
   return d?.code ? String(d.code).trim().toUpperCase() : "";
 }
 
-
+/** Resolve data value to group id: value may be group id (current) or group name (legacy). */
+function resolveValueToGroupId(value, groupsArr) {
+  const v = safeTrim(value);
+  if (!v) return "";
+  const byId = groupsArr.find((g) => String(g?.id) === v);
+  if (byId) return String(byId.id);
+  const byName = groupsArr.find((g) => String(g?.name ?? "").trim() === v);
+  if (byName) return String(byName.id);
+  return "";
+}
 
 const categoryRows = useMemo(() => {
   if (mapDataType !== "categorical") return [];
 
   const groupsArr = (Array.isArray(groups) ? groups : []).map(ensureGroupShape);
 
-  // map category -> group metadata
-  const groupByName = new Map(groupsArr.map((g) => [String(g.name).trim(), g]));
-
-  // map category -> countries list
-  const catToCountries = new Map();
+  // map group id -> countries list (value in data is group id or legacy name)
+  const idToCountries = new Map();
   for (const d of mapDataNormalized || []) {
-    const cat = safeTrim(d.value);
-    if (!cat) continue;
-    const list = catToCountries.get(cat) || [];
+    const groupId = resolveValueToGroupId(d?.value, groupsArr);
+    const list = idToCountries.get(groupId) || [];
     list.push(countryLabel(d));
-    catToCountries.set(cat, list);
+    idToCountries.set(groupId, list);
   }
 
   // 1) rows for ALL defined groups (even if empty)
   const rows = groupsArr.map((g) => {
-    const countries = (catToCountries.get(g.name) || []).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    const gid = String(g.id);
+    const countries = (idToCountries.get(gid) || []).filter(Boolean).sort((a, b) => a.localeCompare(b));
     return {
       id: g.id,
       name: g.name,
@@ -1528,34 +1559,19 @@ const categoryRows = useMemo(() => {
     };
   });
 
-  // 2) also show categories that exist in data but not defined in groups (optional but helpful)
-  for (const [cat, countriesRaw] of catToCountries.entries()) {
-    if (groupByName.has(cat)) continue;
-    const countries = countriesRaw.filter(Boolean).sort((a, b) => a.localeCompare(b));
-    rows.push({
-      id: `unknown:${cat}`,
-      name: cat,
-      color: "#c0c0c0",
-      countries,
-      count: countries.length,
-      isDefined: false,
-    });
-  }
-
   return rows;
 }, [mapDataType, groups, mapDataNormalized]);
 
-/** Count of countries with no category assigned (categorical only). */
+/** Count of countries with no category assigned (categorical only). Resolves value so legacy names count as assigned. */
 const unassignedCountryCount = useMemo(() => {
   if (mapDataType !== "categorical") return 0;
-  return (mapDataNormalized || []).filter((d) => safeTrim(d.value) === "").length;
-}, [mapDataType, mapDataNormalized]);
+  const groupsArr = (Array.isArray(groups) ? groups : []).map(ensureGroupShape);
+  return (mapDataNormalized || []).filter((d) => resolveValueToGroupId(d?.value, groupsArr) === "").length;
+}, [mapDataType, groups, mapDataNormalized]);
 
   const categoryOptions = useMemo(() => {
   const arr = Array.isArray(groups) ? groups : [];
-  return arr
-    .map((g) => String(g?.name ?? "").trim())
-    .filter(Boolean);
+  return arr.map((g) => ({ id: g.id, name: String(g?.name ?? "").trim() || "(Unnamed)" }));
 }, [groups]);
 
 function toSortableNum(v) {
@@ -1671,18 +1687,38 @@ const renderCategoriesTable = () => {
     );
   })}
 </div>
-
+      {canEdit && row.count === 0 && unassignedCountryCount > 0 && (
+        <button
+          type="button"
+          className={styles.assignUnassignedLink}
+          onClick={() => assignUnassignedToCategory(row.id)}
+          title={
+            row.name?.trim()
+              ? `Assign all ${unassignedCountryCount} unassigned countries to "${row.name}"`
+              : `Assign all ${unassignedCountryCount} unassigned countries to this category`
+          }
+        >
+          Assign all unassigned
+        </button>
+      )}
 
     </>
   ) : (
     <div className={styles.emptyCountriesBlock}>
       <span className={styles.mutedText}>No countries assigned yet.</span>
-      {canEdit && unassignedCountryCount > 0 && (
+      {canEdit && (
         <button
           type="button"
           className={styles.assignUnassignedLink}
-          onClick={() => assignUnassignedToCategory(row.name)}
-          title={`Assign all ${unassignedCountryCount} unassigned countries to this category`}
+          onClick={() => assignUnassignedToCategory(row.id)}
+          disabled={unassignedCountryCount === 0}
+          title={
+            unassignedCountryCount > 0
+              ? (row.name?.trim()
+                  ? `Assign all ${unassignedCountryCount} unassigned countries to "${row.name}"`
+                  : `Assign all ${unassignedCountryCount} unassigned countries to this category`)
+              : "No unassigned countries"
+          }
         >
           Assign all unassigned
         </button>
@@ -1694,89 +1730,41 @@ const renderCategoriesTable = () => {
 
 
                   <td>
-                    {canEdit ? (
-                      <input
-                        className={styles.tableInputText}
-                        value={row.name}
-                        onChange={(e) => updateCategory(row.id, "name", e.target.value)}
-                        onFocus={() => setFocusedCategoryRowId(row.id)}
-                        onBlur={(e) => {
-                          renameCategory(row.id, e.target.value);
-                          handleCategoryRowBlur(e);
-                        }}
-                        placeholder="Category name"
-                      />
-                    ) : (
-                      <span>
-                        {row.name}
-                        <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>
-                          (from data)
-                        </span>
-                      </span>
-                    )}
+                    <input
+                      className={styles.tableInputText}
+                      value={row.name}
+                      onChange={(e) => updateCategory(row.id, "name", e.target.value)}
+                      onFocus={() => setFocusedCategoryRowId(row.id)}
+                      onBlur={(e) => {
+                        renameCategory(row.id, e.target.value);
+                        handleCategoryRowBlur(e);
+                      }}
+                      placeholder="Category name"
+                    />
                   </td>
 
                   <td>
-                    {canEdit ? (
-                      <ColorCell
-                        styles={styles}
-                        color={row.color || "#c0c0c0"}
-                        onChange={(next) => updateCategory(row.id, "color", next)}
-                        onFocus={() => setFocusedCategoryRowId(row.id)}
-                        onBlur={handleCategoryRowBlur}
-                      />
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span
-                          style={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: 4,
-                            background: row.color,
-                            border: "1px solid rgba(0,0,0,0.2)",
-                          }}
-                        />
-                        <span style={{ fontSize: 12, opacity: 0.8 }}>{row.color}</span>
-                      </div>
-                    )}
+                    <ColorCell
+                      styles={styles}
+                      color={row.color || "#c0c0c0"}
+                      onChange={(next) => updateCategory(row.id, "color", next)}
+                      onFocus={() => setFocusedCategoryRowId(row.id)}
+                      onBlur={handleCategoryRowBlur}
+                    />
                   </td>
 
                   <td>
-                    {canEdit ? (
+                    {canEdit && (
                       <button
                         className={styles.removeButton}
                         onClick={() => removeCategory(row.id)}
                         onFocus={() => setFocusedCategoryRowId(row.id)}
                         onBlur={handleCategoryRowBlur}
-                        disabled={(Array.isArray(groups) ? groups : []).length <= 1}
                         type="button"
                         aria-label="Remove category"
-                        title={
-                          (Array.isArray(groups) ? groups : []).length <= 1
-                            ? "At least one category is required"
-                            : "Remove"
-                        }
+                        title="Remove"
                       >
                         &times;
-                      </button>
-                    ) : (
-                      <button
-                        className={styles.addRangeButton}
-                        type="button"
-                        onFocus={() => setFocusedCategoryRowId(row.id)}
-                        onBlur={handleCategoryRowBlur}
-                        onClick={() => {
-                          setGroups((prev) => [
-                            ...(Array.isArray(prev) ? prev : []),
-                            {
-                              id: `group_${Date.now()}_${Math.random()}`,
-                              name: row.name,
-                              color: "#c0c0c0",
-                            },
-                          ]);
-                        }}
-                      >
-                        Add to groups
                       </button>
                     )}
                   </td>
@@ -1843,26 +1831,26 @@ const rangeCountryLabel = (d) =>
         name: String(g?.name ?? "").trim(),
         color: (g?.color ?? "#c0c0c0").toLowerCase(),
       }));
-      const codeToCat = new Map();
+      const codeToGroupId = new Map();
       for (const d of mapDataNormalized || []) {
         const code = normCode(d.code);
         if (!code) continue;
-        codeToCat.set(code, safeTrim(d.value));
+        const groupId = resolveValueToGroupId(d?.value, groupsArr);
+        codeToGroupId.set(code, groupId);
       }
-      return groupsArr
-        .filter((g) => g.name)
-        .map((g) => {
-          const codes = new Set();
-          for (const [code, cat] of codeToCat.entries()) {
-            if (cat === g.name) codes.add(code);
-          }
-          return {
-            key: g.id,
-            label: g.name,
-            color: g.color,
-            codes,
-          };
-        });
+      return groupsArr.map((g) => {
+        const gid = String(g.id);
+        const codes = new Set();
+        for (const [code, resolvedId] of codeToGroupId.entries()) {
+          if (resolvedId === gid) codes.add(code);
+        }
+        return {
+          key: g.id,
+          label: g.name || "(Unnamed)",
+          color: g.color,
+          codes,
+        };
+      });
     }
     // choropleth
     const toNum = (x) => {
@@ -1969,7 +1957,12 @@ const rangeCountryLabel = (d) =>
     description,
     tags,
     is_public,
-    data: mapDataNormalized,
+    data: mapDataType === "categorical"
+      ? (mapDataNormalized || []).map((d) => {
+          const g = (groups || []).find((x) => String(x.id) === String(d?.value ?? ""));
+          return { ...d, value: g ? String(g?.name ?? "").trim() : "" };
+        })
+      : mapDataNormalized,
     map_data_type: mapDataType,
     custom_ranges,
     groups,
@@ -2001,6 +1994,7 @@ const rangeCountryLabel = (d) =>
           code: normStr(d.code).toUpperCase(),
           name: d.name == null ? "" : String(d.name),
           value: p.map_data_type === "choropleth" ? normNum(d.value) : normStr(d.value),
+          ...(d.description != null && String(d.description).trim() !== "" ? { description: String(d.description).trim() } : {}),
         }))
         .filter((d) => d.code)
         .sort((a, b) => a.code.localeCompare(b.code)),
@@ -2080,14 +2074,7 @@ const rangeCountryLabel = (d) =>
     placeholders
   ]);
 
-  useEffect(() => {
-  if (mapDataType !== "categorical") return;
-
-  setGroups((prev) => {
-    const arr = Array.isArray(prev) ? prev : [];
-    return arr.length ? arr : [normalizeGroup({ name: "", color: "#c0c0c0" })];
-  });
-}, [mapDataType]);
+  // Allow 0 categories in categorical mode; no longer force at least one group
 
 
   // reset hydration when switching maps/create-edit
@@ -2255,7 +2242,47 @@ try {
   // ============================
   // Render
   // ============================
+  const DESKTOP_MIN_WIDTH = 1025;
+  const showDesktopOnly = width > 0 && width < DESKTOP_MIN_WIDTH;
   const layoutPadding = isPlayground ? 0 : (isCollapsed ? 70 : 250);
+
+  const desktopOnlyMessage = (
+    <div className={styles.desktopOnlyContent}>
+      <div className={styles.desktopOnlyIcon} aria-hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      </div>
+      <h2 className={styles.desktopOnlyTitle}>Create maps on desktop</h2>
+      <p className={styles.desktopOnlyMessage}>
+        For the best experience, use a desktop or laptop to create and edit maps. Open this page on a computer to get started.
+      </p>
+    </div>
+  );
+
+  if (showDesktopOnly) {
+    if (!isPlayground) {
+      return (
+        <div className={styles.layoutContainer} style={{ paddingLeft: layoutPadding }}>
+          <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+          <Header isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} title={isEditing ? `Edit ${mapTitle}` : "Create Map"} />
+          <div className={styles.desktopOnlyScreen}>
+            {desktopOnlyMessage}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <>
+        {!hideHeader && <HomeHeader />}
+        <div className={styles.desktopOnlyScreen}>
+          {desktopOnlyMessage}
+        </div>
+      </>
+    );
+  }
   if (loading) {
     return (
       <>
@@ -2370,7 +2397,7 @@ try {
                       setActiveLegendKey(null);
                       setHoverLegendKey(null);
                     }}
-                    compactUi={true}
+                    compactUi={false}
                     codeToName={codeToName}
                   />
                 </div>

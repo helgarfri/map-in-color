@@ -1,3 +1,6 @@
+/*
+  Upgrade Pro modal — header with logo, body sections, actions (Map in Color 3.0)
+*/
 .overlay {
   position: fixed;
   inset: 0;
@@ -145,16 +148,36 @@
 }
 
 .value {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-size: 15px;
   font-weight: 700;
   color: rgba(15, 23, 42, 0.9);
 }
 
+.priceLine {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.85);
+}
+
 .trust {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 13px;
   color: rgba(15, 23, 42, 0.55);
+}
+
+.refundLink {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(15, 23, 42, 0.5);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.refundLink:hover {
+  color: rgba(15, 23, 42, 0.75);
+  text-decoration: underline;
 }
 
 .actions {
@@ -200,9 +223,40 @@
   color: rgba(15, 23, 42, 0.85);
 }
 
-.priceNote {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.5);
+.learnMoreLink {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #28a8e1;
+  text-decoration: none;
   text-align: center;
+  transition: color 0.2s ease;
+}
+
+.learnMoreLink:hover {
+  color: #14a9af;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .modal {
+    max-width: 100%;
+  }
+
+  .body {
+    padding: 20px 16px 8px;
+  }
+
+  .header {
+    padding: 16px 16px 14px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .actions {
+    padding: 14px 16px 18px;
+  }
 }

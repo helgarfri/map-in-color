@@ -27,6 +27,7 @@ import AdminPanel from "./components/AdminPanel";
 import BannedUser from "./components/BannedUser";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import Terms from "./components/Terms";
+import RefundPolicy from "./components/RefundPolicy";
 import VerifyAccount from "./components/VerifyAccount";
 import Verified from "./components/Verified";
 import VerificationError from "./components/VerificationError";
@@ -43,6 +44,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import MapEmbed from "./components/MapEmbed";
 import NotFound from "./components/NotFound";
 import FAQ from "./components/FAQ";
+import ProPage from "./components/ProPage";
 
 import { UserContext } from "./context/UserContext";
 import { SidebarContext } from "./context/SidebarContext";
@@ -89,6 +91,7 @@ export default function App() {
               children: [
                 { index: true, element: <Home /> },
                 { path: "playground", element: <PublicDataIntegration /> },
+                { path: "pro", element: <ProPage /> },
               ],
             },
             {
@@ -214,6 +217,7 @@ export default function App() {
             { path: "/banned", element: <BannedUser /> },
             { path: "/privacy", element: <PrivacyPolicy /> },
             { path: "/terms", element: <Terms /> },
+            { path: "/refund", element: <RefundPolicy /> },
             { path: "/verify-account", element: <VerifyAccount /> },
             { path: "/verified", element: <Verified /> },
             { path: "/verification-error", element: <VerificationError /> },

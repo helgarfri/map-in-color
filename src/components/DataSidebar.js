@@ -98,8 +98,9 @@ const selectedNorm = useMemo(() => (selectedCode ? normCode(selectedCode) : null
 const selectedPlaceholderValue = selectedNorm ? (placeholders?.[selectedNorm] ?? "") : "";
 
 // When selection changes:
-// - if there is existing placeholder text -> open textarea
+// - if there is existing placeholder text or imported description -> open textarea / show it
 // - else -> show plus button (closed)
+// Use placeholder if set, otherwise fall back to imported description from dataEntries
 useEffect(() => {
   if (!selectedNorm) {
     setIsPlaceholderOpen(false);
@@ -107,10 +108,13 @@ useEffect(() => {
     return;
   }
 
-  const existing = String(placeholders?.[selectedNorm] ?? "");
+  const fromPlaceholder = String(placeholders?.[selectedNorm] ?? "");
+  const fromData = dataEntries?.find((d) => normCode(d?.code) === selectedNorm);
+  const fromDescription = fromData?.description != null && String(fromData.description).trim() !== "" ? String(fromData.description).trim() : "";
+  const existing = fromPlaceholder || fromDescription;
   setPlaceholderDraft(existing);
   setIsPlaceholderOpen(existing.trim().length > 0);
-}, [selectedNorm]); // intentionally not depending on placeholders to avoid cursor jumps while typing
+}, [selectedNorm, dataEntries]); // dataEntries so imported descriptions show when selection changes
 
 
 
@@ -127,20 +131,26 @@ useEffect(() => {
 
   /**
    * Merge parent's data with dataSource on mount / map change
-   * Also gather any distinct categories from the parent's data if we are in categorical mode
+   * Also gather any distinct categories from the parent's data if we are in categorical mode.
+   * Includes description from dataEntries (e.g. from CSV/XLS import) so it shows in the sidebar.
+   * In categorical mode, push the full merged list to parent so unassigned count is correct from the start.
    */
   useEffect(() => {
     const merged = dataSource.map((item) => {
-      const existing = dataEntries.find((d) => d.code === item.code);
+      const existing = dataEntries.find((d) => normCode(d?.code) === normCode(item?.code));
       return {
         code: item.code,
         name: item.name,
-        value: existing ? existing.value : '',
+        value: existing != null ? existing.value : '',
+        description: existing?.description != null && String(existing.description).trim() !== '' ? String(existing.description).trim() : undefined,
       };
     });
 
     setLocalData(merged);
 
+    if (mapDataType === 'categorical' && (dataEntries?.length ?? 0) < dataSource.length) {
+      setDataEntries(merged);
+    }
   }, [dataSource, dataEntries, mapDataType]);
 
 
@@ -227,8 +237,16 @@ const handleValueChange = (code, newVal) => {
 
   /**
    * onBlur => push to parent
+   * Choropleth: only rows with valid numeric value.
+   * Categorical: all rows (including value "" for unassigned) so unassigned count is correct.
    */
-const handleBlur = () => setDataEntries((_) => localData);
+  const handleBlur = () => {
+    if (mapDataType === "choropleth") {
+      setDataEntries(localData.filter((row) => toNumOrNull(row.value) != null));
+    } else {
+      setDataEntries(localData);
+    }
+  };
 
 
 
@@ -526,6 +544,7 @@ useLayoutEffect(() => {
               const next = prev.map((row) =>
                 row.code === region.code ? { ...row, value: v } : row
               );
+              // Categorical: keep all rows (including "" for None) so parent can count unassigned
               setDataEntries(next);
               return next;
             });
@@ -536,19 +555,23 @@ useLayoutEffect(() => {
           }}
         >
           <option value="">(None)</option>
-          {categoryOptions.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
+          {categoryOptions.map((cat) => {
+            const value = typeof cat === "object" && cat != null && "id" in cat ? cat.id : cat;
+            const label = typeof cat === "object" && cat != null && "name" in cat ? cat.name : String(cat);
+            return (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            );
+          })}
         </select>
       )}
     </div>
 
-    {/* ✅ BELOW ROW: placeholder UI only for selected row */}
+    {/* ✅ BELOW ROW: placeholder / description UI only for selected row (shows imported description or user placeholder) */}
     {isSelected && (
       <div className={styles.placeholderArea}>
-        {isPlaceholderOpen || (placeholders?.[code] ?? "").trim() ? (
+        {isPlaceholderOpen || (placeholders?.[code] ?? "").trim() || (region.description ?? "").trim() ? (
           <div className={styles.placeholderEditor}>
             <textarea
               className={styles.placeholderTextarea}

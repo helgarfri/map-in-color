@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./UpgradeProModal.module.css";
+import ComingSoonProModal from "./ComingSoonProModal";
 
 const PRO_LOGO_SRC = "/assets/3-0/PRO-logo.png";
 const PRO_PRICE = "4.99";
@@ -11,7 +12,7 @@ const BENEFITS = [
   "Transparent PNG exports",
   "SVG export (scalable vector)",
   "Interactive embeds without branding",
-  "Custom embed controls",
+  "Private embeds for internal use",
   "Priority feature updates",
 ];
 
@@ -20,6 +21,8 @@ export default function UpgradeProModal({
   onClose,
   onUpgrade,
 }) {
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
   if (!isOpen) return null;
 
   const handleOverlayClick = (e) => {
@@ -28,7 +31,11 @@ export default function UpgradeProModal({
   };
 
   const handleUpgrade = () => {
-    onUpgrade?.();
+    setShowComingSoon(true);
+  };
+
+  const handleComingSoonClose = () => {
+    setShowComingSoon(false);
     onClose?.();
   };
 
@@ -52,7 +59,7 @@ export default function UpgradeProModal({
               Upgrade to Map in Color Pro
             </h2>
             <p className={styles.subtitle}>
-            Turn your maps into professional visuals.
+              Publish without Map in Color branding.
             </p>
           </div>
           <button
@@ -80,19 +87,27 @@ export default function UpgradeProModal({
 
           <section className={styles.section}>
             <p className={styles.hook}>
-              You've already built something worth sharing.
+              You've built something worth sharing.
               <br />
-              Now make it look professional.
+              Now publish it professionally.
             </p>
           </section>
 
           <section className={styles.section}>
-            <p className={styles.value}>
-              Less than a coffee per month.
+            <p className={styles.priceLine}>
+              ${PRO_PRICE}/month
             </p>
             <p className={styles.trust}>
-              No contracts. Cancel anytime.
+              Cancel anytime. Subscription auto-renews unless cancelled.
             </p>
+            <a
+              href="/refund"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.refundLink}
+            >
+              Refund policy
+            </a>
           </section>
         </div>
 
@@ -111,11 +126,21 @@ export default function UpgradeProModal({
           >
             Maybe later
           </button>
-          <p className={styles.priceNote}>
-            ${PRO_PRICE}/month
-          </p>
+          <a
+            href="/pro"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.learnMoreLink}
+          >
+            Learn more about Pro
+          </a>
         </div>
       </div>
+
+      <ComingSoonProModal
+        isOpen={showComingSoon}
+        onClose={handleComingSoonClose}
+      />
     </div>,
     document.body
   );

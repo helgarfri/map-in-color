@@ -1,9 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./HeroSection.module.css";
 
+const HEADER_OFFSET_PX = 80;
+const SMALL_SCREEN_BREAKPOINT_PX = 1024;
+
 function HeroSection() {
+  const [height, setHeight] = useState(() =>
+    typeof window !== "undefined" ? window.innerHeight + HEADER_OFFSET_PX : 900
+  );
+  const [isSmallScreen, setIsSmallScreen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < SMALL_SCREEN_BREAKPOINT_PX
+  );
+
+  useEffect(() => {
+    const onResize = () => {
+      setHeight(window.innerHeight + HEADER_OFFSET_PX);
+      setIsSmallScreen(window.innerWidth < SMALL_SCREEN_BREAKPOINT_PX);
+    };
+    window.addEventListener("resize", onResize);
+    onResize();
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
-    <div className={styles.heroContainer}>
+    <div
+      className={styles.heroContainer}
+      style={{ height: `${height}px`, minHeight: `${height}px` }}
+    >
       <div className={styles.heroBody}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
@@ -12,7 +35,10 @@ function HeroSection() {
           <p className={styles.heroSubtitle}>
             Professional map creation for everyone.
           </p>
-          <a href="/playground" className={styles.signupButton}>
+          <a
+            href={isSmallScreen ? "/signup" : "/playground"}
+            className={styles.signupButton}
+          >
             Start creating for free
           </a>
         </div>

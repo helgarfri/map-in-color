@@ -116,6 +116,54 @@
   background: #f6f7fb;
 }
 
+/* ============================
+   Desktop-only message (mobile / tablet)
+   ============================ */
+.desktopOnlyScreen {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.desktopOnlyContent {
+  text-align: center;
+  max-width: 400px;
+}
+
+.desktopOnlyIcon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  color: var(--brand2);
+  opacity: 0.9;
+}
+
+.desktopOnlyIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.desktopOnlyTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.desktopOnlyMessage {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+}
+
 /* Softer cards on right in playground so they blend with gutter */
 .layoutContainerPlayground .mapBox,
 .layoutContainerPlayground .section,
@@ -729,6 +777,13 @@
   gap: 6px;
 }
 
+.actionsCell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .assignUnassignedLink {
   background: none;
   border: none;
@@ -739,9 +794,13 @@
   cursor: pointer;
   transition: color 120ms ease, opacity 120ms ease;
 }
-.assignUnassignedLink:hover {
+.assignUnassignedLink:hover:not(:disabled) {
   color: rgba(20, 169, 175, 1);
   text-decoration: underline;
+}
+.assignUnassignedLink:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ============================

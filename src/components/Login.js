@@ -6,6 +6,7 @@ import { logIn, requestPasswordReset } from "../api"; // ✅ add this
 import { UserContext } from "../context/UserContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHome, faTriangleExclamation, faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import HomeHeader from "./HomeHeader";
 
 export default function Login() {
   const { setAuthToken, authToken, loadingProfile } = useContext(UserContext);
@@ -111,9 +112,9 @@ export default function Login() {
 
   useEffect(() => {
     if (authToken && !loadingProfile) {
-      navigate(returnTo || "/dashboard", { replace: true });
+      navigate(returnTo || "/dashboard", { replace: true, state: location.state });
     }
-  }, [authToken, loadingProfile, navigate, returnTo]);
+  }, [authToken, loadingProfile, navigate, returnTo, location.state]);
 
   return (
     <div className={styles.splitContainer}>
@@ -208,7 +209,12 @@ export default function Login() {
         <FontAwesomeIcon icon={faHome} />
       </button>
 
-      {/* Left side */}
+      {/* Header for narrow viewports (replaces left side below 1200px) */}
+      <div className={styles.loginPageHeader}>
+        <HomeHeader />
+      </div>
+
+      {/* Left side (hidden below 1200px) */}
       <div className={styles.leftSide}>
         <div className={styles.brandContainer}>
           <img src="/assets/3-0/mic-logo-2-5-text.png" alt="Map in Color Logo" className={styles.logo} />
