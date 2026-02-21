@@ -9,6 +9,8 @@ const { resend } = require('../config/resend');
 
 
 const saltRounds = 10;
+// Base URL for verification links and redirects (production should use https://mapincolor.com)
+const FRONTEND_BASE = process.env.FRONTEND_URL || 'https://mapincolor.com';
 // Full public URL from Supabase
 const DEFAULT_PROFILE_PIC =
   `${process.env.SUPABASE_URL}/storage/v1/object/public/profile-pictures/default-pic.jpg`;
@@ -150,8 +152,8 @@ router.post(
         { expiresIn: '1d' }
       );
 
-      // Construct the verify link
-      const verifyLink = `https://mapincolor.com/api/auth/verify/${verifyToken}`;
+      // Construct the verify link (same origin as frontend; API is typically at /api)
+      const verifyLink = `${FRONTEND_BASE}/api/auth/verify/${verifyToken}`;
 
       // 7) Send a verification email with the link
       try {
@@ -296,15 +298,14 @@ router.get('/verify/:token', async (req, res) => {
     }
 
     // 3) Return success as HTML or redirect
-    // Option A: Send a simple HTML response:
-    return res.redirect('https://mapincolor.com/verified');
+    return res.redirect(`${FRONTEND_BASE}/verified`);
 
 
     
   } catch (err) {
     console.error('Verification error:', err);
     // Token is invalid or expired
-    return res.redirect('https://mapincolor.com/verification-error');
+    return res.redirect(`${FRONTEND_BASE}/verification-error`);
   }
 });
 
@@ -347,7 +348,7 @@ router.post('/resend-verification', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    const newVerifyLink = `https://mapincolor.com/api/auth/verify/${newVerifyToken}`;
+    const newVerifyLink = `${FRONTEND_BASE}/api/auth/verify/${newVerifyToken}`;
 
     // Send the email
     try {
