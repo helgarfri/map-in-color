@@ -1,91 +1,191 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import styles from './LiveDemoSection.module.css';
-import WorldMapSVG from './WorldMapSVG'; 
-// Adjust this import path as needed
+import { fetchMapById, fetchComments } from '../api';
+import { FaStar, FaDownload, FaComment } from 'react-icons/fa';
+import LoadingSpinner from './LoadingSpinner';
+
+// Featured map shown in the live demo
+const FEATURED_MAP_ID = 89;
+// Embed token for unbranded embed (set REACT_APP_FEATURED_MAP_EMBED_TOKEN to override)
+const FEATURED_MAP_EMBED_TOKEN =
+  process.env.REACT_APP_FEATURED_MAP_EMBED_TOKEN ||
+  'c8f7b552ffd2b53c7366fcaf8e0e6deb8afb15081675f0c18d98a5843de427aa';
+
+function buildEmbedUrl(mapId, token) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const params = new URLSearchParams({
+    theme: 'light',
+    branding: '0',
+    legend: '1',
+    interactive: '1',
+  });
+  if (token) params.set('token', token);
+  return `${origin}/embed/${mapId}?${params.toString()}`;
+}
 
 function LiveDemoSection() {
-  // 1) Define your map data/props right here:
-  
-  const groups = [{"id":1742756032160,"lowerBound":0.38,"upperBound":0.5,"color":"#d73027","name":"","countries":[{"name":"Gambia","code":"GM","value":0.495,"rankDesc":174,"rankAsc":20},{"name":"Eritrea","code":"ER","value":0.493,"rankDesc":175,"rankAsc":19},{"name":"Ethiopia","code":"ET","value":0.492,"rankDesc":176,"rankAsc":18},{"name":"Liberia","code":"LR","value":0.487,"rankDesc":177,"rankAsc":16},{"name":"Madagascar","code":"MG","value":0.487,"rankDesc":178,"rankAsc":17},{"name":"Guinea-Bissau","code":"GW","value":0.483,"rankDesc":179,"rankAsc":15},{"name":"Congo (Democratic Republic of the)","code":"CD","value":0.481,"rankDesc":180,"rankAsc":14},{"name":"Guinea","code":"GN","value":0.471,"rankDesc":181,"rankAsc":13},{"name":"Afghanistan","code":"AF","value":0.462,"rankDesc":182,"rankAsc":12},{"name":"Mozambique","code":"MZ","value":0.461,"rankDesc":183,"rankAsc":11},{"name":"Sierra Leone","code":"SL","value":0.458,"rankDesc":184,"rankAsc":10},{"name":"Burkina Faso","code":"BF","value":0.438,"rankDesc":185,"rankAsc":9},{"name":"Yemen","code":"YE","value":0.424,"rankDesc":186,"rankAsc":8},{"name":"Burundi","code":"BI","value":0.42,"rankDesc":187,"rankAsc":7},{"name":"Mali","code":"ML","value":0.41,"rankDesc":188,"rankAsc":6},{"name":"Chad","code":"TD","value":0.394,"rankDesc":189,"rankAsc":4},{"name":"Niger","code":"NE","value":0.394,"rankDesc":190,"rankAsc":5},{"name":"Central African Republic","code":"CF","value":0.387,"rankDesc":191,"rankAsc":3},{"name":"South Sudan","code":"SS","value":0.381,"rankDesc":192,"rankAsc":2},{"name":"Somalia","code":"SO","value":0.38,"rankDesc":193,"rankAsc":1}],"rangeLabel":"0.38 - 0.5"},{"id":1742756032161,"lowerBound":0.5,"upperBound":0.57,"color":"#f46d43","name":"","countries":[{"name":"Zambia","code":"ZM","value":0.569,"rankDesc":153,"rankAsc":41},{"name":"Papua New Guinea","code":"PG","value":0.568,"rankDesc":154,"rankAsc":40},{"name":"Timor-Leste","code":"TL","value":0.566,"rankDesc":155,"rankAsc":39},{"name":"Solomon Islands","code":"SB","value":0.562,"rankDesc":156,"rankAsc":38},{"name":"Syrian Arab Republic","code":"SY","value":0.557,"rankDesc":157,"rankAsc":37},{"name":"Haiti","code":"HT","value":0.552,"rankDesc":158,"rankAsc":36},{"name":"Uganda","code":"UG","value":0.55,"rankDesc":159,"rankAsc":34},{"name":"Zimbabwe","code":"ZW","value":0.55,"rankDesc":160,"rankAsc":35},{"name":"Nigeria","code":"NG","value":0.548,"rankDesc":161,"rankAsc":32},{"name":"Rwanda","code":"RW","value":0.548,"rankDesc":162,"rankAsc":33},{"name":"Togo","code":"TG","value":0.547,"rankDesc":163,"rankAsc":31},{"name":"Mauritania","code":"MR","value":0.54,"rankDesc":164,"rankAsc":29},{"name":"Pakistan","code":"PK","value":0.54,"rankDesc":165,"rankAsc":30},{"name":"Côte d'Ivoire","code":"CI","value":0.534,"rankDesc":166,"rankAsc":28},{"name":"Tanzania (United Republic of)","code":"TZ","value":0.532,"rankDesc":167,"rankAsc":27},{"name":"Lesotho","code":"LS","value":0.521,"rankDesc":168,"rankAsc":26},{"name":"Senegal","code":"SN","value":0.517,"rankDesc":169,"rankAsc":25},{"name":"Sudan","code":"SD","value":0.516,"rankDesc":170,"rankAsc":24},{"name":"Djibouti","code":"DJ","value":0.515,"rankDesc":171,"rankAsc":23},{"name":"Malawi","code":"MW","value":0.508,"rankDesc":172,"rankAsc":22},{"name":"Benin","code":"BJ","value":0.504,"rankDesc":173,"rankAsc":21}],"rangeLabel":"0.5 - 0.57"},{"id":1742756032162,"lowerBound":0.57,"upperBound":0.63,"color":"#fdae61","name":"","countries":[{"name":"Guatemala","code":"GT","value":0.629,"rankDesc":136,"rankAsc":58},{"name":"Kiribati","code":"KI","value":0.628,"rankDesc":137,"rankAsc":57},{"name":"Honduras","code":"HN","value":0.624,"rankDesc":138,"rankAsc":56},{"name":"Laos","code":"LA","value":0.62,"rankDesc":139,"rankAsc":55},{"name":"Vanuatu","code":"VU","value":0.614,"rankDesc":140,"rankAsc":54},{"name":"Sao Tome and Principe","code":"ST","value":0.613,"rankDesc":141,"rankAsc":53},{"name":"Eswatini (Kingdom of)","code":"SZ","value":0.61,"rankDesc":142,"rankAsc":51},{"name":"Namibia","code":"NA","value":0.61,"rankDesc":143,"rankAsc":52},{"name":"Myanmar","code":"MM","value":0.608,"rankDesc":144,"rankAsc":50},{"name":"Ghana","code":"GH","value":0.602,"rankDesc":145,"rankAsc":49},{"name":"Kenya","code":"KE","value":0.601,"rankDesc":146,"rankAsc":47},{"name":"Nepal","code":"NP","value":0.601,"rankDesc":147,"rankAsc":48},{"name":"Cambodia","code":"KH","value":0.6,"rankDesc":148,"rankAsc":46},{"name":"Congo","code":"CG","value":0.593,"rankDesc":149,"rankAsc":45},{"name":"Angola","code":"AO","value":0.591,"rankDesc":150,"rankAsc":44},{"name":"Cameroon","code":"CM","value":0.587,"rankDesc":151,"rankAsc":43},{"name":"Comoros","code":"KM","value":0.586,"rankDesc":152,"rankAsc":42}],"rangeLabel":"0.57 - 0.63"},{"id":1742756032163,"lowerBound":0.63,"upperBound":0.7,"color":"#fee08b","name":"","countries":[{"name":"Belize","code":"BZ","value":0.7,"rankDesc":118,"rankAsc":76},{"name":"Venezuela","code":"VE","value":0.699,"rankDesc":119,"rankAsc":75},{"name":"Bolivia","code":"BO","value":0.698,"rankDesc":120,"rankAsc":73},{"name":"Morocco","code":"MA","value":0.698,"rankDesc":121,"rankAsc":74},{"name":"Nauru","code":"NR","value":0.696,"rankDesc":122,"rankAsc":72},{"name":"Gabon","code":"GA","value":0.693,"rankDesc":123,"rankAsc":71},{"name":"Suriname","code":"SR","value":0.69,"rankDesc":124,"rankAsc":70},{"name":"Bhutan","code":"BT","value":0.681,"rankDesc":125,"rankAsc":69},{"name":"Tajikistan","code":"TJ","value":0.679,"rankDesc":126,"rankAsc":68},{"name":"El Salvador","code":"SV","value":0.674,"rankDesc":127,"rankAsc":67},{"name":"Iraq","code":"IQ","value":0.673,"rankDesc":128,"rankAsc":66},{"name":"Bangladesh","code":"BD","value":0.67,"rankDesc":129,"rankAsc":65},{"name":"Nicaragua","code":"NI","value":0.669,"rankDesc":130,"rankAsc":64},{"name":"Cabo Verde","code":"CV","value":0.661,"rankDesc":131,"rankAsc":63},{"name":"Tuvalu","code":"TV","value":0.653,"rankDesc":132,"rankAsc":62},{"name":"Equatorial Guinea","code":"GQ","value":0.65,"rankDesc":133,"rankAsc":61},{"name":"India","code":"IN","value":0.644,"rankDesc":134,"rankAsc":60},{"name":"Micronesia","code":"FM","value":0.634,"rankDesc":135,"rankAsc":59}],"rangeLabel":"0.63 - 0.7"},{"id":1742756032164,"lowerBound":0.7,"upperBound":0.74,"color":"#d9ef8b","name":"","countries":[{"name":"Dominica","code":"DM","value":0.74,"rankDesc":97,"rankAsc":97},{"name":"Tonga","code":"TO","value":0.739,"rankDesc":98,"rankAsc":96},{"name":"Jordan","code":"JO","value":0.736,"rankDesc":99,"rankAsc":95},{"name":"Ukraine","code":"UA","value":0.734,"rankDesc":100,"rankAsc":94},{"name":"Tunisia","code":"TN","value":0.732,"rankDesc":101,"rankAsc":93},{"name":"Marshall Islands","code":"MH","value":0.731,"rankDesc":102,"rankAsc":91},{"name":"Paraguay","code":"PY","value":0.731,"rankDesc":103,"rankAsc":92},{"name":"Fiji","code":"FJ","value":0.729,"rankDesc":104,"rankAsc":90},{"name":"Egypt","code":"EG","value":0.728,"rankDesc":105,"rankAsc":89},{"name":"Uzbekistan","code":"UZ","value":0.727,"rankDesc":106,"rankAsc":88},{"name":"Viet Nam","code":"VN","value":0.726,"rankDesc":107,"rankAsc":87},{"name":"Saint Lucia","code":"LC","value":0.725,"rankDesc":108,"rankAsc":86},{"name":"Lebanon","code":"LB","value":0.723,"rankDesc":109,"rankAsc":85},{"name":"South Africa","code":"ZA","value":0.717,"rankDesc":110,"rankAsc":84},{"name":"Palestine","code":"PS","value":0.716,"rankDesc":111,"rankAsc":83},{"name":"Indonesia","code":"ID","value":0.713,"rankDesc":112,"rankAsc":82},{"name":"Philippines","code":"PH","value":0.71,"rankDesc":113,"rankAsc":81},{"name":"Botswana","code":"BW","value":0.708,"rankDesc":114,"rankAsc":80},{"name":"Jamaica","code":"JM","value":0.706,"rankDesc":115,"rankAsc":79},{"name":"Samoa","code":"WS","value":0.702,"rankDesc":116,"rankAsc":78},{"name":"Kyrgyzstan","code":"KG","value":0.701,"rankDesc":117,"rankAsc":77}],"rangeLabel":"0.7 - 0.74"},{"id":1742756032165,"lowerBound":0.74,"upperBound":0.78,"color":"#a6d96a","name":"","countries":[{"name":"Iran","code":"IR","value":0.78,"rankDesc":78,"rankAsc":115},{"name":"Sri Lanka","code":"LK","value":0.78,"rankDesc":79,"rankAsc":116},{"name":"Bosnia and Herzegovina","code":"BA","value":0.779,"rankDesc":80,"rankAsc":114},{"name":"Saint Vincent and the Grenadines","code":"VC","value":0.772,"rankDesc":81,"rankAsc":113},{"name":"Dominican Republic","code":"DO","value":0.766,"rankDesc":82,"rankAsc":112},{"name":"Ecuador","code":"EC","value":0.765,"rankDesc":83,"rankAsc":110},{"name":"North Macedonia","code":"MK","value":0.765,"rankDesc":84,"rankAsc":111},{"name":"Cuba","code":"CU","value":0.764,"rankDesc":85,"rankAsc":109},{"name":"Moldova","code":"MD","value":0.763,"rankDesc":86,"rankAsc":108},{"name":"Maldives","code":"MV","value":0.762,"rankDesc":87,"rankAsc":106},{"name":"Peru","code":"PE","value":0.762,"rankDesc":88,"rankAsc":107},{"name":"Azerbaijan","code":"AZ","value":0.76,"rankDesc":89,"rankAsc":104},{"name":"Brazil","code":"BR","value":0.76,"rankDesc":90,"rankAsc":105},{"name":"Colombia","code":"CO","value":0.758,"rankDesc":91,"rankAsc":103},{"name":"Libya","code":"LY","value":0.746,"rankDesc":92,"rankAsc":102},{"name":"Algeria","code":"DZ","value":0.745,"rankDesc":93,"rankAsc":101},{"name":"Turkmenistan","code":"TM","value":0.744,"rankDesc":94,"rankAsc":100},{"name":"Guyana","code":"GY","value":0.742,"rankDesc":95,"rankAsc":99},{"name":"Mongolia","code":"MN","value":0.741,"rankDesc":96,"rankAsc":98}],"rangeLabel":"0.74 - 0.78"},{"id":1742756032166,"lowerBound":0.78,"upperBound":0.82,"color":"#66bd63","name":"","countries":[{"name":"Bahamas","code":"BS","value":0.82,"rankDesc":57,"rankAsc":136},{"name":"Panama","code":"PA","value":0.82,"rankDesc":58,"rankAsc":137},{"name":"Oman","code":"OM","value":0.819,"rankDesc":59,"rankAsc":135},{"name":"Georgia","code":"GE","value":0.814,"rankDesc":60,"rankAsc":133},{"name":"Trinidad and Tobago","code":"TT","value":0.814,"rankDesc":61,"rankAsc":134},{"name":"Barbados","code":"BB","value":0.809,"rankDesc":62,"rankAsc":132},{"name":"Malaysia","code":"MY","value":0.807,"rankDesc":63,"rankAsc":131},{"name":"Costa Rica","code":"CR","value":0.806,"rankDesc":64,"rankAsc":130},{"name":"Serbia","code":"RS","value":0.805,"rankDesc":65,"rankAsc":129},{"name":"Thailand","code":"TH","value":0.803,"rankDesc":66,"rankAsc":128},{"name":"Kazakhstan","code":"KZ","value":0.802,"rankDesc":67,"rankAsc":126},{"name":"Seychelles","code":"SC","value":0.802,"rankDesc":68,"rankAsc":127},{"name":"Belarus","code":"BY","value":0.801,"rankDesc":69,"rankAsc":125},{"name":"Bulgaria","code":"BG","value":0.799,"rankDesc":70,"rankAsc":124},{"name":"Palau","code":"PW","value":0.797,"rankDesc":71,"rankAsc":123},{"name":"Mauritius","code":"MU","value":0.796,"rankDesc":72,"rankAsc":122},{"name":"Grenada","code":"GD","value":0.793,"rankDesc":73,"rankAsc":121},{"name":"Albania","code":"AL","value":0.789,"rankDesc":74,"rankAsc":120},{"name":"China","code":"CN","value":0.788,"rankDesc":75,"rankAsc":119},{"name":"Armenia","code":"AM","value":0.786,"rankDesc":76,"rankAsc":118},{"name":"Mexico","code":"MX","value":0.781,"rankDesc":77,"rankAsc":117}],"rangeLabel":"0.78 - 0.82"},{"id":1742756032167,"lowerBound":0.82,"upperBound":0.88,"color":"#4daf4a","name":"","countries":[{"name":"Latvia","code":"LV","value":0.879,"rankDesc":37,"rankAsc":156},{"name":"Lithuania","code":"LT","value":0.879,"rankDesc":38,"rankAsc":157},{"name":"Croatia","code":"HR","value":0.878,"rankDesc":39,"rankAsc":155},{"name":"Qatar","code":"QA","value":0.875,"rankDesc":40,"rankAsc":153},{"name":"Saudi Arabia","code":"SA","value":0.875,"rankDesc":41,"rankAsc":154},{"name":"Portugal","code":"PT","value":0.874,"rankDesc":42,"rankAsc":152},{"name":"San Marino","code":"SM","value":0.867,"rankDesc":43,"rankAsc":151},{"name":"Chile","code":"CL","value":0.86,"rankDesc":44,"rankAsc":150},{"name":"Slovakia","code":"SK","value":0.855,"rankDesc":45,"rankAsc":148},{"name":"Turkey","code":"TR","value":0.855,"rankDesc":46,"rankAsc":149},{"name":"Hungary","code":"HU","value":0.851,"rankDesc":47,"rankAsc":147},{"name":"Argentina","code":"AR","value":0.849,"rankDesc":48,"rankAsc":146},{"name":"Kuwait","code":"KW","value":0.847,"rankDesc":49,"rankAsc":145},{"name":"Montenegro","code":"ME","value":0.844,"rankDesc":50,"rankAsc":144},{"name":"Saint Kitts and Nevis","code":"KN","value":0.838,"rankDesc":51,"rankAsc":143},{"name":"Uruguay","code":"UY","value":0.83,"rankDesc":52,"rankAsc":142},{"name":"Romania","code":"RO","value":0.827,"rankDesc":53,"rankAsc":141},{"name":"Antigua and Barbuda","code":"AG","value":0.826,"rankDesc":54,"rankAsc":140},{"name":"Brunei Darussalam","code":"BN","value":0.823,"rankDesc":55,"rankAsc":139},{"name":"Russia","code":"RU","value":0.821,"rankDesc":56,"rankAsc":138}],"rangeLabel":"0.82 - 0.88"},{"id":1742756032168,"lowerBound":0.88,"upperBound":0.93,"color":"#238b45","name":"","countries":[{"name":"South Korea","code":"KR","value":0.929,"rankDesc":19,"rankAsc":175},{"name":"Luxembourg","code":"LU","value":0.927,"rankDesc":20,"rankAsc":173},{"name":"United States","code":"US","value":0.927,"rankDesc":21,"rankAsc":174},{"name":"Austria","code":"AT","value":0.926,"rankDesc":22,"rankAsc":171},{"name":"Slovenia","code":"SI","value":0.926,"rankDesc":23,"rankAsc":172},{"name":"Japan","code":"JP","value":0.92,"rankDesc":24,"rankAsc":170},{"name":"Israel","code":"IL","value":0.915,"rankDesc":25,"rankAsc":168},{"name":"Malta","code":"MT","value":0.915,"rankDesc":26,"rankAsc":169},{"name":"Spain","code":"ES","value":0.911,"rankDesc":27,"rankAsc":167},{"name":"France","code":"FR","value":0.91,"rankDesc":28,"rankAsc":166},{"name":"Cyprus","code":"CY","value":0.907,"rankDesc":29,"rankAsc":165},{"name":"Italy","code":"IT","value":0.906,"rankDesc":30,"rankAsc":164},{"name":"Estonia","code":"EE","value":0.899,"rankDesc":31,"rankAsc":163},{"name":"Czechia","code":"CZ","value":0.895,"rankDesc":32,"rankAsc":162},{"name":"Greece","code":"GR","value":0.893,"rankDesc":33,"rankAsc":161},{"name":"Bahrain","code":"BH","value":0.888,"rankDesc":34,"rankAsc":160},{"name":"Andorra","code":"AD","value":0.884,"rankDesc":35,"rankAsc":159},{"name":"Poland","code":"PL","value":0.881,"rankDesc":36,"rankAsc":158}],"rangeLabel":"0.88 - 0.93"},{"id":1742756032169,"lowerBound":0.93,"upperBound":0.97,"color":"#006837","name":"","countries":[{"name":"Switzerland","code":"CH","value":0.967,"rankDesc":1,"rankAsc":193},{"name":"Norway","code":"NO","value":0.966,"rankDesc":2,"rankAsc":192},{"name":"Iceland","code":"IS","value":0.959,"rankDesc":3,"rankAsc":191},{"name":"Hong Kong","code":"HK","value":0.956,"rankDesc":4,"rankAsc":190},{"name":"Denmark","code":"DK","value":0.952,"rankDesc":5,"rankAsc":188},{"name":"Sweden","code":"SE","value":0.952,"rankDesc":6,"rankAsc":189},{"name":"Germany","code":"DE","value":0.95,"rankDesc":7,"rankAsc":186},{"name":"Ireland","code":"IE","value":0.95,"rankDesc":8,"rankAsc":187},{"name":"Singapore","code":"SG","value":0.949,"rankDesc":9,"rankAsc":185},{"name":"Australia","code":"AU","value":0.946,"rankDesc":10,"rankAsc":183},{"name":"Netherlands","code":"NL","value":0.946,"rankDesc":11,"rankAsc":184},{"name":"Belgium","code":"BE","value":0.942,"rankDesc":12,"rankAsc":180},{"name":"Finland","code":"FI","value":0.942,"rankDesc":13,"rankAsc":181},{"name":"Liechtenstein","code":"LI","value":0.942,"rankDesc":14,"rankAsc":182},{"name":"United Kingdom","code":"GB","value":0.94,"rankDesc":15,"rankAsc":179},{"name":"New Zealand","code":"NZ","value":0.939,"rankDesc":16,"rankAsc":178},{"name":"United Arab Emirates","code":"AE","value":0.937,"rankDesc":17,"rankAsc":177},{"name":"Canada","code":"CA","value":0.935,"rankDesc":18,"rankAsc":176}],"rangeLabel":"0.93 - 0.97"}];
-  const data = [{"name":"Switzerland","code":"CH","value":0.967,"rankDesc":1,"rankAsc":193},{"name":"Norway","code":"NO","value":0.966,"rankDesc":2,"rankAsc":192},{"name":"Iceland","code":"IS","value":0.959,"rankDesc":3,"rankAsc":191},{"name":"Hong Kong","code":"HK","value":0.956,"rankDesc":4,"rankAsc":190},{"name":"Denmark","code":"DK","value":0.952,"rankDesc":5,"rankAsc":188},{"name":"Sweden","code":"SE","value":0.952,"rankDesc":6,"rankAsc":189},{"name":"Germany","code":"DE","value":0.95,"rankDesc":7,"rankAsc":186},{"name":"Ireland","code":"IE","value":0.95,"rankDesc":8,"rankAsc":187},{"name":"Singapore","code":"SG","value":0.949,"rankDesc":9,"rankAsc":185},{"name":"Australia","code":"AU","value":0.946,"rankDesc":10,"rankAsc":183},{"name":"Netherlands","code":"NL","value":0.946,"rankDesc":11,"rankAsc":184},{"name":"Belgium","code":"BE","value":0.942,"rankDesc":12,"rankAsc":180},{"name":"Finland","code":"FI","value":0.942,"rankDesc":13,"rankAsc":181},{"name":"Liechtenstein","code":"LI","value":0.942,"rankDesc":14,"rankAsc":182},{"name":"United Kingdom","code":"GB","value":0.94,"rankDesc":15,"rankAsc":179},{"name":"New Zealand","code":"NZ","value":0.939,"rankDesc":16,"rankAsc":178},{"name":"United Arab Emirates","code":"AE","value":0.937,"rankDesc":17,"rankAsc":177},{"name":"Canada","code":"CA","value":0.935,"rankDesc":18,"rankAsc":176},{"name":"Korea (Republic of)","code":"KR","value":0.929,"rankDesc":19,"rankAsc":175},{"name":"Luxembourg","code":"LU","value":0.927,"rankDesc":20,"rankAsc":173},{"name":"United States","code":"US","value":0.927,"rankDesc":21,"rankAsc":174},{"name":"Austria","code":"AT","value":0.926,"rankDesc":22,"rankAsc":171},{"name":"Slovenia","code":"SI","value":0.926,"rankDesc":23,"rankAsc":172},{"name":"Japan","code":"JP","value":0.92,"rankDesc":24,"rankAsc":170},{"name":"Israel","code":"IL","value":0.915,"rankDesc":25,"rankAsc":168},{"name":"Malta","code":"MT","value":0.915,"rankDesc":26,"rankAsc":169},{"name":"Spain","code":"ES","value":0.911,"rankDesc":27,"rankAsc":167},{"name":"France","code":"FR","value":0.91,"rankDesc":28,"rankAsc":166},{"name":"Cyprus","code":"CY","value":0.907,"rankDesc":29,"rankAsc":165},{"name":"Italy","code":"IT","value":0.906,"rankDesc":30,"rankAsc":164},{"name":"Estonia","code":"EE","value":0.899,"rankDesc":31,"rankAsc":163},{"name":"Czechia","code":"CZ","value":0.895,"rankDesc":32,"rankAsc":162},{"name":"Greece","code":"GR","value":0.893,"rankDesc":33,"rankAsc":161},{"name":"Bahrain","code":"BH","value":0.888,"rankDesc":34,"rankAsc":160},{"name":"Andorra","code":"AD","value":0.884,"rankDesc":35,"rankAsc":159},{"name":"Poland","code":"PL","value":0.881,"rankDesc":36,"rankAsc":158},{"name":"Latvia","code":"LV","value":0.879,"rankDesc":37,"rankAsc":156},{"name":"Lithuania","code":"LT","value":0.879,"rankDesc":38,"rankAsc":157},{"name":"Croatia","code":"HR","value":0.878,"rankDesc":39,"rankAsc":155},{"name":"Qatar","code":"QA","value":0.875,"rankDesc":40,"rankAsc":153},{"name":"Saudi Arabia","code":"SA","value":0.875,"rankDesc":41,"rankAsc":154},{"name":"Portugal","code":"PT","value":0.874,"rankDesc":42,"rankAsc":152},{"name":"San Marino","code":"SM","value":0.867,"rankDesc":43,"rankAsc":151},{"name":"Chile","code":"CL","value":0.86,"rankDesc":44,"rankAsc":150},{"name":"Slovakia","code":"SK","value":0.855,"rankDesc":45,"rankAsc":148},{"name":"Türkiye","code":"TR","value":0.855,"rankDesc":46,"rankAsc":149},{"name":"Hungary","code":"HU","value":0.851,"rankDesc":47,"rankAsc":147},{"name":"Argentina","code":"AR","value":0.849,"rankDesc":48,"rankAsc":146},{"name":"Kuwait","code":"KW","value":0.847,"rankDesc":49,"rankAsc":145},{"name":"Montenegro","code":"ME","value":0.844,"rankDesc":50,"rankAsc":144},{"name":"Saint Kitts and Nevis","code":"KN","value":0.838,"rankDesc":51,"rankAsc":143},{"name":"Uruguay","code":"UY","value":0.83,"rankDesc":52,"rankAsc":142},{"name":"Romania","code":"RO","value":0.827,"rankDesc":53,"rankAsc":141},{"name":"Antigua and Barbuda","code":"AG","value":0.826,"rankDesc":54,"rankAsc":140},{"name":"Brunei Darussalam","code":"BN","value":0.823,"rankDesc":55,"rankAsc":139},{"name":"Russian Federation","code":"RU","value":0.821,"rankDesc":56,"rankAsc":138},{"name":"Bahamas","code":"BS","value":0.82,"rankDesc":57,"rankAsc":136},{"name":"Panama","code":"PA","value":0.82,"rankDesc":58,"rankAsc":137},{"name":"Oman","code":"OM","value":0.819,"rankDesc":59,"rankAsc":135},{"name":"Georgia","code":"GE","value":0.814,"rankDesc":60,"rankAsc":133},{"name":"Trinidad and Tobago","code":"TT","value":0.814,"rankDesc":61,"rankAsc":134},{"name":"Barbados","code":"BB","value":0.809,"rankDesc":62,"rankAsc":132},{"name":"Malaysia","code":"MY","value":0.807,"rankDesc":63,"rankAsc":131},{"name":"Costa Rica","code":"CR","value":0.806,"rankDesc":64,"rankAsc":130},{"name":"Serbia","code":"RS","value":0.805,"rankDesc":65,"rankAsc":129},{"name":"Thailand","code":"TH","value":0.803,"rankDesc":66,"rankAsc":128},{"name":"Kazakhstan","code":"KZ","value":0.802,"rankDesc":67,"rankAsc":126},{"name":"Seychelles","code":"SC","value":0.802,"rankDesc":68,"rankAsc":127},{"name":"Belarus","code":"BY","value":0.801,"rankDesc":69,"rankAsc":125},{"name":"Bulgaria","code":"BG","value":0.799,"rankDesc":70,"rankAsc":124},{"name":"Palau","code":"PW","value":0.797,"rankDesc":71,"rankAsc":123},{"name":"Mauritius","code":"MU","value":0.796,"rankDesc":72,"rankAsc":122},{"name":"Grenada","code":"GD","value":0.793,"rankDesc":73,"rankAsc":121},{"name":"Albania","code":"AL","value":0.789,"rankDesc":74,"rankAsc":120},{"name":"China","code":"CN","value":0.788,"rankDesc":75,"rankAsc":119},{"name":"Armenia","code":"AM","value":0.786,"rankDesc":76,"rankAsc":118},{"name":"Mexico","code":"MX","value":0.781,"rankDesc":77,"rankAsc":117},{"name":"Iran (Islamic Republic of)","code":"IR","value":0.78,"rankDesc":78,"rankAsc":115},{"name":"Sri Lanka","code":"LK","value":0.78,"rankDesc":79,"rankAsc":116},{"name":"Bosnia and Herzegovina","code":"BA","value":0.779,"rankDesc":80,"rankAsc":114},{"name":"Saint Vincent and the Grenadines","code":"VC","value":0.772,"rankDesc":81,"rankAsc":113},{"name":"Dominican Republic","code":"DO","value":0.766,"rankDesc":82,"rankAsc":112},{"name":"Ecuador","code":"EC","value":0.765,"rankDesc":83,"rankAsc":110},{"name":"North Macedonia","code":"MK","value":0.765,"rankDesc":84,"rankAsc":111},{"name":"Cuba","code":"CU","value":0.764,"rankDesc":85,"rankAsc":109},{"name":"Moldova (Republic of)","code":"MD","value":0.763,"rankDesc":86,"rankAsc":108},{"name":"Maldives","code":"MV","value":0.762,"rankDesc":87,"rankAsc":106},{"name":"Peru","code":"PE","value":0.762,"rankDesc":88,"rankAsc":107},{"name":"Azerbaijan","code":"AZ","value":0.76,"rankDesc":89,"rankAsc":104},{"name":"Brazil","code":"BR","value":0.76,"rankDesc":90,"rankAsc":105},{"name":"Colombia","code":"CO","value":0.758,"rankDesc":91,"rankAsc":103},{"name":"Libya","code":"LY","value":0.746,"rankDesc":92,"rankAsc":102},{"name":"Algeria","code":"DZ","value":0.745,"rankDesc":93,"rankAsc":101},{"name":"Turkmenistan","code":"TM","value":0.744,"rankDesc":94,"rankAsc":100},{"name":"Guyana","code":"GY","value":0.742,"rankDesc":95,"rankAsc":99},{"name":"Mongolia","code":"MN","value":0.741,"rankDesc":96,"rankAsc":98},{"name":"Dominica","code":"DM","value":0.74,"rankDesc":97,"rankAsc":97},{"name":"Tonga","code":"TO","value":0.739,"rankDesc":98,"rankAsc":96},{"name":"Jordan","code":"JO","value":0.736,"rankDesc":99,"rankAsc":95},{"name":"Ukraine","code":"UA","value":0.734,"rankDesc":100,"rankAsc":94},{"name":"Tunisia","code":"TN","value":0.732,"rankDesc":101,"rankAsc":93},{"name":"Marshall Islands","code":"MH","value":0.731,"rankDesc":102,"rankAsc":91},{"name":"Paraguay","code":"PY","value":0.731,"rankDesc":103,"rankAsc":92},{"name":"Fiji","code":"FJ","value":0.729,"rankDesc":104,"rankAsc":90},{"name":"Egypt","code":"EG","value":0.728,"rankDesc":105,"rankAsc":89},{"name":"Uzbekistan","code":"UZ","value":0.727,"rankDesc":106,"rankAsc":88},{"name":"Viet Nam","code":"VN","value":0.726,"rankDesc":107,"rankAsc":87},{"name":"Saint Lucia","code":"LC","value":0.725,"rankDesc":108,"rankAsc":86},{"name":"Lebanon","code":"LB","value":0.723,"rankDesc":109,"rankAsc":85},{"name":"South Africa","code":"ZA","value":0.717,"rankDesc":110,"rankAsc":84},{"name":"Palestine","code":"PS","value":0.716,"rankDesc":111,"rankAsc":83},{"name":"Indonesia","code":"ID","value":0.713,"rankDesc":112,"rankAsc":82},{"name":"Philippines","code":"PH","value":0.71,"rankDesc":113,"rankAsc":81},{"name":"Botswana","code":"BW","value":0.708,"rankDesc":114,"rankAsc":80},{"name":"Jamaica","code":"JM","value":0.706,"rankDesc":115,"rankAsc":79},{"name":"Samoa","code":"WS","value":0.702,"rankDesc":116,"rankAsc":78},{"name":"Kyrgyzstan","code":"KG","value":0.701,"rankDesc":117,"rankAsc":77},{"name":"Belize","code":"BZ","value":0.7,"rankDesc":118,"rankAsc":76},{"name":"Venezuela (Bolivarian Republic of)","code":"VE","value":0.699,"rankDesc":119,"rankAsc":75},{"name":"Bolivia (Plurinational State of)","code":"BO","value":0.698,"rankDesc":120,"rankAsc":73},{"name":"Morocco","code":"MA","value":0.698,"rankDesc":121,"rankAsc":74},{"name":"Nauru","code":"NR","value":0.696,"rankDesc":122,"rankAsc":72},{"name":"Gabon","code":"GA","value":0.693,"rankDesc":123,"rankAsc":71},{"name":"Suriname","code":"SR","value":0.69,"rankDesc":124,"rankAsc":70},{"name":"Bhutan","code":"BT","value":0.681,"rankDesc":125,"rankAsc":69},{"name":"Tajikistan","code":"TJ","value":0.679,"rankDesc":126,"rankAsc":68},{"name":"El Salvador","code":"SV","value":0.674,"rankDesc":127,"rankAsc":67},{"name":"Iraq","code":"IQ","value":0.673,"rankDesc":128,"rankAsc":66},{"name":"Bangladesh","code":"BD","value":0.67,"rankDesc":129,"rankAsc":65},{"name":"Nicaragua","code":"NI","value":0.669,"rankDesc":130,"rankAsc":64},{"name":"Cabo Verde","code":"CV","value":0.661,"rankDesc":131,"rankAsc":63},{"name":"Tuvalu","code":"TV","value":0.653,"rankDesc":132,"rankAsc":62},{"name":"Equatorial Guinea","code":"GQ","value":0.65,"rankDesc":133,"rankAsc":61},{"name":"India","code":"IN","value":0.644,"rankDesc":134,"rankAsc":60},{"name":"Micronesia (Federated States of)","code":"FM","value":0.634,"rankDesc":135,"rankAsc":59},{"name":"Guatemala","code":"GT","value":0.629,"rankDesc":136,"rankAsc":58},{"name":"Kiribati","code":"KI","value":0.628,"rankDesc":137,"rankAsc":57},{"name":"Honduras","code":"HN","value":0.624,"rankDesc":138,"rankAsc":56},{"name":"Lao People's Democratic Republic","code":"LA","value":0.62,"rankDesc":139,"rankAsc":55},{"name":"Vanuatu","code":"VU","value":0.614,"rankDesc":140,"rankAsc":54},{"name":"Sao Tome and Principe","code":"ST","value":0.613,"rankDesc":141,"rankAsc":53},{"name":"Eswatini (Kingdom of)","code":"SZ","value":0.61,"rankDesc":142,"rankAsc":51},{"name":"Namibia","code":"NA","value":0.61,"rankDesc":143,"rankAsc":52},{"name":"Myanmar","code":"MM","value":0.608,"rankDesc":144,"rankAsc":50},{"name":"Ghana","code":"GH","value":0.602,"rankDesc":145,"rankAsc":49},{"name":"Kenya","code":"KE","value":0.601,"rankDesc":146,"rankAsc":47},{"name":"Nepal","code":"NP","value":0.601,"rankDesc":147,"rankAsc":48},{"name":"Cambodia","code":"KH","value":0.6,"rankDesc":148,"rankAsc":46},{"name":"Congo","code":"CG","value":0.593,"rankDesc":149,"rankAsc":45},{"name":"Angola","code":"AO","value":0.591,"rankDesc":150,"rankAsc":44},{"name":"Cameroon","code":"CM","value":0.587,"rankDesc":151,"rankAsc":43},{"name":"Comoros","code":"KM","value":0.586,"rankDesc":152,"rankAsc":42},{"name":"Zambia","code":"ZM","value":0.569,"rankDesc":153,"rankAsc":41},{"name":"Papua New Guinea","code":"PG","value":0.568,"rankDesc":154,"rankAsc":40},{"name":"Timor-Leste","code":"TL","value":0.566,"rankDesc":155,"rankAsc":39},{"name":"Solomon Islands","code":"SB","value":0.562,"rankDesc":156,"rankAsc":38},{"name":"Syrian Arab Republic","code":"SY","value":0.557,"rankDesc":157,"rankAsc":37},{"name":"Haiti","code":"HT","value":0.552,"rankDesc":158,"rankAsc":36},{"name":"Uganda","code":"UG","value":0.55,"rankDesc":159,"rankAsc":34},{"name":"Zimbabwe","code":"ZW","value":0.55,"rankDesc":160,"rankAsc":35},{"name":"Nigeria","code":"NG","value":0.548,"rankDesc":161,"rankAsc":32},{"name":"Rwanda","code":"RW","value":0.548,"rankDesc":162,"rankAsc":33},{"name":"Togo","code":"TG","value":0.547,"rankDesc":163,"rankAsc":31},{"name":"Mauritania","code":"MR","value":0.54,"rankDesc":164,"rankAsc":29},{"name":"Pakistan","code":"PK","value":0.54,"rankDesc":165,"rankAsc":30},{"name":"Côte d'Ivoire","code":"CI","value":0.534,"rankDesc":166,"rankAsc":28},{"name":"Tanzania (United Republic of)","code":"TZ","value":0.532,"rankDesc":167,"rankAsc":27},{"name":"Lesotho","code":"LS","value":0.521,"rankDesc":168,"rankAsc":26},{"name":"Senegal","code":"SN","value":0.517,"rankDesc":169,"rankAsc":25},{"name":"Sudan","code":"SD","value":0.516,"rankDesc":170,"rankAsc":24},{"name":"Djibouti","code":"DJ","value":0.515,"rankDesc":171,"rankAsc":23},{"name":"Malawi","code":"MW","value":0.508,"rankDesc":172,"rankAsc":22},{"name":"Benin","code":"BJ","value":0.504,"rankDesc":173,"rankAsc":21},{"name":"Gambia","code":"GM","value":0.495,"rankDesc":174,"rankAsc":20},{"name":"Eritrea","code":"ER","value":0.493,"rankDesc":175,"rankAsc":19},{"name":"Ethiopia","code":"ET","value":0.492,"rankDesc":176,"rankAsc":18},{"name":"Liberia","code":"LR","value":0.487,"rankDesc":177,"rankAsc":16},{"name":"Madagascar","code":"MG","value":0.487,"rankDesc":178,"rankAsc":17},{"name":"Guinea-Bissau","code":"GW","value":0.483,"rankDesc":179,"rankAsc":15},{"name":"Congo (Democratic Republic of the)","code":"CD","value":0.481,"rankDesc":180,"rankAsc":14},{"name":"Guinea","code":"GN","value":0.471,"rankDesc":181,"rankAsc":13},{"name":"Afghanistan","code":"AF","value":0.462,"rankDesc":182,"rankAsc":12},{"name":"Mozambique","code":"MZ","value":0.461,"rankDesc":183,"rankAsc":11},{"name":"Sierra Leone","code":"SL","value":0.458,"rankDesc":184,"rankAsc":10},{"name":"Burkina Faso","code":"BF","value":0.438,"rankDesc":185,"rankAsc":9},{"name":"Yemen","code":"YE","value":0.424,"rankDesc":186,"rankAsc":8},{"name":"Burundi","code":"BI","value":0.42,"rankDesc":187,"rankAsc":7},{"name":"Mali","code":"ML","value":0.41,"rankDesc":188,"rankAsc":6},{"name":"Chad","code":"TD","value":0.394,"rankDesc":189,"rankAsc":4},{"name":"Niger","code":"NE","value":0.394,"rankDesc":190,"rankAsc":5},{"name":"Central African Republic","code":"CF","value":0.387,"rankDesc":191,"rankAsc":3},{"name":"South Sudan","code":"SS","value":0.381,"rankDesc":192,"rankAsc":2},{"name":"Somalia","code":"SO","value":0.38,"rankDesc":193,"rankAsc":1}];
-  
-  const mapTitle = "HDI";
-  const ocean_color = "#b3d9ff";
-  const unassigned_color = "#f2f2f2";
-  const show_top_high_values = true;
-  const show_top_low_values = true;
-  const selected_map = "world";
-  const font_color = "#333";
-  const topHighValues = 5;
-  const top_low_values = 5;
-  const showNoDataLegend = true;
-  const is_title_hidden = false;
+  const [mapData, setMapData] = useState(null);
+  const [commentCount, setCommentCount] = useState(0);
+  const [loadState, setLoadState] = useState('loading'); // 'loading' | 'ready' | 'error'
 
-  // 2) Pass them into WorldMapSVG
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoadState('loading');
+      try {
+        const res = await fetchMapById(FEATURED_MAP_ID, {
+          embedToken: FEATURED_MAP_EMBED_TOKEN || undefined,
+        });
+        if (cancelled) return;
+        if (!res?.data) {
+          setLoadState('error');
+          return;
+        }
+        setMapData(res.data);
+
+        const commentsRes = await fetchComments(FEATURED_MAP_ID);
+        if (!cancelled && commentsRes?.data) {
+          const flatCount = (arr) =>
+            arr.reduce((n, c) => n + 1 + flatCount(c.Replies || []), 0);
+          setCommentCount(flatCount(commentsRes.data));
+        }
+        setLoadState('ready');
+      } catch (err) {
+        if (!cancelled) {
+          console.error('LiveDemoSection: failed to load featured map', err);
+          setLoadState('error');
+        }
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const embedUrl = buildEmbedUrl(FEATURED_MAP_ID, FEATURED_MAP_EMBED_TOKEN);
+  const stars = mapData?.save_count ?? 0;
+  const downloads = mapData?.download_count ?? 0;
+  const user = mapData?.user;
+
+  if (loadState === 'loading') {
+    return (
+      <section className={styles.demoSection}>
+        <div className={styles.contentRow}>
+          <div className={styles.mapContainer}>
+            <div className={styles.loadingPlaceholder}>
+              <LoadingSpinner />
+            </div>
+          </div>
+          <div className={styles.infoCard}>
+            <div className={styles.loadingPlaceholder} />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (loadState === 'error' || !mapData) {
+    return (
+      <section className={styles.demoSection}>
+        <div className={styles.contentRow}>
+          <p className={styles.errorMessage}>Featured map is temporarily unavailable.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className={styles.demoSection}>
-      
-    {/* Title & subtitle at the top */}
-    <div className={styles.titleBlock}>
-      <h2 className={styles.title}>See What's Possible</h2>
-      <p className={styles.subtitle}>
-        This map was made using real-world data from the United Nations.
-      </p>
-    </div>
+      <div className={styles.contentRow}>
+        {/* Left: map preview (embed iframe) */}
+        <div className={styles.mapContainer}>
+          <div className={styles.embedWrap}>
+            <iframe
+              src={embedUrl}
+              title={mapData.title || 'Featured map'}
+              className={styles.embedIframe}
+            />
+          </div>
+        </div>
 
-    {/* The main content row (map + text) */}
-    <div className={styles.contentRow}>
+        {/* Right: clean info card */}
+        <div className={styles.infoCard}>
+          <p className={styles.cardEyebrow}>Featured map</p>
+          <h2 className={styles.cardTitle}>{mapData.title || 'Untitled Map'}</h2>
+          <p className={styles.cardDescription}>
+            {mapData.description?.trim() ||
+              'Only eight countries have won the FIFA World Cup since 1930. This map highlights the nations that have reached the pinnacle of international football.'}
+          </p>
 
-      {/* Map Container */}
-      <div className={styles.mapContainer}>
-        <WorldMapSVG
-          groups={groups}
-          mapTitleValue={mapTitle}
-          ocean_color={ocean_color}
-          unassigned_color={unassigned_color}
-          show_top_high_values={show_top_high_values}
-          show_top_low_values={show_top_low_values}
-          data={data}
-          selected_map={selected_map}
-          font_color={font_color}
-          topHighValues={topHighValues}
-          top_low_values={top_low_values}
-          showNoDataLegend={showNoDataLegend}
-          isLargeMap={false}
-          is_title_hidden={is_title_hidden}
-        />
-        {/* Overlaid "Built with MIC" badge */}
-        <div className={styles.micBadge}>Built with MIC</div>
-      </div>
+          {/* Stats: stars, downloads, comments */}
+          <div className={styles.statsRow}>
+            <span className={styles.statItem} title="Stars">
+              <FaStar className={styles.statIcon} aria-hidden />
+              {stars}
+            </span>
+            <span className={styles.statItem} title="Downloads">
+              <FaDownload className={styles.statIcon} aria-hidden />
+              {downloads}
+            </span>
+            <span className={styles.statItem} title="Comments">
+              <FaComment className={styles.statIcon} aria-hidden />
+              {commentCount}
+            </span>
+          </div>
 
-      {/* Info container */}
-      <div className={styles.infoContainer}>
-        <h2 className={styles.mapTitle}>Human Development Index (HDI)</h2>
-        <p className={styles.mapMeta}>
-          Created by <strong>Helgi Freyr Davíðsson</strong>
-        </p>
-        <p className={styles.mapDescription}>
-          This map visualizes the Human Development Index (HDI), a measure used by 
-          the United Nations to assess a country's average achievements in health, 
-          education, and standard of living. HDI is calculated as the geometric mean 
-          of three key indicators: life expectancy at birth, mean and expected years 
-          of schooling, and gross national income (GNI) per capita (log-adjusted).
-        </p>
-        <p className={styles.mapReferences}>
-          <strong>References:</strong><br/>
-          Human Development Index (2022). United Nations – 
-          <a
-            href="https://hdr.undp.org/data-center/human-development-index#/indicies/HDI"
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* Tags → /explore?tags=... */}
+          {mapData.tags?.length > 0 && (
+            <div className={styles.tagsBlock}>
+              <span className={styles.tagsLabel}>Tags</span>
+              <div className={styles.tagsWrap}>
+                {mapData.tags.map((tag, index) => (
+                  <Link
+                    key={index}
+                    to={`/explore?tags=${encodeURIComponent(String(tag).toLowerCase())}`}
+                    className={styles.tagChip}
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Creator (same pattern as MapDetailContent) */}
+          {user && (
+            <div className={styles.creatorBlock}>
+              <span className={styles.creatorLabel}>Creator</span>
+              <Link
+                to={`/profile/${user.username || 'unknown'}`}
+                className={styles.creatorChip}
+              >
+                <img
+                  src={user.profile_picture || '/default-profile-pic.jpg'}
+                  alt=""
+                  className={styles.creatorAvatar}
+                />
+                <div className={styles.creatorText}>
+                  <span className={styles.creatorName}>
+                    {[user.first_name, user.last_name].filter(Boolean).join(' ') || user.username}
+                  </span>
+                  <span className={styles.creatorUsername}>@{user.username || 'unknown'}</span>
+                </div>
+              </Link>
+            </div>
+          )}
+
+          {/* CTA: Explore this map → /map/78 */}
+          <Link
+            to={`/map/${FEATURED_MAP_ID}`}
+            className={styles.ctaButton}
           >
-            https://hdr.undp.org/data-center/human-development-index#/indicies/HDI
-          </a>
-        </p>
+            Explore this map
+          </Link>
+        </div>
       </div>
-
-    </div>
-  </section>
+    </section>
   );
 }
 

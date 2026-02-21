@@ -1,201 +1,338 @@
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+  --mic-offwhite: #fbfafa; /* ✅ new */
+}
+
+/* ===== Page layout ===== */
 .splitContainer {
   display: flex;
-  height: 100vh; /* Full viewport height */
+  min-height: 100vh;
   font-family: Arial, sans-serif;
-  position: relative; /* so the button can be absolutely positioned */
+  position: relative;
+    background: var(--mic-offwhite);
 }
 
-/* The go-back button in the top-left corner */
+/* Header slot: shown only below 1200px (replaces left side) */
+.loginPageHeader {
+  display: none;
+  flex: 0 0 auto;
+}
+
+/* top-left (hidden below 1200px when HomeHeader is used) */
 .goBackButton {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 20px;
-  background: none;
-  border: none;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.10);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
   cursor: pointer;
-  color: white;
-  
+  color: rgba(0,0,0,0.70);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
+.goBackButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
 
-
-
+/* ===== Left brand side ===== */
 .leftSide {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(to bottom right, #79a6b7, #79a6b7);
+  display: grid;
+  place-items: center;
+  padding: 30px;
+  background:
+    /* soft “glow blobs” */
+    radial-gradient(900px 600px at 20% 25%, rgba(40,168,225,0.18), rgba(251,250,250,0) 60%),
+    radial-gradient(900px 600px at 70% 70%, rgba(20,169,175,0.14), rgba(251,250,250,0) 58%),
+    /* subtle texture */
+    linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0) 40%),
+    /* base */
+    var(--mic-offwhite);
 }
 
-/* Container to hold the logo and brand text side by side */
 .brandContainer {
   display: flex;
   align-items: center;
-  gap: 20px; /* space between logo and text */
+  gap: 18px;
 }
 
 .logo {
-  width: 130px;
+  width: 600px;
   height: auto;
 }
 
 .brandText {
   color: #fff;
-  font-size: 4rem;
-  font-weight: bold;
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin: 0;
 }
 
-/* Right side: for the form */
+/* ===== Right form side (subtle blue/cyan like HeroSection) ===== */
 .rightSide {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f5f5f5;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+
+  background:
+    radial-gradient(
+      ellipse 85% 65% at 20% 25%,
+      rgba(20, 169, 175, 0.24),
+      rgba(20, 169, 175, 0.07) 45%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 75% 70% at 88% 75%,
+      rgba(40, 168, 225, 0.22),
+      rgba(40, 168, 225, 0.06) 45%,
+      transparent 65%
+    ),
+    linear-gradient(
+      165deg,
+      #e8f4f5 0%,
+      #e3eef5 35%,
+      #e8f4f5 70%,
+      #e3eef5 100%
+    );
 }
 
-/* Container for the login heading and form */
+/* Form card */
 .loginBox {
-  max-width: 400px;
-  width: 80%;
-  text-align: center;
+  width: 460px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.25); /* subtle on gradient */
+  box-shadow:
+    0 30px 90px rgba(15, 23, 42, 0.18),
+    0 10px 30px rgba(15, 23, 42, 0.10);
+  padding: 22px;
+  text-align: left;
+  overflow: hidden;
 }
 
+/* Header text */
 .loginTitle {
-  margin-bottom: 30px;
+  margin: 0 0 6px;
   font-size: 28px;
-  color: #333;
+  font-weight: 900;
+  color: #222;
+  letter-spacing: -0.2px;
 }
 
-/* The login form */
+.loginSubtitle {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.4;
+}
+
+/* ===== Form ===== */
 .loginForm {
   display: flex;
   flex-direction: column;
+  gap: 14px;
 }
 
-/* Individual form groups (label + input) */
 .formGroup {
-  margin-bottom: 20px;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .formGroup label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.70);
 }
 
 .formGroup input {
   width: 100%;
-  padding: 14px;
+  padding: 12px 12px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-  line-height: 1.5; /* Adjust line-height to prevent text overlap */
+  border: 1px solid rgba(0,0,0,0.14);
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+  background: #fff;
 }
 
-/* Button styling */
+.formGroup input:focus {
+  border-color: rgba(20,169,175,0.65); /* cyan */
+  box-shadow: 0 0 0 4px rgba(20,169,175,0.16);
+}
+
+/* Primary CTA */
 .loginButton {
-  padding: 14px;
-  background-color: #79a6b7;
-  color: #fff;
+  margin-top: 8px;
+  height: 44px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 17px;
-  margin-top: 10px;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--mic-azure) 0%, var(--mic-cyan) 100%);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
 .loginButton:hover {
-  background-color: #6d8e9f;
+  box-shadow: 0 14px 30px rgba(40,168,225,0.18);
+  transform: translateY(-1px);
+  filter: brightness(0.98);
 }
 
-/* Paragraph and link style under the form */
-.loginBox p {
-  margin-top: 30px;
-  font-size: 15px;
-  color: #333;
+.loginButton:active {
+  transform: translateY(0px);
+  box-shadow: none;
 }
 
-.loginBox a {
-  color: #79a6b7;
+.loginButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Footer link row */
+.loginFooter {
+  margin-top: 16px;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  text-align: center;
+}
+
+.loginFooter a {
+  color: var(--mic-cyan);
   text-decoration: none;
+  font-weight: 900;
 }
 
-.loginBox a:hover {
+.loginFooter a:hover {
   text-decoration: underline;
 }
 
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Dark background */
+/* Reset password: requirement checklist (copied from ProfileSettings) */
+.pwReqGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.pwReqItem {
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it appears above everything else */
+  gap: 8px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.68);
 }
 
-.modalContent {
-  background-color: #fff;
-  padding: 20px 40px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+.pwDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.25);
+  flex: 0 0 auto;
 }
 
-.spinner {
-  border: 8px solid #f3f3f3;
-  border-top: 8px solid #79a6b7;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 15px; /* Centers the spinner horizontally */
-  
+.pwValid {
+  background: rgba(72, 177, 125, 0.95);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.pwInvalid {
+  background: rgba(15, 23, 42, 0.22);
+}
+
+.pwMatchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.65);
+  margin: 6px 0 2px;
+}
+
+@media (max-width: 520px) {
+  .pwReqGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 
-/* ----------- MEDIA QUERY for screens <= 1200px ----------- */
+/* ===== Responsive ===== */
 @media (max-width: 1200px) {
   .splitContainer {
-    flex-direction: column; /* stack leftSide above rightSide */
+    flex-direction: column;
+    /* Same blueish gradient as .rightSide so transparent header fits (like HeroSection) */
+    background:
+      radial-gradient(
+        ellipse 85% 65% at 20% 25%,
+        rgba(20, 169, 175, 0.24),
+        rgba(20, 169, 175, 0.07) 45%,
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 75% 70% at 88% 75%,
+        rgba(40, 168, 225, 0.22),
+        rgba(40, 168, 225, 0.06) 45%,
+        transparent 65%
+      ),
+      linear-gradient(
+        165deg,
+        #e8f4f5 0%,
+        #e3eef5 35%,
+        #e8f4f5 70%,
+        #e3eef5 100%
+      );
   }
 
-  .leftSide{
-    flex: 0;
+  /* Use HomeHeader instead of left brand side (transparent over gradient) */
+  .loginPageHeader {
+    display: block;
   }
 
-  .leftSide,
+  .goBackButton {
+    display: none;
+  }
+
+  .leftSide {
+    display: none;
+  }
+
   .rightSide {
-    width: 100%;
-    display: flex;
-    justify-content: center;
+    padding: 28px 24px;
+    min-height: 0;
     align-items: center;
+    justify-content: center;
+  }
 
+  .loginBox {
+    width: 100%;
+    max-width: 520px;
+    padding: 24px;
   }
-  
-  /* In case you want the branding to appear as a column when stacked */
-  .brandContainer {
-    flex-direction: row;
-    gap: 10px;
-    margin: 20px;
-  }
-  
+
   .brandText {
-    text-align: center;
-    margin: 0px;
     font-size: 38px;
   }
 
@@ -204,42 +341,412 @@
   }
 }
 
-@media (max-width: 450px) {
-  .brandText {
-    font-size: 28px;
-  }
-  .logo {
-    width: 50px;
+/* Narrow phones: shrink form from tablet size */
+@media (max-width: 600px) {
+  .rightSide {
+    padding: 20px 16px;
   }
 
-  .brandContainer {
-    height: 30px;
+  .loginBox {
+    max-width: 440px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rightSide {
+    padding: 16px 12px;
+  }
+
+  .loginBox {
+    max-width: 100%;
+    padding: 16px;
+    border-radius: 14px;
   }
 
   .loginTitle {
-    font-size: 1.2rem;
+    font-size: 24px;
   }
 
-  label {
-    font-size: 0.9rem;
+  .loginSubtitle {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .loginForm {
+    gap: 12px;
   }
 
   .formGroup input {
-    font-size: 0.9rem;
-    height: 35px;
-    padding: 0 10px;
-  
-  };
-
-  .formGroup select {
-    font-size: 0.9rem;
-    height: 35px;
-    align-items: center;
-    padding: 0px 10px;
-
+    padding: 10px 12px;
+    font-size: 16px; /* avoids zoom on iOS */
   }
- 
+
+  .loginButton {
+    height: 42px;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .loginFooter {
+    margin-top: 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 450px) {
+  .loginBox {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .loginTitle {
+    font-size: 20px;
+  }
+
+  .brandText {
+    font-size: 28px;
+  }
+
+  .logo {
+    width: 54px;
+  }
+}
+
+/* =========================================================
+   MIC modals (themed)
+   ========================================================= */
+
+.micModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+  padding: 18px;
+  overflow-y: auto;
+  align-items: center;
+  justify-items: center;
+}
+
+.micModalCard {
+  width: 520px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
+  margin: auto;
+}
+
+@media (max-width: 520px) {
+  .micModalOverlay {
+    padding: 12px;
+    align-items: safe center;
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+
+  .micModalCard {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    border-radius: 14px;
+    margin: auto;
+  }
+
+  .micModalHeader {
+    padding: 14px 12px 10px;
+  }
+
+  .micModalTitle {
+    font-size: 16px;
+  }
+
+  .micModalSubtitle {
+    font-size: 12px;
+  }
+
+  .micModalBody {
+    padding: 12px;
+  }
+
+  .micModalFooter {
+    padding: 10px 12px 14px;
+  }
+}
+
+@keyframes popIn {
+  from { transform: translateY(6px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.micModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.micModalEyebrow {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  color: rgba(0,0,0,0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.micModalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #222;
+}
+
+.micModalSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.35;
+}
+
+.micModalBody {
+  padding: 16px;
+  text-align: center;
+}
+
+.micModalBody {
+  padding: 16px;
+  text-align: left;
+}
+
+.micModalHeaderTight {
+  padding: 14px 16px 10px;
+}
+
+/* Ensure footer is centered */
+.micModalFooter {
+  padding: 12px 16px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Make DONE state body compact + nice */
+.doneBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 2px;
+}
+
+.doneIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 18px;
+  background: rgba(20, 169, 175, 0.14);
+  color: var(--mic-cyan);
+  flex: 0 0 auto;
+}
+
+.doneTitle {
+  font-weight: 900;
+  font-size: 14px;
+  color: rgba(0,0,0,0.84);
+  margin-bottom: 2px;
+}
+
+.doneText {
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.35;
+}
+
+/* Optional: tighten body padding a bit overall */
+.micModalBody {
+  padding: 14px 16px;
+  text-align: left;
+}
 
 
+.modalX {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.9);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(0,0,0,0.7);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
 
+.modalX:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+
+/* Login.module.css */
+.forgotLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 6px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  color: var(--mic-cyan);
+  font-weight: 900;
+  font-size: 13px;
+  text-align: left;
+  align-self: flex-start;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.resetError {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #b42318;
+}
+
+
+/* loader row */
+.loaderRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 12px;
+}
+
+.loaderIcon {
+  font-size: 18px;
+  color: var(--mic-cyan);
+  animation: spin 1s linear infinite;
+}
+
+.loaderText {
+  font-size: 13px;
+  color: rgba(0,0,0,0.65);
+  font-weight: 800;
+}
+
+.supportHint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.35;
+}
+
+.supportLink {
+  color: var(--mic-cyan);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.supportLink:hover {
+  text-decoration: underline;
+}
+
+/* optional: for Contact support button */
+.secondaryPill {
+  background: #fff;
+  color: rgba(0,0,0,0.78);
+  border-color: rgba(0,0,0,0.14);
+  text-decoration: none;
+}
+
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* progress bar */
+.progressTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.10);
+  overflow: hidden;
+}
+
+.progressFillIndeterminate {
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--mic-azure) 0%, var(--mic-cyan) 100%);
+  animation: indeterminate 900ms ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(260%); }
+}
+
+/* error badge */
+.errorBadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(180, 35, 24, 0.25);
+  background: rgba(180, 35, 24, 0.08);
+  display: grid;
+  place-items: center;
+  color: #b42318;
+  flex: 0 0 auto;
+}
+
+/* pill button */
+.actionPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.14);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.actionPill:hover {
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.actionPill:active {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+.primaryPill {
+  border-color: rgba(20,169,175,0.55);
+  background: var(--mic-cyan);
+  color: #fff;
+}
+
+.primaryPill:hover {
+  filter: brightness(0.97);
 }

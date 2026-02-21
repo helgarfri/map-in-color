@@ -4,157 +4,786 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useLayoutEffect
 } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import cls from "./Map.module.css";
 
+const JSMap = window.Map;
+
 /* ───────────────── helpers ─────────────────────────────────────────── */
 
-/** short‑scale formatter (k, m, b…) or passthrough for text */
-function formatValue(num) {
-  if (typeof num !== "number" || isNaN(num)) {
-    return String(num);
-  }
-  const suffixes = [
-    { value: 1e24, suffix: "y" },
-    { value: 1e21, suffix: "z" },
-    { value: 1e18, suffix: "e" },
-    { value: 1e15, suffix: "p" },
-    { value: 1e12, suffix: "t" },
-    { value: 1e9, suffix: "b" },
-    { value: 1e6, suffix: "m" },
-    { value: 1e3, suffix: "k" },
-  ];
-  for (let i = 0; i < suffixes.length; i++) {
-    if (num >= suffixes[i].value) {
-      return (num / suffixes[i].value).toFixed(2) + suffixes[i].suffix;
-    }
-  }
-  return num.toFixed(2);
+
+function formatCommasInteger(n) {
+  // 1234567 -> "1,234,567"
+  const s = Math.trunc(Math.abs(n)).toString();
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-/** " ao " → "AO"  */
-const norm = (c = "") => c.trim().toUpperCase();
+function formatCommasNumber(n, maxDecimals = 5) {
+  // 1000.34598 -> "1,000.34598"
+  if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
 
-/** every SVG element whose id matches the ISO code */
+  const sign = n < 0 ? "-" : "";
+  const abs = Math.abs(n);
+
+  const rounded = Number(abs.toFixed(maxDecimals));
+  const intPart = Math.trunc(rounded);
+  const frac = rounded - intPart;
+
+  const intStr = formatCommasInteger(intPart);
+
+  if (frac === 0) return sign + intStr;
+
+  const fracStr = frac.toFixed(maxDecimals).slice(2).replace(/0+$/, "");
+  return fracStr ? `${sign}${intStr}.${fracStr}` : `${sign}${intStr}`;
+}
+
+function formatValue(n) {
+  if (n == null) return "No data";
+  if (typeof n !== "number") return String(n);
+  if (!Number.isFinite(n)) return "No data";
+
+  const abs = Math.abs(n);
+
+  const ABBREV_FROM = 1e15;
+  if (abs < ABBREV_FROM) {
+    return formatCommasNumber(n, 5);
+  }
+
+  const units = [
+    { value: 1e24, label: "septillion" },
+    { value: 1e21, label: "sextillion" },
+    { value: 1e18, label: "quintillion" },
+    { value: 1e15, label: "quadrillion" },
+    { value: 1e12, label: "trillion" },
+    { value: 1e9, label: "billion" },
+    { value: 1e6, label: "million" },
+    { value: 1e3, label: "thousand" },
+  ];
+
+  const u = units.find((x) => abs >= x.value) || units[units.length - 1];
+  const scaled = n / u.value;
+
+if (abs < ABBREV_FROM) return formatLocaleNumber(n, 5, "en-US");
+return `${formatLocaleNumber(scaled, 2, "en-US")} ${u.label}`;
+
+}
+
+
+function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
+  return n.toLocaleString(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  });
+}
+
+
+const norm = (c = "") => String(c || "").trim().toUpperCase();
+
+/**
+ * Small countries drawn as custom SVG paths (not in the main map source).
+ * Map viewBox is "0 0 2000 857". To adjust position:
+ *   - Change the first M x y in "d" to move the shape (x = horizontal, y = vertical).
+ *   - Increase x = move right; increase y = move down.
+ *   - You can also use absolute L x y or relative l dx dy to resize or reshape.
+ */
+const MICROSTATE_PATHS = [
+  { id: "AX", name: "Åland Islands", d: "M1076 116l1.2 0.8 0.8 1.4-0.4 1.2-1.3 0.3-1.2-0.9-0.4-1.3z" },
+  { id: "AD", name: "Andorra", d: "M996.5 225.5l2.2 1.2 2 2.2-0.5 2.2-2.2 1-2.5-0.8-1.5-2.2 0.5-2.1z" },
+  { id: "CK", name: "Cook Islands", d: "M95 640l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "GI", name: "Gibraltar", d: "M960 267l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "HK", name: "Hong Kong", d: "M1619 357l1 0.6 0.5 1.1-0.3 0.9-1 0.2-0.9-0.7-0.4-1.1z" },
+  { id: "IM", name: "Isle of Man", d: "M965 155l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "JE", name: "Jersey", d: "M973 184l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "KI", name: "Kiribati", d: "M105 460l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "LI", name: "Liechtenstein", d: "M1035.5 197.8l1.2 0.8 0.8 1.5-0.5 1.2-1.4 0.2-1.3-1-0.3-1.5z" },
+  { id: "MC", name: "Monaco", d: "M1020.2 220.2l1.2 0.8 0.6 1.2-0.4 1-1.1 0.2-1.1-0.8-0.4-1.2z" },
+  { id: "MO", name: "Macao", d: "M1615 358l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "NU", name: "Niue", d: "M50 630l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "SG", name: "Singapore", d: "M1575 492l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "SH", name: "Saint Helena", d: "M955 570l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "PM", name: "Saint Pierre and Miquelon", d: "M702 200l1 0.6 0.5 1-0.3 0.9-1 0.2-0.9-0.7-0.4-1z" },
+  { id: "SM", name: "San Marino", d: "M1049.2 220.5l1.2 0.6 0.5 1.2-0.3 1.1-1.1 0.3-1.1-0.5-0.5-1.2z" },
+  { id: "VA", name: "Vatican City", d: "M1049.8 232.8l0.6 0.8 0.2 0.6-0.5 0.4-0.7-0.2-0.4-0.8z" },
+];
+
 const getCountryEls = (svg, code) =>
   svg.querySelectorAll(
     `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
   );
 
-/** if you stored only custom_ranges, rebuild full groups here */
-const hydrateGroups = (rawGroups = [], ranges = [], data = []) =>
-  rawGroups.length
-    ? rawGroups
-    : ranges.map((r) => ({
-        color: r.color,
-        countries: data.filter(
-          (d) => d.value >= r.lowerBound && d.value < r.upperBound
-        ),
-      }));
+/** Union of getBBox() for all elements of one country (covers mainland + territories). */
+function getBBoxUnionForCountry(svg, code) {
+  const els = getCountryEls(svg, code);
+  if (!els?.length) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  els.forEach((el) => {
+    try {
+      const b = el.getBBox();
+      minX = Math.min(minX, b.x);
+      minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.width);
+      maxY = Math.max(maxY, b.y + b.height);
+    } catch {}
+  });
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
 
 /* ───────────────── component ───────────────────────────────────────── */
 
 export default function Map({
-  /* palette / groups */
   groups: rawGroups = [],
   custom_ranges = [],
   ocean_color,
   unassigned_color = "#dedede",
   font_color = "black",
-
-  /* data & meta */
-  data: rawData = [], // [{ code, value }]
+  mapDataType,
+  data: rawData = [],
   mapTitleValue,
   selected_map,
-
-  /* layout flags */
   is_title_hidden = false,
   titleFontSize = 30,
   legendFontSize = 16,
-
-  /* sizing */
   isLargeMap = false,
-}) {
-  /* ── derived props ────────────────────────────────────────────────── */
-  const data = useMemo(
-    () => rawData.map((d) => ({ ...d, code: norm(d.code) })),
-    [rawData]
-  );
 
-  const groups = useMemo(
-    () =>
-      hydrateGroups(rawGroups, custom_ranges, data).map((g) => ({
+  groupHoveredCodes = [],
+  groupActiveCodes = [],
+  suppressInfoBox = false,
+
+  activeLegendModel = null,
+codeToName = {},
+onCloseActiveLegend,
+
+onTransformChange,
+  staticView = false,   // ✅ ADD
+
+
+  // ✅ NEW: controlled hover/selection from parent (DataIntegration)
+  selectedCodeZoom = false,
+  selectedCodeNonce = 0,
+  hoveredCode = null,
+  selectedCode: externalSelectedCode = null,
+  onHoverCode,
+  onSelectCode,
+  placeholders = {},
+  strokeMode = "thin", // "thin" | "thick"
+  viewBox,
+  theme = "light",
+  compactUi = false,
+
+} = {}) {
+  const isDarkTheme = theme === "dark";
+
+  
+
+
+  /* ───────────────────────────────
+   * 1) Parse props that may arrive as JSON strings
+   * ─────────────────────────────── */
+  const parsedRanges = useMemo(() => {
+    if (!custom_ranges) return [];
+    if (Array.isArray(custom_ranges)) return custom_ranges;
+    if (typeof custom_ranges === "string") {
+      try {
+        const parsed = JSON.parse(custom_ranges);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }, [custom_ranges]);
+
+  const parsedGroups = useMemo(() => {
+    if (!rawGroups) return [];
+    if (Array.isArray(rawGroups)) return rawGroups;
+    if (typeof rawGroups === "string") {
+      try {
+        const parsed = JSON.parse(rawGroups);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }, [rawGroups]);
+
+  /* ───────────────────────────────
+   * 2) Decide effective map type
+   * ─────────────────────────────── */
+  const effectiveMapType = useMemo(() => {
+    if (mapDataType) return mapDataType;
+
+    const looksCategorical =
+      Array.isArray(parsedGroups) &&
+      parsedGroups.some(
+        (g) => typeof g?.name === "string" && g.name.trim().length > 0
+      );
+
+    if (looksCategorical) return "categorical";
+    return "choropleth";
+  }, [mapDataType, parsedGroups]);
+
+  /* ───────────────────────────────
+   * 3) Normalize data depending on map type
+   * ─────────────────────────────── */
+  const data = useMemo(() => {
+    const toNumber = (x) => {
+      const n =
+        typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
+      return Number.isFinite(n) ? n : null;
+    };
+
+    return (rawData || []).map((d) => {
+      const code = norm(d.code);
+      if (effectiveMapType === "choropleth") {
+        return { ...d, code, value: toNumber(d.value) };
+      }
+      return { ...d, code, value: d.value == null ? "" : String(d.value) };
+    });
+  }, [rawData, effectiveMapType]);
+
+  /* ───────────────────────────────
+   * 4) Normalize old groups (countries could be strings or objects)
+   * ─────────────────────────────── */
+  const normalizeGroups = useCallback((groups = []) => {
+    return (groups || [])
+      .filter(Boolean)
+      .map((g) => ({
         ...g,
-        countries: g.countries.map((c) => ({ ...c, code: norm(c.code) })),
-      })),
-    [rawGroups, custom_ranges, data]
-  );
+        countries: (g.countries || [])
+          .map((c) => {
+            const code =
+              typeof c === "string"
+                ? c
+                : (c?.code ?? c?.countryCode ?? c?.id ?? "");
+            return { code: norm(code) };
+          })
+          .filter((c) => c.code),
+      }))
+      .filter((g) => g.countries.length > 0);
+  }, []);
 
-  /* ── refs / state ─────────────────────────────────────────────────── */
-  const svgRef = useRef(null);
-  const wrapperRef = useRef(null);
+  /* ───────────────────────────────
+   * 5) Build derivedGroups used for painting
+   * ─────────────────────────────── */
+  const derivedGroups = useMemo(() => {
+    const hasRanges = Array.isArray(parsedRanges) && parsedRanges.length > 0;
 
-  /** current zoom factor of <TransformWrapper> (kept in sync via callbacks) */
-  const currentScaleRef = useRef(1);
+    const hasOldGroups =
+      Array.isArray(parsedGroups) &&
+      parsedGroups.length > 0 &&
+      parsedGroups.some(
+        (g) => Array.isArray(g?.countries) && g.countries.length > 0
+      );
 
-  const selectedCode = useRef(null); // remember ISO code, not the element
-  const [tooltip, setTooltip] = useState(null); // {x,y,code,name,value}
-  const [selected, setSelected] = useState(null); // {code,name,value,bbox,color}
-    /* -------------------------------------------------------------
-  * Reset to the default view  (clear selection + zoom-out)
-   * ----------------------------------------------------------- */
-  const resetView = useCallback(() => {
-    /* 1 ▸ remove the hover stroke on the previously-selected country */
-    if (selectedCode.current) {
-      getCountryEls(svgRef.current, selectedCode.current)
-        .forEach(el => el.classList.remove(cls.hovered));
+    // CHOROPLETH
+    if (effectiveMapType === "choropleth") {
+      if (hasRanges) {
+        const toNum = (x) => {
+          const n =
+            typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
+          return Number.isFinite(n) ? n : null;
+        };
+
+        const ranges = parsedRanges
+          .map((r) => ({
+            ...r,
+            lower: toNum(r.lowerBound),
+            upper: toNum(r.upperBound),
+          }))
+          .filter((r) => r.lower != null && r.upper != null);
+
+        return ranges.map((r) => ({
+          label: (r.label ?? r.name ?? `${r.lower}–${r.upper}`).toString(),
+          color: r.color,
+          countries: data
+            .filter(
+              (d) =>
+                typeof d.value === "number" &&
+                d.value >= r.lower &&
+                d.value <= r.upper
+            )
+            .map((d) => ({ code: d.code })),
+        }));
+      }
+
+      if (hasOldGroups) return normalizeGroups(parsedGroups);
+      return [];
     }
 
-    /* 2 ▸ clear refs & state */
-    selectedCode.current = null;
-    setSelected(null);
-    setTooltip(null);
+    // CATEGORICAL: data.value is group id; resolve id -> name/color from parsedGroups
+    if (hasOldGroups) return normalizeGroups(parsedGroups);
 
-    /* 3 ▸ zoom-out & centre */
-    wrapperRef.current?.resetTransform();   // react-zoom-pan-pinch helper
-    currentScaleRef.current = 1;
-  }, []);
-  /* ── helpers ──────────────────────────────────────────────────────── */
-  const findValue = useCallback(
-    (code) => data.find((d) => d.code === norm(code))?.value ?? "No data",
-    [data]
-  );
+    const idToGroup = (() => {
+      const m = new JSMap();
+      const arr = Array.isArray(parsedGroups) ? parsedGroups : [];
+      for (const g of arr) {
+        if (!g) continue;
+        const id = g.id != null ? String(g.id) : "";
+        if (id) m.set(id, g);
+      }
+      return m;
+    })();
+
+    const categoryIds = Array.from(
+      new Set(
+        data
+          .map((d) => (d.value == null ? "" : String(d.value).trim()))
+          .filter(Boolean)
+      )
+    );
+
+    return categoryIds.map((catId) => {
+      const g = idToGroup.get(catId);
+      const name = (g?.name ?? g?.category ?? g?.label ?? catId).toString().trim() || "(Unnamed)";
+      const color = (g?.color ?? g?.hex ?? g?.fill ?? "#c0c0c0").toString().trim();
+      return {
+        name,
+        color: color || "#c0c0c0",
+        countries: data
+          .filter((d) => String(d.value).trim() === catId)
+          .map((d) => ({ code: d.code })),
+      };
+    });
+  }, [effectiveMapType, parsedRanges, parsedGroups, data, normalizeGroups]);
+
+  
+
+  const activeLegendCodes = useMemo(() => {
+  if (!activeLegendModel) return [];
+
+  // 1) best case: parent already provides codes
+  const direct = Array.from(activeLegendModel.codes || []).map(norm).filter(Boolean);
+  if (direct.length) return direct;
+
+  // 2) fallback by index (if you store groupIndex)
+  if (Number.isInteger(activeLegendModel.groupIndex)) {
+    const g = derivedGroups[activeLegendModel.groupIndex];
+    return (g?.countries || []).map((c) => norm(c.code)).filter(Boolean);
+  }
+
+  // 3) fallback by label/name match
+  const label = (activeLegendModel.label ?? activeLegendModel.name ?? "").toString().trim();
+  if (!label) return [];
+
+  const g =
+    derivedGroups.find((x) => String(x.name ?? "").trim() === label) ||
+    derivedGroups.find((x) => String(x.label ?? "").trim() === label);
+
+  return (g?.countries || []).map((c) => norm(c.code)).filter(Boolean);
+}, [activeLegendModel, derivedGroups]);
+
+
+  /* ───────────────────────────────
+   * 6) refs / state
+   * ─────────────────────────────── */
+  const svgRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const currentScaleRef = useRef(1);
+
+  const tooltipElRef = useRef(null);
+  const rafRef = useRef(null);
+  const lastPosRef = useRef({ x: 0, y: 0 });
+
+  const isZoomedRef = useRef(false);
+  const didAutoFitRef = useRef(false);
+
+  const dataFitRef = useRef(null); 
+// { x, y, scale } in react-zoom-pan-pinch coordinates
+
+
+  const lastClickRef = useRef({ code: null, t: 0 });
+  const lastFitBBoxRef = useRef(null);
+const DOUBLE_CLICK_MS = 260; // tweak 220–320 to taste
+
+const groupHoverRef = useRef(new Set());
+const groupActiveRef = useRef(new Set());
+
+const [isViewReady, setIsViewReady] = useState(false);
+const didInitialFitRef = useRef(false);
+
+
+
+
+const [showResetBtn, setShowResetBtn] = useState(false);
+
+const FULLSCREEN_Y_OFFSET = 70; // ✅ move map DOWN in fullscreen
+const baseX = 0;
+const baseY = isLargeMap ? FULLSCREEN_Y_OFFSET : 0;
+const baseScale = 1;
+
+const lastTransformRef = useRef({ x: baseX, y: baseY, scale: 1 });
+
+      const emitTransform = (state) => {
+  const t = { x: state.positionX, y: state.positionY, scale: state.scale };
+  onTransformChange?.(t);
+};
+  
+
+const setTransformAndTrack = useCallback(
+  (x, y, scale, ms = 0) => {
+    const api = wrapperRef.current;
+    if (!api?.setTransform) return;
+
+    api.setTransform(x, y, scale, ms, "easeOutQuart"); // ✅ call the library
+
+    lastTransformRef.current = { x, y, scale };
+    currentScaleRef.current = scale;
+    isZoomedRef.current = scale > 1.02;
+
+    onTransformChange?.({ x, y, scale }); // ✅ tell the modal
+  },
+  [onTransformChange]
+);
+
+
+
+const updateResetBtn = useCallback((state) => {
+  if (!state) return;
+
+  const { scale, positionX, positionY } = state;
+
+  const notDefault =
+    Math.abs(scale - 1) > 0.02 ||
+    Math.abs(positionX - baseX) > 2 ||
+    Math.abs(positionY - baseY) > 2;
+
+  setShowResetBtn(notDefault);
+}, [baseX, baseY]);
+
+const applyNoDataBaseline = useCallback((ms = 0, { store = true } = {}) => {
+  const api = wrapperRef.current;
+  const svgEl = svgRef.current;
+  if (!api || !svgEl) return null;
+
+  // your preferred global look
+  const GLOBAL_SCALE = 0.92;
+  const GLOBAL_Y_NUDGE = 0.05; // moves DOWN
+
+  const vpH = svgEl.clientHeight;
+  const t = {
+    x: baseX,
+    y: baseY + vpH * GLOBAL_Y_NUDGE,
+    scale: GLOBAL_SCALE,
+  };
+
+setTransformAndTrack(t.x, t.y, t.scale, ms);
+
+if (store) {
+  dataFitRef.current = t;
+  lastFitBBoxRef.current = null;
+}
+return t;
+
+}, [baseX, baseY]);
+
+
+
+const applyGroupClass = useCallback((codes, className, prevRef) => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  // remove old
+  for (const code of prevRef.current) {
+    getCountryEls(svg, code).forEach((el) => el.classList.remove(className));
+  }
+
+  const next = new Set((codes || []).map(norm).filter(Boolean));
+
+  for (const code of next) {
+    // don't override a real selected country styling if you want (optional):
+    // if (code === selectedCodeRef.current) continue;
+
+    getCountryEls(svg, code).forEach((el) => el.classList.add(className));
+  }
+
+  prevRef.current = next;
+}, []);
+
+const resetToDataView = useCallback((ms = 220) => {
+  const api = wrapperRef.current;
+  const t = dataFitRef.current;
+
+  if (!api) return;
+
+ if (!t) {
+  setTransformAndTrack(baseX, baseY, 1, ms);
+  return;
+}
+
+setTransformAndTrack(t.x, t.y, t.scale, ms);
+
+
+
+  lastTransformRef.current = { x: t.x, y: t.y, scale: t.scale };
+  currentScaleRef.current = t.scale;
+  isZoomedRef.current = t.scale > 1.02;
+}, [baseX, baseY]);
+
+
+
+  // internal “selected” (used for info box)
+  const selectedCodeRef = useRef(null);
+
+  // track “sidebar-hover highlight” so we can remove it cleanly
+  const sidebarHoverRef = useRef(null);
+
+  const [tooltip, setTooltip] = useState(null);
+  const [selected, setSelected] = useState(null);
+
+const findValue = useCallback((code) => {
+  const v = data.find((d) => d.code === norm(code))?.value;
+
+  if (v == null) return "No data";
+  if (typeof v === "string" && v.trim() === "") return "No data";
+
+  // Categorical: display group name, not raw id (e.g. "group_2" -> "Winners")
+  if (effectiveMapType === "categorical" && Array.isArray(parsedGroups) && parsedGroups.length > 0) {
+    const g = parsedGroups.find((x) => String(x?.id) === String(v));
+    if (g) {
+      const name = (g.name ?? g.category ?? g.label ?? "").toString().trim();
+      return name || "(Unnamed)";
+    }
+  }
+  return v;
+}, [data, effectiveMapType, parsedGroups]);
+
 
   const findColor = useCallback(
     (code) => {
-      for (const g of groups) {
-        if (g.countries.some((c) => c.code === code)) return g.color;
+      for (const g of derivedGroups) {
+        if (g.countries?.some((c) => c.code === code)) return g.color;
       }
       return unassigned_color;
     },
-    [groups, unassigned_color]
+    [derivedGroups, unassigned_color]
   );
 
-  /* ── paint base map ──────────────────────────────────────────────── */
+const resetView = useCallback(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  // remove selected highlight
+  if (selectedCodeRef.current) {
+    const c = selectedCodeRef.current;
+    getCountryEls(svg, c).forEach((el) => {
+      el.classList.remove(cls.active);
+      el.classList.remove(cls.hovered); // safety
+    });
+  }
+
+  // remove sidebar-hover highlight (if different)
+  if (sidebarHoverRef.current) {
+    const c = sidebarHoverRef.current;
+    if (c !== selectedCodeRef.current) {
+      getCountryEls(svg, c).forEach((el) => el.classList.remove(cls.hovered));
+    }
+    sidebarHoverRef.current = null;
+  }
+
+
+  selectedCodeRef.current = null;
+  setSelected(null);
+  setTooltip(null);
+
+
+
+  onSelectCode?.(null);
+  onHoverCode?.(null);
+}, [onSelectCode, onHoverCode]);
+
+const clearAll = useCallback(() => {
+  // close group overlay (legend active)
+  onCloseActiveLegend?.();
+
+  // clear selected country + tooltip + parent controlled hover/select
+  resetView();
+
+  // (optional) zoom out too when clearing
+  // resetPanZoom(220);
+}, [onCloseActiveLegend, resetView /*, resetPanZoom*/]);
+
+
+const resetPanZoom = useCallback((ms = 220) => {
+  const api = wrapperRef.current;
+  if (!api) return;
+
+  if (typeof api.setTransform === "function") {
+    setTransformAndTrack(baseX, baseY, 1, ms);
+    lastTransformRef.current = { x: baseX, y: baseY, scale: 1 };
+  } else if (typeof api.resetTransform === "function") {
+    api.resetTransform(ms);
+    // best guess baseline
+    lastTransformRef.current = { x: baseX, y: baseY, scale: 1 };
+  }
+
+  currentScaleRef.current = 1;
+  isZoomedRef.current = false;
+}, [baseX, baseY]);
+
+
+
+
+  /* ───────────────────────────────
+   * 7) paint base map
+   * ─────────────────────────────── */
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
-    // 1. reset
     svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
       el.style.fill = unassigned_color;
     });
 
-    // 2. colour by group
-    groups.forEach(({ countries = [], color }) =>
-      countries.forEach(({ code }) =>
-        getCountryEls(svg, code).forEach((el) => (el.style.fill = color))
-      )
-    );
-  }, [groups, unassigned_color]);
+    derivedGroups.forEach(({ countries = [], color }) => {
+      countries.forEach(({ code }) => {
+        getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
+      });
+    });
+  }, [derivedGroups, unassigned_color]);
 
-  /* ── hover / click logic ─────────────────────────────────────────── */
+  /* ───────────────────────────────
+   * 8) ONE function to select by code (used by clicks AND external prop)
+   * ─────────────────────────────── */
+  const selectCountryByCode = useCallback(
+    (code, { zoom = true } = {}) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      const C = norm(code);
+      if (!C) return;
+
+      const els = getCountryEls(svg, C);
+      const el = els?.[0];
+      if (!el) return;
+
+      const name = el.getAttribute("name") || C;
+      const value = findValue(C);
+      // Use union of all elements so multi-part countries (USA, Russia, China, AU) zoom to full extent
+      const bbox = getBBoxUnionForCountry(svg, C) ?? el.getBBox();
+      const color = findColor(C);
+      const placeholder = findPlaceholder(C);
+
+
+            // clear old selected highlight
+      if (selectedCodeRef.current) {
+        getCountryEls(svg, selectedCodeRef.current).forEach((x) => {
+          x.classList.remove(cls.active);
+          x.classList.remove(cls.hovered); // optional safety
+        });
+      }
+
+      selectedCodeRef.current = C;
+      getCountryEls(svg, C).forEach((x) => x.classList.add(cls.active));
+
+
+
+      setSelected({ code: C, name, value, bbox, color, placeholder });
+
+
+
+      // if we’re selecting without zoom, mark zoom state off
+      if (!zoom) {
+        isZoomedRef.current = false;
+        return;
+      }
+
+      if (!wrapperRef.current || !svgRef.current) return;
+
+      // zoom math (same as your click handler)
+      const svgEl = svgRef.current;
+      const vpW = svgEl.clientWidth;
+      const vpH = svgEl.clientHeight;
+      const vbW = 2000; // your viewBox width
+      const vbH = 857;  // your viewBox height
+
+      const scale0 = currentScaleRef.current || 1;
+      const fit = Math.min(vpW / vbW, vpH / vbH);
+      const pxPerUnit = fit;
+
+      const stripeXpx = (vpW - vbW * fit) * 0.5;
+      const stripeYpx = (vpH - vbH * fit) * 0.5;
+
+      const centerX = bbox.x + bbox.width * 0.5;
+      const centerY = bbox.y + bbox.height * 0.5;
+      const cx = stripeXpx / scale0 + centerX * pxPerUnit;
+      const cy = stripeYpx / scale0 + centerY * pxPerUnit;
+
+      const targetScale = Math.min(
+        4,
+        (vpW * 0.5) / (bbox.width * pxPerUnit),
+        (vpH * 0.55) / (bbox.height * pxPerUnit)
+      );
+
+      // Center the country in the viewport; nudge up slightly so it doesn't feel too low
+      const targetCenterY = vpH * 0.48;
+      const x = vpW * 0.5 - cx * targetScale;
+      const y = targetCenterY - cy * targetScale;
+
+      setTransformAndTrack(x, y, targetScale, 250);
+
+    },
+    [findColor, findValue]
+  );
+
+  /* ───────────────────────────────
+   * 9) Sync: parent-selectedCode → internal select + zoom
+   * (this is what makes sidebar click select on map)
+   * ─────────────────────────────── */
+useEffect(() => {
+  // ✅ allow parent to clear selection
+  if (!externalSelectedCode) {
+    if (selectedCodeRef.current) {
+      resetView(); // clears active class + tooltip + selected state
+    }
+    return;
+  }
+
+  const C = norm(externalSelectedCode);
+  const zoom = !!selectedCodeZoom;
+
+  if (selectedCodeRef.current === C && !zoom) return;
+
+  selectCountryByCode(C, { zoom });
+}, [
+  externalSelectedCode,
+  selectedCodeZoom,
+  selectedCodeNonce,
+  selectCountryByCode,
+  resetView
+]);
+
+  /* ───────────────────────────────
+   * 10) Sync: parent-hoveredCode → highlight on map (no tooltip)
+   * (this is what makes sidebar hover highlight on map)
+   * ─────────────────────────────── */
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    // remove previous sidebar hover highlight
+    if (sidebarHoverRef.current) {
+      const prev = sidebarHoverRef.current;
+      if (prev !== selectedCodeRef.current) {
+        getCountryEls(svg, prev).forEach((el) => el.classList.remove(cls.hovered));
+      }
+      sidebarHoverRef.current = null;
+    }
+
+    const C = norm(hoveredCode || "");
+    if (!C) return;
+
+    // don’t fight the selected highlight (but it’s fine if it’s the same)
+    sidebarHoverRef.current = C;
+    getCountryEls(svg, C).forEach((el) => el.classList.add(cls.hovered));
+  }, [hoveredCode]);
+
+  /* ───────────────────────────────
+   * 11) SVG listeners: hover tooltip + call onHoverCode
+   * ─────────────────────────────── */
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -163,6 +792,8 @@ export default function Map({
       const code = norm(e.target.id);
       if (!code) return;
 
+      onHoverCode?.(code);
+
       const name = e.target.getAttribute("name") || code;
       getCountryEls(svg, code).forEach((el) => el.classList.add(cls.hovered));
 
@@ -170,87 +801,80 @@ export default function Map({
         code,
         name,
         value: findValue(code),
-        x: e.clientX,
-        y: e.clientY,
       });
+
     };
 
-    const handleMove = (e) =>
-      setTooltip((t) => (t ? { ...t, x: e.clientX, y: e.clientY } : t));
+
+ const handleMove = (e) => {
+  lastPosRef.current.x = e.clientX + 12;
+  lastPosRef.current.y = e.clientY + 12;
+
+  if (rafRef.current) return;
+
+  rafRef.current = requestAnimationFrame(() => {
+    rafRef.current = null;
+    const el = tooltipElRef.current;
+    if (!el) return;
+
+    // transform is much cheaper than top/left layout
+    el.style.transform = `translate3d(${lastPosRef.current.x}px, ${lastPosRef.current.y}px, 0)`;
+  });
+};
 
     const handleLeave = (e) => {
       const code = norm(e.target.id);
-      if (code && selectedCode.current !== code) {
-        getCountryEls(svg, code).forEach((el) =>
-          el.classList.remove(cls.hovered)
-        );
+
+      onHoverCode?.(null);
+
+      // Only remove hover class if not selected and not sidebar-hovering it
+      if (
+        code &&
+        selectedCodeRef.current !== code &&
+        sidebarHoverRef.current !== code
+      ) {
+        getCountryEls(svg, code).forEach((el) => el.classList.remove(cls.hovered));
       }
       setTooltip(null);
     };
 
-    /* ---------- click handler with smart zoom & pan ----------------*/
-    const handleClick = (e) => {
-      /* ---------- guard + identify country ------------------------ */
-      const code = norm(e.target.id);
-      if (!code) return;
+const handleClick = (e) => {
+  const code = norm(e.target.id);
+  if (!code) return;
 
-      const name = e.target.getAttribute("name") || code;
-      const value = findValue(code);
-      const bbox = e.target.getBBox(); // country in view-box units
-      const color = findColor(code);
+  const current = selectedCodeRef.current;
+  const now = performance.now();
 
-      /* ---------- highlight selection ----------------------------- */
-      if (selectedCode.current) {
-        getCountryEls(svg, selectedCode.current).forEach((el) =>
-          el.classList.remove(cls.hovered)
-        );
-      }
-      selectedCode.current = code;
-      getCountryEls(svg, code).forEach((el) => el.classList.add(cls.hovered));
-      setSelected({ code, name, value, bbox, color });
+  // Clicking a different country:
+  if (current !== code) {
+    onSelectCode?.(code);
 
-      /* ---------- smart pan + zoom (always centred) --------------- */
-      if (!wrapperRef.current || !svgRef.current) return;
+    // first click = select + info box, NO zoom
+    selectCountryByCode(code, { zoom: false });
 
-      const svgEl = svgRef.current;
-      const vpW = svgEl.clientWidth; // viewport inside wrapper
-      const vpH = svgEl.clientHeight;
-      const vbW = 2000; // ⬅ your <svg viewBox>
-      const vbH = 857;
+    // reset dbl-click tracking for new target
+    lastClickRef.current = { code, t: now };
+    return;
+  }
 
-      const scale0 = currentScaleRef.current || 1; // zoom *before* we click
-      const fit = Math.min(vpW / vbW, vpH / vbH); // scale that makes whole map fit
+  // Clicking the same (already active) country:
+  // Only zoom if it's a FAST double click.
+  const last = lastClickRef.current;
 
-      /* px that one *view-box unit* occupies with *no* extra zoom */
-      const pxPerUnit = fit;
+  const isFastDouble =
+    last.code === code && (now - last.t) <= DOUBLE_CLICK_MS;
 
-      /* thickness of the letter-box stripes *inside* the SVG (px) */
-      const stripeXpx = (vpW - vbW * fit) * 0.5;
-      const stripeYpx = (vpH - vbH * fit) * 0.5;
+  // update last click time every time
+  lastClickRef.current = { code, t: now };
 
-      /* centre of the clicked country, expressed in “scale 0” pixels */
-      const cx = stripeXpx / scale0 + (bbox.x + bbox.width * 0.5) * pxPerUnit;
-      const cy = stripeYpx / scale0 + (bbox.y + bbox.height * 0.5) * pxPerUnit;
+  if (isFastDouble) {
+    selectCountryByCode(code, { zoom: true });
+  }
 
-      /* choose a target zoom that keeps the country nicely inside view */
-      const targetScale = Math.min(
-        4,
-        (vpW * 0.5) / (bbox.width * pxPerUnit),
-        (vpH * 0.6) / (bbox.height * pxPerUnit)
-      );
+  // otherwise: do nothing (stay active, don’t deselect)
+};
 
-      /* move & zoom so that cx / cy ends up dead‑centre */
-      wrapperRef.current.setTransform(
-        vpW * 0.5 - cx * targetScale,
-        vpH * 0.5 - cy * targetScale,
-        targetScale,
-        250,
-        "easeOutQuart"
-      );
-      currentScaleRef.current = targetScale; // keep ref in sync
-    };
 
-    /* wire listeners */
     const all = svg.querySelectorAll("path[id], polygon[id], rect[id]");
     all.forEach((el) => {
       el.addEventListener("mouseenter", handleEnter);
@@ -258,85 +882,593 @@ export default function Map({
       el.addEventListener("mouseleave", handleLeave);
       el.addEventListener("click", handleClick);
     });
-    return () =>
+
+    return () => {
       all.forEach((el) => {
         el.removeEventListener("mouseenter", handleEnter);
         el.removeEventListener("mousemove", handleMove);
         el.removeEventListener("mouseleave", handleLeave);
         el.removeEventListener("click", handleClick);
       });
-  }, [findValue, findColor]);
+    };
+  }, [findValue, onHoverCode, onSelectCode, selectCountryByCode, staticView]);
+
+
+  const normalizedPlaceholders = useMemo(() => {
+  const out = {};
+  const src = placeholders && typeof placeholders === "object" ? placeholders : {};
+  for (const [k, v] of Object.entries(src)) {
+    const code = norm(k);
+    out[code] = v == null ? "" : String(v);
+  }
+  return out;
+}, [placeholders]);
+
+const findPlaceholder = useCallback(
+  (code) => normalizedPlaceholders[norm(code)] ?? "",
+  [normalizedPlaceholders]
+);
+
+const isChoropleth = effectiveMapType === "choropleth";
+
+const groupRows = useMemo(() => {
+  const codes = activeLegendCodes || [];
+
+  const rows = codes.map((c) => {
+    const code = norm(c);
+    const name = codeToName?.[code] || code;
+    const value = findValue(code); // number or "No data"
+    return { code, name, value };
+  });
+
+  if (!isChoropleth) {
+    // categorical: no value column, just sort by name
+    return rows.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // choropleth: sort by numeric value asc, "No data" last, then name
+  const toSortable = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+  return rows.sort((a, b) => {
+    const av = toSortable(a.value);
+    const bv = toSortable(b.value);
+
+    const aNo = av == null;
+    const bNo = bv == null;
+
+    if (aNo && bNo) return a.name.localeCompare(b.name);
+    if (aNo) return 1;
+    if (bNo) return -1;
+    if (av !== bv) return bv - av;   // ✅ DESC
+    return a.name.localeCompare(b.name);
+  });
+}, [activeLegendCodes, codeToName, findValue, isChoropleth, effectiveMapType]);
+
+
+const codesWithData = useMemo(() => {
+  const out = new Set();
+
+  for (const d of data || []) {
+    const code = norm(d.code);
+    if (!code) continue;
+
+    if (effectiveMapType === "choropleth") {
+      if (typeof d.value === "number" && Number.isFinite(d.value)) out.add(code);
+    } else {
+      const v = (d.value ?? "").toString().trim();
+      if (v) out.add(code);
+    }
+  }
+
+  return Array.from(out);
+}, [data, effectiveMapType]);
+
+
+const getBBoxUnionForCodes = useCallback((codes) => {
+  const svg = svgRef.current;
+  if (!svg) return null;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let found = 0;
+
+  for (const code of codes) {
+    const els = getCountryEls(svg, norm(code));
+    els.forEach((el) => {
+      try {
+        const b = el.getBBox();
+        minX = Math.min(minX, b.x);
+        minY = Math.min(minY, b.y);
+        maxX = Math.max(maxX, b.x + b.width);
+        maxY = Math.max(maxY, b.y + b.height);
+        found++;
+      } catch {}
+    });
+  }
+
+  if (!found) return null;
+
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}, []);
+
+
+const fitBBoxToView = useCallback(
+  (bbox, { ms = 260, padding = 0.12, store = false } = {}) => {
+    const api = wrapperRef.current;
+    const svgEl = svgRef.current;
+    if (!api || !svgEl || !bbox) return null;
+
+    const vpW = svgEl.clientWidth;
+    const vpH = svgEl.clientHeight;
+
+    const vbW = 2000;
+    const vbH = 857;
+
+    const fit = Math.min(vpW / vbW, vpH / vbH);
+    const pxPerUnit = fit;
+
+    // expand bbox a bit
+    const padX = bbox.width * padding;
+    const padY = bbox.height * padding;
+
+    const bb = {
+      x: bbox.x - padX,
+      y: bbox.y - padY,
+      width: bbox.width + padX * 2,
+      height: bbox.height + padY * 2,
+    };
+
+    // ✅ Decide if this is basically "global"
+    const coverX = bb.width / vbW;
+    const coverY = bb.height / vbH;
+    const coverA = (bb.width * bb.height) / (vbW * vbH);
+
+    // Tune these 3 numbers if you want (start here)
+    const isGlobalSpread =
+      coverX > 0.88 || coverY > 0.88 || coverA > 0.60;
+
+
+const GLOBAL_SCALE = 0.92;           // tweak: 0.88–0.95
+const GLOBAL_Y_NUDGE = 0.05;         // +4% of viewport height (moves map DOWN)
+
+if (isGlobalSpread) {
+  const nudgeYpx = vpH * GLOBAL_Y_NUDGE;
+
+  const t = {
+    x: baseX,                        // no x nudge
+    y: baseY + nudgeYpx,             // ✅ y nudge (down)
+    scale: GLOBAL_SCALE,
+  };
+
+  setTransformAndTrack(t.x, t.y, t.scale, ms);
+  currentScaleRef.current = t.scale;
+  isZoomedRef.current = t.scale > 1.02;
+
+  if (store) {
+    dataFitRef.current = t;
+    lastFitBBoxRef.current = bb;
+  }
+  return t;
+}
+
+
+    // Otherwise do normal fit-zoom
+    const stripeXpx = (vpW - vbW * fit) * 0.5;
+    const stripeYpx = (vpH - vbH * fit) * 0.5;
+
+    const centerX = stripeXpx + (bb.x + bb.width / 2) * pxPerUnit;
+    const centerY = stripeYpx + (bb.y + bb.height / 2) * pxPerUnit;
+
+      const computedScale = Math.min(
+        6,
+        (vpW * 0.94) / (bb.width * pxPerUnit),
+        (vpH * 0.94) / (bb.height * pxPerUnit)
+      );
+
+      const TIGHTNESS = 1.5; // 1.05–1.18 is realistic
+      const scale = Math.max(1, Math.min(6, computedScale * TIGHTNESS));
+
+
+    const yOffsetPx = baseY;
+
+    const x = vpW / 2 - centerX * scale;
+    const y = vpH / 2 - centerY * scale + yOffsetPx;
+
+    setTransformAndTrack(x, y, scale, ms);
+    currentScaleRef.current = scale;
+    isZoomedRef.current = scale > 1.02;
+
+    const t = { x, y, scale };
+    if (store) {
+      dataFitRef.current = t;
+      lastFitBBoxRef.current = bb;
+    }
+    return t;
+  },
+  [baseX, baseY]
+);
+
+
+
+
+const handleGroupRowClick = useCallback(
+  (code) => {
+    const C = norm(code);
+    if (!C) return;
+
+    // close the group overlay first
+    onCloseActiveLegend?.();
+
+    // select the country (opens normal infobox)
+    onSelectCode?.(C);
+    selectCountryByCode(C, { zoom: true }); // or zoom:true if you want
+  },
+  [onCloseActiveLegend, onSelectCode, selectCountryByCode]
+);
+
+
+useEffect(() => {
+  if (!selected?.code) return;
+  const next = findPlaceholder(selected.code);
+
+  // only update if changed (prevents rerenders)
+  if ((selected.placeholder ?? "") === next) return;
+
+  setSelected((prev) => (prev ? { ...prev, placeholder: next } : prev));
+}, [findPlaceholder, selected?.code, selected?.placeholder]);
+
+// ✅ Keep selected info box value (and color) in sync when data changes
+useEffect(() => {
+  if (!selected?.code) return;
+
+  const nextValue = findValue(selected.code);
+  const nextColor = findColor(selected.code);
+
+  // avoid pointless rerenders
+  if (selected.value === nextValue && selected.color === nextColor) return;
+
+  setSelected((prev) =>
+    prev ? { ...prev, value: nextValue, color: nextColor } : prev
+  );
+}, [findValue, findColor, selected?.code, selected?.value, selected?.color]);
+
+useEffect(() => {
+  applyGroupClass(groupHoveredCodes, cls.groupHovered, groupHoverRef);
+}, [groupHoveredCodes, applyGroupClass]);
+
+useEffect(() => {
+  applyGroupClass(groupActiveCodes, cls.groupActive, groupActiveRef);
+}, [groupActiveCodes, applyGroupClass]);
+
+useEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  const has = (groupActiveCodes || []).length > 0;
+  svg.classList.toggle(cls.hasGroupActive, has);
+}, [groupActiveCodes]);
+
+useEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  const has = !!selectedCodeRef.current; // or !!selected?.code
+  svg.classList.toggle(cls.hasCountrySelected, has);
+}, [selected?.code]); // keeps it in sync with your React state
+
+useEffect(() => {
+  if (activeLegendModel) {
+    resetToDataView(220);
+  }
+}, [activeLegendModel, resetToDataView]);
+
+
+useEffect(() => {
+  didAutoFitRef.current = false;
+}, [selected_map]);
+
+useEffect(() => {
+  if (codesWithData.length === 0) {
+    didAutoFitRef.current = false; // allow next time data appears
+  }
+}, [codesWithData.length]);
+
+useEffect(() => {
+  if (didInitialFitRef.current) return;
+
+  // ✅ CASE A: no data assigned → reveal immediately with global baseline
+  if (!codesWithData.length) {
+    requestAnimationFrame(() => {
+      applyNoDataBaseline(0, { store: true });
+      didInitialFitRef.current = true;
+
+      requestAnimationFrame(() => setIsViewReady(true));
+    });
+    return;
+  }
+
+  // ✅ CASE B: normal maps with data → fit bbox then reveal
+  requestAnimationFrame(() => {
+    const bbox = getBBoxUnionForCodes(codesWithData);
+    if (!bbox) {
+      // super defensive fallback (rare): still reveal
+      applyNoDataBaseline(0, { store: true });
+      didInitialFitRef.current = true;
+      requestAnimationFrame(() => setIsViewReady(true));
+      return;
+    }
+
+    fitBBoxToView(bbox, { ms: 0, padding: 0.12, store: true });
+    didAutoFitRef.current = true;
+    didInitialFitRef.current = true;
+
+    requestAnimationFrame(() => setIsViewReady(true));
+  });
+}, [codesWithData, getBBoxUnionForCodes, fitBBoxToView, applyNoDataBaseline]);
+
+
+useEffect(() => {
+  // When entering/leaving fullscreen: viewport size and baseY change.
+  // If we have a stored bbox (adjusted view from selected countries), re-fit it
+  // so we keep the same view instead of jumping to full world. Otherwise reset.
+  if (lastFitBBoxRef.current) {
+    setIsViewReady(false);
+    requestAnimationFrame(() => {
+      fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+      requestAnimationFrame(() => setIsViewReady(true));
+    });
+  } else {
+    resetPanZoom(0);
+    setShowResetBtn(false);
+  }
+}, [isLargeMap, fitBBoxToView, resetPanZoom]);
+
+
 
   /* ── renders ─────────────────────────────────────────────────────── */
-  const renderTooltip = () =>
-    tooltip && (
-      <div
-        className={cls.tooltip}
-        style={{ top: tooltip.y + 12, left: tooltip.x + 12 }}
-      >
+ const renderTooltip = () =>
+  tooltip && (
+    <div ref={tooltipElRef} className={cls.tooltip}>
+      <img
+        src={`https://flagcdn.com/w20/${tooltip.code.toLowerCase()}.png`}
+        alt=""
+      />
+      <strong>{tooltip.name}</strong>
+      <div>{tooltip.value}</div>
+    </div>
+  );
+
+const renderInfoBox = () => {
+  if (suppressInfoBox || compactUi) return null;
+  if (!selected) return null;
+
+  const desc = (selected.placeholder ?? "").trim();
+  const hasDesc = desc.length > 0;
+
+  return (
+<aside className={`${cls.infoBox} ${cls.frostCard}`}>
+  <header className={`${cls.infoBoxHeader} ${cls.frostHeader}`}>
         <img
-          src={`https://flagcdn.com/w20/${tooltip.code.toLowerCase()}.png`}
+          src={`https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`}
           alt=""
-          className="inline mr-2"
+          loading="lazy"
         />
-        <strong>{tooltip.name}</strong>
-        <div className="text-xs mt-1">{tooltip.value}</div>
+      <h2 className={cls.frostTitle} title={selected.name}>{selected.name}</h2>
+
+
+        <button
+          onClick={resetView}
+          className={cls.closeBtn}
+          aria-label="Close info box"
+          type="button"
+        >
+          ×
+        </button>
+      </header>
+
+      <div className={`${cls.infoBoxBody} ${cls.frostBody}`}>
+
+        <div className={cls.valueBlock}>
+          <div
+            className={[
+              cls.valueRow,
+              hasDesc ? cls.valueRowConnected : "",
+            ].join(" ")}
+            title={String(selected.value ?? "")}
+          >
+            <span
+              className={cls.swatch}
+              style={{ background: selected.color }}
+              aria-hidden="true"
+            />
+            <span className={cls.valueText}>{formatValue(selected.value)}</span>
+          </div>
+
+          {hasDesc ? (
+            <div className={cls.valueDescWrap}>
+              <div className={cls.valueDescLine} aria-hidden="true" />
+              <p className={cls.valueDesc}>{desc}</p>
+            </div>
+          ) : null}
+        </div>
       </div>
-    );
+    </aside>
+  );
+};
 
-  const renderInfoBox = () =>
-    selected && (
-  <aside className={cls.infoBox}>
-  {/* HEADER */}
-  <header className={cls.infoBoxHeader}>
-    <img
-      src={`https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`}
-      alt=""
-    />
-    <h2>{selected.name}</h2>
+const renderGroupInfoBox = () => {
+  if (compactUi || !activeLegendModel) return null;
 
-    <button
-      onClick={resetView}
-      className={cls.closeBtn}
-      aria-label="Close info box"
-    >
-      ×
-    </button>
-  </header>
+  const codes = activeLegendCodes;
 
-  {/* VALUE ROW */}
-  <div className={cls.valueRow}>
-    <span
-      className={`${cls.swatch} swatch`}   /* both since swatch is nested */
-      style={{ background: selected.color }}
-    />
-    <span>{formatValue(selected.value)}</span>
-  </div>
 
-  {/* description (placeholder) */}
-  <p className="text-xs mt-4 text-gray-600">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. (coming soon…)
-  </p>
-</aside>
-    );
+    const items = groupRows;
+
+
+  return (
+    <aside className={`${cls.groupBox} ${cls.frostCard}`}>
+  <header className={`${cls.groupBoxHeader} ${cls.frostHeader}`}>
+
+        <span
+          className={cls.groupDot}
+          style={{ background: activeLegendModel.color }}
+          aria-hidden="true"
+        />
+        <div className={cls.groupHeaderText}>
+          <h2 className={cls.frostTitle} title={activeLegendModel.label}>
+  {activeLegendModel.label}
+</h2>
+<div className={cls.frostSub}>
+  {items.length} {items.length === 1 ? "country" : "countries"}
+</div>
+
+        </div>
+
+        <button
+          onClick={() => onCloseActiveLegend?.()}
+          className={cls.closeBtn}
+          aria-label="Close group info box"
+          type="button"
+        >
+          ×
+        </button>
+      </header>
+
+      <div className={`${cls.groupBoxBody} ${cls.frostBody}`}>
+
+        <div className={cls.groupList}>
+          {/* header row */}
+     
+         {items.map((it) => (
+           <button
+             key={it.code}
+             type="button"
+            className={[
+               cls.groupRow,
+               isChoropleth ? cls.groupRow3 : cls.groupRow2,
+             ].join(" ")}
+             onClick={() => handleGroupRowClick(it.code)}
+             title="Select country"
+           >
+             <span className={cls.groupItemCode}>{it.code}</span>
+             <span className={cls.groupItemName}>{it.name}</span>
+             {isChoropleth ? (
+               <span className={cls.groupItemValue} title={String(it.value ?? "")}>
+                 {formatValue(it.value)}
+               </span>
+             ) : null}
+           </button>
+         ))}
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+
+
+useLayoutEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+
+  // force neutral fill for first paint
+  svg.classList.add(cls.isPainting);
+  svg.classList.remove(cls.isReady);
+
+  // paint base + groups
+  svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+    el.style.fill = unassigned_color;
+  });
+
+  derivedGroups.forEach(({ countries = [], color }) => {
+    countries.forEach(({ code }) => {
+      getCountryEls(svg, code).forEach((el) => (el.style.fill = color));
+    });
+  });
+
+  // now allow JS fill to be visible
+  svg.classList.remove(cls.isPainting);
+  svg.classList.add(cls.isReady);
+}, [derivedGroups, unassigned_color]);
+const handleResetViewClick = useCallback(() => {
+  resetToDataView(220);
+
+
+  // optional: also clear selection + close group (up to you)
+  // clearAll();
+
+  setShowResetBtn(false);
+}, [resetPanZoom /*, clearAll*/]);
+
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
   return (
-    <div className={cls.mapRoot}>
-      {renderInfoBox()}
+    <div className={cls.mapRoot} data-theme={isDarkTheme ? "dark" : "light"} data-compact-ui={compactUi ? "1" : "0"}>
+    {renderGroupInfoBox()}
+    {renderInfoBox()}
 
-      <TransformWrapper
-        ref={wrapperRef}
-        wheel={{ step: 50 }}
-        doubleClick={{ disabled: true }}
-        panning={{ velocityDisabled: true }}
-        minScale={1}
-        limitToBounds={false}
-        /* keep scale ref in sync */
-        onInit={({ state }) => (currentScaleRef.current = state.scale)}
-        onZoomStop={({ state }) => (currentScaleRef.current = state.scale)}
-        onPanningStop={({ state }) => (currentScaleRef.current = state.scale)}
-      >
+{!staticView && (
+    <button
+  type="button"
+  className={[
+    cls.resetViewBtn,
+    showResetBtn ? cls.resetViewBtnVisible : "",
+  ].join(" ")}
+  onPointerDown={(e) => e.stopPropagation()} // don’t trigger "ocean click"
+  onClick={handleResetViewClick}
+  aria-label="Reset view"
+>
+  Reset view
+</button>
+)}
+<div className={cls.mapStage}>
+  {!isViewReady && <div className={cls.mapSkeleton} aria-hidden="true" />}
+
+  <div
+    className={cls.mapInner}
+    style={{
+      opacity: isViewReady ? 1 : 0,
+      pointerEvents: isViewReady ? "auto" : "none",
+    }}
+  >
+<TransformWrapper
+  ref={wrapperRef}
+ // ✅ disable all interactivity in static mode
+  disabled={staticView}
+  wheel={{ disabled: staticView, step: 50 }}
+  panning={{ disabled: staticView, velocityDisabled: true }}
+  pinch={{ disabled: staticView }}
+  doubleClick={{ disabled: true }}
+
+  minScale={0.9}
+  limitToBounds={false}
+  initialScale={baseScale}
+  initialPositionX={baseX}
+  initialPositionY={baseY}
+
+  
+
+onInit={({ state }) => {
+  currentScaleRef.current = state.scale;
+  lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
+  updateResetBtn(state);
+  emitTransform(state);
+}}
+onZoomStop={({ state }) => {
+  currentScaleRef.current = state.scale;
+  lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
+  updateResetBtn(state);
+  emitTransform(state);
+}}
+onPanningStop={({ state }) => {
+  currentScaleRef.current = state.scale;
+  lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
+  updateResetBtn(state);
+  emitTransform(state);
+}}
+
+>
+
+
         <TransformComponent
           wrapperStyle={{ width: "100%", height: "100%" }}
           contentStyle={{
@@ -351,15 +1483,28 @@ export default function Map({
         <svg
   ref={svgRef}
   className={cls.mapCanvas}
+  data-stroke={strokeMode}
   viewBox="0 0 2000 857"
   /*              ▼ swap “slice” for “meet”     */
   preserveAspectRatio="xMidYMid meet"
-  stroke="black"
   strokeLinecap="round"
   strokeLinejoin="round"
-  strokeWidth={0.3}
-  fill="#ececec"
   xmlns="http://www.w3.org/2000/svg"
+onPointerDownCapture={(e) => {
+  if (staticView) return; // ✅ don't clear stuff in static preview
+
+  const t = e.target;
+  const isCountryEl =
+    t &&
+    (t.matches?.("path[id], polygon[id], rect[id]") ||
+      t.closest?.("path[id], polygon[id], rect[id]"));
+
+  if (isCountryEl) return;
+
+  clearAll();
+}}
+
+  
 
 
 >
@@ -683,11 +1828,11 @@ export default function Map({
             </path>
             <path class="Norway" id="NO" name="Norway" d="M 1113.7 67.5 1107.3 69.6 1104.1 70.1 1104.9 66.3 1099.1 64.2 1093.2 66 1092.1 70 1088.7 72.4 1084 71.1 1078.7 71.3 1073.6 68.5 1071.4 69.9 1068.8 70.1 1068.9 73.7 1060.9 72.8 1060.3 75.9 1056.3 75.9 1054 79.8 1050.6 85.9 1044.9 93.8 1046.7 95.8 1045.4 98 1041.1 97.9 1038.7 103.3 1039.7 111 1042.8 113.9 1042 120.8 1038.6 124.8 1036.8 128.2 1033.5 124.6 1024.9 131.4 1018.8 132.8 1012.3 129.8 1010.5 123.5 1008.5 110 1012.5 106.3 1023.8 101.4 1031.9 95.5 1039.1 87.7 1048 77 1054.4 72.9 1064.7 66.1 1073.2 63.7 1079.9 64 1085.1 59.6 1092.5 59.8 1099.5 58.8 1113.2 62.7 1108.3 64.1 1113.7 67.5 Z">
             </path>
-            <path class="Norway" id="NO" name="Norway" d="M 1076.6 25.2 1069 27.1 1062.2 26 1064.4 24.8 1061.8 23.3 1069.1 22.4 1071 24.1 1076.6 25.2 Z">
+            <path class="Svalbard and Jan Mayen" id="SJ" name="Svalbard and Jan Mayen" d="M 1076.6 25.2 1069 27.1 1062.2 26 1064.4 24.8 1061.8 23.3 1069.1 22.4 1071 24.1 1076.6 25.2 Z">
             </path>
-            <path class="Norway" id="NO" name="Norway" d="M 1051 16.7 1063.6 20.1 1055 21.9 1053.8 25.3 1050.8 26.2 1049.9 30.2 1045.5 30.4 1037 27.5 1040 25.8 1034.3 24.4 1026.6 20.5 1023.4 17 1032.7 15.4 1035 16.9 1040 16.9 1041 15.4 1046.2 15.2 1051 16.7 Z">
+            <path class="Svalbard and Jan Mayen" id="SJ" name="Svalbard and Jan Mayen" d="M 1051 16.7 1063.6 20.1 1055 21.9 1053.8 25.3 1050.8 26.2 1049.9 30.2 1045.5 30.4 1037 27.5 1040 25.8 1034.3 24.4 1026.6 20.5 1023.4 17 1032.7 15.4 1035 16.9 1040 16.9 1041 15.4 1046.2 15.2 1051 16.7 Z">
             </path>
-            <path class="Norway" id="NO" name="Norway" d="M 1075.4 13.7 1082.8 15.2 1078.4 17.6 1068.3 18.1 1057.6 17.3 1056.6 16.1 1051.5 16.1 1047.2 14.1 1057.7 12.9 1063.1 13.9 1066.2 12.6 1075.4 13.7 Z">
+            <path class="Svalbard and Jan Mayen" id="SJ" name="Svalbard and Jan Mayen" d="M 1075.4 13.7 1082.8 15.2 1078.4 17.6 1068.3 18.1 1057.6 17.3 1056.6 16.1 1051.5 16.1 1047.2 14.1 1057.7 12.9 1063.1 13.9 1066.2 12.6 1075.4 13.7 Z">
             </path>
             <path d="M1469 322.9l0.2 2.7 1.5 4.1-0.1 2.5-4.6 0.1-6.9-1.5-4.3-0.6-3.8-3.2-7.7-0.9-7.8-3.6-5.8-3.1-5.8-2.4 0.9-6 2.8-3 1.9-1.5 4.8 2 6.4 4.2 3.3 0.9 2.5 3.1 4.5 1.2 5 2.9 6.5 1.4 6.5 0.7z" id="NP" name="Nepal">
             </path>
@@ -1179,11 +2324,11 @@ export default function Map({
             </path>
             <path class="Seychelles" id="SC" name="Seychelles" d="M 1300.4 531.5 1300.8 531.9 1300.6 532.2 1300.4 531.9 1300.1 531.7 1300.3 531.2 1300.4 531.5 Z">
             </path>
-            <path class="Turks and Caicos Islands" d="M 587.7 361.6 588.4 361.6 588.7 362 588.4 362 588.1 361.9 587.6 362 587.5 361.7 587.7 361.6 Z">
+            <path class="Turks and Caicos Islands" id="TC" name="Turks and Caicos Islands" d="M 587.7 361.6 588.4 361.6 588.7 362 588.4 362 588.1 361.9 587.6 362 587.5 361.7 587.7 361.6 Z">
             </path>
-            <path class="Turks and Caicos Islands" d="M 585 361.5 585.3 361.9 585.9 361.8 585.7 362 585.1 362 584.7 361.8 585 361.5 Z">
+            <path class="Turks and Caicos Islands" id="TC" name="Turks and Caicos Islands" d="M 585 361.5 585.3 361.9 585.9 361.8 585.7 362 585.1 362 584.7 361.8 585 361.5 Z">
             </path>
-            <path class="Turks and Caicos Islands" d="M 587.2 360.9 587.2 361.4 586.7 361.2 586.6 360.9 586.7 360.8 587.2 360.9 Z">
+            <path class="Turks and Caicos Islands" id="TC" name="Turks and Caicos Islands" d="M 587.2 360.9 587.2 361.4 586.7 361.2 586.6 360.9 586.7 360.8 587.2 360.9 Z">
             </path>
             <path class="Tonga" id="TO" name="Tonga" d="M 14.7 639.5 14.2 639.2 14.2 639 14.5 638.8 14.7 639.5 Z">
             </path>
@@ -1301,6 +2446,9 @@ export default function Map({
             </path>
             <path class="Fiji" id="FJ" name="Fiji"d="M 1993.4 611 1993.2 610.8 1993.3 610.6 1993.8 610.1 1994.1 609.6 1993.8 610.7 1993.4 611 Z">
             </path>
+            {MICROSTATE_PATHS.map(({ id, name, d }) => (
+              <path key={id} d={d} id={id} name={name} />
+            ))}
             <path class="Fiji" id="FJ" name="Fiji"d="M 1994.4 606 1994 606.4 1993.2 607.5 1992.9 607.6 1992.2 608 1992 608.6 1991.6 608.8 1991.4 609.1 1991.3 609.3 1991.6 609.4 1992.2 609.1 1992.3 609 1992.6 608.7 1992.8 608.4 1993.4 608.1 1993.7 607.8 1994.3 607.5 1994.3 607.8 1993.8 608.5 1993.6 608.6 1993.7 609.2 1993.4 609.5 1993.1 609.2 1992.7 609.2 1992.2 609.3 1991.8 609.6 1991.1 609.7 1990.1 609.7 1990.6 609.2 1990.2 609 1989.6 609.2 1989.2 609.4 1989.2 609.6 1988.9 609.7 1988.7 609.8 1988.6 610.2 1988.4 610.5 1988.1 610.4 1988.1 610.2 1987.7 610.1 1987.3 610.3 1987.1 610.8 1986.8 611 1986.5 611 1986.5 610.7 1986.5 610.3 1986.3 609.9 1986.4 609.7 1986.3 609.6 1985.7 609.8 1985.7 609.4 1986.1 609.1 1986.2 609.1 1986.1 608.6 1986.4 608.5 1986.9 608.8 1987.5 608.4 1987.7 608.4 1988 608.1 1988.2 608.1 1988.5 607.8 1988.5 607.6 1989.3 607.5 1990.2 607.2 1990.5 607.1 1990.9 607.2 1991.4 607 1991.6 606.6 1991.8 606.6 1992 606.2 1992.4 606.3 1992.5 606.1 1992.7 606.2 1993.7 605.7 1993.8 606 1994 605.9 1994.2 606 1994.5 605.7 1995 605.5 1995.1 605.6 1994.6 606 1994.4 606 Z">
             </path>
             <circle cx="997.9" cy="189.1" id="0">
@@ -1312,9 +2460,10 @@ export default function Map({
           </svg>
             </TransformComponent>
       </TransformWrapper>
+        </div>
+</div>
 
-      {renderTooltip()}
-      {renderInfoBox() /* ← AFTER the map, so it’s painted on top */ }
+
     </div>
   );
 }

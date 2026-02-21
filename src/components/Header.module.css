@@ -1,225 +1,409 @@
-/* src/components/Header.module.css */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+
+  --bg: #f7f7f7;
+  --card: rgba(255,255,255,0.92);
+
+  --text: rgba(0,0,0,0.78);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+}
+
+/* ===== Header shell ===== */
 .header {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+
+  width: 100%;
+  height: 60px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999; 
- 
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
-  background: #fff;
-  height: 60px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
- 
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
+/* optional soft bottom glow */
+.header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.08), transparent);
+  opacity: 0.25;
+  pointer-events: none;
+}
 
+/* ===== Left group ===== */
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 12px;
+  padding-left: 14px;
 }
-
-.headerTitle {
-  margin-left: 10px;
-  font-weight: bold;
-  font-size: 18px; /* Adjust size as needed */
-  color: #333;
-}
-
 
 .hamburgerButton {
-  display: flex;
-  background: none;
   border: none;
-  font-size: 20px;
+  background: transparent;
   cursor: pointer;
-  padding: 2px 0px 0px 20px;
- 
+  padding: 0;
+}
+
+/* shared round icon button style */
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.88);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+
+  color: rgba(0,0,0,0.70);
+  transition: transform 120ms ease, border-color 120ms ease, filter 120ms ease;
+}
+
+.hamburgerButton:hover .iconWrapper,
+.notificationBell:hover .iconWrapper {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.18);
+  filter: brightness(0.98);
 }
 
 .logoWrapper {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .logo {
-  height: 40px;
-  transition: opacity 0.2s ease;
+  height: 38px;
+  width: auto;
+  display: block;
 }
 
-.logoLink:active .logo {
-  opacity: 0.6;
+/* ✅ slightly smaller PRO logo */
+.logoPro {
+  height: 32px; /* tweak: 30–34 depending on your PNG */
 }
 
+.headerTitle {
+  font-size: 14px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.70);
 
+  padding: 8px 10px;
+  border-radius: 999px;
+
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.06);
+
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Right group ===== */
 .headerRight {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-right: 14px;
 }
 
+/* Create button = pill */
 .createMapButton {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  background-color: none;
-  color: black;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-left: 15px;
-  transition: 0.3s ease;
-}
+  gap: 8px;
 
-.createMapButton .plusIcon {
-  margin-right: 5px;
+  border: 1px solid rgba(20,169,175,0.22);
+  background: linear-gradient(135deg, rgba(40,168,225,0.90), rgba(20,169,175,0.86));
+  color: rgba(255,255,255,0.96);
+
+  padding: 10px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 1000;
+
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+  transition: transform 120ms ease, filter 120ms ease;
 }
 
 .createMapButton:hover {
-  background-color: #bebebe;
+  transform: translateY(-1px);
+  filter: brightness(0.98);
 }
 
+.plusIcon {
+  font-size: 13px;
+}
+
+/* ===== Notifications ===== */
 .notificationWrapper {
   position: relative;
-  margin-left: 15px;
 }
 
+/* Bell button becomes a MIC pill */
 .notificationBell {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
   position: relative;
-  display: flex;
-  color: #333;
-  padding-right: 10px;
+  height: 40px;
+  width: 40px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.88);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
-.iconWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px; /* Adjust as needed */
-  height: 32px; /* Adjust as needed */
-  border-radius: 50%;
-  transition: background-color 0.3s ease;
+.notificationBell:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.20);
+  filter: brightness(0.99);
 }
 
-/* Apply hover on the icon container only */
-.hamburgerButton:hover .iconWrapper,
-.notificationBell:hover .iconWrapper {
-  background-color: #d6d6d6;
+/* Add this class in JSX when open: showNotifications ? styles.notificationBellActive : "" */
+.notificationBellActive {
+  border-color: rgba(40,168,225,0.30);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.12);
 }
 
+/* Optional: if you used <span className={styles.bellIcon}> */
+.bellIcon {
+  display: grid;
+  place-items: center;
+  color: rgba(0,0,0,0.72);
+  font-size: 16px;
+}
 
-
+/* Badge: tighter + premium */
 .unreadBadge {
   position: absolute;
   top: -5px;
-  right: -10px;
-  background-color: #d24b4c;
-  color: #fff;
-  border-radius: 50%;
-  padding: 2px 6px;
-  font-size: 12px;
-  margin-right: 8px;
-  
+  right: -5px;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+
+  border-radius: 999px;
+  background: rgba(210,75,76,0.92);
+  color: white;
+
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 18px;
+  text-align: center;
+
+  border: 2px solid rgba(255,255,255,0.95);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
 }
 
+/* Popout = MIC glass sheet */
 .notificationPopout {
   position: absolute;
   right: 0;
-  top: 35px;
-  width: 350px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  top: 52px;
+  width: 380px;
+
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+
+  transform-origin: top right;
+  animation: popIn 120ms ease-out;
 }
 
+@keyframes popIn {
+  from { transform: translateY(-6px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Sticky header for long lists */
 .notificationHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px;
+  gap: 12px;
+
+  padding: 12px 12px;
+
+  background: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 .notificationHeader h3 {
   margin: 0;
+  font-size: 13px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.78);
 }
 
+/* Optional: if you add a small subline under the title */
+.notificationHeaderSub {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.52);
+}
+
+/* Pill action */
 .markAllAsRead {
-  background: none;
-  border: none;
-  color: #000;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.80);
   cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.65);
+
+  padding: 8px 10px;
+  border-radius: 999px;
+
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .markAllAsRead:hover {
-  text-decoration: underline;
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .notificationList {
   list-style: none;
   margin: 0;
-  padding: 0;
-  max-height: 400px;
+  padding: 8px;
+
+  max-height: 420px;
   overflow-y: auto;
 }
 
+/* Card rows */
 .notificationItem {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  position: relative;
+  padding: 12px 12px;
   cursor: pointer;
-  display: flex;
+
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.80);
+
+  margin-bottom: 8px;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
-.notificationItem:last-child {
-  border-bottom: none;
+.notificationItem:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(20,169,175,0.16);
 }
 
-.notificationItem.unread {
-  background-color: #f9f9f9;
+/* Unread: left accent bar + tint */
+.unread {
+  background: rgba(40,168,225,0.07);
+  border-color: rgba(40,168,225,0.14);
+}
+
+.unread::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(40,168,225,0.95), rgba(20,169,175,0.85));
+}
+
+.read {
+  background: rgba(255,255,255,0.70);
 }
 
 .notificationContentWrapper {
   display: flex;
+  gap: 10px;
+  align-items: flex-start;
 }
 
 .profile_picture {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
   object-fit: cover;
+
+  border: 2px solid rgba(255,255,255,0.95);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+
+  background: rgba(0,0,0,0.04);
 }
 
 .notificationText {
   flex: 1;
+  min-width: 0;
 }
 
 .notificationContent {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 850;
+  color: rgba(0,0,0,0.74);
+  line-height: 1.25;
 }
 
 .notificationMeta {
-  font-size: 12px;
-  color: #888;
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.52);
 }
 
 .senderName {
-  font-weight: bold;
-  color: #333;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.80);
   text-decoration: none;
 }
 
@@ -228,8 +412,8 @@
 }
 
 .mapTitle {
-  font-weight: bold;
-  color: #333;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.78);
   text-decoration: none;
 }
 
@@ -237,260 +421,403 @@
   text-decoration: underline;
 }
 
-.viewAllLink {
+.noNotifications {
+  padding: 18px 12px;
   text-align: center;
-  padding: 10px;
+  color: rgba(0,0,0,0.55);
+  font-size: 13px;
+}
+
+/* Footer CTA */
+.viewAllLink {
+  padding: 10px 12px;
+  text-align: center;
+
+  background: rgba(255,255,255,0.80);
+  border-top: 1px solid rgba(0,0,0,0.06);
 }
 
 .viewAllLink a {
-  color: #333;
   text-decoration: none;
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(0,0,0,0.68);
 }
 
 .viewAllLink a:hover {
   text-decoration: underline;
 }
 
-.noNotifications {
-  padding: 20px;
-  text-align: center;
-  color: #888;
+/* Responsive */
+@media (max-width: 720px) {
+  .notificationPopout {
+    width: min(380px, calc(100vw - 24px));
+    right: -6px;
+  }
 }
 
-/* Profile Picture and Dropdown Menu Styles */
+@media (max-width: 400px) {
+  .notificationPopout {
+    right: -10px;
+  }
+}
+
+/* iPad / tablet: slightly smaller logo */
+@media (max-width: 1024px) {
+  .logo {
+    height: 32px;
+  }
+
+  .logoPro {
+    height: 28px;
+  }
+}
+
+@media (max-width: 720px) {
+  .logo {
+    height: 30px;
+  }
+
+  .logoPro {
+    height: 26px;
+  }
+}
+
+
+
+/* =========================
+   PROFILE (MIC-FIED v2)
+   ========================= */
+
+/* Trigger button wrapper */
 .profileWrapper {
   position: relative;
-  padding: 0px 30px 0px 10px;
-
+  display: flex;
+  align-items: center;
 }
 
+.profileButton {
+  all: unset;
+  cursor: pointer;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.profileButton:focus-visible {
+  outline: 2px solid rgba(40,168,225,0.35);
+  outline-offset: 3px;
+}
+
+/* Avatar in header */
 .headerProfilePicture {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
+  border-radius: 999px;
   object-fit: cover;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.04);
+
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
-.headerProfilePicture:hover {
-  opacity: 0.8;
-  
+.profileButton:hover .headerProfilePicture {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+  border-color: rgba(20,169,175,0.18);
 }
 
+.profileButtonActive .headerProfilePicture {
+  box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+  border-color: rgba(40,168,225,0.32);
+}
+
+/* Popout */
 .profileMenu {
   position: absolute;
   right: 0;
-  top: 50px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  min-width: 150px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  top: 52px;
+  width: 320px;
 
+  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+
+  transform-origin: top right;
+  animation: popIn 120ms ease-out;
 }
 
-.profileMenu ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.profileMenu li {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.profileMenu li:hover {
-  background-color: #f0f0f0;
-}
-
-.profileMenu a,
-.logoutButton {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 16px;
-}
-
-.logoutButton {
-  cursor: pointer;
-}
-
-.logoutButton:hover {
-  background-color: #f0f0f0;
-}
-
-/* New Profile Menu Styles */
-.profileMenu {
+/* Arrow */
+.profileMenu::before {
+  content: "";
   position: absolute;
-  right: 0;
-  top: 50px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  width: 300px; /* Wider than before */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  padding: 10px 0;
+  top: -6px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+
+  background: rgba(255,255,255,0.98);
+  border-left: 1px solid rgba(0,0,0,0.10);
+  border-top: 1px solid rgba(0,0,0,0.10);
 }
 
+/* ===== HEADER (better / more standout) ===== */
 .profileMenuHeader {
+  position: relative;
   display: flex;
   align-items: center;
-  padding: 10px 15px;
-  border-bottom: 1px solid #eee;
+  gap: 12px;
+
+  padding: 14px 14px 14px 14px;
+
+  /* tinted + subtle gradient (more opaque) */
+  background: linear-gradient(
+    135deg,
+    rgba(40, 169, 225, 0.18),
+    rgba(20,169,175,0.06)
+  );
+
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
+/* left accent bar */
+.profileMenuHeader::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(40,168,225,0.95), rgba(20,169,175,0.85));
+  opacity: 0.95;
+}
+
+/* avatar inside menu header */
 .profileMenuAvatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
   object-fit: cover;
-  margin-right: 10px;
+
+  border: 2px solid rgba(255,255,255,0.95);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.14);
+  background: rgba(0,0,0,0.04);
 }
 
 .profileMenuInfo {
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
+/* Name: heavier + matches MIC headings */
 .profileMenuName {
-  font-weight: bold;
-  color: #333;
-  font-size: 16px;
-}
-
-.profileMenuUsername {
-  color: #888;
   font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  color: rgba(0,0,0,0.82);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* Username: pill to feel “designed” */
+.profileMenuUsername {
+  width: fit-content;
+  max-width: 100%;
+
+  font-size: 11px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.62);
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== LIST ===== */
 .profileMenuList {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
+/* Link + button unified */
 .profileMenuItem {
+  width: 100%;
   display: flex;
   align-items: center;
-  padding: 10px 15px;
+  gap: 10px;
+
+  padding: 11px 12px;
+  border-radius: 14px;
+
   text-decoration: none;
-  color: #333;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.profileMenuItem:hover {
-  background-color: #f0f0f0;
-}
-.iconContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Adjust the width/height to match the text line-height if needed */
-  width: 20px;
-  margin-right: 10px;
-}
-/* Adjust the icon so it aligns perfectly with the text */
-.profileMenuIcon {
-  font-size: 16px;
-  line-height: 1; /* ensures the icon isn’t offset */
-  margin-right: 10px;
-  display: inline-flex;
-  align-items: center;
-  margin-top: 2px; 
+  color: rgba(0,0,0,0.74);
+  font-weight: 1000;
+  font-size: 13px;
+
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(0,0,0,0.06);
+
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease, filter 120ms ease;
 }
 
-/* make media for phone 600px */
-@media (max-width: 600px) {
+.profileMenuItem:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(20,169,175,0.16);
+  filter: brightness(0.99);
+}
+
+.profileMenuItem:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+}
+
+.profileMenuIcon {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  font-size: 14px;
+  color: rgba(0,0,0,0.70);
+}
+
+/* little “MIC” accent on hover: icon pill tints */
+.profileMenuItem:hover .profileMenuIcon {
+  border-color: rgba(20,169,175,0.18);
+  background: rgba(20,169,175,0.08);
+  color: rgba(0,0,0,0.74);
+}
+
+/* Logout as danger but still classy */
+.profileMenuItemDanger {
+  background: rgba(180,35,24,0.06);
+  border-color: rgba(180,35,24,0.12);
+  color: rgba(120,20,20,0.92);
+}
+
+.profileMenuItemDanger .profileMenuIcon {
+  background: rgba(180,35,24,0.06);
+  border-color: rgba(180,35,24,0.14);
+  color: rgba(120,20,20,0.85);
+}
+
+.profileMenuItemDanger:hover {
+  border-color: rgba(180,35,24,0.22);
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .profileMenu {
+    width: min(320px, calc(100vw - 24px));
+  }
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 720px) {
   .header {
-    height: 50px;
+    height: 54px;
+  }
+
+  .iconWrapper {
+    width: 38px;
+    height: 38px;
   }
 
   .logo {
     height: 30px;
-    width: 30px;
   }
 
-  .headerLeft {
-    gap: 10px
+  .logoPro {
+    height: 26px;
   }
 
   .headerTitle {
-    font-size: 16px;
+    display: none; /* cleaner on mobile */
   }
 
   .createMapButton {
-    padding: 6px 10px;
-    font-size: 10px;
-  }
-
-  .headerRight {
-    gap: 5px;
-  }
-  
-  .profileWrapper {
-    padding-right: 15px;
-  }
-
-  .hamburgerButton {
-    padding-left: 10px;
-  }
-
-  .profile_picture {
-    width: 30px;
-    height: 30px;
-  }
-
-  .notificationHeader {
-    font-size: smaller;
-  }
-
-  .notificationContent {
-    font-size: 12px;
-  }
-
-  .notificationMeta {
-    font-size: 10px;
-    margin: 0;
-  }
-
-  .markAllAsRead {
-    font-size: 10px;
-  }
-
-  .viewAllLink {
-    font-size: smaller;
+    display: none; /* you already hide it */
   }
 
   .notificationPopout {
-    width: 300px;
-    top: 42px;
-    right: -50px
+    width: min(360px, calc(100vw - 24px));
+    right: -6px;
   }
-  .createMapButton {
-    display: none;
+
+  .profileMenu {
+    width: min(320px, calc(100vw - 24px));
   }
 }
 
-/* make media for phone 370px */
 @media (max-width: 400px) {
-  
-
-  .headerRight {
-    margin-right: 20px;
-  }
-
   .notificationPopout {
-    right: -50px;
-    top: 42px;
-    width: 250px;
+    right: -10px;
   }
+}
+
+
+/* =====================================================
+   Notifications: prevent overflow on small screens
+   ===================================================== */
+
+/* Default desktop stays the same */
+.notificationPopout {
+  max-width: calc(100vw - 24px); /* safety net even on desktop */
+}
+
+/* Tablet + phone: center it and clamp width */
+@media (max-width: 720px) {
+  .notificationPopout {
+    position: fixed;              /* take it out of header flow */
+    top: 58px;                    /* below header (54px-ish + a bit) */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);  /* center */
+
+    width: min(380px, calc(100vw - 20px));
+    max-width: calc(100vw - 20px);
+
+    /* optional: slightly tighter radius/spacing */
+    border-radius: 16px;
   }
+}
+
+/* Very small phones: make it feel full-width */
+@media (max-width: 420px) {
+  .notificationPopout {
+    top: 56px;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+}

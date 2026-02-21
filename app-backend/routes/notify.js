@@ -1,12 +1,17 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
-const { Resend } = require('resend');
+const { resend } = require('../config/resend');
 
-// Create or import your Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Stricter limit for newsletter signup to reduce abuse and email probing
+const notifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many signup attempts. Please try again later.' },
+});
 
-router.post('/', async (req, res) => {
+router.post('/', notifyLimiter, async (req, res) => {
   console.log('POST /api/notify hit!', req.body);
 
   // Force email to lowercase and trim whitespace
@@ -48,7 +53,7 @@ router.post('/', async (req, res) => {
         <p>Hey there!</p>
         <p>Thanks for signing up to get notified about <strong>Map in Color v2</strong>—you're officially among the first to know what's coming!</p>
         <p>We’re excited to release on <strong>March 28th</strong>, and we’ll be sure to keep you updated along the way.</p>
-        <p>Cheers,<br/>Helgi from Map in Color</p>
+        <p>Cheers,<br/>The Map in Color team</p>
       `,
     });
 

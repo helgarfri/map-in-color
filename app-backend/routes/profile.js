@@ -348,7 +348,10 @@ router.get('/', auth, async (req, res) => {
         show_location,
         show_date_of_birth,
         created_at,
-        updated_at
+        updated_at,
+        plan,
+        status,
+        is_admin
       `)
       .eq('id', req.user.id)
       .maybeSingle();
@@ -361,7 +364,9 @@ router.get('/', auth, async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    return res.json(userRow);
+    // Frontend uses email_verified for the verification banner (pending = not verified)
+    const payload = { ...userRow, email_verified: userRow.status === 'active' };
+    return res.json(payload);
   } catch (err) {
     console.error('Error fetching user profile:', err);
     return res.status(500).json({ msg: 'Server error' });
@@ -379,26 +384,26 @@ router.get('/:username', async (req, res) => {
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
       .select(`
-       id,
-      username,
-      email,
-      first_name,
-      last_name,
-      date_of_birth,
-      location,
-      description,
-      gender,
-      profile_picture,
-      profile_visibility,
-      show_saved_maps,
-      star_notifications,
-      show_activity_feed,
-      show_location,
-      show_date_of_birth,
-      created_at,
-      updated_at
+        id,
+        username,
+        first_name,
+        last_name,
+        date_of_birth,
+        location,
+        description,
+        gender,
+        profile_picture,
+        status,
+        profile_visibility,
+        show_saved_maps,
+        star_notifications,
+        show_activity_feed,
+        show_location,
+        show_date_of_birth,
+        created_at,
+        updated_at,
+        plan
       `)
-      
       .eq('username', username)
       .maybeSingle();
 
@@ -414,6 +419,7 @@ router.get('/:username', async (req, res) => {
       return res.status(403).json({ msg: 'This user is banned.' });
     }
 
+    // Email omitted from select above for public profile privacy
     return res.json(userRow);
   } catch (err) {
     console.error('Error fetching user profile:', err);
@@ -651,7 +657,7 @@ router.post('/:username/report', auth, async (req, res) => {
                 `We have received your report regarding user "${username}".\n` +
                 `Reasons: ${reasons}\nDetails: ${details}\n\n` +
                 `Thank you for helping us keep the community safe.\n` +
-                `- Helgi from Map in Color`,
+                `- The Map in Color team`,
         });
       } catch (emailErr) {
         console.error('Error sending user confirmation email:', emailErr);

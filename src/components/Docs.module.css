@@ -1,206 +1,626 @@
-/* Docs.module.css */
+/* Docs.module.css (MIC theme) */
 
-/* Main documentation container */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+
+  --bg: #f6f7fb;
+  --card: rgba(255, 255, 255, 0.92);
+  --card2: rgba(255, 255, 255, 0.78);
+  --text: rgba(15, 23, 42, 0.86);
+  --muted: rgba(15, 23, 42, 0.62);
+  --muted2: rgba(15, 23, 42, 0.46);
+
+  --border: rgba(20, 24, 40, 0.10);
+  --border2: rgba(20, 24, 40, 0.14);
+
+  --shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
+  --shadowSm: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 12px;
+}
+
+/* =========================
+   Page shell — lock width to viewport: no extra space on the right, no horizontal scroll
+========================= */
 .documentationContainer {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background-color: #ffffff; /* White background */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(1200px 520px at 20% 0%, rgba(40,168,225,0.10), transparent 60%),
+    radial-gradient(900px 420px at 85% 12%, rgba(20,169,175,0.10), transparent 55%),
+    var(--bg);
+
+  color: var(--text);
 }
 
-/* New wrapper to layout sidebar and content */
+/* Grows to push footer to bottom when content is short */
+.docsBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Layout — match HomeHeader side padding */
 .docsWrapper {
-    display: flex;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 18px 80px 36px;
+  gap: 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
-  
-/* Sidebar styling for the TOC */
+
+@media (max-width: 1269px) {
+  .docsWrapper {
+    padding: 18px 48px 36px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .docsWrapper {
+    padding: 18px 40px 36px;
+  }
+}
+
+@media (max-width: 960px) {
+  .docsWrapper {
+    padding: 16px 32px 32px;
+  }
+}
+
+@media (max-width: 900px) {
+  .docsWrapper {
+    padding: 14px 24px 28px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .docsWrapper {
+    padding: 20px 80px 40px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .docsWrapper {
+    padding: 22px 96px 44px;
+  }
+}
+
+/* =========================
+   Sidebar / TOC — minimal, lines only, no background, fit one screen
+========================= */
 .docsSidebar {
-    width: 250px;
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    padding: 2rem;
-    border-right: 1px solid #ddd;
+  width: 200px;
+  flex-shrink: 0;
+  align-self: flex-start;
+
+  position: sticky;
+  top: 72px;
+  max-height: calc(100vh - 88px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 0 8px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 }
-  
-/* TOC container styles */
+
+/* Doc history — minimal text links */
+.docHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.docHistoryLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+.docVersionLink {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 2px 0;
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+  padding-left: 8px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.docVersionLink:hover {
+  color: var(--text);
+}
+
+.docVersionLinkActive {
+  color: var(--text);
+  border-left-color: var(--mic-azure);
+}
+
+/* TOC — minimal lines, no buttons */
 .tocContainer {
-    position: relative;
+  position: relative;
 }
-  
+
 .tocList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-  
+
 .tocItem {
-    margin-bottom: 0.5rem;
-}
-  
-.tocItem button {
-    background: none;
-    border: none;
-    text-align: left;
-    padding: 0.5rem;
-    width: 100%;
-    cursor: pointer;
-    font-size: 1rem;
-}
-  
-/* Active TOC item: adds a blue left border using the themed blue color */
-.tocItem.active button {
-    border-left: 3px solid #336699;
-    padding-left: 0.5rem;
-    font-weight: bold;
+  margin: 0;
 }
 
-/* Main content styling */
+.tocLink {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 3px 0 3px 8px;
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tocLink:hover {
+  color: var(--text);
+}
+
+.tocItemActive .tocLink {
+  color: var(--text);
+  border-left-color: var(--mic-cyan);
+}
+
+/* =========================
+   Main content “paper”
+========================= */
+/* Wrapper to center the main content block in the remaining space */
+.docsMainWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
 .docsMain {
-    flex: 1;
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto; /* Center the content */
+  width: 100%;
+  max-width: 860px; /* slightly wider, still readable */
+
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(20, 24, 40, 0.06);
+  border-radius: var(--r-lg);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+
+  padding: 22px;
 }
 
-/* Headings */
+/* Typography */
 .docsMain h1 {
-    color: #55957b; /* Green heading */
-    margin-bottom: 1rem;
-    font-size: 2rem;
+  margin: 0 0 14px;
+
+  font-size: 24px;
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.98),
+    rgba(20,169,175,0.96)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .docsMain h2 {
-    color: #336699; /* Blue heading */
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #336699;
-    padding-bottom: 0.5rem;
+  margin-top: 22px;
+  margin-bottom: 10px;
+
+  font-size: 17px;
+  font-weight: 1000;
+  letter-spacing: -0.01em;
+  color: rgba(15,23,42,0.88);
+
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(20,24,40,0.10);
 }
 
 .docsMain h3 {
-    color: #444; /* Dark gray heading */
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 1.2rem;
-    font-weight: bold;
+  margin-top: 18px;
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 1000;
+  color: rgba(15,23,42,0.80);
 }
 
-/* Paragraphs */
+.docsMain h4 {
+  margin-top: 14px;
+  margin-bottom: 6px;
+
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.76);
+}
+
 .docsMain p {
-    color: #000; /* Black text */
-    line-height: 1.6;
-    font-size: 1rem;
+  margin: 10px 0;
+  color: rgba(15,23,42,0.78);
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.docsMain small {
+  color: var(--muted2);
+  font-weight: 800;
 }
 
 /* Links */
 .docsMain a {
-    color: #d24b4c; /* Red/Orange link color */
-    text-decoration: none;
+  color: rgba(40,168,225,0.98);
+  font-weight: 900;
+  text-decoration: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
 }
 
 .docsMain a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* Code block styling */
-.codeBlock {
-    background: #f0f0f0;
-    padding: 1rem;
-    overflow-x: auto;
-    margin: 1rem 0;
-    border-radius: 5px;
-}
-
-/* Images in documentation */
-.docImage {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 1rem 0;
-}
-
-/* Styled ordered list */
+/* =========================
+   Lists
+========================= */
+.docsMain ul,
 .docsMain ol {
-    list-style: decimal;
-    padding-left: 1.5rem;
-    margin: 1.5rem 0;
+  margin: 12px 0;
+  padding-left: 18px;
 }
 
-.docsMain ol li {
-    line-height: 1.6;
-    font-size: 1rem;
-    padding-left: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-/* Styled unordered list */
 .docsMain ul {
-    list-style: none;
-    padding-left: 1.5rem;
-    margin: 1.5rem 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding-left: 0;
 }
 
 .docsMain ul li {
-    position: relative;
-    padding-left: 1.5rem;
-    line-height: 1.6;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+  padding-left: 0;
+  color: rgba(15,23,42,0.78);
+  line-height: 1.6;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .docsMain ul li::before {
-    content: "-";
-    position: absolute;
-    left: 0;
-    color: #55957b; /* Green dash */
-    font-weight: bold;
+  content: "";
+  flex-shrink: 0;
+  margin-top: calc((1.6em - 8px) / 2); /* center 8px dot in first line (line-height 1.6em) */
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
 }
 
-/* Responsive Adjustments for mobile devices */
+.docsMain ol {
+  color: rgba(15,23,42,0.78);
+}
+
+.docsMain ol li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* =========================
+   Buttons inside docs (download)
+========================= */
+.docsMain button {
+  all: unset;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 1000;
+
+  border: 1px solid rgba(20,24,40,0.10);
+  background: rgba(255,255,255,0.75);
+  color: rgba(15,23,42,0.78);
+
+  transition: transform 120ms ease, box-shadow 120ms ease,
+    border-color 120ms ease, background 120ms ease;
+}
+
+.docsMain button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+  border-color: rgba(20,169,175,0.22);
+  background: rgba(20,169,175,0.08);
+}
+
+/* If you want the very first download list to feel more “primary”,
+   this makes buttons inside lists pop a bit */
+.docsMain ul li button {
+  width: fit-content;
+}
+
+/* =========================
+   Code blocks
+========================= */
+.codeBlock {
+  margin: 12px 0;
+  padding: 12px 14px;
+
+  border-radius: var(--r-md);
+  border: 1px solid rgba(20,24,40,0.10);
+
+  background:
+    radial-gradient(900px 220px at 20% 0%, rgba(40,168,225,0.08), transparent 60%),
+    rgba(15,23,42,0.04);
+
+  overflow-x: auto;
+  scrollbar-width: thin;
+
+  font-size: 12.5px;
+  font-weight: 800;
+  color: rgba(15,23,42,0.86);
+}
+
+/* Inline code */
+.docsMain code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 12.5px;
+  font-weight: 900;
+
+  background: rgba(15,23,42,0.06);
+  border: 1px solid rgba(20,24,40,0.10);
+  padding: 2px 6px;
+  border-radius: 10px;
+
+  color: rgba(15,23,42,0.84);
+}
+
+/* =========================
+   Images
+========================= */
+.docImage {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 14px 0;
+
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(20,24,40,0.10);
+  box-shadow: var(--shadowSm);
+}
+
+.docCaption {
+  margin: -6px 0 14px 0;
+  font-size: 13px;
+  color: var(--muted2, rgba(15,23,42,0.6));
+  font-style: italic;
+}
+
+/* Divider */
+.docsMain hr {
+  border: none;
+  height: 1px;
+  background: rgba(20,24,40,0.10);
+  margin: 18px 0;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 900px) {
+  .docsMain {
+    padding: 18px;
+  }
+}
+
 @media (max-width: 750px) {
-    .docsMain {
-        padding: 1rem;
-    }
-    .docsMain h1 {
-        font-size: 1.5rem;
-    }
-    .docsMain h2 {
-        font-size: 1.3rem;
-    }
-    .docsMain h3 {
-        font-size: 1.1rem;
-    }
-    .docsMain p {
-        font-size: 0.95rem;
-    }
-    
-    /* Hide the documentation sidebar (and TOC navigation) on mobile devices */
-    .docsSidebar {
-        display: none;
-    }
-    
-    /* Optional: switch docsWrapper to block layout when sidebar is hidden */
-    .docsWrapper {
-        display: block;
-    }
+  .docsSidebar {
+    display: none;
+  }
+  .docsWrapper {
+    display: block;
+  }
+  .docsMain {
+    border-radius: var(--r-lg);
+  }
 }
 
-@media (max-width: 768px) {
-    .docsMain {
-        padding: 1.5rem;
-    }
-    .docsMain h1 {
-        font-size: 1.7rem;
-    }
-    .docsMain h2 {
-        font-size: 1.4rem;
-    }
-    .docsMain h3 {
-        font-size: 1.15rem;
-    }
-    .docsMain p {
-        font-size: 0.98rem;
-    }
+/* =========================
+   Docs landing (6 topic cards)
+========================= */
+.docsLandingWrap {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 18px 80px 36px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.docsLandingInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.docsLandingTitle {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, rgba(40,168,225,0.98), rgba(20,169,175,0.96));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.docsLandingLead {
+  margin: 0 0 28px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.docsCardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.docCard {
+  display: block;
+  padding: 20px 22px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadowSm);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.docCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: rgba(20,169,175,0.25);
+}
+
+.docCardNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 1000;
+  color: var(--mic-cyan);
+  background: rgba(20,169,175,0.12);
+  border-radius: 999px;
+}
+
+.docCardTitle {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 1000;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.docCardSubtitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.docsLandingFAQ {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.docsLandingFAQ .docCard {
+  max-width: 300px;
+  width: 100%;
+}
+
+/* Topic page: back link in sidebar */
+.docTopicNav {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.docBackLink {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.docBackLink:hover {
+  color: var(--mic-cyan);
+}
+
+@media (max-width: 1269px) {
+  .docsLandingWrap {
+    padding: 18px 48px 36px;
+  }
+}
+
+@media (max-width: 960px) {
+  .docsLandingWrap {
+    padding: 16px 32px 32px;
+  }
+  .docsCardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 750px) {
+  .docsLandingWrap {
+    padding: 14px 24px 28px;
+  }
+  .docsLandingTitle {
+    font-size: 24px;
+  }
 }

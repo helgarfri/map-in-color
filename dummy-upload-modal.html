@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dummy Data Import modal</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      background: #e8e8e8;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modalOverlay {
+      background: rgba(0,0,0,0.4);
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modalContent {
+      background: #fff;
+      width: 80%;
+      max-width: 1100px;
+      border-radius: 8px;
+      position: relative;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .modalHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 16px 12px;
+      background: #f9f9f9;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .modalEyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: rgba(0,0,0,0.55);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .modalTitle {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      color: #222;
+    }
+
+    .modalSubtitle {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: rgba(0,0,0,0.62);
+    }
+
+    .modalClose {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: #fff;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .modalClose:hover {
+      background: rgba(0,0,0,0.04);
+    }
+
+    .modalBody {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .topRow {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .dropZone {
+      border: 2px dashed rgba(0,0,0,0.18);
+      border-radius: 12px;
+      padding: 26px 18px;
+      cursor: pointer;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 230px;
+    }
+
+    .uploadIcon {
+      display: block;
+      font-size: 28px;
+      margin: 0 auto 10px;
+      opacity: 0.7;
+    }
+
+    .dropZone p {
+      margin: 0 0 4px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .dropZone small {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .terminalCard {
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      min-height: 230px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .terminalHeader {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .terminalDots {
+      display: inline-flex;
+      gap: 6px;
+    }
+
+    .terminalDots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.12);
+    }
+
+    .terminalTitle {
+      font-weight: 800;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    .terminalStatusOk {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(46, 163, 106, 0.12);
+      color: #166534;
+      border: 1px solid rgba(46, 163, 106, 0.25);
+    }
+
+    .terminalBody {
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-y: auto;
+      max-height: 240px;
+      background: #ffffff;
+    }
+
+    .termLine {
+      display: flex;
+      gap: 8px;
+      padding: 2px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .termPrompt {
+      color: #94a3b8;
+    }
+
+    .termText {
+      flex: 1;
+      color: #0f172a;
+    }
+
+    .termSuccess .termText { color: #166534; }
+    .termWarn .termText { color: #b45309; }
+
+    .inlineDetected {
+      padding: 10px 12px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      background: #f8fafc;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .actionsRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .actionsRight {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .templateLink {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 12px;
+      color: #334155;
+      font-weight: 800;
+      font-size: 12.5px;
+      text-decoration: none;
+    }
+
+    .templateLink:hover {
+      background: #f8fafc;
+    }
+
+    .templateLinkIcon {
+      display: inline-flex;
+      opacity: 0.75;
+      font-size: 14px;
+    }
+
+    .templateLinkUnderline {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      color: #0f172a;
+    }
+
+    .btn {
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.16);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: #f4f4f4;
+    }
+
+    .btnPrimary {
+      background: #14a9af;
+      color: #fff;
+    }
+
+    .btnPrimary:hover {
+      background: #13999e;
+    }
+
+    /* Upload icon (arrow in box) */
+    .uploadIconSvg {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 10px;
+      display: block;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 900px) {
+      .topRow {
+        grid-template-columns: 1fr;
+      }
+      .terminalBody {
+        max-height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="modalOverlay">
+    <div class="modalContent">
+      <div class="modalHeader">
+        <div>
+          <div class="modalEyebrow">Data Import</div>
+          <h2 class="modalTitle">Upload data</h2>
+          <p class="modalSubtitle">Drop a file and we'll match rows to countries.</p>
+        </div>
+        <button type="button" class="modalClose" aria-label="Close" title="Close">&times;</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="topRow">
+          <div class="dropZone">
+            <svg class="uploadIconSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p>Drag & drop or click to browse</p>
+            <small>CSV, TSV, XLSX, XLS</small>
+          </div>
+
+          <div class="terminalCard">
+            <div class="terminalHeader">
+              <div class="terminalDots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="terminalTitle">Import log</div>
+              <div class="terminalStatusOk">OK</div>
+            </div>
+
+            <div class="terminalBody">
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Reading file: API_IT.NET.USER.ZS_DS2_en_csv_v2_1228.csv</span>
+              </div>
+              <div class="termLine termSuccess">
+                <span class="termPrompt">$</span>
+                <span class="termText">✅ Detected wide format header at row 3</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Country Name col: 1, Country Code col: 2</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Year columns detected: 65 (latest: 2024)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AW: newest value 97.17 (2017)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AF: newest value 17.7089 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AO: newest value 44.7581 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AL: newest value 83.1356 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AD: newest value 95.4456 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AE: newest value 100 (2024)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AR: newest value 89.6672 (2024)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AM: newest value 79.9966 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AS: newest value 0 (1990)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AG: newest value 77.5756 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AU: newest value 97.0631 (2023)</span>
+              </div>
+              <div class="termLine">
+                <span class="termPrompt">$</span>
+                <span class="termText">Matched AT: newest value 94.9197 (2024)</span>
+              </div>
+              <div class="termLine termWarn">
+                <span class="termPrompt">$</span>
+                <span class="termText">⚠ Imported with 64 ignored line(s).</span>
+              </div>
+            </div>
+
+            <div class="inlineDetected">
+              Detected: <strong>choropleth</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="actionsRow">
+          <a href="#" class="templateLink" onclick="return false;">
+            <span class="templateLinkIcon">⬇</span>
+            <span>Don't have a file? <span class="templateLinkUnderline">See our starter template</span></span>
+          </a>
+          <div class="actionsRight">
+            <button type="button" class="btn">Cancel</button>
+            <button type="button" class="btn btnPrimary">Import data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -10,7 +10,7 @@ export const UserProvider = ({ children }) => {
   const [profile_pictureUrl, setProfilePictureUrl] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [errorProfile, setErrorProfile] = useState('');
-
+  const isPro = String(profile?.plan || "free").toLowerCase() === "pro";
 // src/context/UserContext.js
 
 useEffect(() => {
@@ -25,6 +25,12 @@ useEffect(() => {
       try {
         const res = await fetchUserProfile();
         setProfile(res.data);
+ const plan = res.data?.plan ?? "free";
+console.log("plan from API:", plan);
+console.log("computed isPro:", String(plan).toLowerCase() === "pro");
+
+
+
       } catch (err) {
         setErrorProfile('Session expired. Please log in again.');
         setProfile(null);
@@ -50,6 +56,7 @@ useEffect(() => {
         setProfilePictureUrl,
         loadingProfile,
         errorProfile,
+        isPro
       }}
     >
       {children}

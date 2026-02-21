@@ -89,12 +89,12 @@
 
 /* -- Highlight border when selected -- */
 .selected {
-  border: 2px solid #55957b;
+  border: 2px solid #14a9af;
 }
 
 /* -- Buttons -- */
 .viewButton {
-  background-color: #55957b;
+  background-color: #14a9af;
   color: #fff;
   padding: 8px 16px;
   font-size: 14px;

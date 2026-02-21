@@ -1,16 +1,13 @@
 // MapDetail.js
 
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
 import styles from './MapDetail.module.css';
 import { formatDistanceToNow } from 'date-fns';
 import { UserContext } from '../context/UserContext';
-import FullScreenMap from './FullScreenMap';
-import { BiDownload, BiSend } from 'react-icons/bi';
+import { BiDownload, BiSend, BiShare } from 'react-icons/bi';
+import { createPortal } from "react-dom";
 import {
   fetchMapById,
   saveMap,
@@ -30,15 +27,23 @@ import LoadingSpinner from './LoadingSpinner';
 import { FaDownload } from 'react-icons/fa'; // icon for download
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaStar } from 'react-icons/fa';
 import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
-import Map from './Map';
+import MapView from './Map';
+import MapDetailValueTable from "./MapDetailValueTable";
+import { getAnonId } from "../utils/annonId"; // add at top
+import DownloadOptionsModal from "./DownloadOptionsModal";
+import ShareOptionsModal from './ShareOptionsModal';
+import SignupPromptModal from './SignupPromptModal';
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
+
+  
   const { id } = useParams();
   const navigate = useNavigate();
+
 
   const [mapData, setMapData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -48,7 +53,8 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const [isOwner, setIsOwner] = useState(false);
   const [is_public, setIsPublic] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [expandedReplies, setExpandedReplies] = useState({});
+  const [expandedThreads, setExpandedThreads] = useState({});   
+  
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
@@ -58,21 +64,35 @@ export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [isPostingReply, setIsPostingReply] = useState(false);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const { width } = useWindowSize();
+  const { width, height } = useWindowSize();
+  const isNarrowPortrait = width < height && width < 700;
 
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalAction, setLoginModalAction] = useState('default');
+  const openLoginModal = (action) => {
+    setLoginModalAction(action || 'default');
+    setShowLoginModal(true);
+  };
+
+  const [showShareModal, setShowShareModal] = useState(false);
+
 
 // In both MapDetail and Dashboard (or better yet, in a top-level layout)
-useEffect(() => {
-  if (width < 1000) setIsCollapsed(true);
-  else setIsCollapsed(false);
-}, [width, setIsCollapsed]);
 
+const [loadState, setLoadState] = useState("loading"); 
+// "loading" | "ready" | "error"
+
+  const isMobileComments = width <= 750;
 
 
     // For reporting a comment
   const [reportTargetComment, setReportTargetComment] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [isDeleting, setIsDeleting] = useState(false);
+
 
   // The user’s chosen reasons, e.g. ["Spam","Inappropriate"]
   const [reportReasons, setReportReasons] = useState('');
@@ -81,9 +101,34 @@ useEffect(() => {
 
   const [isReporting, setIsReporting] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
-  
 
-  const { authToken, profile } = useContext(UserContext);
+  const [hoveredCode, setHoveredCode] = useState(null);
+  const [selectedCode, setSelectedCode] = useState(null);
+
+  const [activeLegendKey, setActiveLegendKey] = useState(null);
+  const [hoverLegendKey, setHoverLegendKey] = useState(null);
+
+  // View mode only: collapse legend items (header stays visible)
+  const [legendCollapsed, setLegendCollapsed] = useState(false);
+
+  // controls whether Map should zoom when syncing selection
+  const [selectedCodeZoom, setSelectedCodeZoom] = useState(false);
+
+  // force sync even if code is the same (for double click zoom)
+  const [selectedCodeNonce, setSelectedCodeNonce] = useState(0);
+
+
+  const { authToken, profile, isPro } = useContext(UserContext);
+
+  const [isSaving, setIsSaving] = useState(false);
+
+const [reactionLoadingById, setReactionLoadingById] = useState({}); 
+
+const [showDownloadModal, setShowDownloadModal] = useState(false);
+
+  const toggleThread = (commentId) => {
+  setExpandedThreads((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+};
 
   const discussionRef = useRef(null);
   const countryListRef = useRef(null);
@@ -94,39 +139,267 @@ useEffect(() => {
   const mapDisplayRef = useRef(null);
 
   // near the top:
-const [fetchError, setFetchError] = useState(false);
+const [fetchError, setFetchError] = useState(null);
+// { kind: "unavailable" | "temporary", title: string, message: string }
+
+  // ✅ Map type (always defined, even when mapData is null)
+const mapType = useMemo(() => {
+  const raw =
+    mapData?.mapDataType ??
+    mapData?.map_data_type ??
+    mapData?.map_type ??
+    mapData?.type ??
+    "choropleth";
+
+  return String(raw).toLowerCase();
+}, [mapData]);
+
+// ✅ Legend items (always defined, never conditional hooks)
+const legendModels = useMemo(() => {
+  if (!mapData) return [];
+
+  const type = mapType; // from your existing mapType memo
+
+  const dataArr = parseJsonArray(mapData.data);
+  const codeToValue = new Map();
+  for (const d of dataArr) {
+    const code = String(d.code || "").trim().toUpperCase();
+    if (!code) continue;
+    codeToValue.set(code, d.value);
+  }
+
+
+
+
+// ------- categorical (groups from DB) -------
+if (type === "categorical") {
+  const groups = parseJsonArray(mapData.groups);
+
+  // Build code -> categoryValue from data (same normalization idea as Map.js)
+  const codeToCat = new Map();
+  for (const d of dataArr) {
+    const code = String(d.code || "").trim().toUpperCase();
+    if (!code) continue;
+    const cat = d.value == null ? "" : String(d.value).trim();
+    codeToCat.set(code, cat);
+  }
+
+  const models = groups
+    .map((g, idx) => {
+      const label =
+        (typeof g.title === "string" && g.title.trim())
+          ? g.title.trim()
+          : (g.name ?? g.label ?? "Group");
+
+      const color =
+        g.color ?? g.fill ?? g.hex ?? g.groupColor ?? g.group_color ?? "#e5e7eb";
+
+      // 1) Try explicit countries from DB
+      let codes = new Set(
+        (g.countries || [])
+          .map((c) => {
+            const raw =
+              typeof c === "string"
+                ? c
+                : (c?.code ?? c?.countryCode ?? c?.country_code ?? c?.id ?? "");
+            return String(raw || "").trim().toUpperCase();
+          })
+          .filter(Boolean)
+      );
+
+      // 2) Fallback: if group has no explicit countries, derive from data values
+      if (codes.size === 0) {
+        // Try matching by group label/title OR group.name if present
+        const matchKeyCandidates = [
+          label,
+          typeof g.name === "string" ? g.name.trim() : null,
+          typeof g.title === "string" ? g.title.trim() : null,
+          typeof g.label === "string" ? g.label.trim() : null,
+        ].filter(Boolean);
+
+        // If any candidate matches a data value, include those codes
+        for (const [code, cat] of codeToCat.entries()) {
+          if (!cat) continue;
+          if (matchKeyCandidates.includes(cat)) {
+            codes.add(code);
+          }
+        }
+      }
+
+      return {
+        key: g.id ?? `cat-${idx}-${label}-${color}`,
+        label,
+        color,
+        codes,
+      };
+    })
+    .filter((m) => m.label);
+
+  return models;
+}
+
+
+  // ------- choropleth (ranges from DB) -------
+  const ranges = parseJsonArray(mapData.custom_ranges ?? mapData.customRanges);
+
+  const numOrNull = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const models = ranges.map((r, idx) => {
+    const min = numOrNull(
+      r.lowerBound ?? r.min ?? r.from ?? r.start ?? r.low ?? r.lower ?? r.rangeMin
+    );
+    const max = numOrNull(
+      r.upperBound ?? r.max ?? r.to ?? r.end ?? r.high ?? r.upper ?? r.rangeMax
+    );
+
+    const color =
+      r.color ?? r.fill ?? r.hex ?? r.rangeColor ?? r.range_color ?? "#e5e7eb";
+
+const nameOnly =
+  typeof r.name === "string" && r.name.trim() ? r.name.trim() : null;
+
+const titleOnly =
+  typeof r.title === "string" && r.title.trim() ? r.title.trim() : null;
+
+const labelOnly =
+  typeof r.label === "string" && r.label.trim() ? r.label.trim() : null;
+
+// ✅ Prefer DB "name" first
+const label =
+  nameOnly ??
+  titleOnly ??
+  labelOnly ??
+  (min != null && max != null
+    ? `${min} – ${max}`
+    : min != null
+    ? `≥ ${min}`
+    : max != null
+    ? `≤ ${max}`
+    : "Range");
+
+    // Countries in this bucket
+    const codes = new Set();
+    for (const [code, rawVal] of codeToValue.entries()) {
+      const n = Number(rawVal);
+      if (!Number.isFinite(n)) continue;
+      // match Map.js logic: value >= lower && value <= upper (inclusive upper)
+      if (min != null && max != null && n >= min && n <= max) {
+        codes.add(code);
+      }
+    }
+
+    return {
+      key: r.id ?? `range-${idx}-${min}-${max}-${color}-${label}`,
+      label,
+      color,
+      min,
+      max,
+      codes,
+      sortValue: max != null ? max : min != null ? min : -Infinity,
+    };
+  }).filter(m => m.label);
+
+  // your choropleth sorts high -> low
+  models.sort((a, b) => (b.sortValue ?? -Infinity) - (a.sortValue ?? -Infinity));
+  return models;
+}, [mapData, mapType]);
 
 useEffect(() => {
   let timer;
-  async function getMapData() {
-    setIsLoading(true);
-    try {
-      timer = setTimeout(() => {
-        if (isLoading) {
-          setFetchError(true);
-          setIsLoading(false);
-        }
-      }, 10000);
+  let cancelled = false;
 
-      const res = await fetchMapById(id);
-      setMapData(res.data);
-      setSaveCount(res.data.save_count || 0);
-      setIsSaved(res.data.isSavedByCurrentUser || false);
-      setIsOwner(res.data.isOwner || false);
-      setIsPublic(res.data.is_public);
-    } catch (err) {
-      setFetchError(true);
-    } finally {
-      setIsLoading(false);
-      clearTimeout(timer);
+  
+
+async function getMapData() {
+  setLoadState("loading");
+setIsLoading(true);
+// DO NOT clear fetchError here
+
+
+  try {
+    const res = await fetchMapById(id);
+
+    if (!res?.data) {
+      setFetchError({
+        kind: "unavailable",
+        title: "Map not available",
+        message: "This map is no longer available.",
+      });
+      setLoadState("error");
+      return;
     }
+
+    setMapData(res.data);
+    setSaveCount(res.data.save_count || 0);
+    setIsSaved(res.data.isSavedByCurrentUser || false);
+    setIsOwner(res.data.isOwner || false);
+    setIsPublic(res.data.is_public);
+    setFetchError(null);  
+
+    setLoadState("ready");
+  } catch (err) {
+    const status = err?.response?.status;
+    const apiMsg =
+      err?.response?.data?.message ||
+      err?.response?.data?.msg ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "";
+
+    const lower = String(apiMsg).toLowerCase();
+    const code = err?.response?.data?.code;
+    const reason = err?.response?.data?.reason;
+
+    // choose error UI
+    if (status === 410 && code === "MAP_UNAVAILABLE" && reason === "OWNER_BANNED") {
+      setFetchError({
+        kind: "unavailable",
+        title: "Map not available",
+        message: "This map is no longer available.",
+      });
+    } else {
+      const isUnavailableStatus = [404, 410, 403, 451].includes(status);
+      const smellsLikeUnavailable =
+        lower.includes("map not found") ||
+        lower.includes("not found") ||
+        lower.includes("private") ||
+        lower.includes("banned") ||
+        lower.includes("suspended") ||
+        lower.includes("deleted") ||
+        lower.includes("no longer available");
+
+      setFetchError(
+        isUnavailableStatus || smellsLikeUnavailable
+          ? {
+              kind: "unavailable",
+              title: "Map not available",
+              message: "This map is no longer available.",
+            }
+          : {
+              kind: "temporary",
+              title: "Couldn’t load map",
+              message: "Something went wrong. Please try again in a moment.",
+            }
+      );
+    }
+
+    setLoadState("error");
+  } finally {
+    setIsLoading(false);
   }
+}
+
+
   getMapData();
 
-  // Cleanup
-  return () => clearTimeout(timer);
+  return () => {
+    cancelled = true;
+    clearTimeout(timer);
+  };
 }, [id]);
-
 
 
   useEffect(() => {
@@ -191,14 +464,48 @@ useEffect(() => {
     getNotifications();
   }, []);
 
+  // Prevent MapDetailContent (body) from scrolling while Download or Share modal is open
+  useEffect(() => {
+    const locked = showDownloadModal || showShareModal;
+    if (locked) {
+      document.documentElement.classList.add('scrollLocked');
+      document.body.classList.add('scrollLocked');
+    } else {
+      document.documentElement.classList.remove('scrollLocked');
+      document.body.classList.remove('scrollLocked');
+    }
+    return () => {
+      document.documentElement.classList.remove('scrollLocked');
+      document.body.classList.remove('scrollLocked');
+    };
+  }, [showDownloadModal, showShareModal]);
+
+  useEffect(() => {
+  if (loadState !== "ready") return;
+  // fetchComments...
+}, [id, loadState]);
+
+function setReactionLoading(commentId, kind) {
+  setReactionLoadingById((prev) => ({ ...prev, [commentId]: kind }));
+}
+function clearReactionLoading(commentId) {
+  setReactionLoadingById((prev) => {
+    const next = { ...prev };
+    delete next[commentId];
+    return next;
+  });
+}
+
   const handleSave = async () => {
     if (!is_public) return;
     if (!isUserLoggedIn) {
-        setShowLoginModal(true);
+        openLoginModal('star');
         return;
       }
+    if (isSaving) return;
       
     try {
+      setIsSaving(true);
       let response;
       if (isSaved) {
         response = await unsaveMap(id);
@@ -212,7 +519,9 @@ useEffect(() => {
     } catch (err) {
       console.error('Save/Unsave failed:', err);
       // Optionally show error message to user
-    }
+    }finally {
+    setIsSaving(false);
+  }
   };
 
   const handleEdit = () => {
@@ -227,7 +536,7 @@ useEffect(() => {
     if (!newComment.trim()) return;
   
     if (!isUserLoggedIn) {
-        setShowLoginModal(true);
+        openLoginModal('comment');
         return;
       }
   
@@ -249,150 +558,180 @@ useEffect(() => {
   };
   
   
+  const MAX_DEPTH = 6;          // allow replying down to depth 6
+const PREVIEW_COUNT = 3;      // show 3 replies by default
+const MAX_SHOWN_REPLIES = 6;  // when expanded, show up to 6 replies
 
-  const handleReplySubmit = async (e, parent_comment_id) => {
-    e.preventDefault();
-    const replyContent = replyingTo.content;
-    if (!replyContent.trim()) return;
-  
-    if (!isUserLoggedIn) {
-        setShowLoginModal(true);
-        return;
-      }
-  
-    // 1) Indicate we are posting a reply
-    setIsPostingReply(true);
-  
-    try {
-      const res = await postComment(id, { content: replyContent, parent_comment_id });
-      console.log('Reply post response:', res.data);
-  
-      setComments((prevComments) =>
-        prevComments.map((comment) => {
-          if (comment.id === parent_comment_id) {
-            return {
-              ...comment,
-              Replies: [...(comment.Replies || []), res.data],
-            };
-          }
-          return comment;
-        })
-      );
-  
-      setReplyingTo(null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      // 2) End the posting state
-      setIsPostingReply(false);
+
+const handleReplySubmit = async (e) => {
+  e.preventDefault();
+
+  if (!replyingTo?.content?.trim()) return;
+  if (!isUserLoggedIn) return openLoginModal('reply');
+
+  const parentId = replyingTo.parentId; // ✅ define FIRST
+
+  const parentDepth = findDepth(comments, parentId, 1);
+  if (parentDepth != null && parentDepth >= MAX_DEPTH) {
+    return;
+  }
+
+  setIsPostingReply(true);
+  try {
+    const res = await postComment(id, {
+      content: replyingTo.content,
+      parent_comment_id: parentId,
+    });
+
+    setComments((prev) => insertReplyIntoTree(prev, parentId, res.data));
+    setReplyingTo(null);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsPostingReply(false);
+  }
+};
+
+function insertReplyIntoTree(nodes, parentId, newReply) {
+  return nodes.map((n) => {
+    if (n.id === parentId) {
+      return { ...n, Replies: [...(n.Replies || []), { ...newReply, Replies: [] }] };
     }
-  };
-  
-  
-
-// Update handleLike and handleDislike functions
-
-function handleLike(comment_id, currentReaction) {
-    if (!isUserLoggedIn) {
-        setShowLoginModal(true);
-        return;
-      }
-  // If user currently has 'like', next click => remove reaction (null)
-  const desiredReaction = currentReaction === 'like' ? null : 'like';
-  
-  setCommentReaction(comment_id, desiredReaction)
-    .then((res) => {
-      // res.data => { like_count, dislike_count, userReaction }
-      if (res.data) {
-        setComments((prevComments) =>
-          updateCommentReaction(prevComments, comment_id, {
-            like_count: res.data.like_count,
-            dislike_count: res.data.dislike_count,
-            userReaction: res.data.userReaction,
-          })
-        );
-      }
-    })
-    .catch((err) => console.error('handleLike error:', err));
-}
-
-function handleDislike(comment_id, currentReaction) {
-    if (!isUserLoggedIn) {
-        setShowLoginModal(true);
-        return;
-      }
-  // If user currently 'dislike', clicking "Dislike" => remove reaction
-  const desiredReaction = currentReaction === 'dislike' ? null : 'dislike';
-
-  setCommentReaction(comment_id, desiredReaction)
-    .then((res) => {
-      if (res.data) {
-        setComments((prevComments) =>
-          updateCommentReaction(prevComments, comment_id, {
-            like_count: res.data.like_count,
-            dislike_count: res.data.dislike_count,
-            userReaction: res.data.userReaction,
-          })
-        );
-      }
-    })
-    .catch((err) => console.error('handleDislike error:', err));
-}
-
-
-
-// Update the helper function
-function updateCommentReaction(prevComments, comment_id, updatedData) {
-  return prevComments.map((comment) => {
-    // Check top-level comment
-    if (comment.id === comment_id) {
-      return {
-        ...comment,
-        like_count: updatedData.like_count,
-        dislike_count: updatedData.dislike_count,
-        userReaction: updatedData.userReaction
-      };
+    if (n.Replies?.length) {
+      return { ...n, Replies: insertReplyIntoTree(n.Replies, parentId, newReply) };
     }
-    
-    // Check replies
-    if (comment.Replies?.length) {
-      return {
-        ...comment,
-        Replies: comment.Replies.map(reply => 
-          reply.id === comment_id ? {
-            ...reply,
-            like_count: updatedData.like_count,
-            dislike_count: updatedData.dislike_count,
-            userReaction: updatedData.userReaction
-          } : reply
-        )
-      };
-    }
-    
-    return comment;
+    return n;
   });
 }
 
 
-  const toggleReplies = (comment_id) => {
-    setExpandedReplies((prevState) => ({
-      ...prevState,
-      [comment_id]: !prevState[comment_id],
-    }));
-  };
+// Update handleLike and handleDislike functions
+
+async function handleLike(comment_id, currentReaction) {
+  if (!isUserLoggedIn) {
+    openLoginModal('like');
+    return;
+  }
+
+  // prevent double taps while loading
+  if (reactionLoadingById[comment_id]) return;
+
+  const desiredReaction = currentReaction === "like" ? null : "like";
+
+  try {
+    setReactionLoading(comment_id, "like");
+
+    const res = await setCommentReaction(comment_id, desiredReaction);
+
+    if (res?.data) {
+      setComments((prevComments) =>
+        updateCommentReaction(prevComments, comment_id, {
+          like_count: res.data.like_count,
+          dislike_count: res.data.dislike_count,
+          userReaction: res.data.userReaction,
+        })
+      );
+    }
+  } catch (err) {
+    console.error("handleLike error:", err);
+  } finally {
+    clearReactionLoading(comment_id);
+  }
+}
+
+async function handleDislike(comment_id, currentReaction) {
+  if (!isUserLoggedIn) {
+    openLoginModal('like');
+    return;
+  }
+
+  if (reactionLoadingById[comment_id]) return;
+
+  const desiredReaction = currentReaction === "dislike" ? null : "dislike";
+
+  try {
+    setReactionLoading(comment_id, "dislike");
+
+    const res = await setCommentReaction(comment_id, desiredReaction);
+
+    if (res?.data) {
+      setComments((prevComments) =>
+        updateCommentReaction(prevComments, comment_id, {
+          like_count: res.data.like_count,
+          dislike_count: res.data.dislike_count,
+          userReaction: res.data.userReaction,
+        })
+      );
+    }
+  } catch (err) {
+    console.error("handleDislike error:", err);
+  } finally {
+    clearReactionLoading(comment_id);
+  }
+}
+
+function findDepth(nodes, targetId, depth = 1) {
+  for (const n of nodes) {
+    if (n.id === targetId) return depth;
+    if (n.Replies?.length) {
+      const d = findDepth(n.Replies, targetId, depth + 1);
+      if (d) return d;
+    }
+  }
+  return null;
+}
+
+
+// Update the helper function
+function updateCommentReaction(nodes, comment_id, updatedData) {
+  return nodes.map((n) => {
+    const isTarget = n.id === comment_id;
+
+    return {
+      ...n,
+      ...(isTarget
+        ? {
+            like_count: updatedData.like_count,
+            dislike_count: updatedData.dislike_count,
+            userReaction: updatedData.userReaction,
+          }
+        : {}),
+      Replies: n.Replies?.length
+        ? updateCommentReaction(n.Replies, comment_id, updatedData)
+        : n.Replies,
+    };
+  });
+}
+
+
 
     // CANCEL REPLY => setReplyingTo(null)
   const handleReplyCancel = () => {
     setReplyingTo(null);
   };
 
-  const handleDeleteCommentWithConfirm = (comment_id) => {
-    // Show a confirmation dialog
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      handleDeleteComment(comment_id);
-    }
-  };
-  
+const handleDeleteCommentWithConfirm = (comment_id) => {
+  setDeleteTargetId(comment_id);
+  setShowDeleteModal(true);
+};
+
+const confirmDelete = async () => {
+  if (!deleteTargetId || isDeleting) return;
+
+  try {
+    setIsDeleting(true);
+    await deleteComment(deleteTargetId);
+    setComments((prev) => removeCommentOrReply(prev, deleteTargetId));
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+
 
   const handleDeleteComment = async (comment_id) => {
     try {
@@ -404,22 +743,15 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
     }
   };
   
-  function removeCommentOrReply(comments, comment_idToRemove) {
-    // This function returns a new array of comments 
-    // with the specified comment/reply removed.
-    return comments
-      .filter((comment) => comment.id !== comment_idToRemove) // remove top-level if matches
-      .map((comment) => {
-        // also remove from any replies
-        if (comment.Replies && comment.Replies.length > 0) {
-          return {
-            ...comment,
-            Replies: comment.Replies.filter((r) => r.id !== comment_idToRemove),
-          };
-        }
-        return comment;
-      });
-  }
+function removeCommentOrReply(nodes, idToRemove) {
+  return nodes
+    .filter((n) => n.id !== idToRemove)
+    .map((n) => ({
+      ...n,
+      Replies: n.Replies?.length ? removeCommentOrReply(n.Replies, idToRemove) : n.Replies,
+    }));
+}
+
   
   function handleToggleReason(e) {
     setReportReasons(e.target.value);
@@ -461,27 +793,49 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
 
 
 
-  function formatValue(num) {
-    if (typeof num !== 'number' || isNaN(num)) {
-      return String(num);
-    }
-    const suffixes = [
-      { value: 1e24, suffix: 'y' },
-      { value: 1e21, suffix: 'z' },
-      { value: 1e18, suffix: 'e' },
-      { value: 1e15, suffix: 'p' },
-      { value: 1e12, suffix: 't' },
-      { value: 1e9, suffix: 'b' },
-      { value: 1e6, suffix: 'm' },
-      { value: 1e3, suffix: 'k' }
-    ];
-    for (let i = 0; i < suffixes.length; i++) {
-      if (num >= suffixes[i].value) {
-        return (num / suffixes[i].value).toFixed(2) + suffixes[i].suffix;
-      }
-    }
-    return num.toFixed(2);
+function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "No data";
+  return n.toLocaleString(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  });
+}
+
+function formatValue(num) {
+  // same safety rules
+  if (num == null) return "No data";
+  if (typeof num !== "number") return String(num);
+  if (!Number.isFinite(num)) return "No data";
+
+  const abs = Math.abs(num);
+
+  // same threshold as Map.js
+  const ABBREV_FROM = 1e15;
+
+  // under 1e15 => full number with commas + up to 5 decimals
+  if (abs < ABBREV_FROM) {
+    return formatLocaleNumber(num, 5, "en-US");
   }
+
+  // huge => word-units like Map.js
+  const units = [
+    { value: 1e24, label: "septillion" },
+    { value: 1e21, label: "sextillion" },
+    { value: 1e18, label: "quintillion" },
+    { value: 1e15, label: "quadrillion" },
+    { value: 1e12, label: "trillion" },
+    { value: 1e9, label: "billion" },
+    { value: 1e6, label: "million" },
+    { value: 1e3, label: "thousand" },
+  ];
+
+  const u = units.find((x) => abs >= x.value) || units[units.length - 1];
+  const scaled = num / u.value;
+
+  // abbreviated: up to 2 decimals, with commas
+  return `${formatLocaleNumber(scaled, 2, "en-US")} ${u.label}`;
+}
+
 
   const timeAgo = mapData?.created_at
   ? formatDistanceToNow(new Date(mapData.created_at), { addSuffix: true })
@@ -518,382 +872,235 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   entries.sort((a, b) => b.value - a.value);
 
   const isUserLoggedIn = !!authToken && !!profile;
+
+
+const hoveredLegendCodes = useMemo(() => {
+  if (!hoverLegendKey) return [];
+  const item = legendModels.find((x) => x.key === hoverLegendKey);
+  return item ? Array.from(item.codes) : [];
+}, [hoverLegendKey, legendModels]);
+
+const activeLegendCodes = useMemo(() => {
+  if (!activeLegendKey) return [];
+  const item = legendModels.find((x) => x.key === activeLegendKey);
+  return item ? Array.from(item.codes) : [];
+}, [activeLegendKey, legendModels]);
+
+const activeLegendModel = useMemo(() => {
+  if (!activeLegendKey) return null;
+  return legendModels.find((x) => x.key === activeLegendKey) ?? null;
+}, [activeLegendKey, legendModels]);
+
+const legendHeaderTitle = useMemo(() => {
+  // If a legend item is active, show its label (name if exists, else "min – max")
+  if (activeLegendModel?.label) return activeLegendModel.label;
+
+  // Otherwise show the map title
+  return mapData?.title || "Untitled Map";
+}, [activeLegendModel, mapData?.title]);
+
+
+const suppressInfoBox = !!activeLegendKey;
+
+
+
+
   
-  const handleDownload = async () => {
-    try {
-      const originalSvg = document.querySelector(`.${styles.mapDisplay} svg`);
-      if (!originalSvg) return;
-  
-      // 1) Clone the SVG
-      const svgClone = originalSvg.cloneNode(true);
-  
-      // 2) Find and remove <foreignObject>, replace with <text>
-      const foreignObject = svgClone.querySelector('foreignObject');
-      if (foreignObject) {
-        const div = foreignObject.querySelector('div');
-        const titleText = div ? div.textContent.trim() : '';
-  
-        const x = parseFloat(foreignObject.getAttribute('x') || '170');
-        const y = parseFloat(foreignObject.getAttribute('y') || '100');
-        const width = parseFloat(foreignObject.getAttribute('width') || '250');
-        // If the DB has no size, fallback to 28
-        const dbFontSize = mapData.title_font_size || 28;
-  
-        foreignObject.remove();
-  
-        // **Use the new robust wrap function that breaks long words if needed.**
-        const lines = wrapTextIntoLines(
-          titleText,
-          dbFontSize,
-          width,
-          'bold',
-          mapData.font_color || '#333'
-        );
-  
-        // Create <text>
-        const textElement = document.createElementNS('http://www.w3.org/2000/svg','text');
-        textElement.setAttribute('x', x.toString());
-        textElement.setAttribute('y', y.toString());
-        textElement.setAttribute('dominant-baseline','hanging');
-        textElement.setAttribute('fill', mapData.font_color || '#333');
-        textElement.setAttribute('font-weight','bold');
-        textElement.setAttribute('font-size', dbFontSize.toString());
-        textElement.setAttribute(
-          'font-family',
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', " +
-            "'Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans','Helvetica Neue', sans-serif"
-        );
-  
-        // lines => array of wrapped lines
-        lines.forEach((line, index) => {
-          const tspan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
-          tspan.setAttribute('x', x.toString());
-          const lineHeight = dbFontSize * 1.2;
-          const tspanY = y + index * lineHeight;
-          tspan.setAttribute('y', tspanY.toString());
-          tspan.textContent = line;
-          textElement.appendChild(tspan);
-        });
-  
-        svgClone.appendChild(textElement);
-      }
-  
-      // 3) (Optional) Override viewBox for US/EU/World
-      if (mapData?.selected_map === 'europe') {
-        svgClone.setAttribute('viewBox', '-50 0 700 520');
-      } else if (mapData?.selected_map === 'usa') {
-        svgClone.setAttribute('viewBox', '-90 -10 1238 610');
-      } else {
-        svgClone.setAttribute('viewBox','0 0 2754 1398');
-      }
-  
-      // 4) Remove certain elements
-      const circles = svgClone.querySelectorAll('.circlexx, .subxx, .noxx, .unxx');
-      circles.forEach((el) => el.remove());
-  
-      // 5) Inline styles
-      const allElements = svgClone.querySelectorAll('*');
-      allElements.forEach((el) => {
-        const computed = window.getComputedStyle(el);
-        if (['path','polygon','circle'].includes(el.tagName.toLowerCase())) {
-          el.setAttribute('stroke', computed.stroke || '#4b4b4b');
-          el.setAttribute('stroke-width', computed.strokeWidth || '0.5');
-          if (computed.fill && computed.fill !== 'none') {
-            el.setAttribute('fill', computed.fill);
-          }
-        }
-        if (el.tagName.toLowerCase() === 'text') {
-          el.setAttribute(
-            'font-family',
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto','Oxygen'," + 
-              "'Ubuntu','Cantarell','Fira Sans','Droid Sans','Helvetica Neue',sans-serif"
-          );
-          // Example logic to set normal/bold on legend items
-          if (el.closest('#legend')) {
-            el.setAttribute('font-weight', 'normal');
-          } else if (
-            el.parentElement &&
-            el.parentElement.querySelector('circle') &&
-            el.parentElement.querySelector('circle').getAttribute('cx') === '200'
-          ) {
-            el.setAttribute('font-weight', 'normal');
-          } else {
-            el.setAttribute('font-weight', 'bold');
-          }
-        }
-      });
-  
-      // 6) Serialize the cloned SVG & create an <img>
-      const svgData = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-  
-      const img = new Image();
-      img.onload = async function () {
-        // 7) Prepare canvas with your scaleFactor
-        const forcedViewBox = svgClone.getAttribute('viewBox');
-        const scaleFactor = 3;
-        let width, height;
-  
-        if (forcedViewBox) {
-          const [vbX, vbY, vbWidth, vbHeight] = forcedViewBox.split(' ').map(parseFloat);
-          width = vbWidth * scaleFactor;
-          height = vbHeight * scaleFactor;
-        } else {
-          const rect = originalSvg.getBoundingClientRect();
-          width = rect.width * scaleFactor;
-          height = rect.height * scaleFactor;
-        }
-  
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-  
-        // Draw cloned <img> to canvas
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-  
-        // 8) (Optional) Add your logo
-        const smallerSide = Math.min(width, height);
-        const padding = 20;
-  
-        const logoImg = new Image();
-        logoImg.onload = async function () {
-          // a) Draw logo with alpha
-          const logoRatio = 0.1;
-          const logoWidth = smallerSide * logoRatio;
-          const logoHeight = logoImg.height * (logoWidth / logoImg.width);
-  
-          ctx.save();
-          ctx.globalAlpha = 0.5;
-          ctx.drawImage(
-            logoImg,
-            padding,
-            canvas.height - logoHeight - padding,
-            logoWidth,
-            logoHeight
-          );
-          ctx.restore();
-  
-          // b) Draw references in bottom-right
-          const textRatio = 0.025;
-          const fontSize = smallerSide * textRatio;
-          const lineHeight = fontSize * 1.3;
-  
-          ctx.fillStyle = mapData.font_color || '#333';
-          ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`;
-          ctx.textAlign = 'right';
-          ctx.textBaseline = 'bottom';
-  
-          const sources = mapData.sources || [];
-          if (sources.length > 0) {
-            const refStrings = sources.map((ref) => {
-              let line = ref.sourceName || 'Unknown';
-              if (ref.publicationYear) line += ` (${ref.publicationYear})`;
-              if (ref.publicator) line += `. ${ref.publicator}.`;
-              return line;
-            });
-  
-            let textX = canvas.width - padding;
-            let textY = canvas.height - padding;
-  
-            for (let i = refStrings.length - 1; i >= 0; i--) {
-              ctx.fillText(refStrings[i], textX, textY);
-              textY -= lineHeight;
-            }
-          }
-  
-          // c) Convert canvas to Blob and prompt download
-          canvas.toBlob(async (blob) => {
-            try {
-              const res = await incrementMapDownloadCount(mapData.id);
-              if (res.data.download_count != null) {
-                setDownloadCount(res.data.download_count);
-              }
-            } catch (err) {
-              console.error('Error incrementing download:', err);
-            }
-  
-            const link = document.createElement('a');
-            link.download = `${mapData.title || 'map'}.png`;
-            link.href = URL.createObjectURL(blob);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }, 'image/png');
-        };
-  
-        // If logo fails
-        logoImg.onerror = async function () {
-          console.error('Logo failed to load. Proceeding without logo.');
-          try {
-            const res = await incrementMapDownloadCount(mapData.id);
-            if (res.data.download_count != null) {
-              setDownloadCount(res.data.download_count);
-            }
-          } catch (err) {
-            console.error('Error incrementing download:', err);
-          }
-  
-          // (Optional) draw references anyway
-          const textRatio = 0.025;
-          const fontSize = smallerSide * textRatio;
-          const lineHeight = fontSize * 1.3;
-  
-          ctx.fillStyle = mapData.font_color || '#333';
-          ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`;
-          ctx.textAlign = 'right';
-          ctx.textBaseline = 'bottom';
-  
-          const sources = mapData.sources || [];
-          if (sources.length > 0) {
-            const refStrings = sources.map((ref) => {
-              let line = ref.sourceName || 'Unknown';
-              if (ref.publicationYear) line += ` (${ref.publicationYear})`;
-              if (ref.publicator) line += `. ${ref.publicator}.`;
-              return line;
-            });
-  
-            let textX = canvas.width - padding;
-            let textY = canvas.height - padding;
-  
-            for (let i = refStrings.length - 1; i >= 0; i--) {
-              ctx.fillText(refStrings[i], textX, textY);
-              textY -= lineHeight;
-            }
-          }
-  
-          // Trigger download
-          canvas.toBlob((blob) => {
-            const link = document.createElement('a');
-            link.download = `${mapData.title || 'map'}.png`;
-            link.href = URL.createObjectURL(blob);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }, 'image/png');
-        };
-  
-        // Start loading the actual logo
-        logoImg.src = '/assets/map-in-color-logo.png';
+  function isFiniteNumber(x) {
+  return typeof x === "number" && Number.isFinite(x);
+}
+
+
+function numOrNull(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function getChoroplethLegendItems(customRanges = []) {
+  const normalized = customRanges
+    .map((r) => {
+      const min = numOrNull(
+        r.lowerBound ?? r.min ?? r.from ?? r.start ?? r.low ?? r.lower ?? r.rangeMin
+      );
+      const max = numOrNull(
+        r.upperBound ?? r.max ?? r.to ?? r.end ?? r.high ?? r.upper ?? r.rangeMax
+      );
+
+      const color =
+        r.color ??
+        r.fill ??
+        r.hex ??
+        r.rangeColor ??
+        r.range_color ??
+        r.bucketColor ??
+        r.bucket_color;
+
+      // ✅ IMPORTANT: "title" ONLY (do NOT use name/label if you want title-only)
+      const titleOnly =
+        typeof r.title === "string" && r.title.trim() ? r.title.trim() : null;
+
+      // ✅ If no title, then auto-generate from bounds
+      const label =
+        titleOnly ??
+        (min != null && max != null
+          ? `${min} – ${max}`
+          : min != null
+          ? `≥ ${min}`
+          : max != null
+          ? `≤ ${max}`
+          : "Range");
+
+      return {
+        key: r.id ?? `${min}-${max}-${color}-${label}`,
+        color: color || "#e5e7eb",
+        label,
+        sortValue: max != null ? max : min != null ? min : -Infinity,
       };
-      img.src = url;
-    } catch (error) {
-      console.error('Error downloading image:', error);
-    }
+    })
+    .filter((x) => x.label);
+
+  normalized.sort((a, b) => (b.sortValue ?? -Infinity) - (a.sortValue ?? -Infinity));
+  return normalized;
+}
+
+function getCategoricalLegendItems(groups = []) {
+  const normalized = groups
+    .map((g) => {
+      // ✅ IMPORTANT: "title" ONLY, otherwise fallback
+      const label =
+        (typeof g.title === "string" && g.title.trim())
+          ? g.title.trim()
+          : (g.name ?? g.label ?? "Group");
+
+      const color =
+        g.color ??
+        g.fill ??
+        g.hex ??
+        g.groupColor ??
+        g.group_color ??
+        "#e5e7eb";
+
+      return {
+        key: g.id ?? `${label}-${color}`,
+        color,
+        label,
+      };
+    })
+    .filter((x) => x.label);
+
+  normalized.sort((a, b) => a.label.localeCompare(b.label));
+  return normalized;
+}
+
+
+
+
+
+
+// ─────────────────────────────────────────────
+// HARD render gates (NO OTHER UI ABOVE THIS)
+// ─────────────────────────────────────────────
+
+// 1) While loading: render ONLY skeleton (prevents 1-frame "Failed to load map")
+if (loadState === "loading") {
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <div className={styles.mapDisplay}>
+          <div
+            className={styles.skeletonRow}
+            style={{ height: "400px", borderRadius: "8px" }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2) If we decided it's an error: render ONLY the nice error UI
+if (loadState === "error") {
+  // If for some reason fetchError is missing, show a safe fallback
+  const safe = fetchError ?? {
+    kind: "temporary",
+    title: "Couldn’t load map",
+    message: "Something went wrong. Please try again.",
   };
-  
-  
-  
-  // Right before the return, handle the special cases:
-  // 1) If we have an error
-  if (fetchError) {
-    return (
-      <div className={styles.mapDetailContainer}>
+
+  return (
+    <div className={styles.mapDetailContainer}>
       <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={styles.mapDetailContent}>
-          <div className={styles.errorBox}>
-            <h2>Map not available</h2>
-            <p>We couldn’t load this map right now. Please try again later.</p>
+      <div className={styles.mapDetailContent}>
+        <div className={styles.unavailableBox}>
+          <div className={styles.unavailableIcon} aria-hidden="true">⛔</div>
+          <h2 className={styles.unavailableTitle}>{safe.title}</h2>
+          <p className={styles.unavailableMsg}>{safe.message}</p>
+
+          <div className={styles.unavailableActions}>
+            <button
+              type="button"
+              className={styles.unavailableSecondary}
+              onClick={() => navigate(-1)}
+            >
+              Go back
+            </button>
+            <button
+              type="button"
+              className={styles.unavailablePrimary}
+              onClick={() => navigate("/explore")}
+            >
+              Explore maps
+            </button>
+          </div>
+
+          {safe.kind === "temporary" && (
+            <button
+              type="button"
+              className={styles.unavailableLink}
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 3) Safety: if ready but mapData missing, treat as unavailable
+if (!mapData) {
+  return (
+    <div className={styles.mapDetailContainer}>
+      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className={styles.mapDetailContent}>
+        <div className={styles.unavailableBox}>
+          <div className={styles.unavailableIcon} aria-hidden="true">🗺️</div>
+          <h2 className={styles.unavailableTitle}>Map not available</h2>
+          <p className={styles.unavailableMsg}>This map is no longer available.</p>
+
+          <div className={styles.unavailableActions}>
+            <button
+              type="button"
+              className={styles.unavailableSecondary}
+              onClick={() => navigate(-1)}
+            >
+              Go back
+            </button>
+            <button
+              type="button"
+              className={styles.unavailablePrimary}
+              onClick={() => navigate("/explore")}
+            >
+              Explore maps
+            </button>
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  // 2) If loading but the map is private + not owner => locked
-  if (isLoading && is_public === false && !isOwner) {
-    return (
-      <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={styles.mapDetailContent}>
-          <div className={styles.privateMapBox}>
-            <FaLock className={styles.lockIcon} />
-            <h2>This map is private</h2>
-            <p>You do not have permission to view this map.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 3) If loading => show the skeleton for everything
-  if (isLoading) {
-    return (
-      <div className={styles.mapDetailContainer}>
-      <Sidebar isCollapsed={isFullScreen || isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className={styles.mapDetailContent}>
-          {/* --- SKELETON STARTS HERE --- */}
-          <div className={styles.mapDisplay}>
-            {/* Large map placeholder */}
-            <div className={styles.skeletonRow} style={{ height: '400px', borderRadius: '8px' }}/>
-          </div>
-
-          <div className={styles.detailsAndStats} style={{ marginTop: '20px' }}>
-            {/* LEFT side: mapDetails + discussion */}
-            <div className={styles.leftContent}>
-              {/* MAP DETAILS SKELETON */}
-              <div className={styles.mapDetails} style={{ marginBottom: '20px' }}>
-                {/* Title line */}
-                <div className={styles.skeletonRow}  style={{ height: '24px', width: '60%', marginBottom: '10px' }} />
-                {/* A couple more lines for the description */}
-                <div className={styles.skeletonRow}  style={{ height: '16px', width: '90%', marginBottom: '8px' }} />
-                <div className={styles.skeletonRow}  style={{ height: '16px', width: '80%', marginBottom: '8px' }} />
-                {/* A row of tags */}
-                <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
-                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
-                  <div className={styles.skeletonRow}  style={{ width: '60px', height: '24px' }}/>
-                </div>
-              </div>
-
-              {/* DISCUSSION SKELETON */}
-              <div className={styles.discussionSection}>
-                <div className={styles.skeletonSectionTitle} style={{ width: '100px', height: '18px', marginBottom: '16px' }} />
-                {/* pretend we have two or three "comment" placeholders */}
-                {[1,2,3].map((i) => (
-                  <div className={styles.skeletonRow}  key={i} style={{ marginBottom: '20px' }}>
-                    <div className={styles.skeletonThumb} style={{ width: '50px', height: '50px' }}/>
-                    <div className={styles.skeletonTextBlock}>
-                      <div className={styles.skeletonLine} style={{ height: '14px', marginBottom: '6px' }} />
-                      <div className={styles.skeletonLine} style={{ width: '80%', height: '14px' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* RIGHT side: stats */}
-            <div className={styles.mapStats}>
-              <div className={styles.statsSummary}>
-                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
-                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
-                <div className={styles.skeletonStatItem} style={{ marginBottom: '10px' }} />
-              </div>
-
-              <div className={styles.countryList} style={{ marginTop: '10px' }}>
-                {/* A few skeleton rows for the table */}
-                {[1,2,3,4].map((i) => (
-                  <div className={styles.skeletonRow} key={i} style={{ height: '20px', marginBottom: '8px' }}/>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* --- END SKELETON --- */}
-        </div>
-      </div>
-    );
-  }
-
-  // 4) If no data
-  if (!mapData) {
-    return null;
-  }
 
   // 5) If private & not owner => locked
   if (mapData.is_public === false && !mapData.isOwner) {
@@ -944,18 +1151,129 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   className={`${styles.mapDisplay} ${isFullScreen ? styles.fullScreen : ''}`}
   style={{ position: 'relative', cursor: isPanning.current ? 'grabbing' : 'grab' }}
 >
-  <Map {...mapDataProps()} isLargeMap={isFullScreen} />
+  <MapView
+  {...mapDataProps()}
+  isLargeMap={isFullScreen}
+  compactUi={width < 400}
+  hoveredCode={hoveredCode}
+  selectedCode={selectedCode}
+  selectedCodeZoom={selectedCodeZoom}
+  selectedCodeNonce={selectedCodeNonce}
+  groupHoveredCodes={hoveredLegendCodes}
+  groupActiveCodes={activeLegendCodes}
+  suppressInfoBox={suppressInfoBox}
+  // ✅ NEW
+  activeLegendModel={activeLegendModel}
+  codeToName={countryCodeToName}
+  onCloseActiveLegend={() => {
+    setActiveLegendKey(null);
+    setHoverLegendKey(null);
+  }}
+  onHoverCode={(code) => setHoveredCode(code)}
+  onSelectCode={(code) => {
+  if (code) {
+    setActiveLegendKey(null);
+    setHoverLegendKey(null);
+  }
 
- <button
-   onClick={toggleFullScreen}
-   aria-label={isFullScreen ? 'Exit view mode' : 'Enter view mode'}
-   className={styles.fullScreenBtn}
- >
-   {isFullScreen ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-   <span className={styles.fullScreenLabel}>
-     {isFullScreen ? 'Exit view mode' : 'View mode'}
-   </span>
- </button>
+  setSelectedCode(code);
+  setSelectedCodeZoom(false);
+  setSelectedCodeNonce((n) => n + 1);
+}}
+
+/>
+
+{isFullScreen && (
+  <button
+    onClick={toggleFullScreen}
+    aria-label="Exit view mode"
+    title="Exit view mode"
+    className={styles.exitViewBtn}
+  >
+    <FaEyeSlash />
+  </button>
+)}
+
+{isFullScreen && isNarrowPortrait && (
+  <div className={styles.turnScreenPrompt} role="status" aria-live="polite">
+    <svg className={styles.turnScreenIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+      <path d="M21 3v6h-6" />
+    </svg>
+    <span>Turn your screen for a better experience</span>
+  </div>
+)}
+
+<div className={styles.mapLegendBox} aria-label="Legend">
+    {/* Header with title + collapse toggle: always visible so we can collapse from anywhere */}
+    <div className={styles.mapLegendHeader}>
+  <div className={styles.mapLegendHeaderRow}>
+    <div className={styles.mapLegendTitle}>
+      {mapData?.title || "Untitled Map"}
+    </div>
+    <button
+      type="button"
+      className={`${styles.mapLegendToggleBtn} ${legendCollapsed ? styles.mapLegendToggleBtnCollapsed : ''}`}
+      onClick={() => setLegendCollapsed((c) => !c)}
+      aria-label={legendCollapsed ? 'Show legend' : 'Hide legend'}
+      aria-expanded={!legendCollapsed}
+      title={legendCollapsed ? 'Show legend' : 'Hide legend'}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </button>
+  </div>
+    </div>
+
+<div className={`${styles.mapLegendItemsWrap} ${legendCollapsed ? styles.mapLegendItemsWrapCollapsed : ''}`}>
+<div className={styles.mapLegendItems}>
+  {legendModels.length === 0 ? (
+    <div className={styles.mapLegendEmpty}>No legend data</div>
+  ) : (
+    legendModels.map((item) => {
+      const isActive = activeLegendKey === item.key;
+
+      return (
+        <div
+          key={item.key}
+          className={`${styles.mapLegendRow} ${isActive ? styles.mapLegendRowActive : ""}`}
+
+
+          onMouseEnter={() => setHoverLegendKey(item.key)}
+          onMouseLeave={() => setHoverLegendKey(null)}
+
+          onClick={() => {
+            // toggling this group
+            setSelectedCode(null);         // stop showing any country selection
+            setSelectedCodeZoom(false);
+            setSelectedCodeNonce((n) => n + 1);
+
+            setActiveLegendKey(item.key); // ✅ never toggle off by clicking again
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <span
+            className={styles.mapLegendDot}
+            style={{ backgroundColor: item.color }}
+          />
+          <div className={styles.mapLegendText}>
+            <div className={styles.mapLegendLabel}>{item.label}</div>
+            {item.meta && <div className={styles.mapLegendMeta}>{item.meta}</div>}
+          </div>
+          <span className={styles.mapLegendHoverHint} aria-hidden="true">↗</span>
+        </div>
+      );
+    })
+  )}
+</div>
+</div>
+
+</div>
+
+
+
 </div>
 
 
@@ -974,779 +1292,646 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
   {/* LEFT column: Map Details + Discussion */}
   <div className={styles.leftContent}>
     {/* MAP DETAILS */}
-    <div className={styles.mapDetails}>
-      {/* Title / Save / Download */}
-      <div className={styles.titleSection}>
-        <h1>
-          {mapData.title || 'Untitled Map'}
-          {isOwner && (
-            <span className={styles.visibilityTag}>
-              {is_public ? 'Public' : 'Private'}
-            </span>
-          )}
-        </h1>
+<div className={styles.mapDetails}>
 
-        {/* If you’re the map owner, show Edit button */}
+  {/* HERO */}
+{/* HERO */}
+<div className={styles.detailsHero}>
+  <div className={styles.heroRow}>
+    {/* LEFT: Title + meta */}
+    <div className={styles.heroLeft}>
+      <h1 className={styles.detailsTitle}>
+        {mapData.title || "Untitled Map"}
         {isOwner && (
-          <button className={styles.editButton} onClick={handleEdit}>
+          <span className={styles.visibilityPill}>
+            {is_public ? "Public" : "Private"}
+          </span>
+        )}
+      </h1>
+
+      {timeAgo && <div className={styles.detailsMetaLine}>Created {timeAgo}</div>}
+    </div>
+
+    {/* RIGHT: Actions + Profile (profile last = far right) */}
+    <div className={styles.heroRight}>
+      {/* Actions should flow LEFT of profile, so we put them first */}
+      <div className={styles.heroActions}>
+     
+   
+
+        {(is_public || isOwner) && (
+          <>
+           
+            {is_public && (
+              <button
+                className={[
+                  styles.statActionBtn,
+                  styles.starActionBtn,
+                  isSaved ? styles.starActive : "",
+                  isSaving ? styles.starLoading : "",
+                ].join(" ")}
+                onClick={() => {
+                  if (!isUserLoggedIn) {
+                    openLoginModal('star');
+                    return;
+                  }
+                  handleSave();
+                }}
+                type="button"
+                disabled={isSaving}
+                aria-pressed={!!isSaved}
+                title={isSaved ? "Unstar" : "Star"}
+              >
+                <span className={styles.statActionIcon}><FaStar /></span>
+                <span className={styles.statActionLabel}>
+                  {isSaving ? "Starring…" : "Stars"}
+                </span>
+                <span className={styles.statActionValue}>{save_count}</span>
+                {isSaving && <span className={styles.miniSpinner} aria-hidden="true" />}
+              </button>
+
+              
+            )}
+
+<button
+  className={[styles.statActionBtn, styles.downloadBtn].join(" ")}
+  onClick={() => {
+    if (!isUserLoggedIn) {
+      openLoginModal('download');
+      return;
+    }
+    setShowDownloadModal(true);
+  }}
+  type="button"
+  title="Download map"
+>
+  <span className={styles.statActionIcon}><BiDownload /></span>
+  <span className={styles.statActionLabel}>
+    {is_public ? "Downloads" : "Download"}
+  </span>
+  {is_public && <span className={styles.statActionValue}>{download_count}</span>}
+</button>
+
+{/* Share */}
+<button
+  className={[styles.statActionBtn, styles.downloadBtn].join(" ")}
+  onClick={() => {
+    if (!isUserLoggedIn) {
+      openLoginModal('share');
+      return;
+    }
+    setShowShareModal(true);
+  }}
+  type="button"
+  title="Share map"
+>
+  <span className={styles.statActionIcon}><BiShare /></span>
+  <span className={styles.statActionLabel}>Share</span>
+</button>
+
+
+                 <button
+          className={styles.viewIconButton}
+          onClick={toggleFullScreen}
+          aria-label="Enter view mode"
+          title="View mode"
+          type="button"
+        >
+          <FaEye />
+        </button>
+
+           {isOwner && (
+          <button className={styles.editButton} onClick={handleEdit} type="button">
             Edit Map
           </button>
         )}
 
-        {/* Show star & download if map is public or you are the owner */}
-        {(is_public || isOwner) && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Star/save button always visible. If not logged in => modal */}
-            {is_public && (
-              <button
-                className={styles.saveButton}
-                onClick={() => {
-                  if (!isUserLoggedIn) {
-                    setShowLoginModal(true);
-                    return;
-                  }
-                  handleSave(); // if logged in, do normal logic
-                }}
-              >
-                {isSaved ? '★' : '☆'} {save_count}
-              </button>
-            )}
-
-            {/* Download is always allowed */}
-            <button className={styles.saveButton} onClick={handleDownload}>
-              <BiDownload /> {download_count}
-            </button>
-          </div>
+          </>
         )}
       </div>
 
-      {timeAgo && <p className={styles.created_at}>Created {timeAgo}</p>}
-
-      {/* Creator Info */}
-      <div className={styles.creatorInfo}>
-        {/* If user is not logged in, clicking profile => show modal */}
-        {isUserLoggedIn ? (
-          <Link
-            to={`/profile/${mapData?.user?.username || 'unknown'}`}
-            className={styles.creatorProfileLink}
-          >
-            <img
-              src={
-                mapData.user?.profile_picture
-                  ? mapData.user.profile_picture
-                  : '/default-profile-pic.jpg'
-              }
-              alt={`${
-                mapData.user?.first_name ||
-                mapData?.user?.username ||
-                'unknown'
-              }'s profile`}
-              className={styles.creatorProfilePicture}
-            />
-            <span className={styles.creatorName}>
-              {mapData.user.first_name || ''} {mapData.user.last_name || ''}
-            </span>
-          </Link>
-        ) : (
-          <div
-            className={styles.creatorProfileLink}
-            style={{ cursor: 'pointer' }}
-            onClick={() => setShowLoginModal(true)}
-          >
-            <img
-              src={
-                mapData.user?.profile_picture
-                  ? mapData.user.profile_picture
-                  : '/default-profile-pic.jpg'
-              }
-              alt="Creator's profile"
-              className={styles.creatorProfilePicture}
-            />
-            <span className={styles.creatorName}>
-              {mapData.user.first_name || ''} {mapData.user.last_name || ''}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <p className={styles.description}>{mapData.description}</p>
-
-      {/* Tags */}
-      <div className={styles.tags}>
-        {mapData.tags &&
-          mapData.tags.map((tag, index) => (
-            <span
-              key={index}
-              className={styles.mapTag}
-              onClick={() =>
-                navigate(`/explore?tags=${encodeURIComponent(tag.toLowerCase())}`)
-              }
-              title={`See all maps with the tag "${tag}"`}
+      {/* Profile chip MUST be far right */}
+      <div className={styles.heroProfile}>
+        <div className={styles.creatorChip}>
+          {isUserLoggedIn ? (
+            <Link
+              to={`/profile/${mapData?.user?.username || "unknown"}`}
+              className={styles.creatorChipLink}
             >
-              {tag}
-            </span>
-          ))}
+              <img
+                src={
+                  mapData.user?.profile_picture
+                    ? mapData.user.profile_picture
+                    : "/default-profile-pic.jpg"
+                }
+                alt="Creator profile"
+                className={styles.creatorChipAvatar}
+              />
+              <div className={styles.creatorChipText}>
+                <div className={styles.creatorChipName}>
+                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                </div>
+                <div className={styles.creatorChipUser}>
+                  @{mapData?.user?.username || "unknown"}
+                </div>
+              </div>
+            </Link>
+          ) : (
+            <button
+              className={styles.creatorChipLink}
+              onClick={() => openLoginModal('profile')}
+              type="button"
+            >
+              <img
+                src={
+                  mapData.user?.profile_picture
+                    ? mapData.user.profile_picture
+                    : "/default-profile-pic.jpg"
+                }
+                alt="Creator profile"
+                className={styles.creatorChipAvatar}
+              />
+              <div className={styles.creatorChipText}>
+                <div className={styles.creatorChipName}>
+                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                </div>
+                <div className={styles.creatorChipUser}>
+                  @{mapData?.user?.username || "unknown"}
+                </div>
+              </div>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  {/* DESCRIPTION */}
+  {mapData?.description?.trim() && (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionTitle}>Description</div>
+      </div>
+      <p className={styles.descriptionText}>{mapData.description}</p>
+    </div>
+  )}
+
+  {/* TAGS */}
+  {mapData?.tags?.length > 0 && (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionTitle}>Tags</div>
+        <div className={styles.sectionHint}>Explore similar maps</div>
       </div>
 
-      {/* References */}
-      {mapData.sources && mapData.sources.length > 0 && (
-        <div className={styles.sources}>
-          <h3>References</h3>
-          <ol className={styles.referencesList}>
-            {mapData.sources.map((ref, idx) => (
-              <li key={idx} className={styles.referenceItem}>
-                {ref.sourceName || 'Unknown'}
-                {ref.publicationYear ? ` (${ref.publicationYear})` : ''}
-                {ref.publicator ? `. ${ref.publicator}` : ''}
+      <div className={styles.tagsWrap}>
+        {mapData.tags.map((tag, index) => (
+          <button
+            key={index}
+            className={styles.tagChip}
+            onClick={() => navigate(`/explore?tags=${encodeURIComponent(tag.toLowerCase())}`)}
+            type="button"
+            title={`See all maps with the tag "${tag}"`}
+          >
+            <span className={styles.tagHash}>#</span>
+            {tag}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {/* REFERENCES */}
+  {mapData?.sources?.length > 0 && (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionTitle}>References</div>
+        <div className={styles.sectionHint}>Sources used for this map</div>
+      </div>
+
+      <ol className={styles.refsList}>
+        {mapData.sources.map((ref, idx) => (
+          <li key={idx} className={styles.refItem}>
+            <div className={styles.refTop}>
+              <span className={styles.refIndex}>{idx + 1}</span>
+
+              <div className={styles.refMain}>
+                <div className={styles.refTitleLine}>
+                  <span className={styles.refName}>
+                    {ref.sourceName || "Unknown source"}
+                  </span>
+                  {ref.publicationYear && (
+                    <span className={styles.refYear}>({ref.publicationYear})</span>
+                  )}
+                </div>
+
+                {ref.publicator && (
+                  <div className={styles.refPublisher}>{ref.publicator}</div>
+                )}
 
                 {ref.url && (
-                  <>
-                    {' '}
-                    - [
-                    <a href={ref.url} target="_blank" rel="noopener noreferrer">
-                      {ref.url}
-                    </a>
-                    ]
-                  </>
+                  <a
+                    className={styles.refLink}
+                    href={ref.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {ref.url}
+                  </a>
                 )}
+
                 {ref.notes && (
-                  <div className={styles.referenceNotes}>
-                    Notes: {ref.notes}
+                  <div className={styles.refNotes}>
+                    <span className={styles.refNotesLabel}>Notes:</span> {ref.notes}
                   </div>
                 )}
-              </li>
-            ))}
-          </ol>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )}
+</div>
+
+{/* DISCUSSION SECTION (below map details on desktop) */}
+<div className={`${styles.sectionCard} ${styles.discussionCard}`} ref={discussionRef}>
+  {/* Header like other section cards */}
+  <div className={styles.sectionHeader}>
+    <div className={styles.sectionTitle}>Discussion</div>
+    <div className={styles.sectionHint}>
+      {is_public ? "Share thoughts and ask questions" : "Comments disabled on private maps"}
+    </div>
+  </div>
+
+  {/* Composer */}
+  {is_public && (
+    <div className={styles.discussionBody}>
+      {(isUserLoggedIn) ? (
+        <form onSubmit={handleCommentSubmit} className={styles.commentComposer}>
+          <div className={styles.composerAvatarWrap} aria-hidden="true">
+            <img
+              className={styles.composerAvatar}
+              src={profile?.profile_picture || "/default-profile-pic.jpg"}
+              alt=""
+            />
+          </div>
+
+          <div className={styles.composerMain}>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment…"
+              required
+              className={styles.composerTextarea}
+              rows={3}
+            />
+
+            <div className={styles.composerFooter}>
+              <div className={styles.composerHint}>
+                Be respectful. Keep it constructive.
+              </div>
+
+              <button
+                type="submit"
+                className={styles.composerSendBtn}
+                disabled={isPostingComment}
+                title="Post comment"
+              >
+                <span className={styles.composerSendIcon}><BiSend /></span>
+                <span className={styles.composerSendText}>
+                  {isPostingComment ? "Posting…" : "Post"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      ) : (
+        <div className={styles.discussionLocked}>
+          <div className={styles.discussionLockedText}>
+            Log in to join the discussion.
+          </div>
+          <button
+            type="button"
+            className={styles.discussionLockedBtn}
+            onClick={() => openLoginModal('comment')}
+          >
+            Log in
+          </button>
+        </div>
+      )}
+
+      {/* Comments */}
+      {comments.length > 0 ? (
+<ul className={styles.commentsList}>
+  {comments.map((comment) => (
+    <CommentNode
+      key={comment.id}
+      node={comment}
+      depth={1}
+      isMobileComments={isMobileComments}
+      {...{
+        isUserLoggedIn,
+        profile,
+        expandedThreads,
+        toggleThread,
+        MAX_DEPTH,
+        PREVIEW_COUNT,
+        MAX_SHOWN_REPLIES,
+        replyingTo,
+        setReplyingTo,
+        isPostingReply,
+        handleReplySubmit,
+        handleReplyCancel,
+        handleLike,
+        handleDislike,
+        handleDeleteCommentWithConfirm,
+        openLoginModal,
+        setReportTargetComment,
+        setShowReportModal,
+        styles,
+        reactionLoadingById
+      }}
+    />
+  ))}
+</ul>
+
+
+      ) : (
+        <div className={styles.discussionEmpty}>
+          <div className={styles.discussionEmptyTitle}>No comments yet</div>
+          <div className={styles.discussionEmptyHint}>
+            {isUserLoggedIn ? "Be the first to start the conversation." : "Log in to post the first comment."}
+          </div>
         </div>
       )}
     </div>
+  )}
+</div>
 
-    {/* DISCUSSION SECTION (below map details on desktop) */}
-    <div className={styles.discussionSection} ref={discussionRef}>
-      <h2>Discussion</h2>
-
-      {/* Only show the comment form if map is public AND user is logged in. */}
-      {(is_public && isUserLoggedIn) && (
-        <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
-            required
-            className={styles.commentTextarea}
-          />
-          <button
-            type="submit"
-            className={styles.commentButton}
-            disabled={isPostingComment}
-          >
-            <BiSend/>
-          </button>
-        </form>
-      )}
-
-      {/* Show existing comments if the map is public (even if user is not logged in) */}
-      {is_public ? (
-        <>
-          {comments.length > 0 ? (
-            <ul className={styles.commentsList}>
-              {comments.map((comment) => {
-                const areRepliesExpanded = expandedReplies[comment.id] || false;
-                const repliesArray = comment.Replies || [];
-                const totalReplies = repliesArray.length;
-                const repliesToShow = areRepliesExpanded
-                  ? repliesArray
-                  : repliesArray.slice(0, 3);
-
-                return (
-                  <li key={comment.id} className={styles.commentItem}>
-                    <div className={styles.commentHeader}>
-                      {/* Profile link => if not logged in => show modal */}
-                      {comment.user && comment.user.profile_picture ? (
-                        isUserLoggedIn ? (
-                          <Link
-                            to={`/profile/${comment?.user?.username || 'unknown'}`}
-                          >
-                            <img
-                              src={
-                                comment.user?.profile_picture ||
-                                '/default-profile-pic.jpg'
-                              }
-                              alt={`${comment?.user?.username || 'unknown'}'s profile`}
-                              className={styles.commentProfilePicture}
-                            />
-                          </Link>
-                        ) : (
-                          <div
-                            className={styles.commentProfilePicture}
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setShowLoginModal(true)}
-                          >
-                            <img
-                              src={
-                                comment.user?.profile_picture ||
-                                '/default-profile-pic.jpg'
-                              }
-                              alt="Profile"
-                              className={styles.commentProfilePicture}
-                            />
-                          </div>
-                        )
-                      ) : (
-                        <div className={styles.commentPlaceholder}></div>
-                      )}
-
-                      <div className={styles.commentContentWrapper}>
-                        <div className={styles.commentInfo}>
-                          {/* Username link => if not logged in => modal */}
-                          {isUserLoggedIn ? (
-                            <Link
-                              to={`/profile/${comment?.user?.username || 'unknown'}`}
-                              className={styles.commentAuthorLink}
-                            >
-                              <span className={styles.commentAuthor}>
-                                {comment.user.username || 'Unknown'}
-                              </span>
-                            </Link>
-                          ) : (
-                            <span
-                              className={styles.commentAuthor}
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => setShowLoginModal(true)}
-                            >
-                              {comment.user.username || 'Unknown'}
-                            </span>
-                          )}
-
-                          <span className={styles.commentTime}>
-                            {formatDistanceToNow(new Date(comment.created_at), {
-                              addSuffix: true,
-                            })}
-                          </span>
-                        </div>
-
-                        <p className={styles.commentContent}>{comment.content}</p>
-
-                        <div className={styles.commentActions}>
-                          {/* Like is visible. If not logged in => show modal instead of handleLike */}
-                          <button
-                            className={`${styles.reactionButton} ${
-                              comment.userReaction === 'like' ? styles.active : ''
-                            }`}
-                            onClick={() => {
-                              if (!isUserLoggedIn) {
-                                setShowLoginModal(true);
-                                return;
-                              }
-                              handleLike(comment.id, comment.userReaction);
-                            }}
-                          >
-                            {/* Like icon */}
-                            <svg
-                              className={styles.icon}
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                            >
-                              <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                            </svg>
-                            <span>{comment.like_count}</span>
-                          </button>
-
-                          {/* Dislike is visible. If not logged in => show modal instead of handleDislike */}
-                          <button
-                            className={`${styles.reactionButton} ${
-                              comment.userReaction === 'dislike' ? styles.active : ''
-                            }`}
-                            onClick={() => {
-                              if (!isUserLoggedIn) {
-                                setShowLoginModal(true);
-                                return;
-                              }
-                              handleDislike(comment.id, comment.userReaction);
-                            }}
-                          >
-                            {/* Dislike icon */}
-                            <svg
-                              className={styles.icon}
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                            >
-                              <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-                            </svg>
-                            <span>{comment.dislike_count}</span>
-                          </button>
-
-                          {/* Reply button => hidden if not logged in */}
-                          {isUserLoggedIn && (
-                            <button
-                              className={styles.reactionButton}
-                              onClick={() =>
-                                setReplyingTo({ comment_id: comment.id, content: '' })
-                              }
-                            >
-                              <svg
-                                className={styles.icon}
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
-                              </svg>
-                              <span>Reply</span>
-                            </button>
-                          )}
-
-                          {/* Delete => only if user is the comment owner (and presumably isUserLoggedIn) */}
-                          {comment.user?.username === profile?.username && (
-                            <button
-                              className={styles.reactionButton}
-                              onClick={() => handleDeleteCommentWithConfirm(comment.id)}
-                            >
-                              <svg
-                                className={styles.icon}
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-                              </svg>
-                              <span>Delete</span>
-                            </button>
-                          )}
-
-                          {/* Report => hidden if not logged in */}
-                          {isUserLoggedIn && comment.user?.username !== profile?.username && (
-                            <button
-                              className={styles.reactionButton}
-                              onClick={() => {
-                                setReportTargetComment(comment.id);
-                                setShowReportModal(true);
-                              }}
-                            >
-                              <svg
-                                className={styles.icon}
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
-                              </svg>
-                              <span>Report</span>
-                            </button>
-                          )}
-                        </div>
-
-                        {/* If replying */}
-                        {replyingTo && replyingTo.comment_id === comment.id && (
-                          <form
-                            onSubmit={(e) => handleReplySubmit(e, comment.id)}
-                            className={styles.replyForm}
-                          >
-                            <textarea
-                              value={replyingTo.content}
-                              onChange={(e) =>
-                                setReplyingTo({
-                                  ...replyingTo,
-                                  content: e.target.value,
-                                })
-                              }
-                              placeholder="Write a reply..."
-                              required
-                              className={styles.replyTextarea}
-                            />
-                            <div className={styles.replyActions}>
-                              <button
-                                type="button"
-                                className={styles.replyCancelButton}
-                                onClick={handleReplyCancel}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                type="submit"
-                                className={styles.replyButtonSubmit}
-                                disabled={isPostingReply}
-                              >
-                                <BiSend/> 
-                              </button>
-                            </div>
-                          </form>
-                        )}
-
-                        {/* Replies */}
-                        {repliesArray.length > 0 && (
-                          <ul className={styles.repliesList}>
-                            {repliesToShow.map((reply) => (
-                              <li key={reply.id} className={styles.replyItem}>
-                                <div className={styles.commentHeader}>
-                                  {reply.user?.profile_picture ? (
-                                    isUserLoggedIn ? (
-                                      <Link to={`/profile/${reply.user.username}`}>
-                                        <img
-                                          src={
-                                            reply.user?.profile_picture ||
-                                            '/default-profile-pic.jpg'
-                                          }
-                                          alt={`${reply.user.username}'s profile`}
-                                          className={styles.commentProfilePicture}
-                                        />
-                                      </Link>
-                                    ) : (
-                                      <div
-                                        className={styles.commentProfilePicture}
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => setShowLoginModal(true)}
-                                      >
-                                        <img
-                                          src={
-                                            reply.user?.profile_picture ||
-                                            '/default-profile-pic.jpg'
-                                          }
-                                          alt="Profile"
-                                          className={styles.commentProfilePicture}
-                                        />
-                                      </div>
-                                    )
-                                  ) : (
-                                    <div className={styles.commentPlaceholder}></div>
-                                  )}
-
-                                  <div className={styles.commentContentWrapper}>
-                                    <div className={styles.commentInfo}>
-                                      {isUserLoggedIn ? (
-                                        <Link
-                                          to={`/profile/${
-                                            reply.user?.username || 'unknown'
-                                          }`}
-                                          className={styles.commentAuthorLink}
-                                        >
-                                          <span className={styles.commentAuthor}>
-                                            {reply.user?.username || 'Unknown'}
-                                          </span>
-                                        </Link>
-                                      ) : (
-                                        <span
-                                          className={styles.commentAuthor}
-                                          style={{ cursor: 'pointer' }}
-                                          onClick={() => setShowLoginModal(true)}
-                                        >
-                                          {reply.user?.username || 'Unknown'}
-                                        </span>
-                                      )}
-
-                                      <span className={styles.commentTime}>
-                                        {formatDistanceToNow(
-                                          new Date(reply.created_at),
-                                          { addSuffix: true }
-                                        )}
-                                      </span>
-                                    </div>
-
-                                    <p className={styles.commentContent}>{reply.content}</p>
-
-                                    <div className={styles.commentActions}>
-                                      {/* Like/dislike => visible to all, but modal if not logged in */}
-                                      <button
-                                        className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-                                          reply.userReaction === 'like' ? styles.active : ''
-                                        }`}
-                                        onClick={() => {
-                                          if (!isUserLoggedIn) {
-                                            setShowLoginModal(true);
-                                            return;
-                                          }
-                                          handleLike(reply.id, reply.userReaction);
-                                        }}
-                                      >
-                                        <svg
-                                          className={styles.iconSmall}
-                                          viewBox="0 0 24 24"
-                                          fill="currentColor"
-                                        >
-                                          <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
-                                        </svg>
-                                        <span>{reply.like_count}</span>
-                                      </button>
-
-                                      <button
-                                        className={`${styles.reactionButton} ${styles.reactionButtonSmall} ${
-                                          reply.userReaction === 'dislike' ? styles.active : ''
-                                        }`}
-                                        onClick={() => {
-                                          if (!isUserLoggedIn) {
-                                            setShowLoginModal(true);
-                                            return;
-                                          }
-                                          handleDislike(reply.id, reply.userReaction);
-                                        }}
-                                      >
-                                        <svg
-                                          className={styles.iconSmall}
-                                          viewBox="0 0 24 24"
-                                          fill="currentColor"
-                                        >
-                                          <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
-                                        </svg>
-                                        <span>{reply.dislike_count}</span>
-                                      </button>
-
-                                      {/* Delete => only if this is your own reply */}
-                                      {profile?.username === reply.user?.username && (
-                                        <button
-                                          className={styles.reactionButton}
-                                          onClick={() =>
-                                            handleDeleteCommentWithConfirm(reply.id)
-                                          }
-                                        >
-                                          <svg
-                                            className={styles.icon}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                          >
-                                            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
-                                          </svg>
-                                          <span>Delete</span>
-                                        </button>
-                                      )}
-
-                                      {/* Report => only if user is logged in and not your own comment */}
-                                      {isUserLoggedIn && reply.user?.username !== profile?.username && (
-                                        <button
-                                          className={styles.reactionButton}
-                                          onClick={() => {
-                                            setReportTargetComment(reply.id);
-                                            setShowReportModal(true);
-                                          }}
-                                        >
-                                          <svg
-                                            className={styles.icon}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                          >
-                                            <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
-                                          </svg>
-                                          <span>Report</span>
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                            {totalReplies > 3 && (
-                              <button
-                                className={styles.toggleRepliesButton}
-                                onClick={() => toggleReplies(comment.id)}
-                              >
-                                {areRepliesExpanded
-                                  ? 'Show less replies'
-                                  : `View more replies (${totalReplies - 3})`}
-                              </button>
-                            )}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p>No comments yet.</p>
-          )}
-        </>
-      ) : (
-        <p>Comments are not available for private maps.</p>
-      )}
-    </div>
   </div>
 
 
           {/* RIGHT column: Statistics */}
           <div className={styles.mapStats}>
-            <div className={styles.statsSummary}>
-              <div className={styles.statItem}>
-                <span className={styles.statValue}>{formatValue(maxEntry.value)}</span>
-                <span className={styles.statLabel}>Highest Value</span>
-                <p>{maxEntry.countryName}</p>
-              </div>
-  
-              <div className={styles.statItem}>
-                <span className={styles.statValue}>{formatValue(minEntry.value)}</span>
-                <span className={styles.statLabel}>Lowest Value</span>
-                <p>{minEntry.countryName}</p>
-              </div>
-  
-              <div className={styles.statItem}>
-                <span className={styles.statValue}>{formatValue(avgValue)}</span>
-                <span className={styles.statLabel}>Average Value</span>
-              </div>
-            </div>
-  
-            <div className={styles.countryList} ref={countryListRef}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Country</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((entry, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>{entry.countryName}</td>
-                      <td>{entry.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        </>
+<MapDetailValueTable
+  mapDataType={
+    mapData.mapDataType ??
+    mapData.map_data_type ??
+    mapData.map_type ??
+    mapData.type ??
+    "choropleth"
+  }
+  dataEntries={parseJsonArray(mapData.data)}
+  codeToName={countryCodeToName}
+  hoveredCode={hoveredCode}
+  selectedCode={selectedCode}
+  onHoverCode={(code) => setHoveredCode(code)}
+  onSelectCode={(code) => {
+    setActiveLegendKey(null);
+    setHoverLegendKey(null);
 
-      )}
+    setSelectedCode(code);
+    setSelectedCodeZoom(false);
+    setSelectedCodeNonce((n) => n + 1);
+  }}
+  formatValue={formatValue}
+/>
+
+
+          </div>
+
+                  </div>
+                  </>
+
+                )}
   
 
       </div>
-
-      {showReportModal && reportedComment && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      {isReporting ? (
-        <div className={styles.loadingContainer}>
-          <p>Submitting report...</p>
-        </div>
-      ) : showReportSuccess ? (
-        <div className={styles.successContainer}>
-          <p>Your report has been submitted.</p>
-        </div>
-      ) : (
-        <>
-          {/* Header with profile picture and name */}
-          <div className={styles.modalHeader}>
-            <img
-              src={reportedComment.user?.profile_picture || '/default-profile-pic.jpg'}
-              alt={`${reportedComment.user?.username}'s profile`}
-              className={styles.modalProfilePicture}
-            />
-            <h2>{reportedComment.user?.username}</h2>
-          </div>
-
-          <h3>Report Comment</h3>
-          <p>Please let us know why you are reporting this comment:</p>
-          <div className={styles.reportOptions}>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Spam"
-                checked={reportReasons === "Spam"}
-                onChange={handleToggleReason}
-              />
-              Spam
-            </label>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Harassment"
-                checked={reportReasons === "Harassment"}
-                onChange={handleToggleReason}
-              />
-              Harassment
-            </label>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Inappropriate"
-                checked={reportReasons === "Inappropriate"}
-                onChange={handleToggleReason}
-              />
-              Inappropriate
-            </label>
-            <label className={styles.reportOption}>
-              <input
-                type="radio"
-                name="reportReason"
-                value="Other"
-                checked={reportReasons === "Other"}
-                onChange={handleToggleReason}
-              />
-              Other
-            </label>
-          </div>
-
-          {/* Show textarea if "Other" is selected */}
-          {reportReasons === "Other" && (
-            <div className={styles.reportDetails}>
-              <label>Please describe:</label>
-              <textarea
-                value={reportDetails}
-                onChange={(e) => setReportDetails(e.target.value)}
-                placeholder="Tell us more"
-              />
-            </div>
-          )}
-
-          <div className={styles.modalActions}>
-            <button onClick={handleSubmitReport}>Submit</button>
-            <button onClick={() => setShowReportModal(false)}>Cancel</button>
-          </div>
-        </>
-      )}
-    </div>
-  </div>
-)}
-
-{showLoginModal && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      {/* Close Button (X) */}
-      <button
-        className={styles.modalCloseButton}
-        onClick={() => setShowLoginModal(false)}
+{showDeleteModal &&
+  createPortal(
+    <div
+      className={`${styles.micModalOverlay} ${styles.micOverlayBlur}`}
+      role="dialog"
+      aria-modal="true"
+      onClick={() => !isDeleting && setShowDeleteModal(false)}
+    >
+      <div
+        className={styles.micModal}
+        onClick={(e) => e.stopPropagation()}
       >
-        &times;
-      </button>
+        <div className={styles.micModalTopRow}>
+          <div className={styles.micModalTitleWrap}>
+            <div className={styles.micModalTitle}>Delete comment?</div>
+            <div className={styles.micModalSub}>This can’t be undone.</div>
+          </div>
 
-      {/* Left Side: Title, Subtitle, CTA */}
-      <div className={styles.modalLeft}>
-        <h2 className={styles.modalTitle}>
-          See how people are mapping the world
-        </h2>
-        <p className={styles.modalSubtitle}>
-        Join a worldwide community creating and exploring meaningful maps. 
-        </p>
-        <button
-          className={styles.signupButton}
-          onClick={() => navigate('/signup')}
-        >
-          Join for free
-        </button>
-        <p className={styles.loginPrompt}>
-          Already have an account?{' '}
-          <span onClick={() => navigate('/login')} className={styles.loginLink}>
-            Log In
-          </span>
-        </p>
-      </div>
+          <button
+            type="button"
+            className={styles.micModalX}
+            onClick={() => {
+              if (isDeleting) return;
+              setShowDeleteModal(false);
+              setDeleteTargetId(null);
+            }}
+            aria-label="Close"
+            disabled={isDeleting}
+          >
+            ×
+          </button>
+        </div>
 
-      {/* Right Side: Image */}
-      <div className={styles.modalRight}>
-        <img
-          src="/assets/preview2.png"
-          alt="Preview of the mapping features"
-          className={styles.modalImage}
-        />
+        <div className={styles.micModalActions}>
+          <button
+            type="button"
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className={`${styles.micBtn} ${styles.micBtnDanger}`}
+          >
+            {isDeleting ? (
+              <span className={styles.micBtnRow}>
+                <span className={styles.micSpinner} aria-hidden="true" />
+                Deleting…
+              </span>
+            ) : (
+              "Delete"
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isDeleting) return;
+              setShowDeleteModal(false);
+              setDeleteTargetId(null);
+            }}
+            disabled={isDeleting}
+            className={`${styles.micBtn} ${styles.micBtnGhost}`}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
-)}
+    </div>,
+    document.body
+  )}
+
+
+{showReportModal && reportedComment &&
+  createPortal(
+    <div
+      className={`${styles.micModalOverlay} ${styles.micOverlayBlur}`}
+      role="dialog"
+      aria-modal="true"
+      onClick={() => !isReporting && setShowReportModal(false)}
+    >
+      <div className={styles.micModal} onClick={(e) => e.stopPropagation()}>
+
+        {/* Top row (user chip + close) */}
+        <div className={styles.micModalTopRow}>
+          <div className={styles.micUserHeader}>
+            <img
+              src={reportedComment.user?.profile_picture || "/default-profile-pic.jpg"}
+              alt={`${reportedComment.user?.username}'s profile`}
+              className={styles.micUserAvatar}
+            />
+            <div className={styles.micUserText}>
+              <div className={styles.micUserName}>@{reportedComment.user?.username || "unknown"}</div>
+              <div className={styles.micUserHint}>Report comment</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className={styles.micModalX}
+            onClick={() => !isReporting && setShowReportModal(false)}
+            aria-label="Close"
+            disabled={isReporting}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body states */}
+        {isReporting ? (
+          <div className={styles.micStateBox}>
+            <div className={styles.micStateRow}>
+              <span className={styles.micSpinnerLg} aria-hidden="true" />
+              <div>
+                <div className={styles.micStateTitle}>Submitting…</div>
+                <div className={styles.micStateSub}>Thanks for helping keep MIC clean.</div>
+              </div>
+            </div>
+          </div>
+        ) : showReportSuccess ? (
+          <div className={`${styles.micStateBox} ${styles.micStateSuccess}`}>
+            <div className={styles.micStateTitle}>Report submitted</div>
+            <div className={styles.micStateSub}>We’ll review it as soon as possible.</div>
+
+            <div className={styles.micModalActions}>
+              <button
+                type="button"
+                className={`${styles.micBtn} ${styles.micBtnPrimary}`}
+                onClick={() => setShowReportModal(false)}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className={styles.micModalSectionTitle}>Why are you reporting this?</div>
+            <div className={styles.micModalSectionSub}>Choose one reason.</div>
+
+            <div className={styles.micRadioGrid}>
+              {["Spam", "Harassment", "Inappropriate", "Other"].map((r) => (
+                <label key={r} className={styles.micRadioCard}>
+                  <input
+                    type="radio"
+                    name="reportReason"
+                    value={r}
+                    checked={reportReasons === r}
+                    onChange={handleToggleReason}
+                  />
+                  <span className={styles.micRadioLabel}>{r}</span>
+                </label>
+              ))}
+            </div>
+
+            {reportReasons === "Other" && (
+              <div className={styles.micTextareaBlock}>
+                <label className={styles.micFieldLabel}>Describe</label>
+                <textarea
+                  className={styles.micTextarea}
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Tell us more (optional, but helpful)"
+                />
+              </div>
+            )}
+
+            <div className={styles.micModalActions}>
+              <button
+                type="button"
+                className={`${styles.micBtn} ${styles.micBtnPrimary}`}
+                onClick={handleSubmitReport}
+              >
+                Submit
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.micBtn} ${styles.micBtnGhost}`}
+                onClick={() => setShowReportModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+<DownloadOptionsModal
+  isOpen={showDownloadModal}
+  onClose={() => setShowDownloadModal(false)}
+  mapData={mapData}
+  mapDataProps={mapDataProps}
+  downloadCount={download_count}
+  isPublic={is_public}
+  // ✅ pass auth info so modal can increment properly
+  isUserLoggedIn={isUserLoggedIn}
+  anonId={getAnonId()}
+  // ✅ let modal tell MapDetail the new count
+  onDownloadCountUpdate={(nextCount) => setDownloadCount(nextCount)}
+  isPro={isPro}
+/>
+
+<ShareOptionsModal
+  isOpen={showShareModal}
+  onClose={() => setShowShareModal(false)}
+  mapData={mapData}
+  mapDataProps={mapDataProps}
+  isPublic={is_public}
+  isPro={isPro}
+  isOwner={isOwner}
+/>
+
+
+{showLoginModal &&
+  createPortal(
+    <SignupPromptModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      action={loginModalAction}
+    />,
+    document.body
+  )}
 
 
 
@@ -1755,24 +1940,106 @@ function updateCommentReaction(prevComments, comment_id, updatedData) {
     </div>
   );
   
+function parseJsonArray(x) {
+  if (!x) return [];
+
+  // Already an array
+  if (Array.isArray(x)) return x;
+
+  // If it's a JSON string
+  if (typeof x === "string") {
+    try {
+      const parsed = JSON.parse(x);
+      return parseJsonArray(parsed); // recurse to handle object-wrapped arrays too
+    } catch {
+      return [];
+    }
+  }
+
+  // ✅ If it's an object that CONTAINS an array (common from DB/jsonb)
+  if (typeof x === "object") {
+    // try common container keys
+    const candidates = [
+      x.ranges,
+      x.items,
+      x.values,
+      x.data,
+      x.legend,
+      x.groups,
+      x.categories,
+      x.custom_ranges,
+      x.customRanges,
+    ];
+    for (const c of candidates) {
+      if (Array.isArray(c)) return c;
+    }
+  }
+
+  return [];
+}
+
+function parseJsonObject(x) {
+  if (!x) return {};
+  if (typeof x === "object") return x;
+  if (typeof x === "string") {
+    try {
+      const parsed = JSON.parse(x);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+function toBool(v) {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "string") return v.toLowerCase() === "true";
+  return false;
+}
+
 
 function mapDataProps() {
   return {
-    groups: mapData.groups,
-    mapTitleValue: mapData.title,
+    // modes + data
+    mapDataType:
+      mapData.mapDataType ??
+      mapData.map_data_type ??
+      mapData.map_type ??
+      mapData.type ??
+      null,
+
+    data: parseJsonArray(mapData.data),
+
+    // choropleth ranges / categorical groups
+    custom_ranges: parseJsonArray(mapData.custom_ranges ?? mapData.customRanges),
+    groups: parseJsonArray(mapData.groups),
+
+    // ✅ THIS is commonly what controls “text”
+    placeholders: parseJsonObject(mapData.placeholders),
+    customDescriptions: parseJsonObject(mapData.placeholders), // alias in case Map expects this
+
+    // styling
     ocean_color: mapData.ocean_color,
     unassigned_color: mapData.unassigned_color,
-    show_top_high_values: mapData.show_top_high_values,
-    show_top_low_values: mapData.show_top_low_values,
-    showNoDataLegend: mapData.show_no_data_legend,
-    data: mapData.data,
-    selected_map: mapData.selected_map,
     font_color: mapData.font_color,
-    show_top_high_values: mapData.show_top_high_values,
-    top_low_values: mapData.top_low_values,
-    is_title_hidden: mapData.is_title_hidden,
-    titleFontSize: mapData.title_font_size,
-    legendFontSize: mapData.legend_font_size
+
+    // title
+    mapTitleValue: mapData.title,
+    title: mapData.title,      // alias
+    mapTitle: mapData.title,   // alias
+
+    is_title_hidden: toBool(mapData.is_title_hidden),
+    titleFontSize: Number(mapData.title_font_size) || 28,
+    legendFontSize: Number(mapData.legend_font_size) || 18,
+
+    // optional flags
+    show_top_high_values: toBool(mapData.show_top_high_values),
+    show_top_low_values: toBool(mapData.show_top_low_values),
+    showNoDataLegend: toBool(mapData.show_no_data_legend),
+    top_low_values: parseJsonArray(mapData.top_low_values),
+
+    strokeMode: "thick"
   };
 }
 
@@ -1817,19 +2084,22 @@ async function handleSubmitReport() {
   }
 }
 
+
 }
 
-function findCommentById(commentsArray, targetId) {
-  for (const c of commentsArray) {
-    if (c.id === targetId) return c;
-    if (c.Replies && c.Replies.length > 0) {
-      // Look in its replies
-      const found = c.Replies.find((r) => r.id === targetId);
+
+
+function findCommentById(nodes, targetId) {
+  for (const n of nodes) {
+    if (n.id === targetId) return n;
+    if (n.Replies?.length) {
+      const found = findCommentById(n.Replies, targetId);
       if (found) return found;
     }
   }
   return null;
 }
+
 
 /**
  * Enhanced wrapping that also breaks up super-long words 
@@ -1915,4 +2185,623 @@ function breakLongWord(word, measureFn, maxWidth) {
   // But we want to treat them as separate "words" for the line logic
   // so let's just combine them with spaces for now:
   return segments.join(' ');
+}
+
+function flattenReplies(root) {
+  // Returns a flat array of all descendants in DFS order:
+  // each item: { node, depth }
+  const out = [];
+  const stack = (root.Replies || []).map((n) => ({ node: n, depth: 2 }));
+
+  while (stack.length) {
+    const { node, depth } = stack.shift();
+    out.push({ node, depth });
+
+    const kids = node.Replies || [];
+    if (kids.length) {
+      // keep visual order: append children after their parent
+      const next = kids.map((k) => ({ node: k, depth: depth + 1 }));
+      stack.unshift(...next); // DFS-ish; use push(...next) for BFS
+    }
+  }
+
+  return out;
+}
+function CommentRow({
+  node,
+  depth,
+
+  // state + context
+  isUserLoggedIn,
+  profile,
+
+  // limits
+  MAX_DEPTH,
+
+  // reply composer
+  replyingTo,
+  setReplyingTo,
+  isPostingReply,
+  handleReplySubmit,
+  handleReplyCancel,
+
+  // reactions + actions
+  handleLike,
+  handleDislike,
+  handleDeleteCommentWithConfirm,
+
+  // modals
+  openLoginModal,
+  setReportTargetComment,
+  setShowReportModal,
+
+  // styles + loading
+  styles,
+  reactionLoadingById,
+  isMobileComments
+}) {
+  const isMine = isUserLoggedIn && node.user?.username === profile?.username;
+  const canReply = isUserLoggedIn && depth < MAX_DEPTH;
+
+  const reactionLoading = reactionLoadingById?.[node.id]; // "like" | "dislike" | undefined
+  const likeBusy = reactionLoading === "like";
+  const dislikeBusy = reactionLoading === "dislike";
+  const anyBusy = !!reactionLoading;
+
+  return (
+    <li
+      className={[
+        styles.commentItem,
+        depth > 1 ? styles.replyItem : "",
+        isMobileComments ? styles.commentMobile : "",
+        isMobileComments && depth > 1 ? styles.replyItemMobile : "",
+      ].join(" ")}
+    >
+      <div className={styles.commentHeader}>
+        {/* avatar */}
+        {node.user?.profile_picture ? (
+          isUserLoggedIn ? (
+            <Link to={`/profile/${node.user.username}`}>
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt={`${node.user.username}'s profile`}
+                className={styles.commentProfilePicture}
+              />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={styles.avatarButton}
+              onClick={() => openLoginModal('comment')}
+            >
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt="Profile"
+                className={styles.commentProfilePicture}
+              />
+            </button>
+          )
+        ) : (
+          <div className={styles.commentPlaceholder} />
+        )}
+
+        <div className={styles.commentContentWrapper}>
+          <div className={styles.commentInfo}>
+            {isUserLoggedIn ? (
+              <Link
+                to={`/profile/${node.user?.username || "unknown"}`}
+                className={styles.commentAuthorLink}
+              >
+                <span className={styles.commentAuthor}>
+                  {node.user?.username || "Unknown"}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={styles.commentAuthorBtn}
+                onClick={() => openLoginModal('comment')}
+              >
+                {node.user?.username || "Unknown"}
+              </button>
+            )}
+
+            <span className={styles.dotSep}>•</span>
+
+            <span className={styles.commentTime}>
+              {formatDistanceToNow(new Date(node.created_at), { addSuffix: true })}
+            </span>
+          </div>
+
+          <p className={styles.commentContent}>{node.content}</p>
+
+          <div className={styles.commentActions}>
+            <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "like" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return openLoginModal('like');
+                handleLike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+              </svg>
+              <span>{node.like_count}</span>
+              {likeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "dislike" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return openLoginModal('like');
+                handleDislike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+              </svg>
+              <span>{node.dislike_count}</span>
+              {dislikeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+            {canReply && (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+                onClick={() => {
+                  if (!isUserLoggedIn) return openLoginModal('reply');
+                  setReplyingTo({ parentId: node.id, content: "" });
+                }}
+                title="Reply"
+              >
+                <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
+                </svg>
+                <span>Reply</span>
+              </button>
+            )}
+
+            {isMine ? (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.dangerButton}`}
+                onClick={() => handleDeleteCommentWithConfirm(node.id)}
+              >
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                </svg>
+              </button>
+            ) : (
+              isUserLoggedIn && (
+                <button
+                  type="button"
+                  className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+                  onClick={() => {
+                    setReportTargetComment(node.id);
+                    setShowReportModal(true);
+                  }}
+                >
+                  <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                  </svg>
+                  <span>Report</span>
+                </button>
+              )
+            )}
+          </div>
+
+          {canReply && replyingTo && replyingTo.parentId === node.id && (
+            <form onSubmit={handleReplySubmit} className={styles.replyForm}>
+              <textarea
+                value={replyingTo.content}
+                onChange={(e) =>
+                  setReplyingTo((prev) => ({ ...prev, content: e.target.value }))
+                }
+                placeholder="Write a reply…"
+                required
+                className={styles.replyTextarea}
+              />
+              <div className={styles.replyActions}>
+                <button
+                  type="button"
+                  className={styles.replyCancelButton}
+                  onClick={handleReplyCancel}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className={`${styles.replyButtonSubmit} ${
+                    isPostingReply ? styles.replyButtonSubmitLoading : ""
+                  }`}
+                  disabled={isPostingReply}
+                  title={isPostingReply ? "Posting…" : "Post reply"}
+                >
+                  {isPostingReply ? (
+                    <span className={styles.tinySpinner} aria-hidden="true" />
+                  ) : (
+                    <BiSend />
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+
+
+function CommentNode({
+  node,
+  depth = 1,
+
+  // state + context
+  isUserLoggedIn,
+  profile,
+
+  // threading UI
+  expandedThreads,
+  toggleThread,
+  MAX_DEPTH,
+  PREVIEW_COUNT,
+  MAX_SHOWN_REPLIES,
+
+  // reply composer
+  replyingTo,
+  setReplyingTo,
+  isPostingReply,
+  handleReplySubmit,
+  handleReplyCancel,
+
+  // reactions + actions
+  handleLike,
+  handleDislike,
+  handleDeleteCommentWithConfirm,
+
+  // modals
+  openLoginModal,
+  setReportTargetComment,
+  setShowReportModal,
+
+  // styles
+  styles,
+  reactionLoadingById,
+  isMobileComments
+}) {
+  const isMine = isUserLoggedIn && node.user?.username === profile?.username;
+
+  const replies = node.Replies || [];
+  const total = replies.length;
+
+  // collapse logic per node
+  const expanded = !!expandedThreads?.[node.id];
+  const limit = expanded ? MAX_SHOWN_REPLIES : PREVIEW_COUNT;
+  const shownReplies = replies.slice(0, limit);
+
+  const canReply = isUserLoggedIn && depth < MAX_DEPTH;
+
+  const reactionLoading = reactionLoadingById?.[node.id]; // "like" | "dislike" | undefined
+  const likeBusy = reactionLoading === "like";
+  const dislikeBusy = reactionLoading === "dislike";
+  const anyBusy = !!reactionLoading;
+
+
+
+
+  return (
+  <li
+  className={[
+    styles.commentItem,
+    depth > 1 ? styles.replyItem : "",
+    isMobileComments ? styles.commentMobile : "",
+    isMobileComments && depth > 1 ? styles.replyItemMobile : "",
+  ].join(" ")}
+>
+
+      <div className={styles.commentHeader}>
+        {/* avatar */}
+        {node.user?.profile_picture ? (
+          isUserLoggedIn ? (
+            <Link to={`/profile/${node.user.username}`}>
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt={`${node.user.username}'s profile`}
+                className={styles.commentProfilePicture}
+              />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={styles.avatarButton}
+              onClick={() => openLoginModal('comment')}
+            >
+              <img
+                src={node.user.profile_picture || "/default-profile-pic.jpg"}
+                alt="Profile"
+                className={styles.commentProfilePicture}
+              />
+            </button>
+          )
+        ) : (
+          <div className={styles.commentPlaceholder} />
+        )}
+
+        <div className={styles.commentContentWrapper}>
+          {/* author + time */}
+          <div className={styles.commentInfo}>
+            {isUserLoggedIn ? (
+              <Link
+                to={`/profile/${node.user?.username || "unknown"}`}
+                className={styles.commentAuthorLink}
+              >
+                <span className={styles.commentAuthor}>
+                  {node.user?.username || "Unknown"}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={styles.commentAuthorBtn}
+                onClick={() => openLoginModal('comment')}
+              >
+                {node.user?.username || "Unknown"}
+              </button>
+            )}
+
+            <span className={styles.dotSep}>•</span>
+
+            <span className={styles.commentTime}>
+              {formatDistanceToNow(new Date(node.created_at), { addSuffix: true })}
+            </span>
+          </div>
+
+          {/* content */}
+          <p className={styles.commentContent}>{node.content}</p>
+
+          {/* actions (works at any depth) */}
+          <div className={styles.commentActions}>
+           <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "like" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return openLoginModal('like');
+                handleLike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z" />
+              </svg>
+
+              <span>{node.like_count}</span>
+
+              {likeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.reactionButton} ${
+                node.userReaction === "dislike" ? styles.reactionButtonActive : ""
+              }`}
+              disabled={anyBusy}
+              onClick={() => {
+                if (!isUserLoggedIn) return openLoginModal('like');
+                handleDislike(node.id, node.userReaction);
+              }}
+            >
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17 .79 .44 1.06l1.39 1.41 6.58 -6.59c .36 -.36 .59 -.86 .59 -1.41V5c0 -1.1 -.9 -2 -2 -2zm4 0v12h4V3h-4z" />
+              </svg>
+
+              <span>{node.dislike_count}</span>
+
+              {dislikeBusy && <span className={styles.tinySpinner} aria-hidden="true" />}
+            </button>
+
+
+            {canReply && (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+                onClick={() => {
+                  if (!isUserLoggedIn) return openLoginModal('reply');
+                  setReplyingTo({ parentId: node.id, content: "" });
+                }}
+                title="Reply"
+              >
+                <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z" />
+                </svg>
+                <span>Reply</span>
+              </button>
+            )}
+
+            {isMine ? (
+              <button
+                type="button"
+                className={`${styles.reactionButton} ${styles.dangerButton}`}
+                onClick={() => handleDeleteCommentWithConfirm(node.id)}
+              >
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1v12a2 2 0 002 2h10a2 2 0 002-2V6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0015 2H9zM10 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1z" />
+                </svg>
+              </button>
+            ) : (
+              isUserLoggedIn && (
+                <button
+                  type="button"
+                  className={`${styles.reactionButton} ${styles.reactionButtonSmall}`}
+
+                  onClick={() => {
+                    setReportTargetComment(node.id);
+                    setShowReportModal(true);
+                  }}
+                >
+                  <svg className={styles.iconSmall} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5 5v14h2V5H5zm2 0l10 4-10 4V5z" />
+                  </svg>
+                  <span>Report</span>
+                </button>
+              )
+            )}
+          </div>
+
+          {/* reply form */}
+          {canReply && replyingTo && replyingTo.parentId === node.id && (
+            <form onSubmit={handleReplySubmit} className={styles.replyForm}>
+              <textarea
+                value={replyingTo.content}
+                onChange={(e) =>
+                  setReplyingTo((prev) => ({ ...prev, content: e.target.value }))
+                }
+                placeholder="Write a reply…"
+                required
+                className={styles.replyTextarea}
+              />
+              <div className={styles.replyActions}>
+                <button
+                  type="button"
+                  className={styles.replyCancelButton}
+                  onClick={handleReplyCancel}
+                >
+                  Cancel
+                </button>
+               <button
+                  type="submit"
+                  className={`${styles.replyButtonSubmit} ${
+                    isPostingReply ? styles.replyButtonSubmitLoading : ""
+                  }`}
+                  disabled={isPostingReply}
+                  title={isPostingReply ? "Posting…" : "Post reply"}
+                >
+                  {isPostingReply ? (
+                    <span className={styles.tinySpinner} aria-hidden="true" />
+                  ) : (
+                    <BiSend />
+                  )}
+                </button>
+
+              </div>
+            </form>
+          )}
+
+        {/* children */}
+{total > 0 && (
+  <>
+    {isMobileComments ? (
+      // MOBILE: flat list of all descendants (no nesting)
+      <ul className={styles.repliesListMobile}>
+        {flattenReplies(node)
+          .slice(0, expanded ? MAX_SHOWN_REPLIES : PREVIEW_COUNT)
+          .map(({ node: flatNode, depth: flatDepth }) => (
+            <CommentRow
+              key={flatNode.id}
+              node={flatNode}
+              depth={flatDepth}
+              reactionLoadingById={reactionLoadingById}
+              isMobileComments={isMobileComments}
+              {...{
+                isUserLoggedIn,
+                profile,
+                MAX_DEPTH,
+                replyingTo,
+                setReplyingTo,
+                isPostingReply,
+                handleReplySubmit,
+                handleReplyCancel,
+                handleLike,
+                handleDislike,
+                handleDeleteCommentWithConfirm,
+                openLoginModal,
+                setReportTargetComment,
+                setShowReportModal,
+                styles,
+              }}
+            />
+
+          ))}
+      </ul>
+    ) : (
+      // DESKTOP: normal nested tree
+      <ul className={styles.repliesList}>
+        {shownReplies.map((child) => (
+          <CommentNode
+            key={child.id}
+            node={child}
+            depth={depth + 1}
+            reactionLoadingById={reactionLoadingById}
+            isMobileComments={isMobileComments}
+            {...{
+              isUserLoggedIn,
+              profile,
+              expandedThreads,
+              toggleThread,
+              MAX_DEPTH,
+              PREVIEW_COUNT,
+              MAX_SHOWN_REPLIES,
+              replyingTo,
+              setReplyingTo,
+              isPostingReply,
+              handleReplySubmit,
+              handleReplyCancel,
+              handleLike,
+              handleDislike,
+              handleDeleteCommentWithConfirm,
+              openLoginModal,
+              setReportTargetComment,
+              setShowReportModal,
+              styles,
+            }}
+          />
+        ))}
+      </ul>
+    )}
+
+    {/* toggle buttons stay */}
+    {total > PREVIEW_COUNT && !expanded && (
+      <button
+        type="button"
+        className={styles.toggleRepliesButton}
+        onClick={() => toggleThread(node.id)}
+      >
+        Show rest of thread ({Math.min(total, MAX_SHOWN_REPLIES) - PREVIEW_COUNT})
+      </button>
+    )}
+
+    {expanded && (
+      <button
+        type="button"
+        className={styles.toggleRepliesButton}
+        onClick={() => toggleThread(node.id)}
+      >
+        Show less
+      </button>
+    )}
+
+    {expanded && total > MAX_SHOWN_REPLIES && (
+      <div className={styles.threadHintMuted}>
+        Showing {MAX_SHOWN_REPLIES} of {total} replies
+      </div>
+    )}
+  </>
+)}
+
+        </div>
+      </div>
+    </li>
+  );
 }

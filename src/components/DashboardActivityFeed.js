@@ -1,6 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+// src/components/DashboardActivityFeed.js
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { fetchDashboardActivity, markNotificationAsRead, fetchMapById } from '../api';
+import useWindowSize from '../hooks/useWindowSize';
+
 
 import {
   FaStar,
@@ -11,68 +15,169 @@ import {
   FaInfoCircle,
 } from 'react-icons/fa';
 
-import {
-  fetchDashboardActivity,
-  markNotificationAsRead
-} from '../api';
 
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
-
 import dashFeedStyles from './DashboardActivityFeed.module.css';
+
+/**
+ * Safe parsing helper:
+ * - Accepts arrays, JSON strings, or null/undefined
+ * - Returns [] if not valid
+ */
+function toArrayMaybeJson(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizeMapForPreview(mapObj) {
+  if (!mapObj) return null;
+
+  const title = mapObj.title || "Untitled";
+
+  const ocean_color = mapObj.ocean_color ?? "#ffffff";
+  const unassigned_color = mapObj.unassigned_color ?? "#c0c0c0";
+  const font_color = mapObj.font_color ?? "black";
+
+  const is_title_hidden = !!mapObj.is_title_hidden;
+  const showNoDataLegend = !!mapObj.show_no_data_legend;
+
+  const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
+  const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+
+  // ✅ these were missing in your version (caused eslint no-undef)
+  const data = toArrayMaybeJson(mapObj.data);
+  const selectedMap =
+    mapObj.selected_map ?? mapObj.selectedMap ?? mapObj.map ?? "world";
+
+  let groups = toArrayMaybeJson(mapObj.groups);
+
+  // 1) normal custom_ranges (preferred)
+  let customRanges =
+    Array.isArray(mapObj.custom_ranges)
+      ? mapObj.custom_ranges
+      : Array.isArray(mapObj.customRanges)
+      ? mapObj.customRanges
+      : toArrayMaybeJson(mapObj.custom_ranges);
+
+  // 2) If custom_ranges is missing BUT groups looks like ranges, treat groups as ranges
+  const groupsLookLikeRanges =
+    Array.isArray(groups) &&
+    groups.length > 0 &&
+    groups.every((g) => {
+      if (!g || typeof g !== "object") return false;
+
+      const hasLower = g.lowerBound != null || g.lower != null || g.min != null;
+      const hasUpper = g.upperBound != null || g.upper != null || g.max != null;
+      const hasColor = g.color != null;
+
+      // ranges usually DON'T have countries[]
+      const hasCountriesArray = Array.isArray(g.countries);
+
+      return hasLower && hasUpper && hasColor && !hasCountriesArray;
+    });
+
+  if (!customRanges.length && groupsLookLikeRanges) {
+    customRanges = groups; // 🔥 use these as custom_ranges
+    groups = [];           // prevent categorical path using them
+  }
+
+  // 3) decide type
+  const mapDataType =
+    mapObj.map_data_type ??
+    mapObj.mapDataType ??
+    mapObj.map_type ??
+    mapObj.type ??
+    (customRanges.length ? "choropleth" : "categorical");
+
+  return {
+    title,
+    ocean_color,
+    unassigned_color,
+    font_color,
+    is_title_hidden,
+    showNoDataLegend,
+    titleFontSize,
+    legendFontSize,
+    groups,
+    data,
+    selectedMap,
+    customRanges,
+    mapDataType,
+  };
+}
+
+
+const MOBILE_BREAKPOINT = 700;
+const DESKTOP_LIMIT = 15;
+const MOBILE_LIMIT = 5;
 
 export default function DashboardActivityFeed({ userProfile }) {
   const navigate = useNavigate();
+  const { width } = useWindowSize();
+  const isMobile = width !== undefined && width < MOBILE_BREAKPOINT;
+  const limit = isMobile ? MOBILE_LIMIT : DESKTOP_LIMIT;
 
   // feed data + pagination
   const [activities, setActivities] = useState([]);
   const [offset, setOffset] = useState(0);
-  const limit = 15;
   const [hasMore, setHasMore] = useState(true);
 
   // loading states
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  // We'll place a "sentinel" div at the bottom of the feed
+  const [mapCache, setMapCache] = useState({});
+
+
+
+  // sentinel for infinite scroll
   const sentinelRef = useRef(null);
 
-  // On mount/userProfile change => reset + load first page
-  useEffect(() => {
-    if (!userProfile) return;
-    setOffset(0);
-    setActivities([]);
-    setHasMore(true);
-    loadFirstPage();
-  }, [userProfile]);
+  // Only show activities for maps that still exist and are public (no "No Map" / private thumbnails)
+  const isMapValidForFeed = (act) => {
+    const map = act?.map;
+    if (!map || map.id == null) return false;
+    return map.is_public !== false; // treat missing is_public as public
+  };
 
-  async function loadFirstPage() {
+  const loadFirstPage = useCallback(async () => {
     try {
       setIsInitialLoading(true);
       const res = await fetchDashboardActivity(0, limit);
-      const newBatch = res.data;
+      const raw = res.data || [];
+      const newBatch = raw.filter(isMapValidForFeed);
       setActivities(newBatch);
-      setHasMore(newBatch.length === limit);
+      setHasMore(isMobile ? false : raw.length === limit);
+      setOffset(0);
     } catch (err) {
       console.error('Error loading feed:', err);
     } finally {
       setIsInitialLoading(false);
     }
-  }
+  }, [limit, isMobile]);
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
+    if (isMobile) return; /* never load more below 700px */
     try {
       setIsFetchingMore(true);
       const newOffset = offset + limit;
       const res = await fetchDashboardActivity(newOffset, limit);
-      const newBatch = res.data;
+      const raw = res.data || [];
+      const newBatch = raw.filter(isMapValidForFeed);
 
       setActivities((prev) => [...prev, ...newBatch]);
       setOffset(newOffset);
 
-      if (newBatch.length < limit) {
+      if (raw.length < limit) {
         setHasMore(false);
       }
     } catch (err) {
@@ -80,42 +185,41 @@ export default function DashboardActivityFeed({ userProfile }) {
     } finally {
       setIsFetchingMore(false);
     }
-  }
+  }, [offset, limit, isMobile]);
 
-  /**
-   * IntersectionObserver to watch when the sentinel appears in viewport.
-   */
+  // reset + initial load (reload when limit changes e.g. crossing 700px)
+  useEffect(() => {
+    if (!userProfile) return;
+    setActivities([]);
+    setHasMore(true);
+    loadFirstPage();
+  }, [userProfile, loadFirstPage]);
+
+  // IntersectionObserver for infinite scroll
   useEffect(() => {
     if (!sentinelRef.current) return;
-    if (!hasMore) return; // no need to observe if there's nothing more to fetch
+    if (!hasMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const firstEntry = entries[0];
         if (firstEntry.isIntersecting) {
-          // the sentinel is visible => load next page
           if (!isFetchingMore && !isInitialLoading && hasMore) {
             loadMore();
           }
         }
       },
-      {
-        root: null, // viewport
-        rootMargin: '0px',
-        threshold: 0.1, // when 10% of sentinel is visible
-      }
+      { root: null, rootMargin: '0px', threshold: 0.1 }
     );
 
     observer.observe(sentinelRef.current);
 
-    // cleanup
     return () => {
-      // Only unobserve if the current ref is still there
       if (observer && sentinelRef.current) {
         observer.unobserve(sentinelRef.current);
       }
     };
-  }, [sentinelRef, hasMore, isFetchingMore, isInitialLoading, offset]);
+  }, [hasMore, isFetchingMore, isInitialLoading, loadMore]);
 
   // -----------
   // item click
@@ -142,14 +246,14 @@ export default function DashboardActivityFeed({ userProfile }) {
   }
 
   function getOverlayAvatarUrl(act) {
-    if (act.type.startsWith('notification_') && act.notificationData?.sender) {
+    if (act.type?.startsWith('notification_') && act.notificationData?.sender) {
       return act.notificationData.sender.profile_picture || '/default-profile-picture.png';
     }
     return userProfile?.profile_picture || '/default-profile-picture.png';
   }
 
   function getOverlayAvatarUsername(act) {
-    if (act.type.startsWith('notification_') && act.notificationData?.sender) {
+    if (act.type?.startsWith('notification_') && act.notificationData?.sender) {
       return act.notificationData.sender.username || 'unknown';
     }
     return userProfile?.username || 'unknown';
@@ -157,98 +261,131 @@ export default function DashboardActivityFeed({ userProfile }) {
 
   function getActivityIcon(type) {
     switch (type) {
-      case 'createdMap': return <FaPlus />;
+      case 'createdMap':
+        return <FaPlus />;
       case 'starredMap':
-      case 'notification_star': return <FaStar />;
+      case 'notification_star':
+        return <FaStar />;
       case 'commented':
-      case 'notification_comment': return <FaComment />;
-      case 'notification_reply': return <FaReply />;
-      case 'notification_like': return <FaThumbsUp />;
-      default: return <FaInfoCircle />;
+      case 'notification_comment':
+        return <FaComment />;
+      case 'notification_reply':
+        return <FaReply />;
+      case 'notification_like':
+        return <FaThumbsUp />;
+      default:
+        return <FaInfoCircle />;
     }
   }
 
+
+
+  function mapNeedsHydration(map) {
+  if (!map?.id) return false;
+
+  // thumbnail coloring needs real payload:
+  // data + (custom_ranges OR groups)
+  const hasData = map.data != null;
+  const hasGroups = map.groups != null;
+  const hasRanges = map.custom_ranges != null || map.customRanges != null;
+
+  return !(hasData && (hasGroups || hasRanges));
+}
+
+useEffect(() => {
+  const idsToFetch = [];
+
+  for (const act of activities) {
+    const m = act?.map;
+    if (!m?.id) continue;
+    if (mapCache[m.id]) continue;
+    if (mapNeedsHydration(m)) idsToFetch.push(m.id);
+  }
+
+  if (idsToFetch.length === 0) return;
+
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const results = await Promise.allSettled(
+        idsToFetch.map((id) => fetchMapById(id))
+      );
+
+      if (cancelled) return;
+
+      setMapCache((prev) => {
+        const next = { ...prev };
+        for (const r of results) {
+          if (r.status !== 'fulfilled') continue;
+          const fullMap = r.value?.data;
+          if (fullMap?.id) next[fullMap.id] = fullMap;
+        }
+        return next;
+      });
+    } catch (e) {
+      console.error("Hydration failed:", e);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [activities, mapCache]);
+
+
+  /**
+   * Single-map thumbnail renderer:
+   * - Always uses <Map />
+   * - Fully normalized props
+   */
   function renderMapThumbnail(mapObj, act) {
-    if (!mapObj) {
+const mapToRender = mapObj?.id && mapCache[mapObj.id] ? mapCache[mapObj.id] : mapObj;
+const normalized = normalizeMapForPreview(mapToRender);
+    if (!normalized) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
 
-    const {
-      selected_map,
-      title,
-      groups,
-      ocean_color,
-      unassigned_color,
-      data,
-      font_color,
-      is_title_hidden,
-      show_no_data_legend,
-      titleFontSize,
-      legendFontSize,
-    } = mapObj;
 
-    const sharedProps = {
-      groups,
-      mapTitleValue: title || 'Untitled',
-      ocean_color,
-      unassigned_color,
-      data,
-      font_color,
-      is_title_hidden,
-      isThumbnail: true,
-      showNoDataLegend: show_no_data_legend,
-      titleFontSize,
-      legendFontSize
+return (
+  <div className={dashFeedStyles.thumbContainer}>
+    <div className={dashFeedStyles.thumbMapStage}>
+      <Map
+        groups={normalized.groups}
+        data={normalized.data}
+        selected_map={normalized.selectedMap}
+        mapDataType={normalized.mapDataType}
+        custom_ranges={normalized.customRanges}
+        mapTitleValue={normalized.title}
+        ocean_color={normalized.ocean_color}
+        unassigned_color={normalized.unassigned_color}
+        font_color={normalized.font_color}
+        is_title_hidden={normalized.is_title_hidden}
+        isThumbnail={true}
+        showNoDataLegend={normalized.showNoDataLegend}
+        titleFontSize={normalized.titleFontSize}
+        legendFontSize={normalized.legendFontSize}
+        strokeMode='thin'
+      />
+    </div>
 
-    };
+    {/* Blocks hover/zoom/pan/tooltips; row click still works */}
+    <div className={dashFeedStyles.interactionBlocker} aria-hidden="true" />
+  </div>
+);
 
-    let MapComponent = <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
-    if (selected_map === 'world')   MapComponent = <WorldMapSVG {...sharedProps} />;
-    if (selected_map === 'usa')     MapComponent = <UsSVG {...sharedProps} />;
-    if (selected_map === 'europe')  MapComponent = <EuropeSVG {...sharedProps} />;
-
-    const overlayUrl = getOverlayAvatarUrl(act);
-    const overlayUsername = getOverlayAvatarUsername(act);
-    const overlayIcon = getActivityIcon(act.type);
-
-    return (
-      <div className={dashFeedStyles.thumbContainer}>
-        {MapComponent}
-        <div
-          className={dashFeedStyles.activityOverlay}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/profile/${overlayUsername}`);
-          }}
-        >
-          <img
-            className={dashFeedStyles.activityAvatar}
-            src={overlayUrl}
-            alt="User"
-          />
-          <div className={dashFeedStyles.activityIcon}>
-            {overlayIcon}
-          </div>
-        </div>
-      </div>
-    );
   }
 
   function renderSenderName(act) {
-    if (!act.type.startsWith('notification_')) {
-      return <strong>You</strong>;
-    }
+    if (!act.type?.startsWith('notification_')) return <strong>You</strong>;
     const sender = act.notificationData?.sender;
     if (!sender) return <strong>Someone</strong>;
 
-    let displayName = '';
-    if (sender.first_name || sender.last_name) {
-      displayName = `${sender.first_name || ''} ${sender.last_name || ''}`.trim();
-    } else if (sender.username) {
-      displayName = sender.username;
-    } else {
-      displayName = 'Someone';
-    }
+    const displayName =
+      (sender.first_name || sender.last_name)
+        ? `${sender.first_name || ''} ${sender.last_name || ''}`.trim()
+        : (sender.username || 'Someone');
+
     return (
       <strong
         className={dashFeedStyles.senderName}
@@ -277,44 +414,66 @@ export default function DashboardActivityFeed({ userProfile }) {
     );
   }
 
-  function getCommentAuthorAvatar(act) {
-    if (act.commentAuthor?.profile_picture) {
-      return act.commentAuthor.profile_picture;
-    }
-    if (act.type === 'commented' && userProfile?.profile_picture) {
-      return userProfile.profile_picture;
-    }
-    return '/default-profile-picture.png';
-  }
+
 
   function getCommentAuthorUsername(act) {
     if (act.commentAuthor?.username) return act.commentAuthor.username;
-    if (act.type === 'commented') {
-      return userProfile?.username || 'unknown';
-    }
+    if (act.type === 'commented') return userProfile?.username || 'unknown';
     return 'unknown';
   }
 
   function renderCommentBox(act) {
-    const commentAvatarUrl = getCommentAuthorAvatar(act);
     const commentAuthor = getCommentAuthorUsername(act);
     return (
       <div className={dashFeedStyles.commentBox}>
-        <img
-          className={dashFeedStyles.commentAuthorAvatar}
-          src={commentAvatarUrl}
-          alt="Comment Author"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/profile/${commentAuthor}`);
-          }}
-        />
-        <div className={dashFeedStyles.commentBody}>
-          {act.commentContent}
-        </div>
+        
+        <div className={dashFeedStyles.commentBody}>{act.commentContent}</div>
       </div>
     );
   }
+
+  function renderMetaRow(act) {
+  const avatarUrl = getOverlayAvatarUrl(act);
+  const overlayUsername = getOverlayAvatarUsername(act);
+  const icon = getActivityIcon(act.type);
+
+  // label on the right (for notifications show sender, otherwise "You")
+  const label = act.type?.startsWith("notification_")
+    ? (act.notificationData?.sender?.username || "someone")
+    : (userProfile?.username || "you");
+
+  return (
+    <div className={dashFeedStyles.metaRow}>
+      <img
+        className={dashFeedStyles.metaAvatar}
+        src={avatarUrl}
+        alt="User"
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/profile/${overlayUsername}`);
+        }}
+      />
+
+      <div className={dashFeedStyles.metaMiddle}>
+        <div
+          className={dashFeedStyles.metaName}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/profile/${overlayUsername}`);
+          }}
+          title={label}
+        >
+          {label}
+        </div>
+      </div>
+
+      <div className={dashFeedStyles.metaIconPill} aria-hidden="true">
+        {icon}
+      </div>
+    </div>
+  );
+}
+
 
   function renderActivityItem(act, idx) {
     const { type, map, commentContent, created_at } = act;
@@ -332,7 +491,7 @@ export default function DashboardActivityFeed({ userProfile }) {
     } else if (type === 'notification_reply') {
       mainText = <>{renderSenderName(act)} replied to your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_like') {
-      mainText = <>{renderSenderName(act)} liked your comment on {renderMapTitle(map)} </>;
+      mainText = <>{renderSenderName(act)} liked your comment on {renderMapTitle(map)}</>;
     } else if (type === 'notification_comment') {
       mainText = <>{renderSenderName(act)} commented on your map {renderMapTitle(map)}</>;
     } else {
@@ -355,40 +514,37 @@ export default function DashboardActivityFeed({ userProfile }) {
         onClick={() => handleItemClick(act)}
       >
         {mapThumb}
-        <div className={dashFeedStyles.activityDetails}>
-          <p className={dashFeedStyles.mainText}>{mainText}</p>
-          {shouldShowCommentBox && renderCommentBox(act)}
-          <div className={dashFeedStyles.timestampBox}>
-            {timeAgo(created_at)}
-          </div>
-        </div>
+      <div className={dashFeedStyles.activityDetails}>
+  {renderMetaRow(act)}
+  <p className={dashFeedStyles.mainText}>{mainText}</p>
+  {shouldShowCommentBox && renderCommentBox(act)}
+  <div className={dashFeedStyles.timestampBox}>{timeAgo(created_at)}</div>
+</div>
+
       </div>
     );
   }
 
-  // If first load => skeleton placeholders
+  // skeleton on first load
   if (isInitialLoading && activities.length === 0) {
     return (
       <div className={dashFeedStyles.dashActivityFeed}>
-        {/* Show however many skeleton placeholders you want */}
         <SkeletonActivityRow />
         <SkeletonActivityRow />
         <SkeletonActivityRow />
-        
       </div>
     );
   }
 
-  // If done + no data
-  if (!isInitialLoading && activities.length === 0) {
-    return <p>No recent activity.</p>;
-  }
+if (!isInitialLoading && activities.length === 0) {
+  return <p className={dashFeedStyles.emptyText}>No recent activity.</p>;
+}
+
 
   return (
     <div className={dashFeedStyles.dashActivityFeed}>
       {activities.map((act, i) => renderActivityItem(act, i))}
 
-      {/* If fetching more => show skeleton placeholders */}
       {isFetchingMore && (
         <>
           <SkeletonActivityRow />
@@ -396,10 +552,7 @@ export default function DashboardActivityFeed({ userProfile }) {
         </>
       )}
 
-      {/* The "sentinel" div at the very bottom */}
-      {hasMore && (
-        <div ref={sentinelRef} style={{ height: '1px' }} />
-      )}
+      {hasMore && <div ref={sentinelRef} style={{ height: '1px' }} />}
     </div>
   );
 }

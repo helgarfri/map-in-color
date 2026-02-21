@@ -1,8 +1,16 @@
+/* Transparent so hero gradient shows through sticky header (no white layer) */
 .homeContainer {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #ffffff;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: transparent;
+  /* clip avoids creating a scroll-containment ancestor that breaks sticky in StepsSection */
+  overflow-x: clip;
 }
 
 .mainContent {
@@ -11,13 +19,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
   text-align: center;
+  box-sizing: border-box;
 }
  
 .betaNotice {
   font-size: 2rem;
-  color: #55957b;
+  color: #14a9af;
   margin-bottom: 20px;
 }
 
@@ -105,7 +117,7 @@
 }
 
 .successMessage {
-  color: #55957b;
+  color: #14a9af;
   font-weight: bold;
 }
 

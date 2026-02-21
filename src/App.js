@@ -1,233 +1,239 @@
-// src/components/App.js
-import './components/App.css';
+// src/App.js (or src/components/App.js depending on your project)
+import "./components/App.css";
+import React from "react";
+import { useContext, useEffect } from "react";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 
-import Footer from './components/Footer';
-import Home from './components/Home';
-import Dashboard from './components/Dashboard';
+import Home from "./components/Home";
+import Dashboard from "./components/Dashboard";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
+import EditMap from "./components/EditMap";
+import YourMaps from "./components/YourMaps";
+import DataIntegration from "./components/DataIntergration";
+import ProfileSettings from "./components/ProfileSettings";
+import ProfilePage from "./components/ProfilePage";
+import StarredMaps from "./components/StarredMaps";
+import NotificationList from "./components/NotificationList";
+import ChangePassword from "./components/ChangePassword";
+import DeleteAccount from "./components/DeleteAccount";
+import DocsLayout, { DocsLanding, DocPage } from "./components/Docs";
+import AdminPanel from "./components/AdminPanel";
+import BannedUser from "./components/BannedUser";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import Terms from "./components/Terms";
+import RefundPolicy from "./components/RefundPolicy";
+import VerifyAccount from "./components/VerifyAccount";
+import Verified from "./components/Verified";
+import VerificationError from "./components/VerificationError";
+import PublicExplore from "./components/PublicExplore";
+import PublicDataIntegration from "./components/PublicDataIntegration";
+import PublicLayout from "./components/PublicLayout";
+import LoggedInExplore from "./components/LoggedInExplore";
+import PublicMapDetail from "./components/PublicMapDetail";
+import LoggedInMapDetail from "./components/LoggedInMapDetail";
+import Map from "./components/Map";
+import Explore from "./components/Explore";
+import ResetPasswordPage from "./components/ResetPassword";
+import PrivateRoute from "./components/PrivateRoute";
+import MapEmbed from "./components/MapEmbed";
+import NotFound from "./components/NotFound";
+import FAQ from "./components/FAQ";
+import ProPage from "./components/ProPage";
 
-import Login from './components/Login';
-import Signup from './components/Signup';
-import EditMap from './components/EditMap';
-import YourMaps from './components/YourMaps';
+import { UserContext } from "./context/UserContext";
+import { SidebarContext } from "./context/SidebarContext";
 
-import PrivateRoute from './components/PrivateRoute';
-
-import { useState, useContext } from 'react';
-
-import { UserContext } from './context/UserContext';
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import DataIntegration from './components/DataIntergration';
-import ProfileSettings from './components/ProfileSettings';
-import MapDetail from './components/MapDetail';
-import ProfilePage from './components/ProfilePage'
-import StarredMaps from './components/StarredMaps';
-import NotificationList from './components/NotificationList';
-import ChangePassword from './components/ChangePassword';
-import DeleteAccount from './components/DeleteAccount';
-import Docs from './components/Docs';
-import AdminPanel from './components/AdminPanel';
-import BannedUser from './components/BannedUser';
-
-import { UserProvider } from './context/UserContext';
-
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import Explore from './components/Explore';
-
-import { SidebarProvider } from './context/SidebarContext';
-
-import ScrollToTop from './components/ScrollToTop'; // <-- import the helper
-
-import PrivacyPolicy from './components/PrivacyPolicy';
-import Terms from './components/Terms';
-import VerifyAccount from './components/VerifyAccount';
-import Verified from './components/Verified';
-import VerificationError from './components/VerificationError';
-import PublicExplore from './components/PublicExplore';
-import LoggedInExplore from './components/LoggedInExplore';
-import PublicMapDetail from './components/PublicMapDetail';
-import LoggedInMapDetail from './components/LoggedInMapDetail';
-import Map from './components/Map';
-
-library.add(fas);
-
-function App() {
-
-  const { authToken, profile } = useContext(UserContext);
-
-  const [isCollapsed, setIsCollapsed] = useState(true);
-
-
-  const isUserLoggedIn = !!authToken && !!profile;
-
-  return (
-
-    <Router>
-    <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-
-        <Route path="/docs" element={<Docs />} />
-
-
-        <Route 
-            path="/docs" 
-            element={<Docs />} 
-          />
-
-        <Route
-          path="/create"
-          element={
-            <DataIntegration
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          }
-        />
-
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute >
-              <Dashboard
-                
-                
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            </PrivateRoute>
-          }
-        />
-
-      <Route
-        path="/map/:id"
-        element={
-          isUserLoggedIn
-            ? <LoggedInMapDetail />
-            : <PublicMapDetail />
-        }
-      />
-
-
-          <Route path="/explore" element={
-            isUserLoggedIn ? 
-              <LoggedInExplore
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}/> : 
-                <PublicExplore />
-          } />
-
-
-        <Route
-          path="/your-maps"
-          element={
-            <PrivateRoute >
-              <YourMaps
-                
-                
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            </PrivateRoute>
-          }
-        />
-
-        <Route 
-          path="/starred-maps" 
-          element={<StarredMaps
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />} />
-
-        <Route
-          path="/login"
-          element={<Login  />}
-        />
-
-        <Route
-          path="/signup"
-          element={<Signup  />}
-        /> 
-
-        <Route
-          path="/edit/:mapId"
-          element={
-            <EditMap
-              
-              
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          }
-        />
-
-          <Route
-            path="/profile/:username"
-            element={
-              <ProfilePage
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-              />
-            }
-          />
-
-        <Route
-          path="/settings"
-          element={
-            <ProfileSettings
-              
-              
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-            />
-          }
-        />
-
-        <Route path="/change-password" 
-        element={<ChangePassword isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}/>}
-        
-        
-        />
-
-<Route path="/delete-account" element={<DeleteAccount />}  />
-
-
-          <Route
-            path="/notifications"
-            element={
-              <PrivateRoute>
-                <NotificationList
-                  isCollapsed={isCollapsed}
-                  setIsCollapsed={setIsCollapsed}
-                />
-              </PrivateRoute>
-            }
-          />
-
-<Route path="/adminPanel" element={<AdminPanel />} />
-
-<Route path="/banned" element={<BannedUser />} />
-
-<Route path="/privacy" element={<PrivacyPolicy />} />
-
-<Route path="/terms" element={<Terms/>} />
-
-<Route path="/verify-account" element={<VerifyAccount/>} />
-
-<Route path="/verified" element={<Verified/> } />
-
-<Route path="verification-error" element={<VerificationError/>} />
-
-<Route path="map" element={<Map />} />
-
-
-      </Routes>
-
-    </Router>
-
-  );
+/* Scroll to top on route change */
+function ScrollToTopWrapper() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return <Outlet />;
 }
 
-export default App;
+function SidebarAutoCloseOnRouteChange() {
+  const { pathname } = useLocation();
+  const { setIsCollapsed } = useContext(SidebarContext);
+  const prevPathRef = React.useRef(pathname);
+
+  useEffect(() => {
+    if (prevPathRef.current === pathname) return;
+    prevPathRef.current = pathname;
+
+    const isMobile = window.innerWidth < 1000;
+    if (isMobile) setIsCollapsed(true);
+  }, [pathname, setIsCollapsed]);
+
+  return <Outlet />;
+}
+
+export default function App() {
+  const { authToken, profile } = useContext(UserContext);
+  const isUserLoggedIn = !!authToken && !!profile;
+
+  const router = createBrowserRouter([
+    {
+      element: <SidebarAutoCloseOnRouteChange />,
+      children: [
+        {
+          element: <ScrollToTopWrapper />,
+          children: [
+            {
+              path: "/",
+              element: <PublicLayout />,
+              children: [
+                { index: true, element: <Home /> },
+                { path: "playground", element: <PublicDataIntegration /> },
+                { path: "pro", element: <ProPage /> },
+              ],
+            },
+            {
+              path: "/docs",
+              element: <DocsLayout />,
+              children: [
+                { index: true, element: <DocsLanding /> },
+                { path: ":topic", element: <DocPage /> },
+              ],
+            },
+            { path: "/faq", element: <FAQ /> },
+
+            {
+              path: "/create",
+              element: (
+                <PrivateRoute>
+                  <DataIntegration />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/dashboard",
+              element: (
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/map/:id",
+              element: isUserLoggedIn ? <LoggedInMapDetail /> : <PublicMapDetail />,
+            },
+
+            {
+              path: "/embed/:id",
+              element: <MapEmbed />,
+            },
+
+
+            {
+              path: "/explore",
+              element: isUserLoggedIn ? <LoggedInExplore /> : <PublicExplore />,
+            },
+
+            {
+              path: "/your-maps",
+              element: (
+                <PrivateRoute>
+                  <YourMaps />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/starred-maps",
+              element: (
+                <PrivateRoute>
+                  <StarredMaps />
+                </PrivateRoute>
+              ),
+            },
+
+            { path: "/login", element: <Login /> },
+            { path: "/signup", element: <Signup /> },
+
+            {
+              path: "/edit/:mapId",
+              element: (
+                <PrivateRoute>
+                  <EditMap />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/profile/:username",
+              element: (
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/settings",
+              element: (
+                <PrivateRoute>
+                  <ProfileSettings />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/change-password",
+              element: (
+                <PrivateRoute>
+                  <ChangePassword />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/delete-account",
+              element: (
+                <PrivateRoute>
+                  <DeleteAccount />
+                </PrivateRoute>
+              ),
+            },
+
+            {
+              path: "/notifications",
+              element: (
+                <PrivateRoute>
+                  <NotificationList />
+                </PrivateRoute>
+              ),
+            },
+
+            { path: "/adminPanel", element: <AdminPanel /> },
+            { path: "/banned", element: <BannedUser /> },
+            { path: "/privacy", element: <PrivacyPolicy /> },
+            { path: "/terms", element: <Terms /> },
+            { path: "/refund", element: <RefundPolicy /> },
+            { path: "/verify-account", element: <VerifyAccount /> },
+            { path: "/verified", element: <Verified /> },
+            { path: "/verification-error", element: <VerificationError /> },
+
+            { path: "/map", element: <Map /> },
+
+            // legacy
+            { path: "/explore-old", element: <Explore /> },
+            { path: "/reset-password", element: <ResetPasswordPage /> },
+
+            { path: "*", element: <NotFound /> },
+          ],
+        },
+      ],
+    },
+  ]);
+
+  return <RouterProvider router={router} />;
+}

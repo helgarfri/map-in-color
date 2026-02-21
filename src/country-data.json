@@ -247,13 +247,7 @@
 		"region": "AS",
 		"population": 741672
 	},
-	"BV": {
-		"name": "Bouvet Island",
-		"longname": "Bouvet Island",
-		"sovereignty": "Norway",
-		"region": "AN",
-		"population": 0
-	},
+
 	"BW": {
 		"name": "Botswana",
 		"longname": "The Republic of Botswana",

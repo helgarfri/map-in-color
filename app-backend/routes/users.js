@@ -4,9 +4,11 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const bcrypt = require('bcrypt');
+const { passwordRuleFailures } = require('../utils/password');
 
 // Import the service_role client
 const { supabaseAdmin } = require('../config/supabase');
+const { resend } = require('../config/resend');
 
 /* --------------------------------------------
    DELETE /api/users/deleteAccount
@@ -64,7 +66,27 @@ router.delete('/deleteAccount', auth, async (req, res) => {
       ]);
     }
 
-    // 5) Actually delete the user from "users"
+    // 5) Send confirmation email before deleting (so we still have the email)
+    if (userRow.email) {
+      try {
+        await resend.emails.send({
+          from: 'no-reply@mapincolor.com',
+          to: userRow.email,
+          subject: 'Your account has been deleted - Map in Color',
+          html: `
+            <p>Hello ${userRow.first_name || 'there'},</p>
+            <p>This is to confirm that your Map in Color account has been permanently deleted.</p>
+            <p>We're sorry to see you go. If you change your mind, you can always create a new account.</p>
+            <p>Cheers,<br/>The Map in Color team</p>
+          `,
+        });
+        console.log(`Account-deletion confirmation email sent to: ${userRow.email}`);
+      } catch (emailErr) {
+        console.error('Error sending account-deletion confirmation email:', emailErr);
+      }
+    }
+
+    // 6) Actually delete the user from "users"
     const { error: delErr } = await supabaseAdmin
       .from('users')
       .delete()
@@ -95,10 +117,18 @@ router.put('/change-password', auth, async (req, res) => {
       return res.status(400).json({ msg: 'Missing required fields.' });
     }
 
-    // 1) fetch user from "users"
+    const fails = passwordRuleFailures(newPassword);
+    if (fails.length) {
+      return res.status(400).json({
+        msg: `New password must contain ${fails.join(', ')}.`,
+        code: 'PASSWORD_WEAK',
+      });
+    }
+
+    // 1) fetch user from "users" (email/first_name for confirmation email)
     const { data: userRow, error: fetchErr } = await supabaseAdmin
       .from('users')
-      .select('id, password')
+      .select('id, password, email, first_name')
       .eq('id', user_id)
       .maybeSingle();
 
@@ -130,6 +160,26 @@ router.put('/change-password', auth, async (req, res) => {
     if (updateErr) {
       console.error(updateErr);
       return res.status(500).json({ msg: 'Error updating password' });
+    }
+
+    // 5) Send confirmation email (non-blocking; don't fail the request if email fails)
+    if (userRow.email) {
+      try {
+        await resend.emails.send({
+          from: 'no-reply@mapincolor.com',
+          to: userRow.email,
+          subject: 'Your password was changed - Map in Color',
+          html: `
+            <p>Hello ${userRow.first_name || 'there'},</p>
+            <p>This is to confirm that your Map in Color account password was changed successfully.</p>
+            <p>If you did not make this change, please contact <a href="mailto:support@mapincolor.com">support@mapincolor.com</a> or reset your password immediately.</p>
+            <p>Cheers,<br/>The Map in Color team</p>
+          `,
+        });
+        console.log(`Password-change confirmation email sent to: ${userRow.email}`);
+      } catch (emailErr) {
+        console.error('Error sending password-change confirmation email:', emailErr);
+      }
     }
 
     return res.json({ msg: 'Password updated successfully.' });

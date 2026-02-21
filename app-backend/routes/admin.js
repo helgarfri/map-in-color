@@ -4,15 +4,21 @@ const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
 const auth = require('../middleware/auth');
 
+/** Require req.user.is_admin (must run after auth). Add column: users.is_admin BOOLEAN DEFAULT false */
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.is_admin !== true) {
+    return res.status(403).json({ msg: 'Forbidden' });
+  }
+  next();
+}
+
 // =======================
 // 1) COMMENT REPORTS
 // =======================
 
 // GET /admin/reports => fetch *pending* comment reports
-router.get('/reports', auth, async (req, res) => {
+router.get('/reports', auth, requireAdmin, async (req, res) => {
   try {
-    // e.g. if (!req.user.is_admin) { return res.status(403).json({ msg: 'Forbidden' }) }
-
     // Load all pending comment reports from "comment_reports"
     const { data: reports, error } = await supabaseAdmin
       .from('comment_reports')
@@ -43,7 +49,7 @@ router.get('/reports', auth, async (req, res) => {
 });
 
 // POST /admin/reports/:report_id/approve => re-approve a comment
-router.post('/reports/:report_id/approve', auth, async (req, res) => {
+router.post('/reports/:report_id/approve', auth, requireAdmin, async (req, res) => {
   try {
     const reportId = parseInt(req.params.report_id, 10);
 
@@ -80,7 +86,7 @@ router.post('/reports/:report_id/approve', auth, async (req, res) => {
 });
 
 // POST /admin/reports/:report_id/delete => permanently delete the comment
-router.post('/reports/:report_id/delete', auth, async (req, res) => {
+router.post('/reports/:report_id/delete', auth, requireAdmin, async (req, res) => {
   try {
     const reportId = parseInt(req.params.report_id, 10);
 
@@ -121,10 +127,8 @@ router.post('/reports/:report_id/delete', auth, async (req, res) => {
 // =======================
 
 // GET /admin/profile-reports => fetch *pending* profile reports
-router.get('/profile-reports', auth, async (req, res) => {
+router.get('/profile-reports', auth, requireAdmin, async (req, res) => {
   try {
-    // e.g. if (!req.user.is_admin) { return res.status(403).json({ msg: 'Forbidden' }) }
-
     // Load all pending profile reports from "profile_reports"
     const { data: reports, error } = await supabaseAdmin
       .from('profile_reports')
@@ -157,7 +161,7 @@ router.get('/profile-reports', auth, async (req, res) => {
 /**
  * Approve or "close" a profile report, effectively dismissing it
  */
-router.post('/profile-reports/:report_id/approve', auth, async (req, res) => {
+router.post('/profile-reports/:report_id/approve', auth, requireAdmin, async (req, res) => {
   try {
     const reportId = parseInt(req.params.report_id, 10);
 
@@ -196,7 +200,7 @@ router.post('/profile-reports/:report_id/approve', auth, async (req, res) => {
 /**
  * "Ban" the user’s profile
  */
-router.post('/profile-reports/:report_id/ban', auth, async (req, res) => {
+router.post('/profile-reports/:report_id/ban', auth, requireAdmin, async (req, res) => {
   try {
     const reportId = parseInt(req.params.report_id, 10);
 

@@ -1,482 +1,807 @@
-/* src/components/YourMaps.module.css */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
 
-/* Container styles */
+  --bg: #f7f7f7;
+  --card: #ffffff;
+  --text: rgba(0,0,0,0.78);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+}
+
+/* ===== Page shell ===== */
 .myMapsContainer {
   display: flex;
   min-height: 100vh;
-  color: black;
   margin-top: 60px;
-  background-color: #f7f7f7;
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* Main content styling */
 .myMapsContent {
   flex: 1;
-  padding: 0px 20px;
-  margin-left: 250px; /* Sidebar width when expanded */
+  padding: 0 22px 26px;
+  margin-left: 250px; /* sidebar expanded */
 }
 
 .contentCollapsed {
-  margin-left: 70px;
+  margin-left: 70px; /* sidebar collapsed */
 }
 
-/* Stats Bar - now in a column layout */
+/* ===== Stats bar ===== */
 .statsBar {
   display: flex;
-  flex-direction: row; /* Stacks the stat boxes vertically */
+  flex-wrap: wrap;
   gap: 10px;
-  margin: 20px 0;
-  align-items: flex-start;
+  margin: 18px 0 18px;
+  align-items: center;
 }
 
 .statBox {
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px 12px; /* Reduced padding */
-  width: fit-content; /* Reduced width */
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: row;
+  background: rgba(255,255,255,0.90);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 12px;
+
+  display: inline-flex;
   align-items: center;
+  gap: 10px;
+
+  box-shadow: var(--shadow-sm);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.statBox:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.20);
+  box-shadow: var(--shadow);
 }
 
 .statIcon {
-  font-size: 1rem; /* Smaller icon size */
-  margin-bottom: 3px;
-  color: #333;
-  margin: auto 3px;
+  font-size: 14px;
+  color: rgba(0,0,0,0.62);
 }
 
 .statValue {
-  font-size: 1.2rem; /* Reduced font size */
-  font-weight: bold;
-  color: #333;
-  margin: auto 3px;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.78);
+  line-height: 1;
 }
 
 .statLabel {
-  font-size: 0.8rem; /* Reduced font size */
-  color: #555;
-  margin-top: 2px;
-  margin-left: 3px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  margin-left: 2px;
 }
 
-/* Grid layout for cards */
+/* ===== Grid ===== */
 .mapsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
 }
 
-/* Map Card */
+/* ===== Card ===== */
 .mapCard {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
+
   display: flex;
   flex-direction: column;
-  height: 100%; /* Fixed height for smaller cards */
-  width: 100%;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .mapCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: var(--shadow);
 }
 
-/* Thumbnail Area */
+/* Thumbnail */
 .thumbnail {
   width: 100%;
-  height: 100%; /* Reduced thumbnail height */
-  background: #fafafa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
+
+  position: relative;
+  isolation: isolate;
+
+  background: linear-gradient(135deg, rgba(40,168,225,0.18), rgba(20,169,175,0.14));
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
-/* Card Body */
+.thumbnail svg,
+.thumbnail canvas,
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Body */
 .cardBody {
-  padding: 8px; /* Reduced padding */
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   flex: 1;
 }
 
-/* Map Title */
+/* Title */
 .mapTitle {
-  font-size: 1rem; /* Smaller font size */
-  margin: 0 0 3px 0; /* Reduced margin */
-  color: #333;
-  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.1px;
+  color: rgba(0,0,0,0.80);
+
+  margin: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Details Row */
+/* Details row */
 .detailsRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem; /* Smaller font size */
-  color: #666;
-  margin-bottom: 4px; /* Reduced margin */
+  gap: 10px;
+
+  font-size: 12px;
+  color: rgba(0,0,0,0.60);
 }
 
 .modified {
-  font-style: italic;
+  font-style: normal;
+  font-weight: 800;
+  color: rgba(0,0,0,0.55);
 }
 
 .visibility {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-weight: bold;
-  color: #333;
+  gap: 6px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
 }
 
 .visibilityIcon {
-  font-size: 1rem; /* Slightly smaller icon */
+  font-size: 12px;
+  color: rgba(0,0,0,0.58);
 }
 
-/* Stats Row (Stars) */
+/* Stars + comments row */
 .statsRow {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 0.8rem; /* Adjusted font size */
+  gap: 8px;
 }
 
-.starCount {
+.mapStats {
   display: flex;
   align-items: center;
-  font-weight: bold;
-  color: #333;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.starIcon {
-  color: #000;
-  margin-right: 3px; /* Reduced margin */
+.starCount,
+.commentCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
 }
 
-/* Actions Row */
+.starCount svg,
+.commentCount svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.starIcon,
+.commentIcon {
+  color: rgba(0,0,0,0.55);
+}
+
+/* ===== Actions ===== */
 .actionsRow {
   display: flex;
-  justify-content: space-between;
-  gap: 5px; /* Reduced gap */
+  gap: 8px;
   margin-top: auto;
 }
 
 .actionsRow button {
-  flex: 1;
-  padding: 5px; /* Reduced padding */
-  border: none;
-  border-radius: 4px;
-  font-size: 0.75rem; /* Smaller font size */
+  all: unset;
   cursor: pointer;
+
+  flex: 1;
+  height: 36px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.90);
+  color: rgba(0,0,0,0.70);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease, border-color 120ms ease;
 }
 
-/* View Button: Blue/Gray */
+.actionsRow button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(20,169,175,0.18);
+  filter: brightness(0.99);
+}
+
+/* Make the primary actions look “MIC” */
 .viewButton {
-  background-color: #79a6b7;
-  color: #fff;
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan)) !important;
+  box-shadow: 0 14px 28px rgba(40,168,225,0.18);
 }
 
 .viewButton:hover {
-  background-color: #6a8a9f;
+  box-shadow: 0 18px 34px rgba(40,168,225,0.22);
 }
 
-/* Edit Button: Green */
 .editButton {
-  background-color: #55957b;
-  color: #fff;
+  border-color: rgba(20,169,175,0.25) !important;
+  background: rgba(20,169,175,0.08) !important;
+  color: rgba(0,0,0,0.74) !important;
 }
 
-.editButton:hover {
-  background-color: #3f7b65;
-}
-
-/* Delete Button: Red/Orange */
 .deleteButton {
-  background-color: #d24b4c;
-  color: #fff;
+  border-color: rgba(210,75,76,0.25) !important;
+  background: rgba(210,75,76,0.08) !important;
+  color: rgba(0,0,0,0.74) !important;
 }
 
-.deleteButton:hover {
-  background-color: #a03a39;
+/* ===== Empty state ===== */
+.myMapsContent p {
+  color: rgba(0,0,0,0.62);
+  font-weight: 800;
 }
 
-/* Modal styles */
+/* ===== Modal ===== */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  display: grid;
+  place-items: center;
   z-index: 1000;
+  padding: 18px;
 }
 
 .modalContent {
-  background-color: #fff;
-  padding: 30px;
-  width: 450px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 520px;
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.30);
+
+  padding: 22px;
+  text-align: left;
+}
+
+.modalContent h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.80);
+}
+
+.modalContent p {
+  margin: 0;
+  color: rgba(0,0,0,0.65);
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .modalButtons {
   display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.deleteButtonModal,
+.cancelButton {
+  all: unset;
+  cursor: pointer;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.88);
+  color: rgba(0,0,0,0.74);
+
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease, border-color 120ms ease;
 }
 
 .deleteButtonModal {
-  background-color: #d24b4c;
-  color: #fff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.deleteButtonModal:hover {
-  background-color: #a03a39;
+  border-color: rgba(210,75,76,0.25);
+  background: rgba(210,75,76,0.10);
 }
 
 .cancelButton {
-  background-color: #6c757d;
-  color: #fff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-color: rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.03);
 }
 
+.deleteButtonModal:hover,
 .cancelButton:hover {
-  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  filter: brightness(0.99);
 }
 
-/* --- Skeleton Animation --- */
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+.modalOverlayBlur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
-.skeletonShimmer {
-  position: relative;
-  overflow: hidden;
-  background-color: #eee;
+
+/* When loading, make it feel tighter */
+.modalContentCompact {
+  text-align: left;
 }
-.skeletonShimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 50%;
+
+/* Delete loading portal */
+.deletePortal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px;
+  border-radius: 16px;
+
   background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
+    135deg,
+    rgba(40,168,225,0.12),
+    rgba(20,169,175,0.10)
   );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  border: 1px solid rgba(20, 24, 40, 0.10);
 }
 
-/* --- Skeleton Stats Bar --- */
+.deleteSpinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+
+  border: 3px solid rgba(20,169,175,0.18);
+  border-top-color: rgba(20,169,175,0.95);
+  animation: micSpin 0.9s linear infinite;
+
+  box-shadow: 0 12px 22px rgba(15,23,42,0.10);
+  flex: 0 0 auto;
+}
+
+@keyframes micSpin {
+  to { transform: rotate(360deg); }
+}
+
+.deleteText { min-width: 0; }
+
+.deleteTitle {
+  font-size: 14px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.82);
+}
+
+.deleteSub {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleteHint {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 850;
+  color: rgba(0,0,0,0.52);
+}
+
+/* Error chip */
+.deleteError {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(210,75,76,0.22);
+  background: rgba(210,75,76,0.12);
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.74);
+}
+
+
+/* ===== Skeleton ===== */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 .skeletonStatsBar {
   display: flex;
   gap: 10px;
-  margin: 20px 0;
-}
-.skeletonStatBox {
-  width: 100px;
-  height: 50px;
-  border-radius: 8px;
-  background-color: #eee;
-  position: relative;
-  overflow: hidden;
-}
-.skeletonStatBox::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  margin: 18px 0;
+  flex-wrap: wrap;
 }
 
-/* --- Skeleton Maps Grid --- */
-.skeletonMapsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-.skeletonMapCard {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 10px;
-  overflow: hidden;
-}
-.skeletonThumbnail {
-  width: 100%;
-  height: 150px;
-  border-radius: 4px;
-  background-color: #ddd;
+.skeletonStatBox {
+  width: 140px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
-  margin-bottom: 10px;
+  border: 1px solid rgba(0,0,0,0.08);
 }
-.skeletonThumbnail::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+
+.skeletonMapsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
 }
+
+.skeletonMapCard {
+  background: rgba(255,255,255,0.90);
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.skeletonThumbnail {
+  width: 100%;
+  height: 160px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
 .skeletonLine {
   width: 100%;
   height: 12px;
-  border-radius: 4px;
-  background-color: #eee;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
-  margin-bottom: 8px;
 }
+
+.skeletonStatBox::after,
+.skeletonThumbnail::after,
 .skeletonLine::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
   background: linear-gradient(
-    to right,
+    90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255,255,255,0.60) 50%,
     transparent 100%
   );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  animation: shimmer 1.15s infinite;
 }
 
-/* Responsive adjustments for smaller screens */
-
-/* Force content to margin-left: 0 when width < 1000px */
+/* ===== Responsive ===== */
 @media (max-width: 1000px) {
-  .myMapsContent {
-    margin-left: 0 !important;
-    width: 100%;
-  }
+  .myMapsContent,
   .contentCollapsed {
     margin-left: 0 !important;
+    width: 100%;
+    padding: 0 14px 18px;
   }
 }
 
-/* Tablet/Small screens: stats 2x2 grid */
 @media (max-width: 600px) {
-
-  .myMapsContent {
-    padding-top: 0;
-  }
   .statsBar {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 0;
   }
+
   .statBox {
-    width: auto;
-    padding: 10px;
+    width: 100%;
+    justify-content: center;
   }
-  .statIcon {
-    font-size: 1.4rem;
-  }
-  .statValue {
-    font-size: 1.2rem;
-  }
-  .statLabel {
-    font-size: 0.8rem;
+
+  .actionsRow {
+    gap: 6px;
   }
 }
 
-/* Very small phones */
-@media (max-width: 400px) {
-  .mapsGrid {
+@media (max-width: 420px) {
+  .mapsGrid,
+  .skeletonMapsGrid {
     grid-template-columns: 1fr;
   }
-  .thumbnail {
-    height: 100%;
-  }
-  .mapTitle {
-    font-size: 0.9rem;
-  }
-  .actionsRow button {
-    font-size: 1rem;
-    padding: 8px;
-  }
 }
 
-/* ------------------------------------------------
-   Match the Stats Bar skeleton to normal Stats Bar
-   on smaller screens
----------------------------------------------------*/
+
+/* =====================================================
+   Mobile overflow fixes (stats pills + card info rows)
+   ===================================================== */
+
+/* 1) Global safety: never allow horizontal scrolling from this page */
+.myMapsContainer,
+.myMapsContent {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* 2) Make stat pills shrink properly */
+.statBox {
+  min-width: 0;            /* crucial in flex/grid */
+  max-width: 100%;
+}
+
+/* Prevent long label/value combos from forcing width */
+.statValue,
+.statLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 3) Card internal rows: allow wrapping instead of pushing right */
+.detailsRow {
+  min-width: 0;
+  flex-wrap: wrap;         /* allow break to next line */
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+/* Allow the "Modified ..." text to wrap if needed */
+.modified {
+  min-width: 0;
+  flex: 1 1 140px;         /* can shrink + wrap */
+  white-space: normal;     /* override any implicit nowrap */
+}
+
+/* Clamp the visibility pill so it doesn't overflow */
+.visibility {
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;          /* allow it to shrink */
+}
+
+/* Ensure the visibility text can truncate gracefully */
+.visibility {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 4) Prevent thumbnail from creating layout overflow */
+.thumbnail {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 5) Buttons row: make sure buttons can shrink on tiny screens */
+.actionsRow {
+  min-width: 0;
+}
+
+.actionsRow button {
+  min-width: 0;
+}
+
+/* ===========================================
+   MOBILE FIX (FINAL OVERRIDE) — put at bottom
+   =========================================== */
 @media (max-width: 600px) {
-  /* The real statsBar becomes a 2x2 grid, so do the same skeletonStatsBar */
-  .skeletonStatsBar {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 0;
+  /* Ensure padding doesn't create weird width math */
+  .statsBar,
+  .statBox {
+    box-sizing: border-box !important;
   }
-  .skeletonStatBox {
-    width: auto;  /* Don’t force a fixed width on small screens */
-    margin: 0;
+
+  /* TRUE 2-col grid that cannot overflow/overlap */
+  .statsBar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;                 /* space between all boxes */
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;                /* avoid extra pushing */
+    margin: 18px 0 18px !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+  }
+
+  /* This kills the “pill too wide” issue */
+  .statBox {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    /* IMPORTANT: stop inline-flex wide pill behavior */
+    display: grid !important;
+    grid-template-columns: 18px 1fr !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 10px !important;
+    row-gap: 2px !important;
+
+    align-items: center !important;
+    justify-items: start !important;
+
+    /* less “pill” = less chance to look like it's bleeding into neighbor */
+    border-radius: 16px !important;
+    padding: 10px 12px !important;
+
+    overflow: hidden !important;          /* hard clamp */
+  }
+
+  .statIcon {
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+  }
+
+  .statValue {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .statLabel {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Slightly reduce font sizes so nothing feels cramped */
+  .statValue { font-size: 15px !important; }
+  .statLabel { font-size: 11px !important; }
+
+  /* ===========================================
+     CARD: Public/Private fits content (left)
+     and Stars sits next to it
+     =========================================== */
+
+  .detailsRow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  /* Force Modified onto its own line (so pills can sit together) */
+  .modified {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    white-space: normal !important;
+  }
+
+  /* Public/Private becomes fit-content, left aligned */
+  .visibility {
+    flex: 0 0 auto !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    justify-content: flex-start !important;
+    white-space: nowrap !important;
+  }
+
+  /* Stars pill sits beside visibility */
+  .statsRow {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .starCount,
+  .commentCount {
+    width: fit-content !important;
+    white-space: nowrap !important;
   }
 }
 
-/* ------------------------------------------------
-   Match the skeletonMapsGrid to .mapsGrid 
-   for narrower breakpoints
----------------------------------------------------*/
-@media (max-width: 400px) {
-  .skeletonMapsGrid {
-    grid-template-columns: 1fr; /* Single column, same as .mapsGrid */
+/* super small phones: go 1-column stats */
+@media (max-width: 360px) {
+  .statsBar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===========================================
+   MOBILE: thumbnail should fill card width
+   =========================================== */
+@media (max-width: 600px) {
+  /* Ensure the card + thumbnail don't create weird sizing */
+  .mapCard,
+  .thumbnail {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .skeletonThumbnail {
-    height: 100%; /* Let it stretch if you want a taller placeholder */
+  /* Center the thumbnail content and remove "inline whitespace" issues */
+  .thumbnail {
+    display: grid !important;
+    place-items: center !important;
+    overflow: hidden !important;
+  }
+
+  /* Force whatever StaticMapThumbnail outputs to fill width */
+  .thumbnail > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  /* If it's an svg/canvas/img, force it to fit and center */
+  .thumbnail svg,
+  .thumbnail canvas,
+  .thumbnail img {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;       /* keeps aspect ratio for svg/img */
+  }
+
+  /* If the thumbnail uses an inner wrapper div, this catches it too */
+  .thumbnail div {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }

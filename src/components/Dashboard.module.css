@@ -1,699 +1,1040 @@
-/* src/components/Dashboard.module.css */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
 
-/* GENERAL LAYOUT */
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: rgba(0,0,0,0.62);
+  --border: rgba(0,0,0,0.10);
+  --shadow: 0 24px 70px rgba(0,0,0,0.08);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+}
+
+/* ===== Layout ===== */
 .dashboardContainer {
   display: flex;
   min-height: 100vh;
-  background-color: #f7f7f7;
-  margin-top:  60px;
-
+  background: var(--bg);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
 }
 
-/* The main content area (beside your global Sidebar component) */
+/* main content beside Sidebar */
 .dashboardContent {
   flex: 1;
-  padding: 20px;
-  margin-left: 250px; /* Adjust for your global sidebar’s expanded width */
+  min-width: 0; /* allow flex to shrink below content size, prevents overflow */
+  padding: 18px;
+  margin-left: 250px;
 }
 
 .contentCollapsed {
-  margin-left: 70px; /* If your sidebar collapses to 70px */
+  margin-left: 70px;
 }
 
-/* MAIN WRAPPER: 3 columns side by side. */
+/* overlay when sidebar open on mobile */
+.sidebarOverlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px);
+  background: rgba(0,0,0,0.45);
+  z-index: 998;
+}
+
 .mainWrapper {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  margin: 0 20px;
-}
+  gap: 18px;
+  margin: 0 8px;
+  min-width: 0;
 
-/* LEFT SIDEBAR: recently modified maps */
-.leftMapsSidebar {
-  width: 350px;           /* Wider than before */
-  flex-shrink: 0;
-  position: sticky;
-  top: 10px;              /* Offset from top, so it's below the Header as user scrolls */
-  background-color: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  padding: 20px;
-  height: 100%;
-  margin-top: 70px;
-}
-
-.leftMapsSidebar h2 {
-  margin-top: 0;
-}
-
-/* List of maps inside the left sidebar */
-.recentMapsList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.mapListItem {
-  display: flex;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.mapListItem:last-child {
-  border-bottom: none;
-}
-
-.mapTitle {
-  flex-shrink: 0;
-  font-weight: 600;
-  color: #333;
-  margin-right: 10px;
-  cursor: pointer;
-}
-.mapTitle:hover {
-  text-decoration: underline;
-}
-
-.mapActions {
-  display: flex;
-  gap: 6px;
-  margin-right: 10px;
-}
-
-
-.mapModifiedDate {
-  margin-left: auto;
-  color: #888;
-  font-size: 0.8rem;
-  white-space: nowrap;
+  /* ✅ key: don’t let whole dashboard scroll weirdly */
+  height: calc(100vh - 80px);
 }
 
 .centerColumn {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
+  min-width: 0;
 }
 
-
-/* The right column that holds Recently Modified + Starred sections */
 .sideColumn {
-  width: 350px;
+  width: 360px;
   flex-shrink: 0;
-  margin-top: 79px;
-  background: none;
-  padding: 0;
 
+  position: sticky;
+  top: 78px;
+  align-self: flex-start;
+
+  height: calc(100vh - 96px);
+  margin-top: 60px;
+
+  /* IMPORTANT: no overflow here */
+  overflow: visible;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* Each “block” on the side column (Recently Modified, Starred) as a card */
+.sideScroll {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 6px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* optional nicer scrollbar */
+.sideScroll::-webkit-scrollbar {
+  width: 10px;
+}
+.sideScroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.16);
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.9);
+}
+
+
+
+/* ===== Cards ===== */
 .sectionCard {
-  background-color: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .sectionCard h2 {
-  margin-top: 0;
-  font-size: 16px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: var(--text);
 }
 
-/* List container for multiple "map cards" (each row) */
+/* ===== Stats ===== */
+.statsBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top:60px; /* keep your header alignment */
+}
+
+.statPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+}
+
+.statIcon {
+  font-size: 15px;
+  color: var(--mic-cyan);
+}
+
+.statValue {
+  font-weight: 1000;
+  font-size: 13px;
+  color: rgba(0,0,0,0.78);
+}
+
+.statLabel {
+  font-weight: 900;
+  font-size: 12px;
+  color: rgba(0,0,0,0.55);
+}
+
+.topRow {
+  margin-top: 60px;
+}
+
+/* Verification banner (below welcome when email not verified) */
+.verificationBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-top: 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.12), rgba(20, 169, 175, 0.08));
+  border: 1px solid rgba(20, 169, 175, 0.25);
+}
+
+.verificationBannerText {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.72);
+  line-height: 1.35;
+}
+
+.verificationBannerText strong {
+  color: var(--text);
+}
+
+.verificationBannerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.verificationBannerBtn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 169, 175, 0.4);
+  background: var(--mic-cyan);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.verificationBannerBtn:hover:not(:disabled) {
+  opacity: 0.95;
+}
+
+.verificationBannerBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.verificationBannerSuccess {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mic-cyan);
+}
+
+/* Welcome card becomes a 2-column layout */
+.welcomeBlock {
+  padding: 14px 14px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.welcomeLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.welcomeKicker {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  letter-spacing: 0.2px;
+}
+
+.welcomeName {
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.82);
+  line-height: 1.1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.welcomeSub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.55);
+  line-height: 1.25;
+}
+
+/* Right-side stats inside the welcome card */
+.welcomeStats {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+/* top row inside each chip */
+.chipTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* tweak spacing now that label is separate */
+.statChip {
+  width: 92px;
+  padding: 10px 10px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(20,169,175,0.22);
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.14),
+    rgba(20,169,175,0.10)
+  );
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* was 2px */
+  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+}
+
+.chipIcon {
+  font-size: 14px;
+  color: var(--mic-cyan);
+  opacity: 0.95;
+}
+
+.chipNum {
+  font-size: 16px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.82);
+  line-height: 1;
+}
+
+.chipLabel {
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  line-height: 1.1;
+}
+
+
+/* Responsive: stack stats under text */
+@media (max-width: 800px) {
+  .welcomeBlock {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .welcomeStats {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .statChip {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chipTop {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chipIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transform: translateY(-1px); /* align icon with number on mobile */
+  }
+
+  .chipNum {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    line-height: 1;
+  }
+}
+
+
+/* stats bar stays the same, but remove margin-top from .statsBar now */
+.statsBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0; /* IMPORTANT: moved to .topRow */
+  justify-content: flex-end;
+}
+
+
+
+/* ===== Map cards list (Recently Modified + Starred) ===== */
 .mapCardsList {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* Reusable "card" for each map row, similar to your .activityItem */
 .mapCard {
   display: flex;
   align-items: center;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 14px;
+  padding: 10px;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .mapCard:hover {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.30);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.10);
 }
 
-/* Left side: thumbnail container */
 .mapCardThumb {
-  width: 80px;
-  height: 60px;
-  border-radius: 4px;
-  margin-right: 10px;
+  width: 115px;
+  height: 100%;
+  border-radius: 12px;
   flex-shrink: 0;
-  background-color: #ddd; /* fallback if no real thumbnail */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(135deg, rgba(40,168,225,0.20), rgba(20,169,175,0.15));
+  border: 1px solid rgba(0,0,0,0.10);
   overflow: hidden;
+  display: grid;
+  place-items: center;
 }
 
-.defaultThumbnail {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-/* Right side: details (title, times, star count, etc.) */
 .mapCardDetails {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .mapCardTitle {
-  margin: 0 0 4px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.mapCardTimestamp {
-  margin: 0 0  0 3px;
-  font-size: 0.8rem;
-  color: #666;
-}
-
-/* For star count inside the card */
-.starCount {
-  font-size: 0.75rem;
-  color: #444;
-  margin: 3px 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  
-}
-
-.editContainer {
-  display: flex;
-  align-items: center;
-}
-
-/* The Edit button inside a mapCard */
-.editBtn {
-  all: unset;
-  color: #333;
-  border: none;
-  padding: 3px 5px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  width: fit-content;
-  align-items: center;
-}
-
-.editBtn:hover {
-  text-decoration: underline;
-}
-
-/* The "View All Starred Maps" button */
-.viewAllSavedBtn {
-  all: unset;
-  font-size: 0.75rem;
-  margin-top: 10px;
-  color: #333;
-  border: none;
-  padding: 8px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.viewAllSavedBtn:hover {
-  text-decoration: underline;
-}
-
-/* Example media query to stack columns on narrower screens */
-@media (max-width: 1050px) {
-  .mainWrapper {
-    flex-direction: column;
-  }
-  .sideColumn {
-    width: 100%;
-    margin-top: 20px;
-  }
-}
-
-@media (max-width: 600px) {
-  .mapCardThumb {
-    width: 60px;
-    height: 40px;
-  }
-  .mapCardTitle {
-    font-size: 0.85rem;
-  }
-  .mapCardTimestamp {
-    font-size: 0.75rem;
-  }
-}
-
-
-/* STATS (top of center column) */
-.statsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-.statItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #fff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  min-height: 40px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.statIcon {
-  font-size: 16px;
-}
-.statLabel {
-  font-weight: 500;
-  color: #444;
-}
-.statValue {
-  font-weight: bold;
-  color: #222;
-}
-
-
-
-
-p {
-  margin: 10px 0px 10px 0px;
-}
-
-
-/* RIGHT COLUMN: Notifications (not sticky) */
-.rightNotifications {
-  width: 350px; /* wider than before */
-  background-color: #fff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  padding: 20px;
-  flex-shrink: 0;
-}
-.rightNotifications h2 {
-  margin-top: 0;
-}
-.markAllBtn {
-  background-color: #ccc;
-  color: #333;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-.markAllBtn:hover {
-  background-color: #b1b1b1;
-}
-.notificationsList {
   margin: 0;
-  padding: 0;
-  /* no scroll, no max-height to hold only 6 items (we slice in JS) */
-}
-.notificationItem {
-  border-bottom: 1px solid #eee;
-  padding: 10px 0;
-  cursor: pointer;
-}
-.notificationItem:last-child {
-  border-bottom: none;
-}
-.notificationText {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #333;
-}
-.notificationTime {
-  margin: 4px 0 0;
-  font-size: 0.8rem;
-  color: #999;
-}
-.unread {
-  background-color: #fdfdfd;
-}
-.read {
-  background-color: #fff;
-}
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.2;
 
-/* DELETE MODAL */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-.modalContent {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 450px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.modalButtons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 20px;
-}
-.confirmDelete,
-.cancelDelete {
-  border: none;
-  padding: 8px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.confirmDelete {
-  background-color: #d9534f;
-  color: #fff;
-}
-.confirmDelete:hover {
-  background-color: #c9302c;
-}
-.cancelDelete {
-  background-color: #ccc;
-  color: #333;
-}
-.cancelDelete:hover {
-  background-color: #bbb;
-}
-
-
-.savedMapsSection {
-  margin-top: 20px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.savedMapsSection h2 {
-  margin-top: 0;
-}
-
-.savedMapsGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.savedMapCard {
-  width: 200px;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  background-color: #fafafa;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-  padding: 10px;
-}
-
-.savedMapCard:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.savedMapThumbnail {
-  width: 100%;
-  height: 100px;
-  background-color: #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.savedMapTitle {
-  font-size: 1rem;
-  margin: 0 0 5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.savedMapCreator {
-  font-size: 0.85rem;
-  color: #666;
+.mapCardTimestamp {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(0,0,0,0.58);
+}
+
+/* star count */
+.starCount {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: rgba(0,0,0,0.70);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.starCount svg {
+  color: var(--mic-azure);
+}
+
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cardTitle {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.78);
 }
 
+.cardTitleIcon {
+  font-size: 14px;
+  color: var(--mic-azure);
+}
 
+.seeAllLink {
+  all: unset;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.62);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+}
 
-.sidebarOverlay {
-  position: fixed;
-  top: 60px;          /* same top as the header */
-  left: 0;
+.seeAllLink:hover {
+  border-color: rgba(20,169,175,0.22);
+  background: rgba(20,169,175,0.06);
+}
+
+.mapCardMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.metaPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.70);
+}
+
+.metaIcon {
+  color: var(--mic-azure);
+  font-size: 12px;
+}
+
+.mapStats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.metaPillSmall {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.70);
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+}
+
+.metaIconSmall {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  color: var(--mic-azure);
+}
+
+.quickAction {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 1000;
+  color: var(--mic-cyan);
+
+  border: 1px solid rgba(20,169,175,0.22);
+  background: rgba(20,169,175,0.08);
+}
+
+.quickAction:hover {
+  filter: brightness(0.98);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+.primaryMiniBtn {
+  all: unset;
+  cursor: pointer;
+  margin-top: 12px;
   width: 100%;
-  height: calc(100% - 60px);
-  background: rgba(0,0,0,0.4);
-  z-index: 998;       /* just below the sidebar’s 999 */
+  height: 40px;
+  border-radius: 999px;
+  text-align: center;
+
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(255,255,255,0.96);
+
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
+  box-shadow: 0 14px 30px rgba(40,168,225,0.16);
 }
 
-/* Reuse your shimmer animation from the feed, or define it again */
+.primaryMiniBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.emptyText {
+  margin: 0;
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+}
+
+
+
+/* ===== Edit row inside map card ===== */
+.editContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.editIcon {
+  color: rgba(0,0,0,0.55);
+  font-size: 14px;
+}
+
+.editBtn {
+  all: unset;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--mic-cyan);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(20,169,175,0.25);
+  background: rgba(20,169,175,0.08);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.editBtn:hover {
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.editBtn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.activityScroll {
+  max-height: calc(100vh - 260px); /* adjust if you want more/less */
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* optional nicer scrollbar */
+.activityScroll::-webkit-scrollbar {
+  width: 10px;
+}
+.activityScroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.16);
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.9);
+}
+
+
+/* ===== View all starred button ===== */
+.viewAllSavedBtn {
+  all: unset;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+  height: 40px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, var(--mic-azure), var(--mic-cyan));
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.viewAllSavedBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(40,168,225,0.18);
+  filter: brightness(0.98);
+}
+
+.viewAllSavedBtn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ===== Skeletons ===== */
 @keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+/* ===== Welcome skeleton ===== */
+.skeletonWelcomeKicker,
+.skeletonWelcomeName,
+.skeletonWelcomeSub,
+.skeletonChip {
+  background: rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
-/* Generic "placeholder" background + shimmer */
+.skeletonWelcomeKicker::after,
+.skeletonWelcomeName::after,
+.skeletonWelcomeSub::after,
+.skeletonChip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.55) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.15s infinite;
+}
+
+.skeletonWelcomeKicker {
+  width: 140px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.skeletonWelcomeName {
+  margin-top: 8px;
+  width: 220px;
+  max-width: 100%;
+  height: 18px;
+  border-radius: 10px;
+}
+
+.skeletonWelcomeSub {
+  margin-top: 10px;
+  width: 280px;
+  max-width: 100%;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.skeletonChip {
+  width: 92px;
+  height: 56px;
+  border-radius: 16px;
+}
+
 .skeletonRow,
 .skeletonStatItem,
 .skeletonSectionTitle,
-.skeletonMapCard {
-  background-color: #eee;
+.skeletonMapCard,
+.skeletonThumb,
+.skeletonLine {
+  background: rgba(0,0,0,0.06);
   position: relative;
-  overflow: hidden; /* needed for the .::after shimmer */
-  border-radius: 4px;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
-/* The shimmer effect across the element */
 .skeletonRow::after,
 .skeletonStatItem::after,
 .skeletonSectionTitle::after,
-.skeletonMapCard::after {
+.skeletonMapCard::after,
+.skeletonThumb::after,
+.skeletonLine::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
+  inset: 0;
+  width: 55%;
   transform: translateX(-100%);
-  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-  animation: shimmer 1.2s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.55) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.15s infinite;
 }
 
-/* For your "stats row" placeholders: same size as .statItem? */
 .skeletonStatItem {
-  width: 100px;
-  height: 40px;
-  margin-right: 10px;
+  width: 140px;
+  height: 42px;
+  border-radius: 999px;
 }
 
-/* For a skeleton section title */
 .skeletonSectionTitle {
-  width: 120px;
+  width: 160px;
   height: 18px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* For skeleton placeholders in place of map cards or “recently modified” items */
 .skeletonMapCard {
   width: 100%;
-  height: 60px; /* or bigger if you want a bigger placeholder */
-  margin-bottom: 10px;
+  height: 74px;
 }
 
-/* 
-  For the skeleton Row that mimics an activity item:
-  We can copy from your feed’s .skeletonRow, or define 
-  differently if you want. 
-*/
 .skeletonRow {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  padding: 10px;
   margin-bottom: 12px;
-  padding: 8px;
 }
 
-/* 
-  A sub-element for the thumbnail portion 
-  if you want to replicate the .skeletonThumb usage 
-*/
 .skeletonThumb {
-  width: 80px;
-  height: 60px;
-  border-radius: 4px;
-  background-color: #eee;
-  position: relative;
-  overflow: hidden;
+  width: 92px;
+  height: 68px;
+  border-radius: 12px;
 }
 
-/* The text area in an activity item skeleton */
 .skeletonTextBlock {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .skeletonLine {
-  width: 100%;
   height: 14px;
-  background-color: #eee;
-  position: relative;
-  border-radius: 4px;
-  overflow: hidden;
+  border-radius: 10px;
 }
 
-/* shimmer for the lines too */
-.skeletonLine::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  transform: translateX(-100%);
-  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-  animation: shimmer 1.2s infinite;
+/* ===== Delete modal (MIC style) ===== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 18px;
 }
 
+.modalContent {
+  width: 520px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  padding: 18px;
+  text-align: left;
+}
 
+.modalContent h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
 
-/* Tablet-ish - stack columns, reduce widths, but still keep some spacing */
+.modalContent p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.4;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.confirmDelete,
+.cancelDelete {
+  border: none;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 13px;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.cancelDelete {
+  background: rgba(0,0,0,0.08);
+  color: rgba(0,0,0,0.70);
+}
+
+.cancelDelete:hover {
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.confirmDelete {
+  background: #b42318;
+  color: #fff;
+}
+
+.confirmDelete:hover {
+  box-shadow: 0 14px 30px rgba(180,35,24,0.20);
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 1050px) {
+  .dashboardContainer {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   .mainWrapper {
     flex-direction: column;
-    /* Possibly reduce side margins, font sizes, etc. */
+    height: auto;
+    min-width: 0;
+    overflow-x: hidden;
+    margin: 0; /* full width: no side margin so no blank space when stacked */
   }
-  .dashboardContent {
-    margin-left: 0 !important; 
+
+  .sideColumn {
+    position: static;
     width: 100%;
-    padding: 5px;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
   }
+
+  .activityScroll {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .dashboardContent,
   .contentCollapsed {
     margin-left: 0 !important;
     width: 100%;
-  }
-  .centerColumn {
-    margin: 0 auto;
-    width: 100%;
-  }
-
-
-  .leftMapsSidebar {
-    padding: 0px
-  }
-  .leftMapsSidebar h2 {
-    padding-top: 15px;
-    padding-left: 15px;
-  }
-
-  .commentBox {
-    margin: 0px;
-    padding: 5px;
-  }
-
-  h2 {
-    font-size: 1rem;
-    
-  }
-
-  .mapTitle {
-    font-size: 14px;
-  }
-
-  
-
-  .mapListItem {
-    padding: 5px 15px;
-  }
-
-  .savedMapsSection {
-    margin-top: 0px;
+    max-width: 100%;
+    min-width: 0;
     padding: 10px;
-    
-
-  }
-
-  .statsContainer {
-    flex-direction: row;
-    gap: 5px;  /* smaller gap */
-    margin-top: 20px;
-  }
-  .leftMapsSidebar {
-    width: 100%;
-    margin-top: 0;
-    /* maybe remove that sticky positioning, or keep it */
-    position: static;
-  }
-
-}
-
-/* Phone-ish - narrower than 600 or 768 for truly small screens */
-@media (max-width: 600px) {
-  .statsContainer {
-    gap: 5px;  /* smaller gap */
-    margin-top: 0px;
-  }
-
-  .statItem {
-    padding: 3px 5px; /* reduce padding for phone */
-  }
-
-
-  
-  .thumbContainer {
-    flex: 0 0 180px; /* or whatever width you’d like the thumbnail */
-    margin-right: 20px;
-    margin-bottom: 0;  /* remove extra bottom margin at larger widths */
-  }
-
-
- 
- 
-  .statItem {
-    padding: 0px 10px; /* reduce padding for phone */
-    font-size: 12px;
-  }
-
-  .statIcon {
-    font-size: 14px;
-  }
-
- 
-
-  .mapModifiedDate {
-    display: none;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
 
   .centerColumn {
-    gap:0px;
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    flex: 1 1 100%;
   }
 
+  .sectionCard,
+  .welcomeBlock {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .statsBar {
+    margin-top: 14px;
+  }
 }
 
+@media (max-width: 800px) {
+  .welcomeBlock {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .welcomeStats {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .statChip {
+    width: 100%;
+  }
+
+  .chipTop {
+    justify-content: space-between; /* icon left, number right */
+  }
+
+  .chipNum {
+    font-size: 14px;
+  }
+}
+
+
+@media (max-width: 700px) {
+  .centerColumn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .welcomeBlock {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Activity feed section and its scroll take full width */
+  .sectionCard .activityScroll,
+  .activityScroll {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .statsBar {
+    justify-content: flex-start;
+  }
+
+  .welcomeName {
+    font-size: 16px;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .mapCardThumb {
+    width: 74px;
+    height: 54px;
+  }
+
+  .statItem {
+    padding: 8px 10px;
+  }
+
+  .statLabel {
+    display: none; /* keeps it compact on phone */
+  }
+}

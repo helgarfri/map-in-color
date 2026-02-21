@@ -1,31 +1,341 @@
-.container {
-    background-color: #79a6b7; /* same or similar theme color */
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.splitContainer {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  position: relative;
+}
 
-  }
-  
-  .box {
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 2rem;
-    max-width: 500px;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    margin: 80px;
-  }
-  
-  .resendButton {
-   all: unset; 
-    cursor: pointer;
-    color: #55957b;
-    font-weight: bold;
-    margin-top: 7px;
-    
+/* top-left home button */
+.goBackButton {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  z-index: 50;
+}
+
+/* LEFT: branding */
+.leftSide {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #79c99e, #14a9af);
+}
+
+.brandContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  width: 130px;
+  height: auto;
+}
+
+.brandText {
+  color: #fff;
+  font-size: 4rem;
+  font-weight: bold;
+}
+
+/* RIGHT: card */
+.rightSide {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 24px;
+}
+
+.card {
+  width: 520px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: 22px 22px 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  background: #fafafa;
+  text-align: center;
+}
+
+.iconPill {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+  background: rgba(20, 169, 175, 0.12);
+  color: #14a9af;
+  font-size: 22px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: #222;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.65);
+  line-height: 1.45;
+}
+
+.cardBody {
+  padding: 18px 22px 22px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.primaryBtn {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: #14a9af;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.primaryBtn:hover {
+  filter: brightness(0.97);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  color: #222;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.secondaryBtn:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.helper {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(0,0,0,0.60);
+}
+
+.linkLike {
+  color: #14a9af;
+  font-weight: 800;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.linkLike:hover {
+  text-decoration: none;
+}
+
+.cardFooter {
+  padding: 12px 22px 18px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  background: #fafafa;
+  text-align: center;
+}
+
+.footerHint {
+  font-size: 12px;
+  color: rgba(0,0,0,0.55);
+}
+
+/* ===== MIC Message Modal ===== */
+.micMsgOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+  padding: 18px;
+}
+
+.micMsgCard {
+  width: 560px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
+}
+
+@keyframes popIn {
+  from { transform: translateY(6px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.micMsgHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.micMsgEyebrow {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  color: rgba(0,0,0,0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.micMsgTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #222;
+}
+
+.micMsgSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.35;
+}
+
+.micMsgClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.micMsgClose:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.micMsgBody {
+  padding: 16px;
+  text-align: center;
+}
+
+.iconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 4px auto 12px;
+  background: rgba(20, 169, 175, 0.12);
+  color: #14a9af;
+  font-size: 22px;
+}
+
+.iconWrap.success {
+  background: rgba(46, 163, 106, 0.12);
+  color: #2ea36a;
+}
+
+.iconWrap.error {
+  background: rgba(179, 38, 30, 0.10);
+  color: #b3261e;
+}
+
+.icon {
+  font-size: 22px;
+}
+
+.micMsgActions {
+  display: flex;
+  justify-content: center;
+  padding-top: 6px;
+}
+
+.micMsgPrimary {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #14a9af;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.micMsgPrimary:hover {
+  filter: brightness(0.96);
+}
+
+/* responsive: stack like login/signup */
+@media (max-width: 1200px) {
+  .splitContainer {
+    flex-direction: column;
   }
 
-  .resendButton:hover {
-    text-decoration: underline;
+  .leftSide {
+    flex: 0;
+    padding: 22px 0;
   }
+
+  .brandText {
+    font-size: 38px;
+  }
+
+  .logo {
+    width: 80px;
+  }
+}
+
+@media (max-width: 450px) {
+  .brandText { font-size: 28px; }
+  .logo { width: 50px; }
+}

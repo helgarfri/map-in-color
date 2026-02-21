@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dummy comment section</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      background: #ffffff;
+      color: #2c3e50;
+      min-height: 100vh;
+    }
+
+    .comments-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .comments-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .comment-item {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .comment-item:has(> .replies-list) {
+      padding-bottom: 4px;
+    }
+
+    .comment-item.reply-item {
+      position: relative;
+      margin-left: 40px;
+      padding: 10px 12px;
+      background: #f5f5f5;
+    }
+
+    /* vertical connector line */
+    .reply-item::before {
+      content: "";
+      position: absolute;
+      left: -20px;
+      top: -8px;
+      bottom: -8px;
+      width: 2px;
+      border-radius: 2px;
+      background: #add8e6;
+    }
+
+    /* horizontal elbow into the card */
+    .reply-item::after {
+      content: "";
+      position: absolute;
+      left: -20px;
+      top: 20px;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: #add8e6;
+    }
+
+    .replies-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .replies-list .replies-list {
+      margin-left: 40px;
+    }
+
+    .replies-list > li.reply-item:last-child::before {
+      bottom: 20px;
+    }
+
+    .comment-header {
+      display: flex;
+      width: 100%;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+
+    .reply-item .comment-avatar {
+      width: 36px;
+      height: 36px;
+    }
+
+    .comment-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .comment-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .comment-author {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #2c3e50;
+    }
+
+    .comment-dot {
+      color: rgba(0,0,0,0.35);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .comment-time {
+      font-size: 0.8rem;
+      color: rgba(44, 62, 80, 0.65);
+    }
+
+    .comment-content {
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin: 0;
+      color: rgba(44, 62, 80, 0.88);
+    }
+
+    .comment-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+      gap: 8px;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+      border: 1px solid rgba(0,0,0,0.08);
+      color: #2c3e50;
+      font-size: 0.82rem;
+      cursor: default;
+    }
+
+    .action-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    .reply-btn svg {
+      transform: scaleX(-1);
+    }
+  </style>
+</head>
+<body>
+  <div class="comments-wrap">
+    <ul class="comments-list">
+      <!-- 1. Top-level: Lukas -->
+      <li class="comment-item">
+        <div class="comment-header">
+          <img src="public/comment-avatars/lukas.png?v=2" alt="" class="comment-avatar" />
+          <div class="comment-body">
+            <div class="comment-meta">
+              <span class="comment-author">lukasmeyer</span>
+              <span class="comment-dot">•</span>
+              <span class="comment-time">3 hours ago</span>
+            </div>
+            <p class="comment-content">This really highlights the digital divide. Some regions are still far behind.</p>
+            <div class="comment-actions">
+              <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z"/></svg> 3</span>
+              <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg> 0</span>
+              <span class="action-btn reply-btn"><svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z"/></svg> Reply</span>
+            </div>
+          </div>
+        </div>
+        <ul class="replies-list">
+        <!-- Reply 1: Elena -->
+        <li class="comment-item reply-item">
+          <div class="comment-header">
+            <img src="public/comment-avatars/elena.png?v=2" alt="" class="comment-avatar" />
+            <div class="comment-body">
+              <div class="comment-meta">
+                <span class="comment-author">elena.maps</span>
+                <span class="comment-dot">•</span>
+                <span class="comment-time">2 hours ago</span>
+              </div>
+              <p class="comment-content">Yes, especially parts of Sub-Saharan Africa. The gap is still significant compared to Europe and East Asia.</p>
+              <div class="comment-actions">
+                <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z"/></svg> 4</span>
+                <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg> 0</span>
+                <span class="action-btn reply-btn"><svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z"/></svg> Reply</span>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <!-- Reply 2: Marta -->
+        <li class="comment-item reply-item">
+          <div class="comment-header">
+            <img src="public/comment-avatars/marta.png?v=2" alt="" class="comment-avatar" />
+            <div class="comment-body">
+              <div class="comment-meta">
+                <span class="comment-author">marta.kovacs</span>
+                <span class="comment-dot">•</span>
+                <span class="comment-time">1 hour ago</span>
+              </div>
+              <p class="comment-content">I agree. It would be interesting to see this alongside GDP per capita.</p>
+              <div class="comment-actions">
+                <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z"/></svg> 1</span>
+                <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg> 0</span>
+                <span class="action-btn reply-btn"><svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z"/></svg> Reply</span>
+              </div>
+            </div>
+          </div>
+          <!-- Reply to Marta: Elena -->
+          <ul class="replies-list">
+            <li class="comment-item reply-item">
+              <div class="comment-header">
+                <img src="public/comment-avatars/elena.png?v=2" alt="" class="comment-avatar" />
+                <div class="comment-body">
+                  <div class="comment-meta">
+                    <span class="comment-author">elena.maps</span>
+                    <span class="comment-dot">•</span>
+                    <span class="comment-time">42 minutes ago</span>
+                  </div>
+                  <p class="comment-content">That's a great idea. I'm thinking about creating a follow-up comparing income levels and internet usage.</p>
+                  <div class="comment-actions">
+                    <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.85-1.22L23 12.41V10z"/></svg> 0</span>
+                    <span class="action-btn"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.85 1.22L1 11.59V14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06l1.39 1.41 6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg> 0</span>
+                    <span class="action-btn reply-btn"><svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c4.55 0 7.83 1.24 10.27 3.32-.4-4.28-2.92-7.39-10.27-7.39z"/></svg> Reply</span>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      </li>
+    </ul>
+  </div>
+</body>
+</html>

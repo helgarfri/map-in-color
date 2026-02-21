@@ -1,0 +1,113 @@
+/*
+  NotFound — Map in Color 3.0 theme
+  Matches HeroSection: cyan #14a9af, azure #28a8e1, same gradient background feel
+*/
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(
+      ellipse 85% 65% at 20% 25%,
+      rgba(20, 169, 175, 0.28),
+      rgba(20, 169, 175, 0.08) 45%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 75% 70% at 88% 75%,
+      rgba(40, 168, 225, 0.26),
+      rgba(40, 168, 225, 0.07) 45%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 55% 55% at 78% 12%,
+      rgba(206, 34, 146, 0.2),
+      rgba(206, 34, 146, 0.05) 40%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 60% at 8% 78%,
+      rgba(252, 134, 29, 0.22),
+      rgba(252, 134, 29, 0.06) 40%,
+      transparent 55%
+    ),
+    linear-gradient(
+      165deg,
+      #e8f4f5 0%,
+      #e3eef5 25%,
+      #ebe5f2 50%,
+      #f5ebe5 75%,
+      #eeece8 100%
+    );
+}
+
+.content {
+  text-align: center;
+  max-width: 480px;
+}
+
+.code {
+  display: block;
+  font-size: 4rem;
+  font-weight: 700;
+  color: #14a9af;
+  line-height: 1;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: rgba(15, 23, 42, 0.9);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: rgba(15, 23, 42, 0.62);
+  line-height: 1.5;
+  margin: 0 0 28px;
+}
+
+.homeButton {
+  display: inline-block;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #28a8e1 0%, #14a9af 100%);
+  color: #ffffff;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 14px 26px rgba(40, 168, 225, 0.25);
+}
+
+.homeButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(40, 168, 225, 0.3);
+}
+
+@media (max-width: 650px) {
+  .code {
+    font-size: 3rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .homeButton {
+    padding: 12px 22px;
+    font-size: 14px;
+  }
+}

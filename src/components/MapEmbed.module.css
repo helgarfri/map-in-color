@@ -1,0 +1,188 @@
+.embedRoot {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.embedRootDark {
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.embedRootDark .watermarkText {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mapWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mapWrapStatic {
+  pointer-events: none;
+}
+
+/* When interactive=0: overlay blocks all map pointer events (hover/click/tooltip/infobox) */
+.mapNonInteractiveOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: auto;
+  cursor: default;
+}
+
+/* simple skeleton */
+.skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+  background-size: 200% 100%;
+  animation: shimmer 1.1s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.errorBox {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  color: rgba(255,255,255,0.85);
+  text-align: center;
+  gap: 6px;
+}
+.errorTitle { font-weight: 800; font-size: 18px; }
+.errorSub { opacity: 0.8; font-weight: 600; font-size: 13px; }
+
+/* Private map: branded message with logo */
+.privateBox {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.98) 0%,
+    rgba(241, 245, 249, 0.98) 100%
+  );
+}
+
+.privateLogoWrap {
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.94);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+}
+
+.privateLogo {
+  height: 40px;
+  width: auto;
+  display: block;
+  vertical-align: middle;
+}
+
+.privateTextWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.privateTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.privateSub {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+
+.watermark {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 50; /* above map, below modals if any */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+
+  pointer-events: none; /* don’t block map interactions */
+  user-select: none;
+
+  opacity: 0.45; /* tweak */
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.16));
+}
+
+.watermarkText {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(15, 23, 42, 0.75);
+  line-height: 1;
+}
+
+.watermarkLogo {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+/* Turn screen prompt (narrow portrait) */
+.turnScreenPrompt {
+  position: absolute;
+  left: 50%;
+  bottom: 56px;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  pointer-events: none;
+  animation: turnScreenFadeIn 0.3s ease-out;
+}
+.turnScreenPromptDark span {
+  color: rgba(255, 255, 255, 0.9);
+}
+.turnScreenPromptDark .turnScreenIcon {
+  color: rgba(255, 255, 255, 0.8);
+}
+@keyframes turnScreenFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.turnScreenPrompt .turnScreenIcon {
+  width: 64px;
+  height: px;
+  min-width: 8px;
+  min-height: 8px;
+  color: rgba(15, 23, 42, 0.55);
+}
+.turnScreenPrompt span {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.75);
+  text-align: center;
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
