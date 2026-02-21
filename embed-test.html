@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Your Website — Embedded Map Demo</title>
+    <meta name="description" content="Demo page showing how an embedded Map in Color looks inside real content." />
+
+    <style>
+      :root{
+        --bg: #0b1020;
+        --surface: rgba(255,255,255,0.86);
+        --surface-2: rgba(255,255,255,0.72);
+        --stroke: rgba(15, 23, 42, 0.12);
+        --text: rgba(15, 23, 42, 0.92);
+        --muted: rgba(15, 23, 42, 0.64);
+        --shadow: 0 22px 70px rgba(2, 6, 23, 0.18);
+        --shadow-soft: 0 14px 40px rgba(2, 6, 23, 0.12);
+        --radius: 18px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1000px 600px at 20% -10%, rgba(56, 189, 248, 0.32), transparent 55%),
+          radial-gradient(900px 520px at 80% 0%, rgba(251, 146, 60, 0.26), transparent 60%),
+          radial-gradient(1000px 700px at 55% 120%, rgba(99, 102, 241, 0.22), transparent 55%),
+          #f6f7fb;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      .container{
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 16px 70px;
+      }
+
+      /* Top Nav */
+      .topbar{
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        background: rgba(246, 247, 251, 0.55);
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      }
+      .topbar-inner{
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .brand{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .logo{
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background:
+          radial-gradient(16px 16px at 30% 30%, rgba(255,255,255,0.85), transparent 60%),
+          linear-gradient(135deg, rgba(56, 189, 248, 0.95), rgba(99, 102, 241, 0.95), rgba(251, 146, 60, 0.92));
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+      }
+      .navlinks{
+        display: flex;
+        gap: 16px;
+        color: rgba(15, 23, 42, 0.70);
+        font-weight: 650;
+        font-size: 14px;
+        align-items: center;
+      }
+      .navlinks a{
+        padding: 8px 10px;
+        border-radius: 12px;
+      }
+      .navlinks a:hover{
+        background: rgba(15, 23, 42, 0.06);
+        text-decoration: none;
+      }
+      .cta{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(15,23,42,0.10);
+        background: rgba(255,255,255,0.8);
+        box-shadow: 0 10px 26px rgba(2, 6, 23, 0.10);
+        font-weight: 750;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      /* Hero */
+      .hero{
+        margin-top: 18px;
+        padding: 20px;
+        border-radius: calc(var(--radius) + 6px);
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        background:
+          radial-gradient(900px 320px at 10% 20%, rgba(56, 189, 248, 0.20), transparent 60%),
+          radial-gradient(900px 380px at 90% 10%, rgba(251, 146, 60, 0.16), transparent 55%),
+          linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.70));
+        box-shadow: var(--shadow-soft);
+      }
+      .hero-top{
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .badge{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        background: rgba(255,255,255,0.75);
+        font-weight: 750;
+        font-size: 12px;
+        color: rgba(15, 23, 42, 0.80);
+      }
+      .hero h1{
+        margin: 10px 0 8px;
+        font-size: 28px;
+        letter-spacing: -0.03em;
+        line-height: 1.12;
+      }
+      .hero p{
+        margin: 0;
+        max-width: 74ch;
+        color: rgba(15, 23, 42, 0.70);
+        line-height: 1.55;
+        font-weight: 620;
+        font-size: 14px;
+      }
+
+      /* Page grid */
+      .grid{
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1.55fr 0.75fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .card{
+        border-radius: calc(var(--radius) + 6px);
+        border: 1px solid var(--stroke);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .card-inner{ padding: 18px; }
+
+      /* Article */
+      .meta{
+        display:flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        color: rgba(15, 23, 42, 0.62);
+        font-weight: 650;
+        font-size: 13px;
+        margin-bottom: 12px;
+      }
+      .dot{
+        width: 4px; height: 4px;
+        background: rgba(15,23,42,0.30);
+        border-radius: 999px;
+        display:inline-block;
+      }
+
+      .article-title{
+        margin: 0 0 10px;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .lead{
+        margin: 0 0 16px;
+        color: rgba(15, 23, 42, 0.68);
+        line-height: 1.6;
+        font-weight: 650;
+        font-size: 14px;
+      }
+
+      /* Embed frame */
+      .embed-wrap{
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(15,23,42,0.10);
+        background: rgba(255,255,255,0.9);
+        box-shadow: 0 18px 60px rgba(2, 6, 23, 0.16);
+      }
+      .embed-head{
+        display:flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(15,23,42,0.10);
+        background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.70));
+      }
+      .embed-title{
+        display:flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      .pill{
+        font-size: 12px;
+        font-weight: 800;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(15,23,42,0.12);
+        background: rgba(15,23,42,0.04);
+        color: rgba(15,23,42,0.72);
+        white-space: nowrap;
+      }
+
+      .embed{
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #fff;
+      }
+      .embed iframe{
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+
+      .caption{
+        padding: 12px 12px 14px;
+        border-top: 1px solid rgba(15,23,42,0.08);
+        color: rgba(15, 23, 42, 0.62);
+        font-weight: 650;
+        font-size: 13px;
+        line-height: 1.45;
+        background: rgba(255,255,255,0.72);
+      }
+
+      .body-text{
+        margin-top: 14px;
+        color: rgba(15, 23, 42, 0.70);
+        font-weight: 620;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      .body-text p{ margin: 0 0 12px; }
+
+      .tags{
+        margin-top: 14px;
+        display:flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .tag{
+        font-size: 12px;
+        font-weight: 800;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(15,23,42,0.10);
+        background: rgba(255,255,255,0.68);
+        color: rgba(15,23,42,0.70);
+      }
+
+      /* Sidebar */
+      .side{
+        position: sticky;
+        top: 76px;
+      }
+      .side .card{ box-shadow: var(--shadow-soft); background: var(--surface-2); }
+      .side h3{
+        margin: 0 0 10px;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .profile{
+        display:flex;
+        gap: 12px;
+        align-items: center;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(15,23,42,0.10);
+        background: rgba(255,255,255,0.75);
+      }
+      .avatar{
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        background:
+          radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,0.85), transparent 60%),
+          linear-gradient(135deg, rgba(99,102,241,0.95), rgba(56,189,248,0.95));
+        border: 1px solid rgba(15,23,42,0.10);
+        box-shadow: 0 12px 26px rgba(2, 6, 23, 0.14);
+      }
+      .profile strong{ display:block; font-size: 13px; }
+      .profile span{ display:block; font-size: 12px; color: rgba(15,23,42,0.62); font-weight: 650; margin-top: 2px; }
+
+      .side-list{
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+        display:flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .side-item{
+        display:flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(15,23,42,0.10);
+        background: rgba(255,255,255,0.70);
+        font-weight: 750;
+        font-size: 13px;
+        color: rgba(15,23,42,0.75);
+      }
+      .side-item small{
+        font-weight: 800;
+        color: rgba(15,23,42,0.55);
+      }
+
+      .side-cta{
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(15,23,42,0.10);
+        background:
+          radial-gradient(420px 220px at 20% 20%, rgba(56,189,248,0.22), transparent 60%),
+          radial-gradient(460px 220px at 90% 10%, rgba(251,146,60,0.18), transparent 55%),
+          rgba(255,255,255,0.72);
+      }
+      .side-cta .btn{
+        margin-top: 10px;
+        width: 100%;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(15,23,42,0.12);
+        background: rgba(15,23,42,0.92);
+        color: rgba(255,255,255,0.96);
+        font-weight: 850;
+        font-size: 13px;
+        box-shadow: 0 14px 30px rgba(2, 6, 23, 0.22);
+        cursor: pointer;
+      }
+
+      /* Footer */
+      footer{
+        margin-top: 18px;
+        color: rgba(15, 23, 42, 0.55);
+        font-size: 12px;
+        font-weight: 650;
+        text-align: center;
+      }
+
+      /* Responsive */
+      @media (max-width: 980px){
+        .grid{ grid-template-columns: 1fr; }
+        .side{ position: static; }
+      }
+      @media (max-width: 640px){
+        .hero h1{ font-size: 24px; }
+        .embed{ aspect-ratio: 4 / 5; } /* taller on mobile */
+        .navlinks{ display:none; }
+      }
+
+      /* Optional: nicer screenshot printing */
+      @media print{
+        .topbar{ position: static; }
+        body{ background: #fff; }
+        .card{ box-shadow: none; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>Your Website</div>
+        </div>
+
+        <nav class="navlinks" aria-label="Main">
+          <a href="#">Home</a>
+          <a href="#">Blog</a>
+          <a href="#">Work</a>
+          <a href="#">About</a>
+          <a href="#">Contact</a>
+        </nav>
+
+        <a class="cta" href="#" role="button" aria-label="Get started">
+          Get started <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="badge">Embedded content demo • Map in Color</div>
+            <h1>How interactive maps look inside a real article layout</h1>
+            <p>
+              This page is a clean “client website” mock so you can screenshot a realistic embed in context:
+              navigation, article copy, sidebar modules, and a responsive iframe frame.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <!-- Main article -->
+        <article class="card">
+          <div class="card-inner">
+            <div class="meta">
+              <span>Blog</span><span class="dot" aria-hidden="true"></span>
+              <span>5 min read</span><span class="dot" aria-hidden="true"></span>
+              <span>Updated Feb 18, 2026</span>
+            </div>
+
+            <h2 class="article-title">A simple embed that feels native to the page</h2>
+            <p class="lead">
+              Below is an embedded Map in Color view inside a responsive frame with a subtle header, caption,
+              and spacing that matches the surrounding content.
+            </p>
+
+            <div class="embed-wrap">
+              <div class="embed-head">
+                <div class="embed-title">
+                  Interactive map embed
+                  <span class="pill">Responsive iframe</span>
+                </div>
+                <span class="pill">16:9</span>
+              </div>
+
+              <div class="embed">
+                <!-- Replace with your real embed URL -->
+                <iframe src="http://localhost:3000/embed/70?token=9f6b27399b7f7e25c129a666a0aeabdd935624cf4fcab44558e705d8fcc4bcdd&theme=light&branding=0&legend=1&interactive=1" width="900" height="520"></iframe>
+              </div>
+
+              <div class="caption">
+                Tip: this frame keeps the embed crisp and screenshot-friendly, and adapts nicely on mobile.
+              </div>
+            </div>
+
+            <div class="body-text">
+              <p>
+                When embedding interactive content, the biggest thing is making it feel like it belongs.
+                A simple header, consistent spacing, and a responsive container goes a long way.
+              </p>
+              <p>
+                You can place this embed in a blog post, documentation page, or product landing page and it
+                will scale cleanly without extra work.
+              </p>
+            </div>
+
+            <div class="tags" aria-label="Tags">
+              <span class="tag">Embeds</span>
+              <span class="tag">Data viz</span>
+              <span class="tag">Interactive</span>
+              <span class="tag">Maps</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Sidebar -->
+        <aside class="side">
+          <div class="card">
+            <div class="card-inner">
+              <h3>Author</h3>
+              <div class="profile">
+                <div class="avatar" aria-hidden="true"></div>
+                <div>
+                  <strong>Alex Carter</strong>
+                  <span>Product & Content • Your Website</span>
+                </div>
+              </div>
+
+              <ul class="side-list" aria-label="Highlights">
+                <li class="side-item">
+                  <span>Embed setup</span><small>~1 minute</small>
+                </li>
+                <li class="side-item">
+                  <span>Responsive frame</span><small>Built-in</small>
+                </li>
+                <li class="side-item">
+                  <span>Looks native</span><small>Pro layout</small>
+                </li>
+              </ul>
+
+              <div class="side-cta">
+                <h3 style="margin:0 0 6px;">Want this on your site?</h3>
+                <div style="color: rgba(15,23,42,0.68); font-weight:650; font-size:13px; line-height:1.5;">
+                  Drop in the iframe, set your parameters, and you’re done.
+                </div>
+                <button class="btn" type="button">
+                  Copy embed snippet <span aria-hidden="true">⎘</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <footer>
+        © 2026 Your Website • Demo layout for showcasing iframe embeds
+      </footer>
+    </main>
+  </body>
+</html>
+

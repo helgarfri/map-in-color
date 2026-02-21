@@ -18,23 +18,25 @@
     margin-left: 70px; /* collapsed sidebar */
   }
   
-  /* On small screens, remove margin-left => overlay instead */
+  /* On small screens, remove margin-left => overlay instead; add top space so map preview clears fixed Header */
   @media (max-width: 1000px) {
     .mainContentWrapper {
       margin-left: 0 !important;
+      margin-top: 60px; /* match Header height so map preview is not behind it */
+      padding: 0;
     }
     .mainContentWrapper.collapsed {
       margin-left: 0 !important;
     }
   }
   
-  /* Overlay for small screens */
+  /* Overlay for small screens — below fixed Header (60px) */
   .sidebarOverlay {
     position: fixed;
-    top: 40px; /* or 60px if your Header is fixed & that tall */
+    top: 60px;
     left: 0;
     width: 100%;
-    height: calc(100% - 40px);
+    height: calc(100% - 60px);
     background: rgba(0, 0, 0, 0.4);
     z-index: 999;
   }

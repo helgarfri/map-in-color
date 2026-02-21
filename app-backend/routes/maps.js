@@ -1,9 +1,69 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 
 const { supabaseAdmin } = require('../config/supabase'); // Use service_role key
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
+
+// Allowed fields for map update (prevents mass assignment: no user_id, id, created_at)
+const MAP_UPDATE_ALLOWED = [
+  'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
+  'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
+  'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
+];
+
+function stripEmptyUpdateFields(obj) {
+  const clean = { ...obj };
+
+  // remove undefined / null
+  Object.keys(clean).forEach((k) => {
+    if (clean[k] === undefined || clean[k] === null) delete clean[k];
+  });
+
+  // IMPORTANT: don't overwrite stored arrays with empty arrays
+  // (MapDetail often sends [] by default)
+  if (Array.isArray(clean.custom_ranges) && clean.custom_ranges.length === 0) {
+    delete clean.custom_ranges;
+  }
+  if (Array.isArray(clean.groups) && clean.groups.length === 0) {
+    delete clean.groups;
+  }
+  if (Array.isArray(clean.data) && clean.data.length === 0) {
+    delete clean.data;
+  }
+
+  return clean;
+}
+
+/** Build a safe update payload from body: only allowed keys, snake_case where needed */
+function allowlistMapUpdate(body) {
+  const allowed = {};
+  MAP_UPDATE_ALLOWED.forEach((key) => {
+    if (body[key] !== undefined) allowed[key] = body[key];
+  });
+  return allowed;
+}
+
+/** Attach comment_count to each map (visible comments only). Mutates the array. */
+async function attachCommentCounts(maps) {
+  if (!maps || maps.length === 0) return maps;
+  const mapIds = maps.map((m) => m.id);
+  const { data: commentRows, error } = await supabaseAdmin
+    .from('comments')
+    .select('map_id')
+    .in('map_id', mapIds)
+    .eq('status', 'visible');
+  const countByMap = {};
+  mapIds.forEach((id) => (countByMap[id] = 0));
+  if (!error && commentRows && commentRows.length > 0) {
+    commentRows.forEach((row) => {
+      countByMap[row.map_id] = (countByMap[row.map_id] || 0) + 1;
+    });
+  }
+  maps.forEach((m) => (m.comment_count = countByMap[m.id] ?? 0));
+  return maps;
+}
 
 /* --------------------------------------------
    GET /api/maps
@@ -26,6 +86,7 @@ router.get('/', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
+    await attachCommentCounts(userMaps || []);
     res.json(userMaps);
   } catch (err) {
     console.error('Error fetching maps:', err);
@@ -52,19 +113,18 @@ router.post('/', auth, async (req, res) => {
     }
 
   
-    // Insert into "maps"
-    const { data: insertedMaps, error } = await supabaseAdmin
+    // Insert into "maps" (IMPORTANT: use .select() so Supabase returns the inserted row)
+    const { data: newMap, error } = await supabaseAdmin
       .from('maps')
-      .insert([
-        {
-          ...mapData,
-          title_font_size: titleFontSize,
-          legend_font_size: legendFontSize,
-          user_id: user_id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-      ])
+      .insert({
+        ...mapData,
+        title_font_size: titleFontSize,
+        legend_font_size: legendFontSize,
+        user_id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select('*')
       .single();
 
     if (error) {
@@ -72,7 +132,6 @@ router.post('/', auth, async (req, res) => {
       return res.status(500).json({ msg: 'Server error' });
     }
 
-    const newMap = insertedMaps;
 
     // (optional) Insert an "Activity" row
     await supabaseAdmin.from('activities').insert([
@@ -143,6 +202,7 @@ router.get('/saved', auth, async (req, res) => {
       return m.user.status !== 'banned';
     });
 
+    await attachCommentCounts(filteredMaps);
     res.json(filteredMaps);
   } catch (err) {
     console.error('Error fetching saved maps:', err);
@@ -156,60 +216,77 @@ router.get('/saved', auth, async (req, res) => {
 -------------------------------------------- */
 router.post('/:id/download', authOptional, async (req, res) => {
   try {
-    const mapId = req.params.id;
-    const user_id = req.user?.id || null;
+    const mapId = Number(req.params.id); // ✅ coerce
+    if (!Number.isFinite(mapId)) return res.status(400).json({ msg: "Invalid map id" });
 
-    // 1) fetch the map
+    const user_id = req.user?.id ?? null;
+    const anon_id = req.body?.anon_id ?? null;
+
+    if (!user_id && !anon_id) {
+      return res.status(400).json({ msg: "anon_id required for anonymous downloads" });
+    }
+
+    // fetch map
     const { data: mapRow, error: mapErr } = await supabaseAdmin
       .from('maps')
       .select(`
-        *,
-        user:users!maps_user_id_fkey (
-          id,
-          status
-        )
+        id,
+        user_id,
+        is_public,
+        download_count,
+        user:users!maps_user_id_fkey ( id, status )
       `)
       .eq('id', mapId)
       .maybeSingle();
 
-    if (mapErr) {
-      console.error(mapErr);
-      return res.status(500).json({ msg: 'Server error' });
-    }
-    if (!mapRow) {
-      return res.status(404).json({ msg: 'Map not found' });
-    }
+    if (mapErr) return res.status(500).json({ msg: 'Server error' });
+    if (!mapRow) return res.status(404).json({ msg: 'Map not found' });
+    if (mapRow.user?.status === 'banned') return res.status(404).json({ msg: 'Map not found' });
 
-    // *** If the owner is banned => 404
-    if (mapRow.user?.status === 'banned') {
-      return res.status(404).json({ msg: 'Map not found' });
-    }
-
-    // Check if it's public or if user is owner
     if (!mapRow.is_public && (!user_id || mapRow.user_id !== user_id)) {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
-    // increment
+    const insertPayload = {
+      map_id: mapRow.id,                 // bigint
+      user_id: user_id,                  // must match your DB type
+      anon_id: user_id ? null : anon_id, // only store anon_id if not logged in
+      created_at: new Date().toISOString(),
+    };
+
+    const { error: insErr } = await supabaseAdmin
+      .from('map_downloads')
+      .insert(insertPayload); // ✅ can insert object directly
+
+    if (insErr) {
+      // ✅ best: check code 23505
+      const isDuplicate = insErr.code === "23505" || String(insErr.message || "").toLowerCase().includes("duplicate");
+      if (isDuplicate) {
+        return res.json({ download_count: mapRow.download_count || 0, already_counted: true });
+      }
+      console.error("map_downloads insert error:", insErr);
+      return res.status(500).json({ msg: "Error recording download" });
+    }
+
     const newDownloadCount = (mapRow.download_count || 0) + 1;
+
     const { error: updateErr } = await supabaseAdmin
       .from('maps')
       .update({ download_count: newDownloadCount })
-      .eq('id', mapId);
+      .eq('id', mapRow.id);
 
     if (updateErr) {
       console.error(updateErr);
       return res.status(500).json({ msg: 'Error incrementing download count' });
     }
 
-    console.log('DownloadCount AFTER increment:', newDownloadCount);
-
-    res.json({ download_count: newDownloadCount });
+    return res.json({ download_count: newDownloadCount, already_counted: false });
   } catch (err) {
     console.error('Error incrementing download count:', err);
-    res.status(500).json({ msg: 'Server error' });
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    PUT /api/maps/:id
@@ -219,16 +296,18 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user.id;
-    const updateData = { ...req.body };
 
-    // Pull out the front-end fields
-    const { titleFontSize, legendFontSize, ...rest } =  req.body;
+    // Pull out front-end fields and allowlist to prevent mass assignment
+    const { titleFontSize, legendFontSize, ...restRaw } = req.body;
+    const allowed = allowlistMapUpdate({ ...restRaw, title_font_size: titleFontSize, legend_font_size: legendFontSize });
 
-
-    // If tags is an array, normalize
-    if (Array.isArray(updateData.tags)) {
-      updateData.tags = updateData.tags.map((t) => t.toLowerCase());
+    // ✅ normalize tags
+    if (Array.isArray(allowed.tags)) {
+      allowed.tags = allowed.tags.map((t) => t.toLowerCase());
     }
+
+    // ✅ remove undefined/null and empty-array overwrites
+    const rest = stripEmptyUpdateFields(allowed);
 
     // 1) check if map belongs to this user
     const { data: existingMap } = await supabaseAdmin
@@ -244,16 +323,20 @@ router.put('/:id', auth, async (req, res) => {
         .json({ msg: 'Map not found or you are not the owner' });
     }
 
-    // 2) update
+    // 2) update (only allowlisted fields)
+    const updatePayload = {
+      ...rest,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (titleFontSize !== undefined) updatePayload.title_font_size = titleFontSize;
+    if (legendFontSize !== undefined) updatePayload.legend_font_size = legendFontSize;
+
     const { data: updatedMap, error: updateErr } = await supabaseAdmin
       .from('maps')
-      .update({
-        ...rest,
-        title_font_size: titleFontSize,
-        legend_font_size: legendFontSize,
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', mapId)
+      .select('*')
       .single();
 
     if (updateErr) {
@@ -267,6 +350,7 @@ router.put('/:id', auth, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 /* --------------------------------------------
    DELETE /api/maps/:id
@@ -365,12 +449,14 @@ router.delete('/:id', auth, async (req, res) => {
 
 /* --------------------------------------------
    GET /api/maps/:id
-   Fetch single map by ID (public or owner only)
+   Fetch single map by ID (public or owner only).
+   Query: ?token=... for embed access (private maps + optional allow_unbranded).
 -------------------------------------------- */
 router.get('/:id', authOptional, async (req, res) => {
   try {
     const mapId = req.params.id;
     const user_id = req.user?.id || null;
+    const embedToken = req.query.token || null;
 
     // join with user (including status)
     const { data: mapRow, error } = await supabaseAdmin
@@ -402,18 +488,47 @@ router.get('/:id', authOptional, async (req, res) => {
       return res.status(404).json({ msg: 'Map not found' });
     }
 
-    // If map is private and user is NOT the owner => Return partial data
-    if (!mapRow.is_public && mapRow.user_id !== user_id) {
+    let accessViaEmbedToken = false;
+    let allow_unbranded = false;
+
+    // Validate embed token when present (for private map access and/or unbranded for public maps)
+    if (embedToken) {
+      const { data: tokenRow, error: tokenErr } = await supabaseAdmin
+        .from('embed_tokens')
+        .select(`
+          allows_unbranded,
+          expires_at,
+          user:users!embed_tokens_user_id_fkey ( plan )
+        `)
+        .eq('token', embedToken)
+        .eq('map_id', mapId)
+        .maybeSingle();
+
+      const now = new Date().toISOString();
+      const tokenValid = !tokenErr && tokenRow && (!tokenRow.expires_at || tokenRow.expires_at > now);
+      const tokenUser = tokenRow?.user;
+      const ownerIsPro = tokenUser && tokenUser.plan === 'pro';
+
+      if (tokenValid) {
+        // Private map embeds: only allow access if the map owner (token user) is still Pro
+        if (!mapRow.is_public && !ownerIsPro) {
+          // Token exists but owner downgraded to free → show private screen, don't grant access
+        } else {
+          accessViaEmbedToken = true;
+          allow_unbranded = !!(tokenRow.allows_unbranded && ownerIsPro);
+        }
+      }
+    }
+
+    // If map is private and not owner and no valid embed token => partial response
+    if (!mapRow.is_public && mapRow.user_id !== user_id && !accessViaEmbedToken) {
       return res.json({
         id: mapRow.id,
         user_id: mapRow.user_id,
         is_public: false,
         isOwner: false,
-
-        // Add created_at so the front end won't break:
+        allow_unbranded: false,
         created_at: mapRow.created_at,
-
-        // Minimizing or hiding the real data is optional; do as you wish:
         title: mapRow.title || 'Private Map',
         description: '',
         data: [],
@@ -426,7 +541,7 @@ router.get('/:id', authOptional, async (req, res) => {
       });
     }
 
-    // Otherwise, if it's public OR user is owner => return full data
+    // Otherwise, if it's public OR user is owner OR valid embed token => return full data
     let isSavedByCurrentUser = false;
     let isOwner = false;
 
@@ -441,12 +556,76 @@ router.get('/:id', authOptional, async (req, res) => {
       isSavedByCurrentUser = !!existingSave;
     }
 
+    // With valid embed token, treat as having access so embed shows the map (not "private" message)
+    if (accessViaEmbedToken) {
+      isOwner = true;
+    }
+
     mapRow.isSavedByCurrentUser = isSavedByCurrentUser;
     mapRow.isOwner = isOwner;
+    mapRow.allow_unbranded = allow_unbranded;
 
     return res.json(mapRow);
   } catch (err) {
     console.error('Error fetching map:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+/* --------------------------------------------
+   POST /api/maps/:id/embed-token
+   Generate an embed token for private/unbranded embeds. Owner only; unbranded requires Pro.
+-------------------------------------------- */
+router.post('/:id/embed-token', auth, async (req, res) => {
+  try {
+    const mapId = req.params.id;
+    const user_id = req.user.id;
+    const { allows_unbranded = false } = req.body || {};
+
+    const { data: mapRow, error: mapErr } = await supabaseAdmin
+      .from('maps')
+      .select('id, user_id')
+      .eq('id', mapId)
+      .maybeSingle();
+
+    if (mapErr || !mapRow) {
+      return res.status(404).json({ msg: 'Map not found' });
+    }
+    if (mapRow.user_id !== user_id) {
+      return res.status(403).json({ msg: 'Only the map owner can generate embed tokens' });
+    }
+
+    if (allows_unbranded) {
+      const { data: userRow } = await supabaseAdmin
+        .from('users')
+        .select('plan')
+        .eq('id', user_id)
+        .maybeSingle();
+      if (!userRow || userRow.plan !== 'pro') {
+        return res.status(403).json({ msg: 'Unbranded embeds require a Pro plan' });
+      }
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const { data: inserted, error: insertErr } = await supabaseAdmin
+      .from('embed_tokens')
+      .insert({
+        token,
+        user_id,
+        map_id: mapId,
+        allows_unbranded: !!allows_unbranded,
+      })
+      .select('id')
+      .single();
+
+    if (insertErr) {
+      console.error('Error inserting embed token:', insertErr);
+      return res.status(500).json({ msg: 'Failed to create embed token' });
+    }
+
+    return res.status(201).json({ token });
+  } catch (err) {
+    console.error('Error creating embed token:', err);
     return res.status(500).json({ msg: 'Server error' });
   }
 });

@@ -1,0 +1,284 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: 95vh;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
+}
+
+@keyframes popIn {
+  from { transform: translateY(6px); opacity: 0.7; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.headerText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(0, 0, 0, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+}
+
+.headerSubtext {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  color: inherit;
+}
+
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cropArea {
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  position: relative;
+}
+
+.mapContainer {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 2000 / 857;
+  background: #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(20, 24, 40, 0.1);
+}
+
+.mapWrap {
+  position: absolute;
+  inset: 0;
+}
+
+.mapWrap svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.mapBlockOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.cropOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cropOverlay * {
+  pointer-events: auto;
+}
+
+.shade {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.shadeTop {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: var(--crop-top, 0%);
+}
+
+.shadeBottom {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--crop-bottom, 0%);
+}
+
+.shadeLeft {
+  left: 0;
+  top: var(--crop-top, 0%);
+  width: var(--crop-left, 0%);
+  height: var(--crop-height, 100%);
+}
+
+.shadeRight {
+  right: 0;
+  top: var(--crop-top, 0%);
+  width: var(--crop-right, 0%);
+  height: var(--crop-height, 100%);
+}
+
+.cropWindow {
+  position: absolute;
+  left: var(--crop-left, 0%);
+  top: var(--crop-top, 0%);
+  width: var(--crop-width, 100%);
+  height: var(--crop-height, 100%);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(20, 169, 175, 0.6);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(20, 169, 175, 0.9);
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  z-index: 2;
+}
+
+.handle:hover {
+  background: #fff;
+  border-color: rgba(20, 169, 175, 1);
+  transform: scale(1.1);
+}
+
+.handleN { left: 50%; top: 0; cursor: n-resize; }
+.handleS { left: 50%; bottom: 0; top: auto; margin-bottom: -7px; cursor: s-resize; }
+.handleE { left: 100%; top: 50%; margin-left: -7px; cursor: e-resize; }
+.handleW { left: 0; top: 50%; margin-left: -7px; cursor: w-resize; }
+.handleNW { left: 0; top: 0; cursor: nw-resize; }
+.handleNE { left: 100%; top: 0; margin-left: -7px; cursor: ne-resize; }
+.handleSW { left: 0; bottom: 0; top: auto; margin-bottom: -7px; cursor: sw-resize; }
+.handleSE { left: 100%; bottom: 0; top: auto; margin-left: -7px; margin-bottom: -7px; cursor: se-resize; }
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.actionPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.actionPill:hover {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.actionPill:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.resetPill {
+  margin-right: auto;
+  background: #fff;
+  color: #111;
+}
+
+.resetPill:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cancelPill {
+  background: #fff;
+  color: #111;
+}
+
+.cancelPill:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.primaryPill {
+  border-color: #149397;
+  background: #14a9af;
+  color: #fff;
+}
+
+.primaryPill:hover {
+  background: #149397;
+}
+
+.hint {
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.6);
+  margin-top: 8px;
+  text-align: center;
+}

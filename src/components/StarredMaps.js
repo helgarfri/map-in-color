@@ -1,3 +1,4 @@
+// src/components/StarredMaps.js
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './StarredMaps.module.css';
 import { useNavigate } from 'react-router-dom';
@@ -7,10 +8,8 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../api';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
-import { FaStar } from 'react-icons/fa';
+import StaticMapThumbnail from './StaticMapThumbnail';
+import { FaStar, FaComment } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { UserContext } from '../context/UserContext';
@@ -22,21 +21,17 @@ export default function StarredMaps() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [notifications, setNotifications] = useState([]);
+
   const navigate = useNavigate();
-  const { profile } = useContext(UserContext);
+  const { profile } = useContext(UserContext); // keep if you need it later
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
-  
+
   useEffect(() => {
     const getStarredMaps = async () => {
       try {
         const res = await fetchSavedMaps();
-        // Sort maps by updated_at descending
         const sortedMaps = res.data.sort(
           (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
@@ -80,47 +75,20 @@ export default function StarredMaps() {
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
   };
 
-  // Render the appropriate SVG thumbnail based on map type.
-  function renderMapThumbnail(map) {
-    const mapTitle = map.title || 'Untitled Map';
-    const sharedProps = {
-      groups: map.groups,
-      mapTitleValue: mapTitle,
-      ocean_color: map.ocean_color,
-      unassigned_color: map.unassigned_color,
-      data: map.data,
-      selected_map: map.selected_map,
-      font_color: map.font_color,
-      is_title_hidden: map.is_title_hidden,
-      show_top_high_values: false,
-      show_top_low_values: false,
-      showNoDataLegend: map.show_no_data_legend,
-      titleFontSize: map.title_font_size,
-      legendFontSize: map.legend_font_size,
-      
-    };
-
-    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
-    return null;
-  }
-
   // --------------------------
-  // SKELETON VIEW (while loading)
+  // SKELETON VIEW
   // --------------------------
   if (loading) {
     return (
       <div className={styles.starredMapsContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
         <div
           className={`${styles.starredMapsContent} ${
             isCollapsed ? styles.contentCollapsed : ''
@@ -131,6 +99,13 @@ export default function StarredMaps() {
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
           />
+
+
+          
+                  <div className={styles.skeletonStatsBar}>
+            <div className={styles.skeletonStatBox} />
+          </div>
+
           <div className={styles.skeletonMapsGrid}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={styles.skeletonMapCard}>
@@ -143,10 +118,7 @@ export default function StarredMaps() {
                   className={styles.skeletonLine}
                   style={{ width: '40%', marginBottom: '6px' }}
                 />
-                <div
-                  className={styles.skeletonLine}
-                  style={{ width: '90%' }}
-                />
+                <div className={styles.skeletonLine} style={{ width: '90%' }} />
               </div>
             ))}
           </div>
@@ -176,14 +148,24 @@ export default function StarredMaps() {
           title="Starred Maps"
         />
 
+                {/* ✅ Stats bar (like YourMaps) */}
+        <div className={styles.statsBar}>
+          <div className={styles.statBox}>
+            <FaStar className={styles.statIcon} />
+            <div className={styles.statValue}>{maps.length}</div>
+            <div className={styles.statLabel}>Starred Maps</div>
+          </div>
+        </div>
+
+
         {error ? (
           <p>Error fetching starred maps. Please try again later.</p>
         ) : maps.length > 0 ? (
           <div className={styles.mapsGrid}>
             {maps.map((map) => {
               const mapTitle = map.title || 'Untitled Map';
-              const creator = map.user;
-              const creatorUsername = creator?.username || 'Unknown';
+              const creatorUsername = map.user?.username || 'Unknown';
+
               return (
                 <div
                   key={map.id}
@@ -191,16 +173,24 @@ export default function StarredMaps() {
                   onClick={() => navigate(`/map/${map.id}`)}
                 >
                   <div className={styles.thumbnail}>
-                    {renderMapThumbnail(map)}
+                    {/* ✅ Static preview (no zoom/hover/pan), but card stays clickable */}
+                    <StaticMapThumbnail map={map} background="#dddddd" />
                   </div>
+
                   <h3 className={styles.mapTitle}>{mapTitle}</h3>
+
                   <div className={styles.mapInfoRow}>
                     <span>By {creatorUsername}</span>
-                    <span>
-                      <FaStar className={styles.starIcon} />{' '}
-                      {map.save_count || 0}
-                    </span>
+                    <div className={styles.mapStats}>
+                      <span className={styles.starCountContainer}>
+                        <FaStar className={styles.starIcon} /> {map.save_count || 0}
+                      </span>
+                      <span className={styles.starCountContainer}>
+                        <FaComment className={styles.commentIcon} /> {map.comment_count ?? map.comments_count ?? 0}
+                      </span>
+                    </div>
                   </div>
+
                   {map.tags && map.tags.length > 0 && (
                     <div className={styles.tags}>
                       {map.tags.slice(0, 5).map((tg, idx) => (

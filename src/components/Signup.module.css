@@ -1,385 +1,463 @@
-.splitContainer {
-  display: flex;
-  min-height: 100vh; /* Ensures it at least fills the screen vertically */
-  font-family: Arial, sans-serif;
+/* =========================
+   MIC Signup (CSS Module)
+   Palette:
+   Orange:  #fc861d
+   Magenta: #ce2292
+   ========================= */
+
+:root {
+  --mic-offwhite: #fbfafa;
+  --mic-orange: #fc861d;
+  --mic-magenta: #ce2292;
 }
 
+   :root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+  --mic-offwhite: #fbfafa;
+}
 
-/* The go-back button in the top-left corner */
+/* ===== Page layout ===== */
+.splitContainer {
+  display: flex;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  position: relative;
+    background: var(--mic-offwhite);
+}
+
+/* Header slot: shown only below 1200px (replaces left side) */
+.signupPageHeader {
+  display: none;
+  flex: 0 0 auto;
+}
+
+/* top-left (hidden below 1200px when HomeHeader is used) */
 .goBackButton {
   position: fixed;
   top: 20px;
   left: 20px;
-  background: none;
-  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.10);
+  color: rgba(0,0,0,0.70);
+
   cursor: pointer;
-  color: white;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.goBackButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
 }
 
 
-
-/* Left side: for the logo and branding */
+/* ===== Left brand side (MIC gradient like Login) ===== */
 .leftSide {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center; 
-  align-items: center;
-  background: linear-gradient(to bottom right, #79c99e, #55957b);
+  display: grid;
+  place-items: center;
+  padding: 30px;
+
+  background:
+    radial-gradient(900px 600px at 20% 25%, rgba(252,134,29,0.16), rgba(251,250,250,0) 60%),
+    radial-gradient(900px 600px at 70% 70%, rgba(206,34,146,0.12), rgba(251,250,250,0) 58%),
+    linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0) 40%),
+    var(--mic-offwhite);
 }
+
 
 .brandContainer {
   display: flex;
-  flex-direction: row; 
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 
 .logo {
-  width: 130px;
+  width: 600px;
   height: auto;
 }
 
 .brandText {
   color: #fff;
-  font-size: 4rem; 
-  font-weight: bold;
-  text-align: center;
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin: 0;
 }
 
-/* Right side: for the form */
+/* ===== Right form side (subtle orange/pink like HeroSection) ===== */
 .rightSide {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f5f5f5;
+  min-width: 0; /* allow shrinking so form doesn't overflow at ~1550px */
+  display: grid;
+  place-items: center;
+  padding: 30px;
+
+  background:
+    radial-gradient(
+      ellipse 85% 65% at 20% 25%,
+      rgba(252, 134, 29, 0.2),
+      rgba(252, 134, 29, 0.05) 45%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 75% 70% at 88% 75%,
+      rgba(206, 34, 146, 0.18),
+      rgba(206, 34, 146, 0.05) 45%,
+      transparent 65%
+    ),
+    linear-gradient(
+      165deg,
+      #f5ebe5 0%,
+      #f8e8f0 35%,
+      #f5ebe5 70%,
+      #f0e8f2 100%
+    );
 }
 
-/* Container for the signup heading and form */
+/* Form card */
 .signupBox {
-  
-  width: 90%;
-  text-align: center;
-
+  width: 760px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.10);
+  padding: 22px;
+  text-align: left;
+  overflow: hidden;
 }
 
 .signupTitle {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-  color: #333;
+  margin: 0 0 6px;
+  font-size: 28px;
+  font-weight: 900;
+  color: #222;
+  letter-spacing: -0.2px;
 }
 
-/* The signup form */
+/* If you add it in JSX (recommended) */
+.signupSubtitle {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.4;
+}
+
 .signupForm {
   display: flex;
   flex-direction: column;
 }
 
+/* two columns */
+.formColumns {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.leftColumn,
+.rightColumn {
+  flex: 1;
+  min-width: 0; /* allow columns to shrink with form */
+}
+
 /* Row container for First/Last Name */
 .formRow {
   display: flex;
-  gap: 10px;
-
-
+  gap: 12px;
 }
 
-
-
-/* Individual form groups (label + input or select) */
+/* groups */
 .formGroup {
-  margin-bottom: 15px;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
   width: 100%;
 }
 
 .formGroup label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.70);
 }
 
+/* inputs/selects */
 .formGroup input,
 .formGroup select {
   width: 100%;
-  padding: 10px;
+  padding: 12px 12px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  line-height: 1.5; /* Adjust line-height to prevent text overlap */
-
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+  background: #fff;
 }
 
-/* Container for the two columns in the form */
-.formColumns {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-
+.formGroup input:focus,
+.formGroup select:focus {
+  border-color: rgba(252, 134, 29, 0.65);
+  box-shadow: 0 0 0 4px rgba(252, 134, 29, 0.18);
 }
 
-/* Left and right columns each take roughly half the width */
-.leftColumn,
-.rightColumn {
-  flex: 1;
-}
-
-.checkboxContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: left;
-  text-align: left;
-  align-items: flex-start;
-  width: fit-content;
-  margin: 0 auto;
-}
-/* The outer label with the checkbox + text container side by side */
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  justify-content: center;
-  /* no gap here so the checkbox doesn't get huge spacing */
-  color: #666;
-}
-
-/* Minimal right margin to separate checkbox from the text container */
-.checkboxLabel input[type='checkbox'] {
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  margin-right: 6px; /* Adjust to taste */
-}
-
-/* The inner container that holds the text, links, and final dot */
-.termsText {
-  /* Use inline-flex so items line up on a single row */
-  display: inline-flex;
-  align-items: center;
-  gap: 5px; /* Gap between each child (span/button) except we'll handle the dot specially */
-  font-size: 0.9rem;
-}
-
-/* Make the "Terms of Use" & "Privacy Policy" look link-like */
-.privacyLink {
-  background: none;
-  border: none;
-  color: #55957b;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  font-size: 0.9rem;
-}
-
-.privacyLink:hover {
-  text-decoration: none;
-}
-
-/* .dot can override margin if you want zero space before it.
-   Right now, the container’s gap property will create a space 
-   before the dot, so you can either leave the tiny gap or 
-   pull it flush if you prefer: */
-.dot {
-  margin-left: -4px; /* remove or adjust if you want it snug */
-}
-
-.privacyIframe {
-  width: 800px;
-  height: 700px;
-}
-
-
-@media (max-width: 800px) {
-  .privacyIframe {
-    width: 100%;
-    height: 60vh;
-  }
-}
-
-
-
-/* Optional: Make the layout stack on smaller screens */
-@media (max-width: 1678px) {
-  .formColumns {
-    flex-direction: column;
-  }
-}
-
-
+/* DOB selects */
 .dobContainer {
   display: flex;
   gap: 10px;
 }
 
-.signupButton {
-  padding: 10px;
-  background-color: #55957b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-top: 15px;
-  width: 100px;
-  margin: 20px auto 0;
-}
-
-.signupButton:hover {
-  background-color: #49846d;
-}
-
-/* Error message styling */
-.errorMessage {
-  color: red;
-  font-size: 0.85rem;
-  margin: 3px 0;
-}
-
-.errorMessageGeneral {
-  color: red !important;
-
-  ;
-}
-
-/* Paragraph and link style under the form */
-.signupBox p {
-  margin-top: 15px;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-.signupBox a {
-  color: #55957b;
-  text-decoration: none;
-}
-
-.signupBox a:hover {
-  text-decoration: underline;
-}
-
-/* Grid container for password requirements */
+/* ===== Password requirements ===== */
 .passwordRequirementsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 15px;
+  margin: 6px 0 12px;
 }
 
-/* Individual requirement item */
 .passwordRequirementItem {
   display: flex;
   align-items: center;
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.60);
 }
 
-/* The round icon for each requirement */
 .requirementIcon {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
-  background-color: gray;
-  margin-right: 5px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.25);
+  margin-right: 8px;
+  flex: 0 0 auto;
 }
 
-/* When a requirement is met, turn the icon green */
 .valid {
-  background-color: #48b17d;
+  background-color: #2ea36a;
 }
 
-/* Otherwise, keep it gray */
 .invalid {
-  background-color: gray;
+  background-color: rgba(0, 0, 0, 0.25);
 }
 
-/* Password match indicator styling */
 .passwordMatch {
   display: flex;
-  align-items: center; 
-  font-size: 0.8rem;
-  margin-top: 0px;
-  color: #666;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.60);
+  margin-top: -2px;
 }
 
+/* ===== Errors ===== */
+.errorMessage {
+  color: #b42318;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* ===== Checkboxes ===== */
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+  align-items: flex-start;
+}
+
+.formGroupCheckbox {
+  width: 100%;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+/* text + links */
+.termsText {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  flex-wrap: wrap;
+}
+
+.privacyLink {
+  background: none;
+  border: none;
+  color: #ce2292;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 900;
+}
+
+.privacyLink:hover {
+  text-decoration: underline;
+}
+
+.dot {
+  margin-left: -2px;
+}
+
+/* ===== Submit CTA (pill like MIC) ===== */
+.signupButton {
+  margin-top: 14px;
+  height: 44px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: #fff;
+  background: linear-gradient(135deg, #fc861d 0%, #ce2292 100%);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+  width: 180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.signupButton:hover {
+  box-shadow: 0 14px 30px rgba(206, 34, 146, 0.18);
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.signupButton:active {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+/* Footer link (if you add className in JSX) */
+.signupFooter {
+  margin-top: 16px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.62);
+  text-align: center;
+}
+
+.signupFooter a {
+  color: #ce2292;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.signupFooter a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Terms/Privacy iframe modal ===== */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Dark background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000; /* Ensure it appears above everything else */
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 18px;
 }
 
 .modalContent {
   background-color: #fff;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 16px;
   text-align: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-
-.spinner {
-  border: 8px solid #f3f3f3;
-  border-top: 8px solid #48b17d; /* Green spinner */
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 15px; /* Centers the spinner */
+.privacyIframe {
+  width: 860px;
+  height: 72vh;
+  max-height: 760px;
+  border: none;
+  border-radius: 12px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* ===== Responsive ===== */
+/* Shrink form in split layout before it overflows (~1550px) */
+@media (max-width: 1600px) {
+  .signupBox {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
-.successIcon {
-  font-size: 50px;
-  color: #48b17d;
-  margin-top: 10px;
-  margin-bottom: 5px;
-}
-
-
-
-/* ----------- MEDIA QUERY for screens <= 1200px ----------- */
 @media (max-width: 1200px) {
   .splitContainer {
-    flex-direction: column; /* stack left side above right side */
+    flex-direction: column;
+    /* Same orange/pink gradient as .rightSide so transparent header fits (like HeroSection) */
+    background:
+      radial-gradient(
+        ellipse 85% 65% at 20% 25%,
+        rgba(252, 134, 29, 0.2),
+        rgba(252, 134, 29, 0.05) 45%,
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 75% 70% at 88% 75%,
+        rgba(206, 34, 146, 0.18),
+        rgba(206, 34, 146, 0.05) 45%,
+        transparent 65%
+      ),
+      linear-gradient(
+        165deg,
+        #f5ebe5 0%,
+        #f8e8f0 35%,
+        #f5ebe5 70%,
+        #f0e8f2 100%
+      );
   }
 
-  .leftSide{
-    flex: 0;
+  /* Use HomeHeader instead of left brand side (transparent over gradient) */
+  .signupPageHeader {
+    display: block;
   }
 
-  .leftSide, 
+  .goBackButton {
+    display: none;
+  }
+
+  .leftSide {
+    display: none;
+  }
+
   .rightSide {
-    width: 100%;
-    height: auto;
-    display: flex;
-    justify-content: center;
+    padding: 28px 24px;
+    min-height: 0;
     align-items: center;
+    justify-content: center;
   }
 
-  
-  
-  /* If you want the brand container to be vertical when stacked */
-  .brandContainer {
-    flex-direction: row;
-    gap: 10px;
-    margin: 20px;
+  .signupBox {
+    width: 100%;
+    max-width: 640px;
+    padding: 24px;
   }
 
   .brandText {
-    text-align: center;
-    margin: 0px;
     font-size: 38px;
   }
 
@@ -388,42 +466,257 @@
   }
 }
 
-@media (max-width: 450px) {
-  .brandText {
-    font-size: 28px;
+@media (max-width: 900px) {
+  .formColumns {
+    flex-direction: column;
   }
-  .logo {
-    width: 50px;
+}
+
+/* Narrower form on small tablets / large phones */
+@media (max-width: 600px) {
+  .rightSide {
+    padding: 20px 16px;
   }
 
-  .brandContainer {
-    height: 30px;
+  .signupBox {
+    max-width: 440px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rightSide {
+    padding: 16px 20px;
+  }
+
+  .signupBox {
+    max-width: calc(100% - 16px);
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    box-sizing: border-box;
   }
 
   .signupTitle {
-    font-size: 1.2rem;
+    font-size: 24px;
   }
 
-  label {
-    font-size: 0.9rem;
+  .signupSubtitle {
+    font-size: 12px;
+    margin-bottom: 14px;
   }
 
-  .formGroup input {
-    font-size: 0.9rem;
-    height: 40px;
-    padding: 0 10px;
-  
-  };
-
+  .formGroup input,
   .formGroup select {
-    font-size: 0.9rem;
-    height: 40px;
-    align-items: center;
-    padding: 0px 10px;
-
+    padding: 10px 12px;
+    font-size: 16px;
   }
- 
 
+  .signupButton {
+    height: 42px;
+    font-size: 13px;
+    margin-top: 10px;
+  }
 
-
+  .signupFooter {
+    margin-top: 14px;
+    font-size: 12px;
+  }
 }
+
+@media (max-width: 450px) {
+  .rightSide {
+    padding: 14px 18px;
+  }
+
+  .signupBox {
+    max-width: calc(100% - 12px);
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .signupTitle {
+    font-size: 20px;
+  }
+
+  .brandText {
+    font-size: 28px;
+  }
+
+  .logo {
+    width: 54px;
+  }
+
+  .privacyIframe {
+    width: 100%;
+    height: 60vh;
+  }
+
+  .signupButton {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   MIC Loader Modal (signup) - used by Signup.js
+   ========================================================= */
+
+.micModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 18px;
+  overflow-y: auto;
+  align-items: center;
+  justify-items: center;
+}
+
+.micModalCard {
+  width: 520px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
+  margin: auto;
+}
+
+@media (max-width: 520px) {
+  .micModalOverlay {
+    padding: 12px;
+    align-items: safe center;
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+
+  .micModalCard {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    border-radius: 14px;
+    margin: auto;
+  }
+
+  .micModalHeader {
+    padding: 14px 12px 10px;
+  }
+
+  .micModalTitle {
+    font-size: 16px;
+  }
+
+  .micModalSubtitle {
+    font-size: 12px;
+  }
+
+  .micModalBody {
+    padding: 12px;
+  }
+}
+
+@keyframes popIn {
+  from { transform: translateY(6px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.micModalHeader {
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.micModalEyebrow {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  color: rgba(0, 0, 0, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.micModalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #222;
+}
+
+.micModalSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.35;
+}
+
+.micModalBody {
+  padding: 16px;
+  text-align: center;
+}
+
+.loaderRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 12px;
+}
+
+.loaderDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #fc861d;
+  animation: pulse 900ms ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.85); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.loaderText {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
+  font-weight: 900;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+}
+
+.progressFillIndeterminate {
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fc861d 0%, #ce2292 100%);
+  animation: indeterminate 900ms ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(260%); }
+}
+
+.iconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 4px auto 10px;
+  background: rgba(252, 134, 29, 0.14);
+  color: #fc861d;
+  font-weight: 900;
+  font-size: 28px;
+}
+
+.success {}

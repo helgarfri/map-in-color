@@ -15,11 +15,10 @@ export default function Terms() {
             }
             }}>
             <img
-                src="/assets/map-in-color-logo.png"
-                alt="Map in Color Logo"
+                src="/assets/3-0/mic-logo-2-5-text-cropped.png"
+                alt="Map in Color"
                 className={styles.logo}
             />
-            <h1 className={styles.brandTitle}>Map in Color</h1>
         </div>
 
            

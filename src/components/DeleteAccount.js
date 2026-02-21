@@ -1,153 +1,166 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './DeleteAccount.module.css'; 
+import styles from './DeleteAccount.module.css';
 import { deleteUserAccount } from '../api';
 
 export default function DeleteAccount() {
   const [selectedReason, setSelectedReason] = useState('');
   const [checked, setChecked] = useState(false);
-  const [improveText, setImproveText] = useState(''); // NEW: for user feedback
+  const [improveText, setImproveText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleDeleteForever = async () => {
-    // Ensure user has chosen a reason
     if (!selectedReason) {
       alert('Please select a reason for deleting your account.');
       return;
     }
-    // Ensure user has acknowledged permanent loss
     if (!checked) {
       alert('You must confirm that you understand data deletion is permanent.');
       return;
     }
 
+    setIsDeleting(true);
     try {
-      // Optionally pass both reason and improveText to your API if needed
       await deleteUserAccount({ reason: selectedReason, feedback: improveText });
       localStorage.removeItem('token');
-
-      alert('Account deleted successfully.');
-      navigate('/'); // redirect to home or any page
+      setIsDeleting(false);
+      setDeleteSuccess(true);
     } catch (err) {
       console.error('Error deleting account:', err);
+      setIsDeleting(false);
       alert('There was a problem deleting your account.');
     }
+  };
+
+  const handleBackToHome = () => {
+    navigate('/');
   };
 
   const handleKeepData = () => {
     navigate('/settings');
   };
 
-  // Show a feedback input if user has selected ANY reason
-  const showFeedbackInput = !!selectedReason;
+  const reasons = [
+    "I don't use my account enough",
+    "I have another account",
+    "I don't like Map in Color",
+    "I have privacy concerns",
+    "Other",
+  ];
 
   return (
-    <div className={styles.deleteContainer}>
-      <h1 className={styles.heading}>
-        Sorry to see you go 
-        <span className={styles.brokenHeart}> 💔</span>
-      </h1>
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <header className={styles.header}>
+          <div className={styles.headerText}>
+            <h1 className={styles.title}>Sorry to see you go</h1>
+            <p className={styles.subtitle}>
+              Please let us know why you&apos;re deleting your account:
+            </p>
+          </div>
+        </header>
 
-      <p className={styles.subheading}>
-        Please let us know why you&apos;re deleting your account:
-      </p>
+        <div className={styles.body}>
+          <section className={styles.section}>
+            <div className={styles.reasonList}>
+              {reasons.map((reason) => (
+                <label key={reason} className={styles.reasonItem}>
+                  <span className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="reason"
+                      value={reason}
+                      checked={selectedReason === reason}
+                      onChange={(e) => setSelectedReason(e.target.value)}
+                      className={styles.radio}
+                    />
+                    <span className={styles.radioText}>{reason}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </section>
 
-      <div className={styles.reasonList}>
-        <label className={styles.reasonItem}>
-          <input
-            type="radio"
-            name="reason"
-            value="I don't use my account enough"
-            onChange={(e) => setSelectedReason(e.target.value)}
-          />
-          I don’t use my account enough
-        </label>
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>How can we improve?</h3>
+            <textarea
+              className={styles.textarea}
+              value={improveText}
+              onChange={(e) => setImproveText(e.target.value)}
+              rows={4}
+              placeholder="Let us know what we could do better..."
+            />
+            <p className={styles.optionalHint}>Optional</p>
+          </section>
 
-        <label className={styles.reasonItem}>
-          <input
-            type="radio"
-            name="reason"
-            value="I have another account"
-            onChange={(e) => setSelectedReason(e.target.value)}
-          />
-          I have another account
-        </label>
+          <section className={styles.section}>
+            <p className={styles.warning}>All your data will be lost forever.</p>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                className={styles.checkbox}
+                checked={checked}
+                onChange={() => setChecked(!checked)}
+              />
+              <span className={styles.checkboxText}>
+                I understand that my data will be lost forever
+              </span>
+            </label>
+          </section>
+        </div>
 
-        <label className={styles.reasonItem}>
-          <input
-            type="radio"
-            name="reason"
-            value="I don’t like Map in Color"
-            onChange={(e) => setSelectedReason(e.target.value)}
-          />
-          I don’t like Map in Color
-        </label>
-
-        <label className={styles.reasonItem}>
-          <input
-            type="radio"
-            name="reason"
-            value="I have privacy concerns"
-            onChange={(e) => setSelectedReason(e.target.value)}
-          />
-          I have privacy concerns
-        </label>
-
-        <label className={styles.reasonItem}>
-          <input
-            type="radio"
-            name="reason"
-            value="Other"
-            onChange={(e) => setSelectedReason(e.target.value)}
-          />
-          Other
-        </label>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={handleDeleteForever}
+            disabled={isDeleting}
+          >
+            Delete Forever
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryBtn}
+            onClick={handleKeepData}
+            disabled={isDeleting}
+          >
+            Keep My Data
+          </button>
+        </div>
       </div>
 
-      {showFeedbackInput && (
-        <div className={styles.feedbackContainer}>
-          <label className={styles.feedbackLabel}>
-            How can we improve?
-          </label>
-          <textarea
-            className={styles.feedbackTextarea}
-            value={improveText}
-            onChange={(e) => setImproveText(e.target.value)}
-            rows="4"
-            placeholder="Let us know what we could do better..."
-          />
+      {/* Loading modal */}
+      {isDeleting && (
+        <div className={styles.overlay} role="status" aria-live="polite" aria-busy="true">
+          <div className={styles.overlayModal}>
+            <div className={styles.loadingSpinner} aria-hidden="true" />
+            <p className={styles.loadingText}>Deleting your account</p>
+            <p className={styles.loadingSubtext}>This may take a moment…</p>
+          </div>
         </div>
       )}
 
-      <p className={styles.warningText}>
-        All your data will be lost forever.
-      </p>
-
-      <div className={styles.checkboxContainer}>
-        <label>
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={() => setChecked(!checked)}
-          />
-          &nbsp;I understand that my data will be lost forever
-        </label>
-      </div>
-
-      <div className={styles.buttonsContainer}>
-        <button
-          className={styles.deleteForeverButton}
-          onClick={handleDeleteForever}
-        >
-          Delete Forever
-        </button>
-        <button 
-          className={styles.keepDataButton} 
-          onClick={handleKeepData}
-        >
-          Keep My Data
-        </button>
-      </div>
+      {/* Success confirmation modal */}
+      {deleteSuccess && (
+        <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="delete-success-title">
+          <div className={styles.overlayModal}>
+            <div className={styles.successIcon} aria-hidden="true">✓</div>
+            <h2 id="delete-success-title" className={styles.successTitle}>Account deleted</h2>
+            <p className={styles.successSubtext}>
+              Your account and data have been permanently removed. Thank you for using Map in Color.
+            </p>
+            <button
+              type="button"
+              className={styles.successBtn}
+              onClick={handleBackToHome}
+            >
+              Back to home
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

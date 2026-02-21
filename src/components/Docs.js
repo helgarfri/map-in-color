@@ -1,14 +1,19 @@
 // src/components/Docs.js
 
 import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useParams, Navigate } from 'react-router-dom';
 import HomeHeader from './HomeHeader';
 import HomeFooter from './HomeFooter';
 import styles from './Docs.module.css';
-
-// Make sure these JSON files exist in src/ with these exact names
+import { DOC_TOPICS, TableOfContents as DocTopicTOC } from './DocTopics';
 import countryCodes from '../world-countries.json';
 import usStatesCodes from '../united-states.json';
 import euCodes from '../european-countries.json';
+
+const DOC_VERSIONS = [
+  { id: 'v3', label: 'MIC v3.0.0', active: true },
+  { id: 'v2', label: 'MIC MVP Release v2.0.0', active: false },
+];
 
 const downloadTemplate = (mapType) => {
   let csvContent = 'data:text/csv;charset=utf-8,';
@@ -89,8 +94,40 @@ const downloadJson = (mapType) => {
   document.body.removeChild(link);
 };
 
-// Table of contents configuration
-const sections = [
+// Table of contents — v3 (MIC v3.0.0) — all headings h1–h4
+const sectionsV3 = [
+  { id: 'mic-v3', title: 'MIC v3.0.0', level: 1 },
+  { id: 'introduction', title: 'What is Map in Color?', level: 2 },
+  { id: 'getting-started', title: 'Getting Started', level: 2 },
+  { id: 'start-creating-immediately', title: 'Start Creating Immediately', level: 3 },
+  { id: 'saving-your-map', title: 'Saving Your Map', level: 3 },
+  { id: 'creating-an-account', title: 'Creating an Account', level: 3 },
+  { id: 'map-types', title: 'Map Types', level: 2 },
+  { id: 'choropleth-maps', title: 'Choropleth Maps', level: 3 },
+  { id: 'automatic-range-generation', title: 'Automatic Range Generation', level: 4 },
+  { id: 'manual-range-control', title: 'Manual Range Control', level: 4 },
+  { id: 'color-customization', title: 'Color Customization', level: 4 },
+  { id: 'categorical-maps', title: 'Categorical Maps', level: 3 },
+  { id: 'creating-categories', title: 'Creating Categories', level: 4 },
+  { id: 'handling-unassigned-countries', title: 'Handling Unassigned Countries', level: 4 },
+  { id: 'visual-control', title: 'Visual Control', level: 4 },
+  { id: 'map-types-summary', title: 'Summary', level: 3 },
+  { id: 'data-format-guide', title: 'Data Format Guide', level: 2 },
+  { id: 'smart-upload', title: 'How the Smart Upload Works', level: 3 },
+  { id: 'ownership-privacy-sharing', title: 'Ownership, Privacy, and Sharing', level: 2 },
+  { id: 'map-ownership', title: 'Map Ownership', level: 3 },
+  { id: 'map-visibility', title: 'Map Visibility', level: 3 },
+  { id: 'embedding-maps', title: 'Embedding Maps', level: 3 },
+  { id: 'profile-privacy-settings', title: 'Profile Privacy Settings', level: 3 },
+  { id: 'explore-community', title: 'Explore & Community', level: 2 },
+  { id: 'browsing-without-an-account', title: 'Browsing Without an Account', level: 3 },
+  { id: 'features-that-require-login', title: 'Features That Require Login', level: 3 },
+  { id: 'search-and-discovery', title: 'Search and Discovery', level: 3 },
+  { id: 'faq', title: 'FAQ', level: 2 },
+];
+
+// Table of contents — v2 (legacy)
+const sectionsV2 = [
   { id: 'introduction', title: 'Introduction', level: 2 },
   { id: 'quick-start', title: 'Quick Start (For Users)', level: 2 },
   { id: 'creating-your-first-map', title: 'Creating Your First Map', level: 3 },
@@ -111,7 +148,7 @@ const sections = [
   { id: 'frontend-setup', title: 'Frontend Setup', level: 3 },
 ];
 
-const TableOfContents = () => {
+const TableOfContents = ({ sections }) => {
   const [activeSection, setActiveSection] = useState('');
 
   const handleScroll = () => {
@@ -120,7 +157,6 @@ const TableOfContents = () => {
       const element = document.getElementById(section.id);
       if (element) {
         const rect = element.getBoundingClientRect();
-        // Adjust "100" if needed for earlier/later activation
         if (rect.top <= 100) {
           current = section.id;
         }
@@ -143,15 +179,24 @@ const TableOfContents = () => {
   };
 
   return (
-    <nav className={styles.tocContainer}>
+    <nav className={styles.tocContainer} aria-label="On this page">
       <ul className={styles.tocList}>
         {sections.map((section) => (
           <li
             key={section.id}
-            className={`${styles.tocItem} ${activeSection === section.id ? styles.active : ''}`}
-            style={{ marginLeft: section.level === 3 ? '20px' : '0' }}
+            className={`${styles.tocItem} ${activeSection === section.id ? styles.tocItemActive : ''}`}
+            style={{
+              paddingLeft:
+                section.level === 2 ? '0' :
+                section.level === 3 ? '12px' :
+                section.level === 4 ? '24px' : '0',
+            }}
           >
-            <button onClick={() => scrollToSection(section.id)}>
+            <button
+              type="button"
+              className={styles.tocLink}
+              onClick={() => scrollToSection(section.id)}
+            >
               {section.title}
             </button>
           </li>
@@ -161,17 +206,238 @@ const TableOfContents = () => {
   );
 };
 
-export default function Docs() {
+function DocContentV3() {
   return (
-    <div className={styles.documentationContainer}>
-      <HomeHeader />
-      <div className={styles.docsWrapper}>
-        <aside className={styles.docsSidebar}>
-          <h2>Documentation</h2>
-          <TableOfContents />
-        </aside>
+    <>
+      <h1 id="mic-v3">MIC v3.0.0</h1>
 
-        <main className={styles.docsMain}>
+      <h2 id="introduction">What is Map in Color?</h2>
+      <p>
+        Map in Color is a web-based platform for creating interactive choropleth and categorical maps from structured data. It allows users to upload their own datasets, customize map design, and control how their maps are presented and shared.
+      </p>
+      <p>
+        Users can adjust colors, define data ranges, add contextual information, and choose whether their maps are public or private. Maps can be downloaded as images, embedded on external websites, or shared directly within the platform.
+      </p>
+      <p>
+        In addition to creation tools, Map in Color provides an explore space where users can discover, save, and interact with maps created by others.
+      </p>
+      <p>
+        The goal of Map in Color is to provide a professional yet accessible mapping tool with a clean, intuitive interface.
+      </p>
+
+      <h2 id="getting-started">Getting Started</h2>
+      <h3 id="start-creating-immediately">Start Creating Immediately</h3>
+      <p>
+        You do not need an account to begin creating a map. Simply open the <Link to="/playground">Playground</Link> to access the map editor and start uploading your data. The playground allows you to explore all core creation features without signing in.
+      </p>
+      <h3 id="saving-your-map">Saving Your Map</h3>
+      <p>
+        To save, publish, download, or share a map, you must be logged in.
+      </p>
+      <p>
+        If you create a map in the playground and later decide to sign up, your current map session will not be lost. Map in Color temporarily stores your map data locally. After signing in or <Link to="/signup">creating an account</Link>, you will be redirected to the <code>/create</code> session where your previous map configuration remains available. This ensures a seamless transition from exploration to ownership.
+      </p>
+      <h3 id="creating-an-account">Creating an Account</h3>
+      <p>To <Link to="/signup">create an account</Link>, users must:</p>
+      <ul>
+        <li>Provide a valid email address</li>
+        <li>Choose a unique username</li>
+        <li>Create a password that meets security requirements</li>
+        <li>Provide basic profile information (such as date of birth and location)</li>
+        <li><span>Agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link></span></li>
+      </ul>
+      <p>Once registration is complete:</p>
+      <ul>
+        <li>Users coming from the playground will be redirected to <code>/create</code> with their active session restored</li>
+        <li>New users signing up directly will be redirected to the <code>/dashboard</code></li>
+      </ul>
+
+      <h2 id="map-types">Map Types</h2>
+      <p>
+        Map in Color supports two types of maps: <strong>Choropleth</strong> and <strong>Categorical</strong>. The system automatically detects the appropriate type based on your data, but you can manually switch between them at any time.
+      </p>
+
+      <h3 id="choropleth-maps">Choropleth Maps</h3>
+      <p>Choropleth maps are used for numerical data. Examples:</p>
+      <ul>
+        <li>Internet usage (%)</li>
+        <li>GDP per capita</li>
+        <li>Population density</li>
+        <li>Human Development Index (HDI)</li>
+      </ul>
+      <p>
+        In a choropleth map, each country is assigned a numerical value. Countries are then grouped into value ranges, and each range is displayed using a different shade or color.
+      </p>
+      <h4 id="automatic-range-generation">Automatic Range Generation</h4>
+      <p>
+        Map in Color includes a built-in system for automatically generating data ranges based on the distribution of your dataset. The algorithm:
+      </p>
+      <ul>
+        <li>Extracts all valid numeric values and sorts the data</li>
+        <li>Determines an appropriate number of bins using the Freedman–Diaconis rule (based on interquartile range and dataset size), with Sturges&apos; formula as a fallback baseline</li>
+        <li>Clamps the number of ranges to a sensible UI range (typically 3–9 bins)</li>
+        <li>Chooses between quantile-based bins (balanced counts per range) when values are highly duplicated or uneven, and equal-width bins when the distribution is more continuous</li>
+        <li>Applies &quot;nice&quot; rounding to create human-friendly boundaries (e.g., 0–10 instead of 0–9.8732)</li>
+      </ul>
+      <p>
+        This ensures that automatically generated ranges reflect the actual distribution of the data, avoid overly narrow or unusable bins, and produce readable legend labels. If all values are equal, a single range is generated.
+      </p>
+      <h4 id="manual-range-control">Manual Range Control</h4>
+      <p>Users can add new ranges, remove ranges, edit lower and upper bounds manually, rename ranges, and adjust colors for each range. Countries are assigned to ranges based on their numerical value—if a value falls within a defined lower and upper bound, it will automatically appear in that range. By default, range labels are numeric (e.g., 0.1 – 0.5), but users can define custom range names.</p>
+      <h4 id="color-customization">Color Customization</h4>
+      <p>
+        For choropleth maps, users can choose a base color (which automatically generates a light-to-dark gradient), select from predefined Map in Color themes, or manually set custom colors for each range. The gradient system ensures that lower values appear lighter and higher values appear darker, creating a clear visual hierarchy.
+      </p>
+
+      <h3 id="categorical-maps">Categorical Maps</h3>
+      <p>Categorical maps are used for classification data. Examples:</p>
+      <ul>
+        <li>World Cup winners</li>
+        <li>EU membership</li>
+        <li>Driving side (left/right)</li>
+        <li>Income level groups</li>
+      </ul>
+      <p>Instead of numerical ranges, categorical maps assign countries to named groups.</p>
+      <h4 id="creating-categories">Creating Categories</h4>
+      <p>
+        Users create categories by adding entries to the category table. Each category includes a custom name and a custom color. Countries can then be manually assigned to any category.
+      </p>
+      <h4 id="handling-unassigned-countries">Handling Unassigned Countries</h4>
+      <p>
+        Users can optionally create a category for unassigned countries. This is useful when only part of the dataset belongs to a defined group and the remaining countries should share a common classification (e.g., &quot;Not Applicable&quot; or &quot;Never Won&quot;).
+      </p>
+      <h4 id="visual-control">Visual Control</h4>
+      <p>
+        Each category has a fixed color. Unlike choropleth maps, categorical maps do not use gradients—they use distinct color blocks to represent discrete groups. This makes categorical maps ideal for binary or multi-group classifications.
+      </p>
+
+      <h3 id="map-types-summary">Summary</h3>
+      <ul>
+        <li><strong>Choropleth</strong> → Best for numerical data and continuous values</li>
+        <li><strong>Categorical</strong> → Best for classification and grouped data</li>
+      </ul>
+      <p>Map in Color automatically detects the appropriate type, but users retain full control over how their data is structured and displayed.</p>
+
+      <h2 id="data-format-guide">Data Format Guide</h2>
+      <p>
+        Map in Color includes a smart data uploader that analyzes your file, matches rows to countries, and automatically determines whether your data should be interpreted as a choropleth (numeric) or categorical (text) map.
+      </p>
+      <p><strong>Supported file types:</strong></p>
+      <ul>
+        <li>CSV (.csv)</li>
+        <li>TSV (.tsv)</li>
+        <li>Excel (.xlsx, .xls)</li>
+        <li>Plain text (.txt, treated like CSV/TSV)</li>
+      </ul>
+      <p>
+        You can upload incomplete datasets. If some rows cannot be matched or parsed, Map in Color will skip invalid lines and import the rest, while showing warnings and errors in the import log.
+      </p>
+
+      <h3 id="smart-upload">How the Smart Upload Works</h3>
+      <p>When you upload a file, Map in Color performs these steps:</p>
+      <p><strong>1) Read and normalize the data</strong></p>
+      <p>Each cell is cleaned before processing: trims whitespace, removes BOM characters (common in exported files), handles quoted CSV values (including escaped quotes), and supports decimal commas (&quot;12,5&quot; → 12.5).</p>
+      <p><strong>2) Parse the file format</strong></p>
+      <p>The uploader automatically parses CSV (including semicolon-separated, common in European exports), TSV (tab-separated), and Excel (first sheet converted to rows). Comment lines starting with <code>#</code> are ignored.</p>
+      <p><strong>3) Match rows to countries (smart country detection)</strong></p>
+      <p>Each row is matched against the Map in Color country dataset using ISO country codes (e.g., US, IS, DE), country names, and aliases (alternate spellings and official names). For example, Turkey matches: Türkiye, Republic of Türkiye, Turkiye. This allows the uploader to handle real-world datasets where country naming varies.</p>
+      <p><strong>4) Detect the file structure</strong></p>
+      <p>Map in Color supports a variety of data layouts, including:</p>
+      <p><strong>A) Simple 2-column layout</strong></p>
+      <p>The uploader expects at least two columns: Column 1 — country name or code; Column 2 — numeric value or category label.</p>
+      <p>Example (numeric → choropleth):</p>
+      <pre className={styles.codeBlock}>
+        {`Country,Value
+Iceland,99.3
+Spain,95.1
+Brazil,89.7`}
+      </pre>
+      <p>Example (text → categorical):</p>
+      <pre className={styles.codeBlock}>
+        {`Country,Category
+Brazil,Winner
+Spain,Winner
+Iceland,Never won`}
+      </pre>
+      <p><strong>B) Wide &quot;year columns&quot; layout (World Bank / WDI-style)</strong></p>
+      <p>Some datasets include many year columns. Map in Color detects this by looking for a header row with &quot;Country Code&quot; and one or more year columns (e.g., 1990, 2000, 2020). A &quot;Country Name&quot; column is optional. In wide format files, Map in Color will match each row to a country, scan from the latest year backwards, pick the most recent available numeric value for that country, and store the chosen year internally. This makes it possible to upload World Bank indicator files directly without manually filtering to a single year.</p>
+      <p>Example (code-only with year columns):</p>
+      <pre className={styles.codeBlock}>
+        {`Country Code,Indicator,1990,2000,2010,2020
+AFG,Inflation (%),,,5.2,6.1
+ALB,Inflation (%),2.1,3.4,4.0,4.2
+USA,Inflation (%),5.4,3.4,1.6,1.2`}
+      </pre>
+      <p><strong>C) Optional description column</strong></p>
+      <p>You can include a third column to attach a short description to each country. The uploader detects a column whose header contains or equals one of: <code>description</code>, <code>desc</code>, <code>notes</code>, <code>note</code>, <code>comment</code>, <code>details</code>, <code>detail</code>, <code>info</code>, or <code>text</code>. If present, that column&apos;s value is stored as the per-country description and can be shown on the map (e.g. in tooltips). Without a header row, the third column is treated as the description column.</p>
+      <pre className={styles.codeBlock}>
+        {`Country,Value,Description
+Iceland,99.3,Highest renewable share in Europe
+Spain,95.1,Strong solar and wind growth
+Brazil,89.7,Hydropower-dominated grid`}
+      </pre>
+      <p><strong>Automatic Map Type Detection</strong></p>
+      <p>After parsing, Map in Color determines the map type: if the value column is numeric → Choropleth; if the value column is text → Categorical. If the file contains mixed numeric and text rows, Map in Color defaults to choropleth and allows a manual switch. When mixed data is detected, the import modal shows an &quot;Interpret as&quot; selector so you can override the automatic decision.</p>
+      <p><strong>Import Log, Warnings, and Errors</strong></p>
+      <p>During import, Map in Color displays an import log showing file reading, matches, detection, and results. Common warnings and errors include: country not found (invalid name or code), missing value in the second column, no numeric values found (for choropleth imports), and rows skipped due to parsing problems. Even when errors occur, Map in Color will still import valid rows and report how many lines were ignored.</p>
+      <p><strong>Country Naming Tips</strong></p>
+      <p>Recommended: ISO codes (e.g., IS, DE, BR) and standard English country names. Also supported: local spellings and alternate forms (aliases) when available. If a row fails to match, check spelling, extra spaces, punctuation, and whether the name is a common alternate form.</p>
+      <p><strong>Notes</strong></p>
+      <p>Map in Color currently supports the world map dataset. Import behavior is designed to be fault-tolerant: invalid rows are skipped, and the remainder is imported successfully.</p>
+  
+      <h2 id="ownership-privacy-sharing">Ownership, Privacy, and Sharing</h2>
+      <p>Map in Color gives creators full control over their maps and profile visibility.</p>
+      <h3 id="map-ownership">Map Ownership</h3>
+      <p>Every saved map belongs to its creator. The creator can edit the map at any time, change its visibility (public or private), and delete the map. Map ownership is tied to the user account that created it.</p>
+      <h3 id="map-visibility">Map Visibility</h3>
+      <p><strong>Public Maps</strong> — Public maps are visible to all users on Map in Color. Other users can view the map, share the map link, embed the map (if embedding is enabled), and download exported versions (if available). Public maps may also appear in search and explore sections.</p>
+      <p><strong>Private Maps</strong> — Private maps are visible only to the creator. They do not appear in search or explore, cannot be viewed by other users, and can still be exported by the creator.</p>
+      <h3 id="embedding-maps">Embedding Maps</h3>
+      <p>Maps can be embedded on external websites using an iframe. <strong>Public embeds</strong>: public maps can be embedded directly. <strong>Private embeds (Pro Feature)</strong>: embedding a private map requires a valid access token in the iframe URL. If the token is missing or invalid, the embedded map will not be displayed. This ensures that private maps remain secure while still allowing controlled external use.</p>
+      <h3 id="profile-privacy-settings">Profile Privacy Settings</h3>
+      <p>Users can control what appears on their public profile under Privacy Settings:</p>
+      <ul>
+        <li><strong>Profile Visibility</strong> — Control who can view your profile. Setting visibility to &quot;Only Me&quot; disables all public profile display options.</li>
+        <li><strong>Show Saved Maps</strong> — Allow others to see the maps you have saved.</li>
+        <li><strong>Show Activity Feed</strong> — Display your recent activity (such as created maps or interactions).</li>
+        <li><strong>Show Location</strong> — Display your location on your profile.</li>
+        <li><strong>Show Date of Birth</strong> — Display your date of birth on your profile.</li>
+        <li><strong>Star Notifications</strong> — Notify others when you star a map.</li>
+      </ul>
+      <p>These settings allow users to balance visibility and privacy according to their preferences.</p>
+
+      <h2 id="explore-community">Explore & Community</h2>
+      <p>Map in Color includes a public explore space where users can discover and interact with maps created by others.</p>
+      <h3 id="browsing-without-an-account">Browsing Without an Account</h3>
+      <p>Anyone can explore public maps without signing in. Unsigned visitors can view public maps, see map details and descriptions, view discussions and comments, browse tags, search for maps, and sort maps. However, certain actions require an account.</p>
+      <h3 id="features-that-require-login">Features That Require Login</h3>
+      <p>To interact with maps, users must be signed in. Signed-in users can star maps, download maps (if allowed), embed maps on external websites, comment on maps, and reply to other comments. This ensures meaningful engagement while keeping exploration open.</p>
+      <h3 id="search-and-discovery">Search and Discovery</h3>
+      <p>The Explore page includes:</p>
+      <ul>
+        <li><strong>Tags</strong> — Maps can include tags. Users can filter maps by selecting specific tags.</li>
+        <li><strong>Search</strong> — Users can search maps by title, description, tags, and creator username.</li>
+        <li><strong>Sorting</strong> — Maps can be sorted by <em>Newest</em> (recently published), <em>Most Starred</em> (highest total star count), and <em>Trending</em> (highest number of stars received in the past 3 days). Trending highlights recently popular maps based on short-term activity.</li>
+      </ul>
+
+      <h2 id="faq">FAQ</h2>
+      <p><strong>1. Do I need an account to create a map?</strong><br />No. You can start creating immediately in the playground. An account is only required to save, publish, download, or embed your map.</p>
+      <p><strong>2. What file formats are supported?</strong><br />Map in Color supports CSV, TSV, XLSX, and XLS. The uploader automatically analyzes your file and matches rows to countries.</p>
+      <p><strong>3. What happens if some rows in my file are invalid?</strong><br />Invalid rows are skipped during import. You can review warnings and errors in the import log to fix issues if needed.</p>
+      <p><strong>4. How does Map in Color detect map type?</strong><br />If your values are numeric, the map is treated as a choropleth. If your values are text-based, it is treated as categorical. If mixed data is detected, you can manually choose the interpretation.</p>
+      <p><strong>5. Can I edit my map after publishing?</strong><br />Yes. Maps can be edited at any time by their creator.</p>
+      <p><strong>6. What is the difference between public and private maps?</strong><br />Public maps are visible to everyone and can appear in Explore. Private maps are only visible to the creator.</p>
+      <p><strong>7. Can I embed maps on my own website?</strong><br />Yes. Public maps can be embedded directly. Private embeds require a valid access token (Pro feature).</p>
+      <p><strong>8. How are trending maps calculated?</strong><br />Trending maps are based on the number of stars received within the past 3 days.</p>
+      <p><strong>9. Can I use Map in Color for commercial purposes?</strong><br />Yes, depending on your usage and subscription level. Refer to the <Link to="/terms">Terms of Service</Link> for full details.</p>
+      <p><strong>10. Is my data stored when I use the playground?</strong><br />Maps created in the playground are temporarily stored locally in your session. They are only permanently saved once you <Link to="/signup">create an account</Link> and choose to save them.</p>
+    </>
+  );
+}
+
+function DocContentV2() {
+  return (
+    <>
           {/* Title */}
           <h1>MIC MVP Release v2.0.0</h1>
 
@@ -565,9 +831,116 @@ npm start`}
             geographic trends, or personal research, you have full control over
             how your map is presented and shared.
           </p>
-        </main>
+        </>
+  );
+}
+
+// ——— Docs layout (header + outlet + footer) for nested routes ———
+export function DocsLayout() {
+  return (
+    <div className={styles.documentationContainer}>
+      <HomeHeader />
+      <div className={styles.docsBody}>
+        <Outlet />
       </div>
       <HomeFooter />
     </div>
   );
 }
+
+// ——— Doc topic cards for /docs landing ———
+const DOC_CARDS = [
+  { slug: 'introduction', title: 'Introduction', subtitle: 'What is Map in Color? · Who is it for?' },
+  { slug: 'getting-started', title: 'Getting Started', subtitle: 'Start Creating Immediately · Saving Your Map · Creating an Account' },
+  { slug: 'creating-maps', title: 'Creating Maps', subtitle: 'Map Types · Choropleth · Categorical · Ranges · Colors' },
+  { slug: 'data-import', title: 'Data Import', subtitle: 'Data Format Guide · Smart Upload · Description Column · File Types · Common Errors' },
+  { slug: 'ownership-sharing', title: 'Ownership & Sharing', subtitle: 'Map Ownership · Public vs Private · Embedding · Profile Privacy' },
+  { slug: 'explore-community', title: 'Explore & Community', subtitle: 'Browsing · Interactions · Search & Tags · Trending' },
+];
+
+export function DocsLanding() {
+  return (
+    <div className={styles.docsLandingWrap}>
+      <div className={styles.docsLandingInner}>
+        <h1 className={styles.docsLandingTitle}>Documentation</h1>
+        <p className={styles.docsLandingLead}>MIC v3.0.0 — choose a topic to get started.</p>
+        <div className={styles.docsCardGrid}>
+          {DOC_CARDS.map((card) => (
+            <Link key={card.slug} to={`/docs/${card.slug}`} className={styles.docCard}>
+              <span className={styles.docCardNumber}>{DOC_CARDS.indexOf(card) + 1}</span>
+              <h2 className={styles.docCardTitle}>{card.title}</h2>
+              <p className={styles.docCardSubtitle}>{card.subtitle}</p>
+            </Link>
+          ))}
+        </div>
+        <div className={styles.docsLandingFAQ}>
+          <Link to="/faq" className={styles.docCard}>
+            <span className={styles.docCardNumber}>?</span>
+            <h2 className={styles.docCardTitle}>FAQ</h2>
+            <p className={styles.docCardSubtitle}>Frequently asked questions</p>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ——— Single doc topic page (sidebar TOC + content) ———
+export function DocPage() {
+  const { topic } = useParams();
+  const config = topic ? DOC_TOPICS[topic] : null;
+  if (!config) return <Navigate to="/docs" replace />;
+  const { title, sections, Content } = config;
+  return (
+    <div className={styles.docsWrapper}>
+      <aside className={styles.docsSidebar}>
+        <nav className={styles.docTopicNav} aria-label="Docs">
+          <Link to="/docs" className={styles.docBackLink}>← All docs</Link>
+        </nav>
+        <DocTopicTOC sections={sections} />
+      </aside>
+      <div className={styles.docsMainWrap}>
+        <main className={styles.docsMain}>
+          <h1 id="page-title">{title}</h1>
+          <Content />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// Legacy: single-page docs with version switcher (kept for possible /docs/legacy)
+function Docs() {
+  const [docVersion, setDocVersion] = useState('v3');
+  return (
+    <div className={styles.documentationContainer}>
+      <HomeHeader />
+      <div className={styles.docsWrapper}>
+        <aside className={styles.docsSidebar}>
+          <div className={styles.docHistory}>
+            <span className={styles.docHistoryLabel}>Doc history</span>
+            {DOC_VERSIONS.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                className={`${styles.docVersionLink} ${docVersion === v.id ? styles.docVersionLinkActive : ''}`}
+                onClick={() => setDocVersion(v.id)}
+              >
+                {v.label}{v.active ? ' · current' : ''}
+              </button>
+            ))}
+          </div>
+          <TableOfContents sections={docVersion === 'v3' ? sectionsV3 : sectionsV2} />
+        </aside>
+        <div className={styles.docsMainWrap}>
+          <main className={styles.docsMain}>
+            {docVersion === 'v3' ? <DocContentV3 /> : <DocContentV2 />}
+          </main>
+        </div>
+      </div>
+      <HomeFooter />
+    </div>
+  );
+}
+
+export default DocsLayout;

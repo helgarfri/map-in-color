@@ -1,178 +1,180 @@
 // src/components/Header.js
-import React, { useState, useRef, useEffect, useContext } from 'react';
-import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import {
   fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-} from '../api';
-import { formatDistanceToNow } from 'date-fns';
-import MapSelectionModal from './MapSelectionModal';
-import { UserContext } from '../context/UserContext';
-import styles from './Header.module.css';
-import useWindowSize from '../hooks/useWindowSize';
+} from "../api";
+import { formatDistanceToNow } from "date-fns";
+import { UserContext } from "../context/UserContext";
+import { SidebarContext } from "../context/SidebarContext";
+import styles from "./Header.module.css";
 
-export default function Header({ isCollapsed, setIsCollapsed, title }) {
+export default function Header({ title }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
-  const { width } = useWindowSize(); // or pass it down as props
 
-  const [showMapModal, setShowMapModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef(null);
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  // Pull `profile` and `setAuthToken` from context
-  const { profile, setAuthToken } = useContext(UserContext);
+  // ✅ get context FIRST
+  const { profile, setAuthToken, isPro } = useContext(UserContext);
+  const { isCollapsed, toggleCollapsed } = useContext(SidebarContext);
 
-  // On mount, fetch notifications
+  // ✅ then compute things that depend on it
+  const isProUser = !!isPro; // uses your context logic: plan === "pro"
+  const headerLogoSrc = isProUser
+    ? "/assets/3-0/PRO-logo.png"
+    : "/assets/3-0/mic-logo-2-5.png";
+
+  // Only show notifications from users that still exist (have a valid Sender)
+  const hasValidSender = (n) =>
+    n.Sender != null && (n.Sender.id != null || n.Sender.username != null);
+
+  // Only show notifications for maps that still exist (hide notifications for deleted maps)
+  const hasValidMap = (n) => !n.map_id || n.Map != null;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetchNotifications();
-        setNotifications(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setNotifications(list.filter((n) => hasValidSender(n) && hasValidMap(n)));
       } catch (err) {
-        console.error('Error fetching notifications:', err);
+        console.error("Error fetching notifications:", err);
       }
     };
     fetchData();
   }, []);
 
-  // Mark a single notification as read
   const handleNotificationClick = async (notification) => {
     try {
       await markNotificationAsRead(notification.id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      if (notification.map_id) {
-        navigate(`/map/${notification.map_id}`);
-      }
+      if (notification.map_id) navigate(`/map/${notification.map_id}`);
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      console.error("Error marking notification as read:", err);
     }
   };
 
-  // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (err) {
-      console.error('Error marking all as read:', err);
+      console.error("Error marking all as read:", err);
     }
   };
 
-  // Close notifications/profile menu if user clicks outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target)
-      ) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setShowProfileMenu(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // "Create Map" button handler
-  const handleCreateMap = () => {
-    setShowMapModal(true);
-  };
+  const handleCreateMap = () => navigate("/create");
 
-  // When user selects a map type in the modal
-  const handleMapSelection = (selected_map) => {
-    if (selected_map) {
-      setShowMapModal(false);
-      navigate('/create', { state: { selected_map } });
-    }
-  };
-
-  // Logout handler
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     if (setAuthToken) setAuthToken(null);
-    navigate('/login');
+    navigate("/login");
   };
 
-  // Read the profile picture from context
   const profile_pictureUrl = profile?.profile_picture
     ? profile.profile_picture
-    : '/default-profile-pic.jpg';
+    : "/default-profile-pic.jpg";
 
   return (
-    <header className={styles.header} >
-      {/* LEFT: Hamburger + Logo + Title */}
+    <header className={styles.header}>
       <div className={styles.headerLeft}>
-        {/* Hamburger */}
-        <button
-          className={styles.hamburgerButton}
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          <span className={styles.iconWrapper}>
-            <FaBars />
-          </span>
-        </button>
+
+<button
+  className={styles.hamburgerButton}
+  onClick={toggleCollapsed}
+  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+>
+  <span className={styles.iconWrapper}>
+    <FaBars />
+  </span>
+</button>
+
 
         <div className={styles.logoWrapper}>
           <Link to="/dashboard" className={styles.logoLink}>
             <img
-              src="/assets/map-in-color-logo.png"
-              alt="App Logo"
-              className={styles.logo}
-            />
+                src={headerLogoSrc}
+                alt={isProUser ? "Map in Color Pro" : "Map in Color"}
+                className={`${styles.logo} ${isProUser ? styles.logoPro : ""}`}
+              />
+
           </Link>
           {title && <span className={styles.headerTitle}>{title}</span>}
         </div>
       </div>
 
-      {/* RIGHT: Create map, notifications, profile */}
       <div className={styles.headerRight}>
         <button className={styles.createMapButton} onClick={handleCreateMap}>
           <FaPlus className={styles.plusIcon} />
           <span>Create</span>
         </button>
 
-        {/* Notifications */}
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button
-            className={styles.notificationBell}
-            onClick={() => setShowNotifications(!showNotifications)}
+            className={`${styles.notificationBell} ${
+              showNotifications ? styles.notificationBellActive : ""
+            }`}
+            onClick={() => setShowNotifications((p) => !p)}
+            aria-expanded={showNotifications}
+            aria-label="Notifications"
           >
-            <span className={styles.iconWrapper}>
+            <span className={styles.bellIcon}>
               {showNotifications ? <FaBell /> : <FaRegBell />}
             </span>
+
             {unreadCount > 0 && (
-              <span className={styles.unreadBadge}>{unreadCount}</span>
+              <span
+                className={styles.unreadBadge}
+                aria-label={`${unreadCount} unread notifications`}
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
             )}
           </button>
+
           {showNotifications && (
             <div className={styles.notificationPopout}>
               <div className={styles.notificationHeader}>
-                <h3>Notifications</h3>
+                <div>
+                  <h3>Notifications</h3>
+                  <p className={styles.notificationHeaderSub}>
+                    {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+                  </p>
+                </div>
+
                 {unreadCount > 0 && (
-                  <button
-                    className={styles.markAllAsRead}
-                    onClick={handleMarkAllAsRead}
-                  >
+                  <button className={styles.markAllAsRead} onClick={handleMarkAllAsRead}>
                     Mark all as read
                   </button>
                 )}
               </div>
+
               <ul className={styles.notificationList}>
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
@@ -188,65 +190,68 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                           src={
                             notification.Sender?.profile_picture
                               ? notification.Sender.profile_picture
-                              : '/default-profile-pic.jpg'
+                              : "/default-profile-pic.jpg"
                           }
                           alt="Sender"
                           className={styles.profile_picture}
                         />
+
                         <div className={styles.notificationText}>
                           <p className={styles.notificationContent}>
                             <Link
-                              to={`/profile/${
-                                notification.Sender?.username || 'unknown'
-                              }`}
+                              to={`/profile/${notification.Sender?.username || "unknown"}`}
                               className={styles.senderName}
                               onClick={(e) => e.stopPropagation()}
                             >
                               {notification.Sender?.first_name ||
                                 notification.Sender?.username ||
-                                'Unknown'}
-                            </Link>{' '}
-                            {getNotificationMessage(notification)}
+                                "Unknown"}
+                            </Link>{" "}
+                            {getNotificationMessage(notification, styles)}
                           </p>
+
                           <p className={styles.notificationMeta}>
-                            {formatDistanceToNow(
-                              new Date(notification.created_at),
-                              { addSuffix: true }
-                            )}
+                            {formatDistanceToNow(new Date(notification.created_at), {
+                              addSuffix: true,
+                            })}
                           </p>
                         </div>
                       </div>
                     </li>
                   ))
                 ) : (
-                  <li className={styles.noNotifications}>
-                    No new notifications.
-                  </li>
+                  <li className={styles.noNotifications}>No new notifications.</li>
                 )}
               </ul>
+
               <div className={styles.viewAllLink}>
-                <Link
-                  to="/notifications"
-                  onClick={() => setShowNotifications(false)}
-                >
-                  View All Notifications
+                <Link to="/notifications" onClick={() => setShowNotifications(false)}>
+                  View all notifications
                 </Link>
               </div>
             </div>
           )}
         </div>
 
-        {/* Profile Menu */}
         <div className={styles.profileWrapper} ref={profileMenuRef}>
-          <img
-            src={profile_pictureUrl}
-            alt="User Avatar"
-            className={styles.headerProfilePicture}
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-          />
+          <button
+            type="button"
+            className={`${styles.profileButton} ${
+              showProfileMenu ? styles.profileButtonActive : ""
+            }`}
+            onClick={() => setShowProfileMenu((p) => !p)}
+            aria-expanded={showProfileMenu}
+            aria-label="Profile menu"
+          >
+            <img
+              src={profile_pictureUrl}
+              alt="User Avatar"
+              className={styles.headerProfilePicture}
+            />
+          </button>
+
           {showProfileMenu && (
             <div className={styles.profileMenu}>
-              {/* Mini Profile Header */}
               <div className={styles.profileMenuHeader}>
                 <img
                   src={profile_pictureUrl}
@@ -257,16 +262,14 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                   <div className={styles.profileMenuName}>
                     {profile?.first_name} {profile?.last_name}
                   </div>
-                  <div className={styles.profileMenuUsername}>
-                    @{profile?.username}
-                  </div>
+                  <div className={styles.profileMenuUsername}>@{profile?.username}</div>
                 </div>
               </div>
-              {/* Menu Items */}
+
               <ul className={styles.profileMenuList}>
                 <li>
                   <Link
-                    to={`/profile/${profile?.username || 'unknown'}`}
+                    to={`/profile/${profile?.username || "unknown"}`}
                     className={styles.profileMenuItem}
                     onClick={() => setShowProfileMenu(false)}
                   >
@@ -274,6 +277,7 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                     <span>View Profile</span>
                   </Link>
                 </li>
+
                 <li>
                   <Link
                     to="/settings"
@@ -284,42 +288,28 @@ export default function Header({ isCollapsed, setIsCollapsed, title }) {
                     <span>Settings</span>
                   </Link>
                 </li>
+
                 <li>
-                  <Link
-                    to="#"
-                    className={styles.profileMenuItem}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleLogout();
-                    }}
+                  <button
+                    type="button"
+                    className={`${styles.profileMenuItem} ${styles.profileMenuItemDanger}`}
+                    onClick={handleLogout}
                   >
                     <FaSignOutAlt className={styles.profileMenuIcon} />
                     <span>Logout</span>
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>
           )}
         </div>
       </div>
-
-      {/* Map Selection Modal */}
-      {showMapModal && (
-        <MapSelectionModal
-          show={showMapModal}
-          onClose={() => setShowMapModal(false)}
-          onCreateMap={handleMapSelection}
-        />
-      )}
     </header>
   );
 }
 
-/**
- * Helper to format the notification message
- */
-function getNotificationMessage(notification) {
-  const mapTitle = notification.Map?.title || 'Untitled Map';
+function getNotificationMessage(notification, styles) {
+  const mapTitle = notification.Map?.title || "Untitled Map";
   const mapId = notification.Map?.id;
 
   const mapLink = mapId ? (
@@ -331,17 +321,17 @@ function getNotificationMessage(notification) {
       {mapTitle}
     </Link>
   ) : (
-    'the map'
+    "the map"
   );
 
   switch (notification.type) {
-    case 'star':
+    case "star":
       return <>starred your map {mapLink}.</>;
-    case 'comment':
+    case "comment":
       return <>commented on your map {mapLink}.</>;
-    case 'like':
+    case "like":
       return <>liked your comment on {mapLink}.</>;
-    case 'reply':
+    case "reply":
       return <>replied to your comment on {mapLink}.</>;
     default:
       return <>performed an action on {mapLink}.</>;

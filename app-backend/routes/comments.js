@@ -14,8 +14,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
     const mapId = parseInt(req.params.mapId, 10);
     const user_id = req.user?.id || null;
 
-    // 1) Fetch top-level comments that are VISIBLE (and join user: status)
-    const { data: topComments, error: topErr } = await supabaseAdmin
+    // 1) Fetch ALL visible comments for this map (top-level + replies + reply-to-replies...)
+    const { data: allCommentsRaw, error } = await supabaseAdmin
       .from('comments')
       .select(`
         *,
@@ -29,72 +29,38 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
         )
       `)
       .eq('map_id', mapId)
-      .is('parent_comment_id', null)
-      .eq('status', 'visible'); // only "visible" top-level
+      .eq('status', 'visible');
 
-    if (topErr) {
-      console.error('Error fetching top-level comments:', topErr);
+    if (error) {
+      console.error('Error fetching comments:', error);
       return res.status(500).json({ msg: 'Server error' });
     }
 
-    // 2) If user is logged in, fetch their comment_reactions
+    // 2) Build userReactions map if logged in
     let userReactions = {};
     if (user_id) {
-      const { data: myReactions } = await supabaseAdmin
+      const { data: myReactions, error: rErr } = await supabaseAdmin
         .from('comment_reactions')
         .select('comment_id, reaction')
         .eq('user_id', user_id);
 
-      if (myReactions) {
+      if (!rErr && myReactions) {
         myReactions.forEach((r) => {
           userReactions[r.comment_id] = r.reaction; // 'like' | 'dislike'
         });
       }
     }
 
-    // 3) Fetch VISIBLE replies for these top-level comments
-    const topIds = topComments.map((c) => c.id);
-    let allReplies = [];
-    if (topIds.length > 0) {
-      const { data: replies, error: repErr } = await supabaseAdmin
-        .from('comments')
-        .select(`
-          *,
-          user:users!comments_user_id_fkey (
-            id,
-            username,
-            first_name,
-            last_name,
-            profile_picture,
-            status
-          )
-        `)
-        .in('parent_comment_id', topIds)
-        .eq('status', 'visible'); // only "visible" replies
-
-      if (repErr) {
-        console.error('Error fetching replies:', repErr);
-        return res.status(500).json({ msg: 'Server error' });
-      }
-      allReplies = replies || [];
-    }
-
-    // 3.5) Filter out any top-level comment whose user is banned
-    const filteredTop = topComments.filter(
+    // 3) Filter out banned users
+    const allComments = (allCommentsRaw || []).filter(
       (c) => c.user && c.user.status !== 'banned'
     );
 
-    // Filter out any replies from banned users
-    const filteredReplies = allReplies.filter(
-      (r) => r.user && r.user.status !== 'banned'
-    );
-
-    // 4) Attach userReaction & compute Wilson score, etc.
     function computeWilsonScore(likes, dislikes) {
-      const n = likes + dislikes;
+      const n = (likes || 0) + (dislikes || 0);
       if (n === 0) return 0;
       const z = 1.96;
-      const p = likes / n;
+      const p = (likes || 0) / n;
       const z2 = z * z;
       const left = p + z2 / (2 * n);
       const right = z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n);
@@ -102,36 +68,38 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
       return (left - right) / denom;
     }
 
-    // 5) Build the final top-level array from filteredTop
-    const topLevel = filteredTop.map((comment) => {
-      const c = { ...comment };
+    // 4) Create nodes map
+    const byId = new Map();
+    for (const c of allComments) {
+      const node = {
+        ...c,
+        userReaction: userReactions[c.id] || null,
+        wilsonScore: computeWilsonScore(c.like_count || 0, c.dislike_count || 0),
+        Replies: [], // children
+      };
+      byId.set(c.id, node);
+    }
 
-      // user’s reaction
-      c.userReaction = userReactions[c.id] || null;
-      c.wilsonScore = computeWilsonScore(c.like_count || 0, c.dislike_count || 0);
+    // 5) Attach children to parents (any depth)
+    const roots = [];
+    for (const node of byId.values()) {
+      const parentId = node.parent_comment_id;
+      if (parentId && byId.has(parentId)) {
+        byId.get(parentId).Replies.push(node);
+      } else {
+        // parent is null OR missing (deleted/orphan) -> treat as top-level
+        roots.push(node);
+      }
+    }
 
-      // gather child replies that match this top-level comment
-      const childReplies = filteredReplies.filter(
-        (r) => r.parent_comment_id === c.id
-      );
+    // 6) Sort recursively by wilsonScore (desc)
+    function sortTree(nodes) {
+      nodes.sort((a, b) => (b.wilsonScore || 0) - (a.wilsonScore || 0));
+      for (const n of nodes) sortTree(n.Replies);
+    }
+    sortTree(roots);
 
-      childReplies.forEach((r) => {
-        r.userReaction = userReactions[r.id] || null;
-        r.wilsonScore = computeWilsonScore(r.like_count || 0, r.dislike_count || 0);
-      });
-
-      // sort replies by Wilson
-      childReplies.sort((a, b) => b.wilsonScore - a.wilsonScore);
-
-      c.Replies = childReplies;
-      return c;
-    });
-
-    // 6) Sort top-level by Wilson score
-    topLevel.sort((a, b) => b.wilsonScore - a.wilsonScore);
-
-    // Return final
-    return res.json(topLevel);
+    return res.json(roots);
   } catch (err) {
     console.error('Error in GET /maps/:mapId/comments:', err);
     return res.status(500).json({ msg: 'Server error' });
@@ -571,7 +539,7 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
                `We have received your report regarding comment #${comment_id}.\n` +
                `Reasons: ${reasons}\nDetails: ${details}\n\n` +
                `Thank you for helping us keep the community safe.\n` +
-               `- Helgi from Map in Color`
+               `- The Map in Color team`
        });
      } catch (emailErr) {
        console.error('Error sending user confirmation email:', emailErr);

@@ -1,63 +1,112 @@
 /* src/components/FullScreenLoader.module.css */
-.loaderOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.6); /* semi-transparent dark overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999; /* on top of everything */
-  }
-  
-  .loaderContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .skeletonBox {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    background: #ccc;
-    margin-bottom: 16px;
-    animation: skeleton-shimmer 1.2s ease-in-out infinite;
-  }
-  
-  .loaderText {
-    color: #fff;
-    font-size: 1.2rem;
-    text-align: center;
-  }
 
-  .spinner {
-    border: 8px solid #f3f3f3;
-    border-top: 8px solid #79a6b7; /* or any color you like */
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    margin-bottom: 16px;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  
-  /* "Shimmer" effect */
-  @keyframes skeleton-shimmer {
-    0% {
-      background-color: #d4d4d4;
-    }
-    50% {
-      background-color: #c0c0c0;
-    }
-    100% {
-      background-color: #d4d4d4;
-    }
-  }
-  
+.micModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 18px;
+}
+
+.micModalCard {
+  width: 520px;
+  max-width: calc(100vw - 36px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: popIn 140ms ease-out;
+}
+
+@keyframes popIn {
+  from { transform: translateY(6px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.micModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.micModalEyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(0,0,0,0.55);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.micModalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+}
+
+.micModalSubtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  line-height: 1.35;
+}
+
+.micModalBody {
+  padding: 16px;
+  text-align: center;
+}
+
+/* loader row */
+.loaderRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 12px;
+}
+
+.loaderIcon {
+  font-size: 18px;
+  color: #14a9af;
+  animation: spin 1s linear infinite;
+}
+
+.loaderText {
+  font-size: 13px;
+  color: rgba(0,0,0,0.65);
+  font-weight: 600;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* progress bar */
+.progressTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.10);
+  overflow: hidden;
+}
+
+.progressFillIndeterminate {
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: #14a9af;
+  animation: indeterminate 900ms ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(260%); }
+}

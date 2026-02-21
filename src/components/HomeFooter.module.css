@@ -1,78 +1,97 @@
+/*
+  Home footer — Map in Color 3.0
+  Light theme, theme accent links (Cyan/Azure)
+*/
+
 .footer {
-  background-color: #79a6b7;
-  /* We want two distinct rows stacked. */
+  width: 100%;
+  margin-top: 56px;
+  padding: 32px 24px 40px;
+  border-top: 1px solid rgba(20, 24, 40, 0.08);
+  background: rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 15px 20px;
-  color: #ffffff;
+  align-items: center;
+  gap: 24px;
+  color: rgba(15, 23, 42, 0.75);
 }
 
-/* First row: social links */
 .topRow {
   display: flex;
-  justify-content: center;  /* center horizontally */
+  justify-content: center;
   align-items: center;
-  gap: 20px;                /* spacing between icons */
+  gap: 20px;
 }
 
-/* Change icon hover effects if you want */
 .topRow a {
-  color: #ffffff;
+  color: rgba(15, 23, 42, 0.6);
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .topRow a:hover {
-  opacity: 0.8;
+  color: #14a9af;
+  transform: translateY(-1px);
 }
 
-/* Second row: one row containing contact, terms, privacy, copyright */
 .bottomRow {
   display: flex;
-  justify-content: center; /* or space-between, or whatever you prefer */
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: 30px;               /* spacing between these groups */
-  flex-wrap: wrap;         /* allow wrapping if smaller screens */
+  gap: 24px;
+  font-size: 0.9rem;
 }
 
-/* Contact info (icon + email) */
 .contactInfo {
   display: flex;
   align-items: center;
-  gap: 8px;  /* space between icon and email text */
+  gap: 8px;
 }
 
 .contactInfo a {
-  color: #ffffff;
+  color: #1a7fb8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.contactInfo a:hover {
+  color: #14a9af;
   text-decoration: underline;
 }
 
-/* Terms & Privacy links container */
 .linkGroup {
   display: flex;
-  gap: 15px; /* space between the two links */
+  gap: 20px;
 }
 
 .linkGroup a {
-  color: #ffffff;
+  color: rgba(15, 23, 42, 0.7);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: opacity 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .linkGroup a:hover {
-  opacity: 0.8;
+  color: #14a9af;
+  text-decoration: underline;
 }
 
-/* If you want to style the copyright text, do so here */
 .bottomRow p {
   margin: 0;
+  color: rgba(15, 23, 42, 0.55);
   font-size: 0.9rem;
 }
 
 @media (max-width: 700px) {
+  .footer {
+    margin-top: 40px;
+    padding: 24px 20px 32px;
+    gap: 20px;
+  }
+
   .bottomRow {
-    gap:10px
+    gap: 16px;
+    flex-direction: column;
   }
 }

@@ -1,154 +1,1130 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* --------------------------------------------------
- * Map.module.css  ◆ 2 Jun 2025
- * -------------------------------------------------- */
+/* =========================
+   MIC TOKENS (local)
+   ========================= */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+  --mic-orange: #fc861d;
 
-/* 1 ▸ hover highlight */
-.hovered {
-  stroke: #fff;
-  stroke-width: 1.5;
-  filter: brightness(1.25);
-  cursor: pointer;
+  --text: rgba(0,0,0,0.82);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
 }
 
-/* 2 ▸ tooltip that never steals the pointer */
+/* =========================
+   SHARED: FROSTED CARD (legend style)
+   ========================= */
+.frostCard {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 16px;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(255,255,255,0.55) inset;
+
+  overflow: hidden; /* important for inner scroll areas */
+}
+
+.frostHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.frostTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: rgba(15, 23, 42, 0.92);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.frostSub {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.60);
+  line-height: 1.1;
+}
+
+.frostBody {
+  padding: 10px 10px 10px;
+}
+
+
+
+/* =========================
+   MAP SHELL
+   ========================= */
+.mapRoot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mapCanvas {
+  width: 100%;
+  height: auto;
+  max-height: 100dvh;
+  display: block;
+}
+
+/* =========================
+   BASE GEOMETRY
+   ========================= */
+.mapCanvas path,
+.mapCanvas polygon,
+.mapCanvas rect {
+  stroke: rgba(0,0,0,0.22);
+  stroke-width: var(--stroke-w, 1.05);
+  vector-effect: non-scaling-stroke;
+
+  /* base transitions */
+  transition:
+    filter 160ms ease,
+    opacity 160ms ease,
+    stroke 160ms ease,
+    stroke-width 160ms ease;
+}
+
+/* stroke presets */
+.mapCanvas[data-stroke="thin"]{
+  --stroke-w: 0.1;
+  --stroke-hover-w: 0.95;
+  --stroke-active-w: 1.25;
+}
+.mapCanvas[data-stroke="thick"]{
+  --stroke-w: 1.0;
+  --stroke-hover-w: 1.0;
+  --stroke-active-w: 1.2;
+}
+
+/* anti-flash fill ONLY while painting */
+.mapCanvas.isPainting path[id],
+.mapCanvas.isPainting polygon[id],
+.mapCanvas.isPainting rect[id] {
+  fill: var(--unassigned, #dedede) !important;
+}
+
+/* once ready, don't force fill — let JS inline styles win */
+.mapCanvas.isReady path[id],
+.mapCanvas.isReady polygon[id],
+.mapCanvas.isReady rect[id] {
+  fill: unset;
+}
+
+/* =========================
+   INTERACTION STATES
+   ========================= */
+
+/* Hover */
+.mapCanvas .hovered {
+  cursor: pointer;
+  stroke: rgba(20,169,175,0.55) !important;
+  stroke-width: var(--stroke-hover-w, 1.0) !important;
+  filter: brightness(1.10) saturate(1.08);
+  opacity: 1;
+}
+
+/* Selected country (make it LIGHTER + glow) */
+.mapCanvas .active {
+  cursor: pointer;
+  stroke: var(--mic-cyan) !important;
+  stroke-width: var(--stroke-active-w, 1.4) !important;
+
+  /* ✅ slightly brighter than before */
+  filter:
+    brightness(1.22) saturate(1.18) contrast(1.02)
+    drop-shadow(0 0 2px rgba(20,169,175,0.40))
+    drop-shadow(0 0 6px rgba(20,169,175,0.22));
+  opacity: 1;
+}
+
+/* group-hover */
+.mapCanvas .groupHovered {
+  stroke: rgba(40,168,225,0.55) !important;
+  stroke-width: var(--stroke-hover-w, 1.0) !important;
+  filter: brightness(1.08) saturate(1.10);
+  opacity: 1;
+}
+
+/* group-active (a bit lighter too, but less than .active) */
+.mapCanvas .groupActive {
+  stroke: rgba(20,169,175,0.92) !important;
+  stroke-width: var(--stroke-active-w, 1.5) !important;
+  filter:
+    brightness(1.16) saturate(1.14)
+    drop-shadow(0 0 2px rgba(20,169,175,0.30))
+    drop-shadow(0 0 6px rgba(20,169,175,0.16));
+  opacity: 1;
+}
+
+/* if selected + group state, selected wins */
+.mapCanvas .active.groupActive,
+.mapCanvas .active.groupHovered {
+  stroke: var(--mic-cyan) !important;
+}
+
+/* =========================
+   SPOTLIGHT MODES (DIM OTHERS)
+   ========================= */
+
+/* Define your dim values once */
+.mapCanvas {
+  --dim-brightness: 0.66;
+  --dim-saturate: 0.80;
+  --dim-contrast: 1.06;
+  --dim-opacity: 0.60;
+}
+
+/* ✅ Dim only NON-highlighted shapes (cleaner than dim-all + undo) */
+.mapCanvas.hasGroupActive path[id]:not(.groupActive):not(.groupHovered):not(.active):not(.hovered),
+.mapCanvas.hasGroupActive polygon[id]:not(.groupActive):not(.groupHovered):not(.active):not(.hovered),
+.mapCanvas.hasGroupActive rect[id]:not(.groupActive):not(.groupHovered):not(.active):not(.hovered),
+.mapCanvas.hasCountrySelected path[id]:not(.active):not(.hovered):not(.groupActive):not(.groupHovered),
+.mapCanvas.hasCountrySelected polygon[id]:not(.active):not(.hovered):not(.groupActive):not(.groupHovered),
+.mapCanvas.hasCountrySelected rect[id]:not(.active):not(.hovered):not(.groupActive):not(.groupHovered) {
+  filter: brightness(var(--dim-brightness)) saturate(var(--dim-saturate)) contrast(var(--dim-contrast));
+  opacity: var(--dim-opacity);
+}
+
+/* optional: make spotlight feel a bit “focused” */
+.mapCanvas.hasCountrySelected .active {
+  filter:
+    brightness(1.26) saturate(1.22) contrast(1.03)
+    drop-shadow(0 0 2px rgba(20,169,175,0.45))
+    drop-shadow(0 0 8px rgba(20,169,175,0.24));
+}
+
+/* mobile tweak */
+@media (max-width: 700px) {
+  .mapCanvas .hovered { stroke-width: 1.4; }
+}
+
+
+/* =========================
+   TOOLTIP (MIC GLASS)
+   ========================= */
+@keyframes popInSoft {
+  from { transform: translateY(-6px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0)   scale(1);    opacity: 1; }
+}
+
 .tooltip {
   position: fixed;
+  top: 0;
+  left: 0;
   pointer-events: none;
   z-index: 999;
-  background: rgba(24, 24, 24, 0.9);
-  color: #fff;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  font-size: 0.875rem;
-  white-space: nowrap;
+
+  /* NO backdrop-filter here */
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.10);
+
+  padding: 10px 12px;
+
+  color: rgba(0,0,0,0.82);
+  font-size: 12px;
+  font-weight: 700;
+
+  will-change: transform;
 }
 
-/* 3 ▸ info-box ----------------------------------------------------- */
-/* ▼ replace the whole .infoBox rule */
+
+/* Make your inner bits (strong + value line) fit */
+.tooltip strong {
+  font-weight: 1000;
+  color: rgba(0,0,0,0.84);
+}
+
+.tooltip div {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
+}
+
+/* If you want the flag to look nicer */
+.tooltip img {
+  width: 20px;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.10);
+  margin-right: 8px;
+  vertical-align: -4px;
+}
+
+/* =========================
+   INFO BOX (MIC CARD)
+   ========================= */
+/* =========================
+   INFO BOX (match legend frosted)
+   ========================= */
 .infoBox {
-  position: absolute;        /* ⟵ from fixed → absolute (relative to .mapRoot) */
-  top: 50%;                  /* centre vertically */
-  right: 1rem;
+  position: absolute;
+  top: 50%;
+  right: 14px;
   transform: translateY(-50%);
 
-  max-width: 20rem;
-  max-height: 90%;           /* use % → stays inside map even when zoomed */
-  overflow-y: auto;
+  width: 280px;
+  max-width: min(300px, calc(100% - 28px));
+  max-height: min(78vh, calc(100vh - 120px));
 
-  background: #fff;
-  color: #111;
-  border-radius: 1rem;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35);
-  padding: 1.25rem 1rem 1.5rem;
-
-  z-index: 10;               /* no pointer-locking problems */
-  animation: slideIn 250ms ease-out;
+  z-index: 10;
+  animation: popInSoft 140ms ease-out;
 }
 
-/* optional: on small screens pin it lower so fat fingers reach it */
-@media (max-width: 640px) {
+/* Shrink infobox as map container gets smaller */
+@media (max-width: 960px) {
   .infoBox {
-    top: auto;
-    bottom: 1rem;
-    transform: none;
+    width: 260px;
+    max-width: min(280px, calc(100% - 28px));
   }
 }
 
-
-/* ── header row (flag · name · ×) ---------------------------------- */
-.infoBoxHeader {
-  position: relative;       /* so the × can sit absolutely inside */
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+@media (max-width: 840px) {
+  .infoBox {
+    width: 240px;
+    max-width: min(260px, calc(100% - 28px));
+  }
 }
 
-.infoBoxHeader img {
-  width: 1.75rem;           /* 28 px flag */
-  height: auto;
-  border-radius: 0.1875rem;
+@media (max-width: 760px) {
+  .infoBox {
+    width: 220px;
+    max-width: min(240px, calc(100% - 28px));
+  }
+}
+
+/* =========================
+   COMPACT UI (small map container, e.g. DataIntegration preview)
+   ========================= */
+.mapRoot[data-compact-ui="1"] .tooltip {
+  padding: 6px 8px;
+  font-size: 10px;
+  border-radius: 8px;
+}
+
+.mapRoot[data-compact-ui="1"] .tooltip strong {
+  font-size: 10px;
+}
+
+.mapRoot[data-compact-ui="1"] .tooltip div {
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.mapRoot[data-compact-ui="1"] .tooltip img {
+  width: 14px;
+  margin-right: 5px;
+  border-radius: 3px;
+}
+
+.mapRoot[data-compact-ui="1"] .infoBox {
+  right: 8px;
+  width: 180px;
+  max-width: min(200px, calc(100% - 20px));
+  max-height: min(60vh, calc(100vh - 80px));
+}
+
+.mapRoot[data-compact-ui="1"] .infoBoxHeader img {
+  width: 24px;
+  border-radius: 5px;
+}
+
+.mapRoot[data-compact-ui="1"] .infoBoxHeader {
+  gap: 6px;
+}
+
+.mapRoot[data-compact-ui="1"] .infoBoxHeader h2,
+.mapRoot[data-compact-ui="1"] .frostTitle {
+  font-size: 10px;
+  padding-right: 26px;
+}
+
+.mapRoot[data-compact-ui="1"] .infoBoxBody,
+.mapRoot[data-compact-ui="1"] .infoBoxBody{
+  gap: 4px;
+}
+
+.mapRoot[data-compact-ui="1"] .closeBtn {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  font-size: 12px;
+}
+
+.mapRoot[data-compact-ui="1"] .valueRow {
+  font-size: 10px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+}
+
+.mapRoot[data-compact-ui="1"] .valueText {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.mapRoot[data-compact-ui="1"] .valueDesc {
+  font-size: 9px;
+}
+
+.mapRoot[data-compact-ui="1"] .swatch {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 999px;
   flex-shrink: 0;
 }
 
-.infoBoxHeader h2 {
-  font-size: 1.125rem;      /* text-lg */
-  font-weight: 600;
-  line-height: 1.2;
-  flex: 1 1 auto;           /* take the remaining width */
-  white-space: nowrap;
+.mapRoot[data-compact-ui="1"] .groupBox {
+  right: 8px;
+  width: 200px;
+  max-width: min(220px, calc(100% - 20px));
+  max-height: min(55vh, calc(100vh - 80px));
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+.mapRoot[data-compact-ui="1"] .groupBoxHeader {
+  gap: 6px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupDot {
+  width: 10px;
+  height: 10px;
+  margin-left: 4px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupTitle,
+.mapRoot[data-compact-ui="1"] .groupHeaderText {
+  padding-right: 26px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupHeaderText .frostTitle {
+  font-size: 10px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupCount,
+.mapRoot[data-compact-ui="1"] .frostSub {
+  font-size: 9px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupBoxBody {
+  gap: 4px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupList {
+  padding: 5px;
+  border-radius: 8px;
+  max-height: 35vh;
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+.mapRoot[data-compact-ui="1"] .groupItem {
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupRow,
+.mapRoot[data-compact-ui="1"] .groupRow2,
+.mapRoot[data-compact-ui="1"] .groupRow3 {
+  padding: 4px 6px;
+  font-size: 10px;
+  min-height: 28px;
+  min-width: 0;
+}
+
+/* compact: narrower columns so code + name + value fit without overflow */
+.mapRoot[data-compact-ui="1"] .groupRow2 {
+  grid-template-columns: 32px minmax(0, 1fr);
+}
+
+.mapRoot[data-compact-ui="1"] .groupRow3 {
+  grid-template-columns: 32px minmax(0, 1fr) 44px;
+}
+
+.mapRoot[data-compact-ui="1"] .groupItemCode {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── close button --------------------------------------------------- */
-.closeBtn {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
+.mapRoot[data-compact-ui="1"] .groupItemName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
+.mapRoot[data-compact-ui="1"] .groupItemValue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mapRoot[data-compact-ui="1"] .resetViewBtn {
+  padding: 6px 10px;
+  font-size: 10px;
+  bottom: 8px;
+}
+
+.mapRoot[data-compact-ui="1"] .frostCard {
+  border-radius: 10px;
+}
+
+.mapRoot[data-compact-ui="1"] .frostHeader {
+  padding: 6px 8px;
+}
+
+.mapRoot[data-compact-ui="1"] .frostBody {
+  padding: 6px 8px;
+}
+
+
+.infoBoxBody{
+  display: grid;
+  gap: 8px; /* ✅ compact vertical spacing */
+}
+
+.valueText{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.infoBoxHeader {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  /* no background/border here; shared header handles it */
+}
 
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.25rem;       /* nicer glyph size */
-  line-height: 1;
-  border: none;
-  background: transparent;
-  border-radius: 9999px;
+.infoBoxHeader img {
+  width: 34px;
+  height: auto;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  border: 2px solid rgba(255,255,255,0.95);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.04);
+}
+
+.infoBoxHeader h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: rgba(0,0,0,0.84);
+  line-height: 1.15;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  padding-right: 34px; /* room for close btn */
+  min-width: 0;
+}
+
+.resetViewBtn {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translate(-50%, 120%);
+  opacity: 0;
+  pointer-events: none;
+
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  font-weight: 700;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.72);
+  letter-spacing: 0.02em;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+
+  transition: transform 180ms ease, opacity 180ms ease, color 160ms ease;
+  z-index: 20;
+}
+
+.resetViewBtnVisible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.resetViewBtn:hover {
+  transform: translate(-50%, -2px);
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.resetViewBtn:active {
+  transform: translate(-50%, 0);
+}
+
+
+/* Close button */
+.closeBtn {
+  all: unset;
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  flex-shrink: 0;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
   cursor: pointer;
-  transition: background 120ms ease-in-out;
-}
-.closeBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
+  font-size: 16px;
+  font-weight: 900;
+
+  color: rgba(15, 23, 42, 0.70);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255,255,255,0.70);
+
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
 }
 
-/* ── value row with colour swatch ---------------------------------- */
+.closeBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(40,168,225,0.22);
+  filter: brightness(0.99);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+}
+
+.closeBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+
+
+.infoBoxBody{
+  display: grid;
+  gap: 8px; /* overall spacing in the card */
+}
+
+/* ONE connected block */
+.valueBlock{
+  display: grid;
+  gap: 0;                 /* ✅ important: no gap so it feels connected */
+}
+
+/* Value row (top of the block) */
 .valueRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;      /* text-sm */
+  gap: 8px;
+
+  padding: 8px 10px;
+  border-radius: 14px;
+
+
+  font-size: 12.5px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.78);
+
+  min-width: 0;
 }
 
-.valueRow .swatch {
-  width: 0.875rem;          /* 14 px */
-  height: 0.875rem;
-  border-radius: 9999px;
-  border: 1px solid #0003;
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.18);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
   flex-shrink: 0;
 }
-/* Map.module.css */
-.mapCanvas{
-  width:100%;
-  height:auto;          /* keep aspect ratio */
-  max-height:100dvh;    /* never spill over on phones */
-  display:block;        /* remove inline-gap */
+
+.valueText{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
-.mapRoot{
-  position:relative;     /* not fixed any more                 */
-  width:100%;
-  height:100%;           /* inherits from the full-screen wrapper */
-  overflow:hidden;       /* same behaviour you had before      */
+/* Description sits *under* the value, connected */
+.valueDescWrap{
+  position: relative;
+
+  /* ✅ visually connect by "sharing" borders with the valueRow */
+  margin-top: -1px;             /* overlap border to look like one component */
+
+  padding: 8px 10px 10px 10px;
+  padding-left: 30px;           /* indent under the value content (after swatch) */
+
+
+  /* ✅ remove the top border so it merges with valueRow */
+  border-top: 0;
+}
+
+/* subtle vertical connector line from swatch area */
+.valueDescLine{
+  position: absolute;
+  left: 16px;          /* lines up under swatch */
+  top: 0;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(20,169,175,0.22);
+}
+
+.valueDesc{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(0,0,0,0.72);
+  line-height: 1.30;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  max-height: 140px;  /* keep the card compact */
+  overflow: auto;     /* scroll inside if long */
+}
+
+/* mobile: slightly smaller max */
+@media (max-width: 700px) {
+  .valueDesc{
+    max-height: 120px;
+  }
+}
+
+/* Description (compact, scroll if long) */
+.placeholderText {
+  margin-top: 0;         /* ✅ important: let gap handle spacing */
+  padding: 8px 10px;     /* ✅ tighter */
+  border-radius: 14px;
+
+  background: rgba(20,169,175,0.06);
+  border: 1px solid rgba(20,169,175,0.18);
+
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(0,0,0,0.72);
+  line-height: 1.30;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  max-height: 140px;     /* ✅ keeps box compact */
+  overflow: auto;        /* ✅ scroll instead of growing */
+}
+
+/* (Optional) If you still use placeholderEmpty somewhere else */
+.placeholderEmpty {
+  margin-top: 0;
+  padding: 8px 10px;
+
+  border-radius: 14px;
+  background: rgba(0,0,0,0.03);
+  border: 1px dashed rgba(0,0,0,0.12);
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.52);
+  line-height: 1.30;
+  font-style: italic;
+}
+
+/* when description exists, valueRow becomes the "top half" */
+.valueRowConnected{
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+
+  /* optional: makes seam even cleaner with the desc block */
+  border-bottom-color: transparent;
+}
+
+/* =========================
+   GROUP INFO BOX (match legend frosted)
+   ========================= */
+.groupBox {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+
+  width: 320px;
+  max-width: min(360px, calc(100vw - 24px));
+  max-height: min(78vh, calc(100vh - 120px));
+
+  z-index: 11;
+  animation: popInSoft 140ms ease-out;
+}
+
+.groupBox::before { display: none; }
+
+
+.groupBoxHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.groupBoxHeader::before { display: none; }
+
+
+
+.groupDot{
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.18);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.10);
+  flex-shrink: 0;
+
+  margin-left: 6px; /* keeps it aligned after the accent bar */
+}
+
+.groupHeaderText{
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding-right: 34px; /* room for close btn */
+}
+
+.groupTitle{
+  margin: 0;
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  color: rgba(0,0,0,0.84);
+  line-height: 1.15;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.groupCount{
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0,0,0,0.58);
+}
+
+.groupBoxBody{
+  display: grid;
+  gap: 8px;
+}
+
+.groupList {
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  padding: 8px;
+  max-height: 46vh;
+  overflow: auto;
 }
 
 
-/* 4 ▸ fade/slide-in */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translate(1rem, -50%);
+.groupItem{
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+  align-items: center;
+
+  padding: 6px 8px;
+  border-radius: 12px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.78);
+}
+
+.groupItem:hover{
+  background: rgba(20,169,175,0.06);
+}
+
+.groupItemCode{
+  font-weight: 1000;
+  color: rgba(0,0,0,0.62);
+}
+
+.groupItemName{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* mobile dock like infoBox */
+@media (max-width: 700px) {
+  .groupBox{
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    max-height: 45vh;
   }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
+  .groupBox::before{ display: none; }
+}
+
+
+/* row layout (button rows) */
+.groupRow{
+  width: 100%;
+  display: grid;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 8px;
+  border-radius: 12px;
+
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0,0,0,0.78);
+
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+
+/* 2 cols (categorical) */
+.groupRow2{
+  grid-template-columns: 56px 1fr;
+}
+
+/* 3 cols (choropleth) */
+.groupRow3{
+  grid-template-columns: 56px 1fr 110px;
+}
+
+.groupRow:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.groupRowHeader{
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.08);
+  margin-bottom: 6px;
+  cursor: default;
+}
+
+.groupH{
+  font-size: 11px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.58);
+}
+
+.groupHRight{
+  font-size: 11px;
+  font-weight: 1000;
+  color: rgba(0,0,0,0.58);
+  text-align: right;
+}
+
+.groupItemValue{
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(0,0,0,0.72);
+}
+
+.mapStage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mapInner {
+  width: 100%;
+  height: 100%;
+  transition: opacity 140ms ease;
+}
+
+.mapSkeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.06),
+    rgba(0,0,0,0.10),
+    rgba(0,0,0,0.06)
+  );
+  background-size: 200% 100%;
+  animation: micShimmer 1.1s infinite linear;
+}
+
+@keyframes micShimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* =========================
+   RESPONSIVE: mobile dock
+   ========================= */
+@media (max-width: 700px) {
+  .infoBox {
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    max-height: 45vh;
   }
+
+  .infoBox::before {
+    display: none;
+  }
+
+  .placeholderText{
+    max-height: 120px;
+  }
+}
+
+/* =========================
+   DARK THEME (embed / frosted dark)
+   ========================= */
+.mapRoot[data-theme="dark"] .frostCard {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.mapRoot[data-theme="dark"] .frostHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.mapRoot[data-theme="dark"] .frostTitle {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.mapRoot[data-theme="dark"] .frostSub {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+.mapRoot[data-theme="dark"] .closeBtn {
+  color: rgba(226, 232, 240, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(51, 65, 85, 0.8);
+}
+
+.mapRoot[data-theme="dark"] .closeBtn:hover {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(71, 85, 105, 0.9);
+}
+
+.mapRoot[data-theme="dark"] .valueRow {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.mapRoot[data-theme="dark"] .valueText {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.mapRoot[data-theme="dark"] .valueDesc {
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.mapRoot[data-theme="dark"] .valueDescLine {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.mapRoot[data-theme="dark"] .swatch {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.mapRoot[data-theme="dark"] .groupDot {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.mapRoot[data-theme="dark"] .groupTitle {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.mapRoot[data-theme="dark"] .groupCount {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+.mapRoot[data-theme="dark"] .groupList {
+  background: rgba(15, 23, 42, 0.2);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.mapRoot[data-theme="dark"] .groupItem {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.mapRoot[data-theme="dark"] .groupItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mapRoot[data-theme="dark"] .groupRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mapRoot[data-theme="dark"] .groupRow,
+.mapRoot[data-theme="dark"] .groupRowHeader,
+.mapRoot[data-theme="dark"] .groupH,
+.mapRoot[data-theme="dark"] .groupHRight,
+.mapRoot[data-theme="dark"] .groupItemValue {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.mapRoot[data-theme="dark"] .groupItemCode {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+.mapRoot[data-theme="dark"] .groupItemName {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.mapRoot[data-theme="dark"] .resetViewBtn {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(226, 232, 240, 0.9);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.mapRoot[data-theme="dark"] .resetViewBtn:hover {
+  color: rgba(226, 232, 240, 0.98);
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(51, 65, 85, 0.92);
 }

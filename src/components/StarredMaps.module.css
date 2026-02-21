@@ -1,252 +1,386 @@
-/* Overall container */
+:root {
+  --mic-cyan: #14a9af;
+  --mic-azure: #28a8e1;
+
+  --bg: #f7f7f7;
+  --card: #ffffff;
+  --text: rgba(0,0,0,0.78);
+  --muted: rgba(0,0,0,0.58);
+  --border: rgba(0,0,0,0.10);
+
+  --shadow: 0 16px 40px rgba(0,0,0,0.10);
+  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
+
+  --radius-lg: 18px;
+}
+
+/* ===== Page shell ===== */
 .starredMapsContainer {
   display: flex;
   min-height: 100vh;
-  color: black;
   margin-top: 60px;
-  background-color: #f7f7f7;
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* Main content area */
 .starredMapsContent {
   flex: 1;
-  padding: 0px 20px;
-  margin-left: 250px; /* Sidebar width when expanded */
+  padding: 0 22px 26px;
+  margin-left: 250px;
   transition: margin-left 0.3s ease;
 }
 
 .contentCollapsed {
-  margin-left: 70px; /* Adjust for collapsed sidebar */
+  margin-left: 70px;
 }
 
-/* Grid of map cards - matching YourMaps layout */
+/* ===== Stats bar ===== */
+.statsBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0 18px;
+  align-items: center;
+}
+
+.statBox {
+  background: rgba(255,255,255,0.90);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 12px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  box-shadow: var(--shadow-sm);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.statBox:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20,169,175,0.20);
+  box-shadow: var(--shadow);
+}
+
+.statIcon {
+  font-size: 14px;
+  color: rgba(0,0,0,0.62);
+}
+
+.statValue {
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.78);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.55);
+  margin-left: 2px;
+}
+
+/* ===== Grid ===== */
 .mapsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
 }
 
-/* Individual map card styling */
+/* ===== Card ===== */
 .mapCard {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+
   display: flex;
   flex-direction: column;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .mapCard:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  border-color: rgba(20,169,175,0.22);
+  box-shadow: var(--shadow);
 }
 
-/* Thumbnail container */
+/* Thumbnail */
 .thumbnail {
   width: 100%;
-  height: 150px; /* Adjusted to match YourMaps */
-  position: relative;
   overflow: hidden;
+
+  position: relative;
+  isolation: isolate;
+
+  background: linear-gradient(135deg, rgba(40,168,225,0.18), rgba(20,169,175,0.14));
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
 }
 
-.thumbnail svg {
+.thumbnail svg,
+.thumbnail canvas,
+.thumbnail img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-/* Map title */
+/* Title */
 .mapTitle {
-  font-size: 1.2rem;
-  margin: 10px;
-  margin-bottom: 5px;
-  color: #333;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.1px;
+  color: rgba(0,0,0,0.80);
+
+  margin: 10px 12px 6px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Info row: creator and star count */
+/* Info row */
 .mapInfoRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 10px 10px 10px;
-  font-size: 0.9rem;
-  color: #555;
+  gap: 8px;
+  min-width: 0;
+
+  margin: 0 12px 10px;
+
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.62);
 }
 
-/* Star icon styling */
-.starIcon {
-  color: black;
-  margin-right: 5px;
+.mapInfoRow > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Tags container */
+.mapStats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.starCountContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+  color: rgba(0,0,0,0.62);
+  font-weight: 900;
+}
+
+.starCountContainer svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.starIcon,
+.commentIcon {
+  color: rgba(0,0,0,0.55);
+}
+
+/* Tags */
 .tags {
-  margin: 0 10px 10px 10px;
+  margin: 0 12px 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 
-/* Individual tag */
 .tag {
-  display: inline-block;
-  background-color: #e0e0e0;
-  color: #333;
-  padding: 2.5px 5px;
-  border-radius: 4px;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.62);
 }
 
-/* --- Skeleton Animation --- */
+/* ===== Skeleton ===== */
 @keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
-.skeletonShimmer {
+
+.skeletonStatsBar {
+  display: flex;
+  gap: 10px;
+  margin: 18px 0;
+  flex-wrap: wrap;
+}
+
+.skeletonStatBox {
+  width: 160px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
-  background-color: #eee;
-}
-.skeletonShimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 50%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
-/* --- Skeleton Maps Grid --- */
 .skeletonMapsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
 }
 
-/* Skeleton map card */
 .skeletonMapCard {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 10px;
+  background: rgba(255,255,255,0.90);
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: var(--radius-lg);
+  padding: 12px;
   overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  box-shadow: var(--shadow-sm);
 }
 
-/* Skeleton thumbnail */
 .skeletonThumbnail {
   width: 100%;
-  height: 150px;
-  border-radius: 4px;
-  background-color: #ddd;
+  height: 100px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
-  margin-bottom: 10px;
-}
-.skeletonThumbnail::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255,255,255,0.4) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
-/* Skeleton line for text */
 .skeletonLine {
   width: 100%;
   height: 12px;
-  border-radius: 4px;
-  background-color: #eee;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
-  margin-bottom: 8px;
 }
+
+.skeletonStatBox::after,
+.skeletonThumbnail::after,
 .skeletonLine::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
   background: linear-gradient(
-    to right,
+    90deg,
     transparent 0%,
-    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0.60) 50%,
     transparent 100%
   );
-  transform: translateX(-100%);
-  animation: shimmer 1.2s infinite;
+  animation: shimmer 1.15s infinite;
 }
 
-/* Responsive adjustments */
-
-/* Under 1000px */
+/* ===== Responsive ===== */
 @media (max-width: 1000px) {
-  .starredMapsContent {
-    margin-left: 0 !important;
-    padding: 10px !important;
-    width: 100%;
-  }
+  .starredMapsContent,
   .contentCollapsed {
     margin-left: 0 !important;
+    width: 100%;
+    padding: 0 14px 18px;
   }
 }
 
-/* Under 600px: two columns */
 @media (max-width: 600px) {
-  .starredMapsContent {
-    padding-top: 0;
-  }
   .mapsGrid {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
   .mapTitle {
-    font-size: 1rem;
+    font-size: 13px;
+    margin: 8px 10px 6px;
   }
   .mapInfoRow {
-    font-size: 0.8rem;
+    margin: 0 10px 10px;
   }
 }
 
-/* Under 400px: single column */
-@media (max-width: 400px) {
-  .mapsGrid {
+@media (max-width: 420px) {
+  .mapsGrid,
+  .skeletonMapsGrid {
     grid-template-columns: 1fr;
   }
   .thumbnail {
-    height: 100%;
+    height: 170px;
   }
   .mapTitle {
-    font-size: 0.9rem;
-    margin: 8px;
     white-space: normal;
   }
-  .mapInfoRow {
-    font-size: 0.8rem;
-    margin: 0 8px 8px 8px;
+}
+/* ===========================================
+   MOBILE: thumbnail fill (single source of truth)
+   =========================================== */
+@media (max-width: 600px) {
+  .mapCard,
+  .thumbnail {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* give the thumbnail a real box */
+  .thumbnail {
+    display: block !important;        /* kill flex-centering */
+    aspect-ratio: 16 / 9;             /* choose your shape */
+    overflow: hidden !important;
+    padding: 0 !important;
+    line-height: 0 !important;
+  }
+
+  /* StaticMapThumbnail container should fill the box */
+  .thumbnail > * {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  /* IMPORTANT: the actual stage wrapper must fill too */
+  .thumbnail .stage {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Force the rendered thing to fill (svg/canvas/img) */
+  .thumbnail svg,
+  .thumbnail canvas,
+  .thumbnail img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
   }
 }

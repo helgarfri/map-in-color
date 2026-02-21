@@ -11,11 +11,7 @@ export default function LoggedInExplore() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  // Whenever the window is under 1000px, auto-collapse the sidebar
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+
 
   // If on a small screen and we are NOT collapsed => show overlay
   const showOverlay = !isCollapsed && width < 1000;
@@ -23,7 +19,7 @@ export default function LoggedInExplore() {
   return (
     <div className={styles.loggedInExploreContainer}>
       {/* Left: Sidebar */}
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar />
 
       {/* If overlay should be shown on small screens, render it */}
       {showOverlay && (
@@ -39,7 +35,7 @@ export default function LoggedInExplore() {
           isCollapsed ? styles.collapsed : ''
         }`}
       >
-        <Header title="Explore" isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <Header title="Explore"  />
         <ExploreContent />
       </div>
     </div>

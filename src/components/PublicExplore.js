@@ -11,8 +11,10 @@ export default function PublicExplore() {
     <div className={styles.publicExploreContainer}>
       <HomeHeader />
 
-      {/* Same ExploreContent with all the search/filter logic */}
-      <ExploreContent />
+      {/* Content width matches HomeHeader horizontal padding */}
+      <div className={styles.exploreContentWrap}>
+        <ExploreContent />
+      </div>
 
       <HomeFooter />
     </div>

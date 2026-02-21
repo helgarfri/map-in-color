@@ -36,6 +36,7 @@ export const createMap = (mapData) => API.post('/maps', mapData);
 export const updateMap = (id, mapData) => API.put(`/maps/${id}`, mapData);
 export const deleteMap = (id) => API.delete(`/maps/${id}`);
 
+
 // New exports for profile
 export const fetchUserProfile = () => API.get('/profile'); // GET /profile
 
@@ -46,8 +47,18 @@ export const updateUserProfile = (profileData) =>
     },
   });
 
-// Fetch a map by ID
-export const fetchMapById = (id) => API.get(`/maps/${id}`);
+// Fetch a map by ID. Optional { embedToken } for embed context (private maps + unbranded permission).
+export const fetchMapById = (id, options = {}) => {
+  const { embedToken } = options;
+  const params = embedToken ? { token: embedToken } : {};
+  return API.get(`/maps/${id}`, { params });
+};
+
+// Generate an embed token for a map (owner only). Unbranded requires Pro.
+export const generateEmbedToken = (mapId, options = {}) => {
+  const { allowsUnbranded = false } = options;
+  return API.post(`/maps/${mapId}/embed-token`, { allows_unbranded: allowsUnbranded });
+};
 
 // Save a map
 export const saveMap = (mapId) => API.post(`/maps/${mapId}/save`);
@@ -115,7 +126,8 @@ export const fetchUserMapStats = (user_id) =>
 export const fetchMostStarredMapByuser_id = (user_id) =>
   API.get(`/maps/user/${user_id}/most-starred`);
 
-export const incrementMapDownloadCount = (mapId) => API.post(`/maps/${mapId}/download`);
+export const incrementMapDownloadCount = (mapId, payload = {}) =>
+  API.post(`/maps/${mapId}/download`, payload);
 
 export const changeUserPassword = (payload) => {
   // payload: { oldPassword, newPassword }
@@ -162,3 +174,11 @@ export const approveProfileReport = (reportId) => {
 export const banProfileReport = (reportId) => {
   return API.post(`/admin/profile-reports/${reportId}/ban`);
 };
+export const requestPasswordReset = (email) =>
+  API.post("/auth/request-password-reset", { email });
+
+export const resendVerificationEmail = (email) =>
+  API.post("/auth/resend-verification", { email });
+
+export const resetPassword = ({ token, newPassword }) =>
+  API.post("/auth/reset-password", { token, newPassword });

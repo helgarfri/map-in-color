@@ -1,3 +1,4 @@
+// src/components/YourMaps.js
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './YourMaps.module.css';
 import { useNavigate } from 'react-router-dom';
@@ -8,13 +9,11 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../api';
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import StaticMapThumbnail from './StaticMapThumbnail';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { formatDistanceToNow } from 'date-fns';
-import { FaStar, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
+import { FaStar, FaComment, FaGlobe, FaLock, FaMap } from 'react-icons/fa';
 import { SidebarContext } from '../context/SidebarContext';
 import useWindowSize from '../hooks/useWindowSize';
 
@@ -28,17 +27,15 @@ export default function YourMaps() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const navigate = useNavigate();
   const { width } = useWindowSize();
+const [isDeleting, setIsDeleting] = useState(false);
+const [deleteError, setDeleteError] = useState(null);
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+
 
   useEffect(() => {
     const getMaps = async () => {
       try {
         const res = await fetchMaps();
-        // Sort maps by updated_at descending
         const sortedMaps = res.data.sort(
           (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
@@ -63,7 +60,7 @@ export default function YourMaps() {
     getNotifications();
   }, []);
 
-  // Calculate stats for maps
+  // Stats
   const totalMaps = maps.length;
   const publicMaps = maps.filter((map) => map.is_public).length;
   const privateMaps = totalMaps - publicMaps;
@@ -111,48 +108,34 @@ export default function YourMaps() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = async () => {
-    if (mapToDelete) {
-      try {
-        await deleteMap(mapToDelete.id);
-        setMaps(maps.filter((map) => map.id !== mapToDelete.id));
-        setShowDeleteModal(false);
-        setMapToDelete(null);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
+const confirmDelete = async () => {
+  if (!mapToDelete) return;
 
-  const cancelDelete = () => {
+  setIsDeleting(true);
+  setDeleteError(null);
+
+  try {
+    await deleteMap(mapToDelete.id);
+
+    setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
+
+    // close portal
     setShowDeleteModal(false);
     setMapToDelete(null);
-  };
+  } catch (err) {
+    console.error(err);
+    setDeleteError("Delete failed. Please try again.");
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
-  // Render the appropriate SVG thumbnail based on map type.
-  const renderMapThumbnail = (map) => {
-    const mapTitle = map.title || 'Untitled Map';
-    const sharedProps = {
-      groups: map.groups,
-      mapTitleValue: mapTitle,
-      ocean_color: map.ocean_color,
-      unassigned_color: map.unassigned_color,
-      data: map.data,
-      selected_map: map.selected_map,
-      font_color: map.font_color,
-      is_title_hidden: map.is_title_hidden,
-      show_top_high_values: false,
-      show_top_low_values: false,
-      showNoDataLegend: map.show_no_data_legend,
-      titleFontSize: map.title_font_size,
-      legendFontSize: map.legend_font_size,
-    };
-
-    if (map.selected_map === 'world') return <WorldMapSVG {...sharedProps} />;
-    if (map.selected_map === 'usa') return <UsSVG {...sharedProps} />;
-    if (map.selected_map === 'europe') return <EuropeSVG {...sharedProps} />;
-    return null;
-  };
+const cancelDelete = () => {
+  if (isDeleting) return;
+  setShowDeleteModal(false);
+  setMapToDelete(null);
+  setDeleteError(null);
+};
 
   // --------------------------
   // SKELETON VIEW
@@ -161,6 +144,7 @@ export default function YourMaps() {
     return (
       <div className={styles.myMapsContainer}>
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
         <div
           className={`${styles.myMapsContent} ${
             isCollapsed ? styles.contentCollapsed : ''
@@ -172,14 +156,12 @@ export default function YourMaps() {
             setIsCollapsed={setIsCollapsed}
           />
 
-          {/* Skeleton Stats Bar */}
           <div className={styles.skeletonStatsBar}>
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className={styles.skeletonStatBox} />
             ))}
           </div>
 
-          {/* Skeleton Maps Grid */}
           <div className={styles.skeletonMapsGrid}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={styles.skeletonMapCard}>
@@ -192,10 +174,7 @@ export default function YourMaps() {
                   className={styles.skeletonLine}
                   style={{ width: '40%', marginBottom: '6px' }}
                 />
-                <div
-                  className={styles.skeletonLine}
-                  style={{ width: '90%' }}
-                />
+                <div className={styles.skeletonLine} style={{ width: '90%' }} />
               </div>
             ))}
           </div>
@@ -225,23 +204,25 @@ export default function YourMaps() {
           title="Your Maps"
         />
 
-        {/* Stats Bar */}
         <div className={styles.statsBar}>
           <div className={styles.statBox}>
             <FaMap className={styles.statIcon} />
             <div className={styles.statValue}>{totalMaps}</div>
             <div className={styles.statLabel}>Total Maps</div>
           </div>
+
           <div className={styles.statBox}>
             <FaGlobe className={styles.statIcon} />
             <div className={styles.statValue}>{publicMaps}</div>
             <div className={styles.statLabel}>Public</div>
           </div>
+
           <div className={styles.statBox}>
             <FaLock className={styles.statIcon} />
             <div className={styles.statValue}>{privateMaps}</div>
             <div className={styles.statLabel}>Private</div>
           </div>
+
           <div className={styles.statBox}>
             <FaStar className={styles.statIcon} style={{ color: '#000' }} />
             <div className={styles.statValue}>{totalStars}</div>
@@ -253,6 +234,7 @@ export default function YourMaps() {
           <div className={styles.mapsGrid}>
             {maps.map((map) => {
               const mapTitle = map.title || 'Untitled Map';
+
               return (
                 <div
                   key={map.id}
@@ -260,10 +242,13 @@ export default function YourMaps() {
                   onClick={() => navigate(`/map/${map.id}`)}
                 >
                   <div className={styles.thumbnail}>
-                    {renderMapThumbnail(map)}
+                    {/* ✅ Static preview (no zoom/hover/pan), but card remains clickable */}
+                    <StaticMapThumbnail map={map} background="#dddddd" />
                   </div>
+
                   <div className={styles.cardBody}>
                     <h3 className={styles.mapTitle}>{mapTitle}</h3>
+
                     <div className={styles.detailsRow}>
                       <span className={styles.modified}>
                         Modified{' '}
@@ -271,6 +256,7 @@ export default function YourMaps() {
                           addSuffix: true,
                         })}
                       </span>
+
                       <span className={styles.visibility}>
                         {map.is_public ? (
                           <>
@@ -283,12 +269,18 @@ export default function YourMaps() {
                         )}
                       </span>
                     </div>
+
                     <div className={styles.statsRow}>
-                      <div className={styles.starCount}>
-                        <FaStar className={styles.starIcon} />{' '}
-                        {map.save_count || 0}
+                      <div className={styles.mapStats}>
+                        <div className={styles.starCount}>
+                          <FaStar className={styles.starIcon} /> {map.save_count || 0}
+                        </div>
+                        <div className={styles.commentCount}>
+                          <FaComment className={styles.commentIcon} /> {map.comment_count ?? map.comments_count ?? 0}
+                        </div>
                       </div>
                     </div>
+
                     <div className={styles.actionsRow}>
                       <button
                         className={styles.viewButton}
@@ -318,35 +310,63 @@ export default function YourMaps() {
           <p>You have no maps.</p>
         )}
 
-        {showDeleteModal && (
-          <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
+       {showDeleteModal && (
+  <div
+    className={`${styles.modalOverlay} ${styles.modalOverlayBlur}`}
+    onClick={cancelDelete}
+  >
+    <div
+      className={`${styles.modalContent} ${isDeleting ? styles.modalContentCompact : ""}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {!isDeleting ? (
+        <>
+          <h2>Delete map?</h2>
+
+          <p>
+            You’re about to delete{" "}
+            <strong>{mapToDelete?.title || "Untitled Map"}</strong>. This cannot be undone.
+          </p>
+
+          {deleteError && <div className={styles.deleteError}>{deleteError}</div>}
+
+          <div className={styles.modalButtons}>
+            <button
+              className={styles.deleteButtonModal}
+              onClick={confirmDelete}
             >
-              <h2>Confirm Delete</h2>
-              <p>
-                Are you sure you want to delete the map titled{' '}
-                <strong>{mapToDelete?.title || 'Untitled Map'}</strong>? This
-                action cannot be undone.
-              </p>
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.deleteButtonModal}
-                  onClick={confirmDelete}
-                >
-                  Delete
-                </button>
-                <button
-                  className={styles.cancelButton}
-                  onClick={cancelDelete}
-                >
-                  Cancel
-                </button>
+              Delete
+            </button>
+
+            <button
+              className={styles.cancelButton}
+              onClick={cancelDelete}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={styles.deletePortal}>
+            <div className={styles.deleteSpinner} aria-hidden="true" />
+            <div className={styles.deleteText}>
+              <div className={styles.deleteTitle}>Deleting…</div>
+              <div className={styles.deleteSub}>
+                <strong>{mapToDelete?.title || "Untitled Map"}</strong>
               </div>
+              <div className={styles.deleteHint}>Please don’t close this tab.</div>
             </div>
           </div>
-        )}
+
+          {/* optional: show error even during deleting if api fails fast */}
+          {deleteError && <div className={styles.deleteError}>{deleteError}</div>}
+        </>
+      )}
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

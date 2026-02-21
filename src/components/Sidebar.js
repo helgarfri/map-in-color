@@ -1,7 +1,7 @@
 // src/components/Sidebar.js
-import React, { useContext, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import styles from './Sidebar.module.css';
+import React, { useContext } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import styles from "./Sidebar.module.css";
 import {
   FaHome,
   FaMap,
@@ -9,174 +9,168 @@ import {
   FaPlus,
   FaBell,
   FaUserCog,
-  FaChevronLeft,
-  FaChevronRight,
-  FaSearch
-} from 'react-icons/fa';
-import { UserContext } from '../context/UserContext';
-import MapSelectionModal from './MapSelectionModal';
+  FaSearch,
+  FaExternalLinkAlt,
+  FaBook,
+  FaUser,
+} from "react-icons/fa";
+import { UserContext } from "../context/UserContext";
+import { SidebarContext } from "../context/SidebarContext";
+import useWindowSize from "../hooks/useWindowSize";
 
-function Sidebar({ isCollapsed, setIsCollapsed }) {
+function Sidebar() {
+
+  const { width } = useWindowSize();
+const isMobile = width < 1000;
+
+const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+
+const closeSidebarIfMobile = () => {
+  if (isMobile) setIsCollapsed(true);
+};
   const { profile, loadingProfile } = useContext(UserContext);
-  const [showMapModal, setShowMapModal] = useState(false);
   const navigate = useNavigate();
 
-  if (loadingProfile) {
-    return null; // or a spinner
-  }
+  if (loadingProfile) return null;
+  if (!profile) return null;
 
-  if (!profile) {
-    return null; // or a placeholder, or redirect to login
-  }
+  const handleCreateMap = () => navigate("/create");
+  const DOCS_URL = "https://mapincolor.com/docs";
+  const myProfilePath = profile?.username ? `/profile/${profile.username}` : "/dashboard";
 
-  const handleCreateMap = () => {
-    setShowMapModal(true);
-  };
-
-  const handleMapSelection = (selected_map) => {
-    if (selected_map) {
-      setShowMapModal(false);
-      navigate('/create', { state: { selected_map } });
-    } else {
-      alert('Please select a map type.');
-    }
-  };
+  
 
   return (
-    <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
-      {/* Main content area */}
+    <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
       <div className={styles.contentWrapper}>
-        {/* Navigation Links */}
+        <div className={styles.brandRow}>
+          <div className={styles.brandDot} aria-hidden="true" />
+          {!isCollapsed && <div className={styles.brandText}>Map in Color</div>}
+        </div>
+
+        <button className={styles.primaryCta} onClick={handleCreateMap}>
+          <FaPlus className={styles.icon} />
+          {!isCollapsed && <span>Create New Map</span>}
+        </button>
+
+        <div className={styles.divider} />
+
         <nav className={styles.nav}>
-          <ul>
-            <li>
-              <button className={styles.navLink} onClick={handleCreateMap}>
-                <FaPlus className={styles.icon} />
-                {!isCollapsed && <span>Create New Map</span>}
-              </button>
-            </li>
-            <br />
+          <ul className={styles.navList}>
             <li>
               <NavLink
                 to="/dashboard"
+                onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
-                  isActive
-                    ? `${styles.navLink} ${styles.active}`
-                    : styles.navLink
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                
                 }
               >
                 <FaHome className={styles.icon} />
-                <span>Dashboard</span>
+                {!isCollapsed && <span>Dashboard</span>}
               </NavLink>
             </li>
+
+            <li>
+              <NavLink
+                to={myProfilePath}
+                  onClick={closeSidebarIfMobile}
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                }
+              >
+                <FaUser className={styles.icon} />
+                {!isCollapsed && <span>Profile</span>}
+              </NavLink>
+            </li>
+
             <li>
               <NavLink
                 to="/explore"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
-                  isActive
-                    ? `${styles.navLink} ${styles.active}`
-                    : styles.navLink
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
               >
                 <FaSearch className={styles.icon} />
                 {!isCollapsed && <span>Explore</span>}
               </NavLink>
             </li>
+
             <li>
               <NavLink
                 to="/your-maps"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
-                  isActive
-                    ? `${styles.navLink} ${styles.active}`
-                    : styles.navLink
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
               >
                 <FaMap className={styles.icon} />
-                <span>Your Maps</span>
+                {!isCollapsed && <span>Your Maps</span>}
               </NavLink>
             </li>
+
             <li>
               <NavLink
                 to="/starred-maps"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
-                  isActive
-                    ? `${styles.navLink} ${styles.active}`
-                    : styles.navLink
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
               >
                 <FaStar className={styles.icon} />
                 {!isCollapsed && <span>Starred Maps</span>}
               </NavLink>
             </li>
+
             <li>
               <NavLink
                 to="/notifications"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
-                  isActive
-                    ? `${styles.navLink} ${styles.active}`
-                    : styles.navLink
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
               >
                 <FaBell className={styles.icon} />
                 {!isCollapsed && <span>Notifications</span>}
               </NavLink>
             </li>
+
             <li>
               <NavLink
                 to="/settings"
+                  onClick={closeSidebarIfMobile}
                 className={({ isActive }) =>
-                  isActive
-                    ? `${styles.navLink} ${styles.active}`
-                    : styles.navLink
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
               >
                 <FaUserCog className={styles.icon} />
-                <span>Settings</span>
+                {!isCollapsed && <span>Settings</span>}
               </NavLink>
             </li>
           </ul>
         </nav>
       </div>
 
-      {/* Bottom section (Docs + Copyright) */}
       <div className={styles.bottomSection}>
-        {/* Docs Link */}
-        <div className={styles.bottomDocsLink}>
-          {!isCollapsed ? (
-            <span className={styles.docsSentence}>
-              Visit the{' '}
-              <NavLink to="/docs" target="_blank" className={styles.docsLink}>
-                docs
-              </NavLink>{' '}
-              for more info
-            </span>
-          ) : (
-            <NavLink to="/docs" target="_blank" className={styles.navLink}>
-              docs
-            </NavLink>
-          )}
-        </div>
-        {/* Copyright */}
-        <div className={styles.bottomCopyright}>
-          {!isCollapsed ? (
-            <span className={styles.copyright}>
-              © 2025 Map in Color. All rights reserved.
-            </span>
-          ) : (
-            <span className={styles.copyright}>© 2025</span>
-          )}
+        <a
+          className={styles.docsButton}
+            onClick={closeSidebarIfMobile}
+          href={DOCS_URL}
+          target="_blank"
+          rel="noreferrer"
+          title="Open docs (external)"
+        >
+          <FaBook className={styles.icon} />
+          {!isCollapsed && <span>Docs</span>}
+          {!isCollapsed && <FaExternalLinkAlt className={styles.externalIcon} />}
+        </a>
+
+        <div className={styles.copyright}>
+          {!isCollapsed ? "© 2026 Map in Color. All rights reserved." : "© 2026"}
         </div>
       </div>
-
-      {/* Map Selection Modal */}
-      {showMapModal && (
-        <MapSelectionModal
-          show={showMapModal}
-          onClose={() => setShowMapModal(false)}
-          onCreateMap={handleMapSelection}
-        />
-      )}
-    </div>
+    </aside>
   );
 }
 

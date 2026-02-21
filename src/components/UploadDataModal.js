@@ -1,43 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import * as XLSX from 'xlsx';
-import { useDropzone } from 'react-dropzone';
+// src/components/UploadDataModal.js
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
+import { useDropzone } from "react-dropzone";
 
 // JSON with country/state codes
-import countryCodes from '../world-countries.json';
-import usStatesCodes from '../united-states.json';
-import euCodes from '../european-countries.json';
+import countryCodes from "../world-countries.json";
+import usStatesCodes from "../united-states.json";
+import euCodes from "../european-countries.json";
 
-// Example map components
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+import { FaDownload, FaUpload } from "react-icons/fa";
+import styles from "./UploadDataModal.module.css";
 
-// Icons
-import {
-  FaUpload,
-  FaFileAlt,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaArrowDown,
-  FaArrowUp,
-  FaCalculator,
-  FaPercent,
-  FaMapMarkerAlt,
-  FaChartLine,
-  FaRuler,
-  FaListUl,
-  FaGlobe,
-} from 'react-icons/fa';
-
-import styles from './UploadDataModal.module.css';
+function toNum(x) {
+  const n =
+    typeof x === "number"
+      ? x
+      : parseFloat(String(x ?? "").trim().replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
 
 /** ------------------- STATS HELPERS ------------------- **/
-
 function calculateMedian(values) {
   if (!values || values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return (sorted.length % 2 === 1)
+  return sorted.length % 2 === 1
     ? sorted[mid]
     : (sorted[mid - 1] + sorted[mid]) / 2;
 }
@@ -45,7 +32,7 @@ function calculateMedian(values) {
 function calculateStdDev(values) {
   if (!values || values.length === 0) return null;
   const mean = values.reduce((acc, val) => acc + val, 0) / values.length;
-  const sqDiffs = values.map(val => (val - mean) ** 2);
+  const sqDiffs = values.map((val) => (val - mean) ** 2);
   const variance = sqDiffs.reduce((acc, val) => acc + val, 0) / values.length;
   return Math.sqrt(variance);
 }
@@ -53,7 +40,7 @@ function calculateStdDev(values) {
 function aggregateCategories(categoricalData) {
   const categoryMap = {};
   let totalAssigned = 0;
-  categoricalData.forEach(item => {
+  categoricalData.forEach((item) => {
     if (!item.categoryValue) return;
     totalAssigned++;
     categoryMap[item.categoryValue] = (categoryMap[item.categoryValue] || 0) + 1;
@@ -61,384 +48,711 @@ function aggregateCategories(categoricalData) {
   return { categoryMap, totalAssigned };
 }
 
-/**
- * UploadDataModal
- * - We store "universalRows" with { name, code, rawValue, isNumeric }
- * - If user picks "choropleth", we filter numeric lines only
- * - If user picks "categorical", we filter text lines only
- * - We always display the auto-detected type, but only enable a dropdown switch if there's a mixture
- */
-function UploadDataModal({
+export default function UploadDataModal({
   isOpen,
   onClose,
-  selectedMap = 'world',
+  selectedMap = "world",
   onImport,
+  session,
+  setSession,
+  embedded = false,
 }) {
-  // Basic file states
-  const [fileName, setFileName] = useState('');
-  const [fileIsValid, setFileIsValid] = useState(null);
-  const [errors, setErrors] = useState([]);
+  // ---- Session-backed UI state ----
+  const fileName = session?.fileName || "";
+  const terminalLines = session?.terminalLines || [];
+  const fileIsValid = session?.fileIsValid ?? null;
+  const isParsing = session?.isParsing || false;
+  const errors = session?.errors || [];
+  const mapDataType = session?.mapDataType || null;
+  const parsedData = session?.parsedData || [];
+  const universalRows = session?.universalRows || [];
+  const canManualSwitch = session?.canManualSwitch || false;
 
-  // Mixed data warning
-  const [showMixedWarning, setShowMixedWarning] = useState(false);
-
-  // Data type: 'choropleth' or 'categorical'
-  const [mapDataType, setMapDataType] = useState(null);
-
-  // Stats
+  // ---- Local-only stats ----
   const [numericStats, setNumericStats] = useState({
     lowestValue: null,
-    lowestCountry: '',
+    lowestCountry: "",
     highestValue: null,
-    highestCountry: '',
+    highestCountry: "",
     averageValue: null,
     medianValue: null,
     standardDeviation: null,
     numberOfValues: 0,
     totalCountries: 0,
   });
+
   const [categoricalStats, setCategoricalStats] = useState({
     numberOfUniqueCategories: 0,
-    mostFrequentCategory: '',
+    mostFrequentCategory: "",
     mostFrequentCount: 0,
     totalAssigned: 0,
     totalCountries: 0,
   });
 
-  // The "final" parsed data we display
-  const [parsedData, setParsedData] = useState([]);
-
-  // All matched lines, each with isNumeric or not
-  const [universalRows, setUniversalRows] = useState([]);
-
-  // If there's a mixture, we let the user switch manually
-  const [canManualSwitch, setCanManualSwitch] = useState(false);
-
-  // Data source
+  // Data source (depends on selected map)
   const dataSource =
-    selectedMap === 'usa'
-      ? usStatesCodes
-      : selectedMap === 'europe'
-      ? euCodes
-      : countryCodes;
+    selectedMap === "usa" ? usStatesCodes : selectedMap === "europe" ? euCodes : countryCodes;
 
-  // Reset on close
+  // Keep stats totalCountries in sync
   useEffect(() => {
-    if (!isOpen) {
-      setFileName('');
-      setFileIsValid(null);
-      setErrors([]);
-      setShowMixedWarning(false);
-      setMapDataType(null);
-      setParsedData([]);
-      setUniversalRows([]);
-      setCanManualSwitch(false);
+    setNumericStats((prev) => ({ ...prev, totalCountries: dataSource.length }));
+    setCategoricalStats((prev) => ({ ...prev, totalCountries: dataSource.length }));
+  }, [dataSource.length]);
 
-      setNumericStats({
-        lowestValue: null,
-        lowestCountry: '',
-        highestValue: null,
-        highestCountry: '',
-        averageValue: null,
-        medianValue: null,
-        standardDeviation: null,
-        numberOfValues: 0,
-        totalCountries: dataSource.length,
-      });
-      setCategoricalStats({
-        numberOfUniqueCategories: 0,
-        mostFrequentCategory: '',
-        mostFrequentCount: 0,
-        totalAssigned: 0,
-        totalCountries: dataSource.length,
-      });
+  // Don’t wipe session when closing; just avoid stuck "Reading…"
+  useEffect(() => {
+    if (!isOpen && !embedded) {
+      setSession((prev) => ({ ...prev, isParsing: false }));
     }
-  }, [isOpen, dataSource.length]);
+  }, [isOpen, embedded, setSession]);
 
-  // Dropzone
-  const onDrop = (acceptedFiles) => {
-    if (acceptedFiles && acceptedFiles.length > 0) {
-      processFile(acceptedFiles[0]);
-    }
+  // Terminal logging
+  const log = (msg, level = "info") => {
+    setSession((prev) => ({
+      ...prev,
+      terminalLines: [
+        ...(prev.terminalLines || []),
+        { id: `${Date.now()}-${Math.random()}`, ts: new Date(), level, msg },
+      ],
+    }));
   };
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'text/csv': ['.csv'],
-      'text/tab-separated-values': ['.tsv', '.txt'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    },
-    multiple: false,
-    onDrop,
-  });
 
-  // Reading the file
+  // Auto-scroll terminal
+  const terminalRef = useRef(null);
+  useEffect(() => {
+    const el = terminalRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [terminalLines]);
+
+  // --------------------------
+  // Normalizers / helpers
+  // --------------------------
+  const normCell = (v) => {
+    let s = String(v ?? "");
+    s = s.replace(/^\uFEFF/, ""); // remove BOM
+    s = s.trim();
+
+    // strip wrapping quotes "..."
+    if (s.length >= 2 && s.startsWith('"') && s.endsWith('"')) {
+      s = s.slice(1, -1);
+      s = s.replace(/""/g, '"');
+    }
+    return s.trim();
+  };
+
+  const normKey = (v) => normCell(v).toLowerCase();
+
+  const isYear = (v) => {
+    const s = normCell(v);
+    return /^\d{4}$/.test(s) && +s >= 1800 && +s <= 2200;
+  };
+
+  const looksLikeWDIHeader = (row) => {
+    const r = row.map(normKey);
+    const hasCountryCode = r.some((c) => c.includes("country code"));
+    const hasYears = row.some(isYear);
+    // Accept both full WDI (name + code + years) and code-only (code + years, e.g. 3-char ISO)
+    return hasCountryCode && hasYears;
+  };
+
+  function buildDataSourceIndex(src) {
+    const byCode = new Map();
+    const byName = new Map();
+
+    for (const item of src) {
+      const code = String(item.code ?? "").trim().toUpperCase();
+      if (code) byCode.set(code, item);
+
+      // Also index by 3-character ISO 3166 country code (e.g. World Bank uses COD, KOR, PRK)
+      const code3 = String(item.code3 ?? "").trim().toUpperCase();
+      if (code3 && code3.length === 3) byCode.set(code3, item);
+
+      const names = [item.name, ...(item.aliases || [])]
+        .map((n) => normKey(n))
+        .filter(Boolean);
+
+      for (const n of names) byName.set(n, item);
+    }
+
+    return { byCode, byName };
+  }
+
+  function splitCSVLine(line) {
+    const out = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+
+      if (ch === '"') {
+        const next = line[i + 1];
+        if (inQuotes && next === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (ch === "," && !inQuotes) {
+        out.push(cur);
+        cur = "";
+        continue;
+      }
+
+      cur += ch;
+    }
+
+    out.push(cur);
+    return out;
+  }
+
+  // --------------------------
+  // Parsing entrypoints
+  // --------------------------
+  const parseTextFile = (content, fileExt) => {
+    const lines = content
+      .split("\n")
+      .map((l) => l.replace(/\r$/, ""))
+      .filter((l) => l && !l.trim().startsWith("#"));
+
+    let rows;
+    if (fileExt === "tsv") {
+      rows = lines.map((line) => line.split("\t").map(normCell));
+    } else {
+      rows = lines.map((line) => {
+        // semicolon CSV (common in EU locales)
+        if (line.includes(";") && !line.includes(",")) {
+          return line.split(";").map(normCell);
+        }
+        if (line.includes(",")) {
+          return splitCSVLine(line).map(normCell);
+        }
+        return line.split(/\s+/).map(normCell);
+      });
+    }
+
+    parseArrayOfRows(rows);
+  };
+
   const processFile = (file) => {
-    setFileName(file.name);
-    setErrors([]);
-    setFileIsValid(null);
-    setMapDataType(null);
-    setShowMixedWarning(false);
-    setUniversalRows([]);
-    setCanManualSwitch(false);
+    setSession((prev) => ({
+      ...prev,
+      fileName: file.name,
+      errors: [],
+      fileIsValid: null,
+      mapDataType: null,
+      universalRows: [],
+      parsedData: [],
+      canManualSwitch: false,
+      isParsing: true,
 
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (ext === 'csv' || ext === 'tsv' || ext === 'txt') {
+      // keep old log history (so reopening modal shows last logs)
+      terminalLines: prev.terminalLines || [],
+    }));
+
+    log(`Reading file: ${file.name}`, "info");
+
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    if (ext === "csv" || ext === "tsv" || ext === "txt") {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        parseTextFile(e.target.result, ext);
-      };
+      reader.onload = (e) => parseTextFile(e.target.result, ext);
       reader.readAsText(file);
-    } else if (ext === 'xlsx' || ext === 'xls') {
+      return;
+    }
+
+    if (ext === "xlsx" || ext === "xls") {
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = new Uint8Array(e.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
+        const wb = XLSX.read(data, { type: "array" });
         const sheetName = wb.SheetNames[0];
         const worksheet = wb.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         parseArrayOfRows(rows);
       };
       reader.readAsArrayBuffer(file);
-    } else {
-      setErrors([{ line: 0, type: 'Invalid File', message: 'Unsupported file type.' }]);
-      setFileIsValid(false);
-    }
-  };
-
-  // parse text
-  const parseTextFile = (content, fileExt) => {
-    const lines = content
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l && !l.startsWith('#'));
-
-    let rows;
-    if (fileExt === 'tsv') {
-      rows = lines.map(line => line.split('\t').map(c => c.trim()));
-    } else {
-      // CSV (maybe semicolon?), fallback to whitespace
-      rows = lines.map(line => {
-        if (line.includes(';')) {
-          return line.split(';').map(c => c.trim());
-        } else if (line.includes(',')) {
-          return line.split(',').map(c => c.trim());
-        } else {
-          return line.split(/\s+/).map(c => c.trim());
-        }
-      });
-    }
-    parseArrayOfRows(rows);
-  };
-
-  // parse array of rows => build universalRows
-  const parseArrayOfRows = (rows) => {
-    const errorList = [];
-    let foundItemCount = 0;
-    let numericCount = 0;
-    let totalDataRows = 0;
-    const allRows = [];
-
-    rows.forEach((row, index) => {
-      const safeRow = row.map(cell => String(cell ?? '').trim());
-      if (safeRow.length < 2) {
-        errorList.push({
-          line: index + 1,
-          type: 'Missing Value',
-          message: `Need at least 2 columns on line ${index+1}`
-        });
-        return;
-      }
-      const [nameRaw, secondRaw] = safeRow;
-      if (!nameRaw) {
-        errorList.push({
-          line: index+1,
-          type: 'Missing Name',
-          message: `No state/country name on line ${index+1}`
-        });
-        return;
-      }
-      if (!secondRaw) {
-        // skip quietly
-        return;
-      }
-
-      // match country
-      const found = dataSource.find(item => {
-        if (item.code.toLowerCase() === nameRaw.toLowerCase()) return true;
-        const allNames = [item.name, ...(item.aliases || [])].map(n => n.toLowerCase());
-        return allNames.includes(nameRaw.toLowerCase());
-      });
-      if (!found) {
-        errorList.push({
-          line: index+1,
-          type: 'Invalid Name',
-          message: `No match for "${nameRaw}"`
-        });
-        return;
-      }
-
-      foundItemCount++;
-      const valAsNum = parseFloat(secondRaw);
-      const isNum = !isNaN(valAsNum);
-
-      if (isNum) numericCount++;
-      totalDataRows++;
-
-      allRows.push({
-        name: found.name,
-        code: found.code,
-        rawValue: secondRaw,
-        isNumeric: isNum,
-      });
-    });
-
-    if (foundItemCount === 0 && errorList.length === 0) {
-      // no valid rows
-      errorList.push({
-        line: 0, type: 'No Data', message: 'File has no valid rows.'
-      });
-      setErrors(errorList);
-      setFileIsValid(false);
       return;
     }
 
-    if (errorList.length > 0) {
-      setFileIsValid(false);
-      setErrors(errorList);
-    } else {
-      setFileIsValid(true);
-      setErrors([]);
-    }
+    // unsupported
+    const msg = "Unsupported file type. Use CSV/TSV/XLSX/XLS.";
+    setSession((prev) => ({
+      ...prev,
+      errors: [{ line: 0, type: "Invalid File", message: msg }],
+      fileIsValid: false,
+      isParsing: false,
+    }));
+    log(`❌ ${msg}`, "error");
+  };
 
-    setUniversalRows(allRows);
+  // Dropzone
+  const onDrop = (acceptedFiles) => {
+    if (acceptedFiles && acceptedFiles.length > 0) processFile(acceptedFiles[0]);
+  };
 
-    // detect data type or mixed
-    const hasNumeric = (numericCount > 0);
-    const hasText = (numericCount < totalDataRows); // i.e. text lines exist
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      "text/csv": [".csv"],
+      "text/tab-separated-values": [".tsv", ".txt"],
+      "application/vnd.ms-excel": [".xls"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+    },
+    multiple: false,
+    onDrop,
+  });
 
-    // We'll decide whether we can switch
-    const mixture = hasNumeric && hasText;
-    setCanManualSwitch(mixture);
+  // --------------------------
+  // Core parser
+  // --------------------------
+  const parseArrayOfRows = (rows) => {
+    const errorList = [];
+    const allRows = [];
+    let numericCount = 0;
+    let totalDataRows = 0;
 
-    // auto detect
-    let deducedType = 'categorical';
-    if (!hasNumeric && hasText) {
-      // purely text
-      deducedType = 'categorical';
-    } else if (hasNumeric && !hasText) {
-      // purely numeric
-      deducedType = 'choropleth';
-    } else if (mixture) {
-      // ratio check
-      const ratio = numericCount / totalDataRows;
-      if (ratio > 0.75) {
-        deducedType = 'choropleth';
-      } else if (ratio < 0.25) {
-        deducedType = 'categorical';
-      } else {
-        setShowMixedWarning(true);
+    const cleanedRows = (Array.isArray(rows) ? rows : [])
+      .map((r) => (Array.isArray(r) ? r.map(normCell) : []))
+      .filter((r) => r.length && !r.every((c) => !c));
+
+    const { byCode, byName } = buildDataSourceIndex(dataSource);
+
+    // 1) Detect WDI wide header
+    let headerIndex = -1;
+    for (let i = 0; i < cleanedRows.length; i++) {
+      if (looksLikeWDIHeader(cleanedRows[i])) {
+        headerIndex = i;
+        break;
       }
     }
-    setMapDataType(deducedType);
 
-    // finalize
-    if (deducedType === 'choropleth') finalizeChoropleth(allRows);
+    if (headerIndex !== -1) {
+      const header = cleanedRows[headerIndex];
+      const headerLower = header.map(normKey);
+
+      const countryNameCol = headerLower.findIndex((h) => h.includes("country name"));
+      const countryCodeCol = headerLower.findIndex((h) => h.includes("country code"));
+
+      const yearCols = [];
+      for (let c = 0; c < header.length; c++) {
+        if (isYear(header[c])) yearCols.push({ year: header[c], idx: c });
+      }
+
+      log(`✅ Detected wide format header at row ${headerIndex + 1}`, "success");
+      log(
+        `Country Name col: ${countryNameCol >= 0 ? countryNameCol + 1 : "—"}, Country Code col: ${countryCodeCol + 1}`,
+        "info"
+      );
+      log(
+        `Year columns detected: ${yearCols.length} (latest: ${
+          yearCols[yearCols.length - 1]?.year || "?"
+        })`,
+        "info"
+      );
+
+      const matchLogs = [];
+      for (let r = headerIndex + 1; r < cleanedRows.length; r++) {
+        const row = cleanedRows[r];
+
+        const rawCode = (countryCodeCol >= 0 && row[countryCodeCol] != null
+          ? String(normCell(row[countryCodeCol]) ?? "").trim().toUpperCase()
+          : "");
+        const rawName = countryNameCol >= 0 && row[countryNameCol] != null ? normCell(row[countryNameCol]) : "";
+
+        const found =
+          (rawCode && byCode.get(rawCode)) || (rawName && byName.get(normKey(rawName)));
+
+        if (!found) {
+          errorList.push({
+            line: r + 1,
+            type: "Invalid Name",
+            message: `No match for "${rawName || rawCode}"`,
+          });
+          continue;
+        }
+
+        let pickedValue = null;
+        let pickedYear = null;
+
+        for (let i = yearCols.length - 1; i >= 0; i--) {
+          const { year, idx } = yearCols[i];
+          const v = toNum(row[idx]);
+          if (v != null) {
+            pickedValue = v;
+            pickedYear = year;
+            break;
+          }
+        }
+
+        if (pickedValue == null) {
+          // fallback: scan rightmost numeric
+          for (let c = row.length - 1; c >= 0; c--) {
+            const v = toNum(row[c]);
+            if (v != null) {
+              pickedValue = v;
+              pickedYear = null;
+              break;
+            }
+          }
+        }
+
+        if (pickedValue == null) {
+          errorList.push({
+            line: r + 1,
+            type: "Missing Value",
+            message: `No numeric values found for ${found.name} (${found.code})`,
+          });
+          continue;
+        }
+
+        totalDataRows++;
+        numericCount++;
+
+        allRows.push({
+          name: found.name,
+          code: found.code,
+          rawValue: String(pickedValue),
+          isNumeric: true,
+          pickedYear,
+        });
+
+        matchLogs.push({
+          code: found.code,
+          value: pickedValue,
+          year: pickedYear,
+        });
+      }
+
+      // Log all matches in one batch, then we'll add warnings after
+      if (matchLogs.length > 0) {
+        const newLines = matchLogs.map(({ code, value, year }) => ({
+          id: `${Date.now()}-${Math.random()}-${code}`,
+          ts: new Date(),
+          level: "info",
+          msg: `Matched ${code}: newest value ${value}${year ? ` (${year})` : ""}`,
+        }));
+        setSession((prev) => ({
+          ...prev,
+          terminalLines: [...(prev.terminalLines || []), ...newLines],
+        }));
+      }
+
+      if (allRows.length === 0) {
+        const msg =
+          errorList.length > 0
+            ? "No valid rows found in wide table. (Countries might not match your map's dataset.)"
+            : "File has no valid rows.";
+        const errorLogLines = [
+          ...errorList.map((err) => ({
+            id: `err-${err.line}-${Date.now()}-${Math.random()}`,
+            ts: new Date(),
+            level: "error",
+            msg: `Line ${err.line}: ${err.message}`,
+          })),
+          { id: `no-data-${Date.now()}`, ts: new Date(), level: "error", msg: `❌ ${msg}` },
+        ];
+        setSession((prev) => ({
+          ...prev,
+          errors: [{ line: 0, type: "No Data", message: msg }, ...errorList],
+          terminalLines: [...(prev.terminalLines || []), ...errorLogLines],
+          fileIsValid: false,
+          isParsing: false,
+        }));
+        return;
+      }
+
+      // Persist session
+      setSession((prev) => ({
+        ...prev,
+        universalRows: allRows,
+        errors: errorList,
+        fileIsValid: true,
+        canManualSwitch: false,
+        mapDataType: "choropleth",
+        isParsing: false,
+      }));
+
+      if (errorList.length > 0) log(`⚠ Imported with ${errorList.length} ignored line(s).`, "warn");
+      else log(`✅ Parsed wide file successfully. Rows: ${allRows.length}`, "success");
+
+      finalizeChoropleth(allRows);
+      return;
+    }
+
+    // 2) Fallback: simple 2-or-more column (optionally with header and description)
+    const firstRow = cleanedRows[0] || [];
+    const headerKeys = firstRow.map(normKey);
+    const hasNameCol = headerKeys.some((k) => k.includes("country") || k === "name");
+    const hasValueCol = headerKeys.some((k) => k === "value" || k.includes("value"));
+    const descColIndex = headerKeys.findIndex((k) => {
+      if (!k) return false;
+      return (
+        k.includes("description") ||
+        k === "desc" ||
+        k === "notes" ||
+        k.includes("note") ||
+        k === "comment" ||
+        k.includes("comment") ||
+        k === "details" ||
+        k.includes("detail") ||
+        k === "info" ||
+        k === "text"
+      );
+    });
+    const nameColIndex = headerKeys.findIndex(
+      (k) => k.includes("country") || k === "name"
+    );
+    const valueColIndex = headerKeys.findIndex(
+      (k) => k === "value" || k.includes("value")
+    );
+    const useHeader =
+      cleanedRows.length >= 2 &&
+      firstRow.length >= 2 &&
+      hasNameCol &&
+      hasValueCol &&
+      nameColIndex >= 0 &&
+      valueColIndex >= 0;
+
+    if (useHeader) {
+      log(`Detected header row with columns: name, value${descColIndex >= 0 ? ", description" : ""}`, "info");
+      for (let index = 1; index < cleanedRows.length; index++) {
+        const row = cleanedRows[index];
+        if (row.length < 2) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `Need at least 2 columns on line ${index + 1}`,
+          });
+          continue;
+        }
+
+        const nameRaw = normCell(row[nameColIndex]);
+        const secondRaw = normCell(row[valueColIndex]);
+        const descriptionRaw =
+          descColIndex >= 0 && row[descColIndex] != null
+            ? normCell(row[descColIndex])
+            : "";
+
+        if (!nameRaw) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Name",
+            message: `No state/country name on line ${index + 1}`,
+          });
+          continue;
+        }
+        if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `No value provided on line ${index + 1}`,
+          });
+          continue;
+        }
+
+        const needleKey = normKey(nameRaw);
+        const found =
+          byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
+
+        if (!found) {
+          errorList.push({
+            line: index + 1,
+            type: "Invalid Name",
+            message: `No match for "${nameRaw}"`,
+          });
+          continue;
+        }
+
+        totalDataRows++;
+        const valAsNum = toNum(secondRaw);
+        const isNum = valAsNum != null;
+        if (isNum) numericCount++;
+
+        allRows.push({
+          name: found.name,
+          code: found.code,
+          rawValue: String(secondRaw),
+          isNumeric: isNum,
+          description: descriptionRaw ? String(descriptionRaw).trim() : undefined,
+        });
+      }
+    } else {
+      cleanedRows.forEach((row, index) => {
+        if (row.length < 2) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `Need at least 2 columns on line ${index + 1}`,
+          });
+          return;
+        }
+
+        const nameRaw = row[0];
+        const secondRaw = row[1];
+        const descriptionRaw = row.length >= 3 && row[2] != null ? normCell(row[2]) : "";
+
+        if (!nameRaw) {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Name",
+            message: `No state/country name on line ${index + 1}`,
+          });
+          return;
+        }
+        if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
+          errorList.push({
+            line: index + 1,
+            type: "Missing Value",
+            message: `No value provided on line ${index + 1}`,
+          });
+          return;
+        }
+
+        const needleKey = normKey(nameRaw);
+        const found =
+          byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
+
+        if (!found) {
+          errorList.push({
+            line: index + 1,
+            type: "Invalid Name",
+            message: `No match for "${nameRaw}"`,
+          });
+          return;
+        }
+
+        totalDataRows++;
+
+        const valAsNum = toNum(secondRaw);
+        const isNum = valAsNum != null;
+        if (isNum) numericCount++;
+
+        allRows.push({
+          name: found.name,
+          code: found.code,
+          rawValue: String(secondRaw),
+          isNumeric: isNum,
+          description: descriptionRaw ? String(descriptionRaw).trim() : undefined,
+        });
+      });
+    }
+
+    if (allRows.length === 0) {
+      const msg =
+        errorList.length > 0
+          ? "No valid rows found. Fix the lines shown above."
+          : "File has no valid rows.";
+      const errorLogLines = [
+        ...errorList.map((err) => ({
+          id: `err-${err.line}-${Date.now()}-${Math.random()}`,
+          ts: new Date(),
+          level: "error",
+          msg: `Line ${err.line}: ${err.message}`,
+        })),
+        { id: `no-data-${Date.now()}`, ts: new Date(), level: "error", msg: `❌ ${msg}` },
+      ];
+      setSession((prev) => ({
+        ...prev,
+        errors: [{ line: 0, type: "No Data", message: msg }, ...errorList],
+        terminalLines: [...(prev.terminalLines || []), ...errorLogLines],
+        fileIsValid: false,
+        isParsing: false,
+      }));
+      return;
+    }
+
+    // deduce type
+    const hasNumeric = numericCount > 0;
+    const hasText = numericCount < totalDataRows;
+    const mixture = hasNumeric && hasText;
+
+    let deducedType = "choropleth";
+    if (!hasNumeric && hasText) deducedType = "categorical";
+    else if (hasNumeric && !hasText) deducedType = "choropleth";
+    else deducedType = "choropleth"; // mixed defaults numeric
+
+    setSession((prev) => ({
+      ...prev,
+      universalRows: allRows,
+      errors: errorList,
+      fileIsValid: true,
+      canManualSwitch: mixture,
+      mapDataType: deducedType,
+      isParsing: false,
+    }));
+
+    log(`Matched ${allRows.length} row(s).`, "success");
+
+    if (deducedType === "choropleth") finalizeChoropleth(allRows);
     else finalizeCategorical(allRows);
   };
 
-  // finalizeChoropleth => only keep lines where isNumeric===true
-  function finalizeChoropleth(allRows) {
-    const numericOnly = allRows.filter(r => r.isNumeric === true);
+  // --------------------------
+  // Finalizers
+  // --------------------------
+  function finalizeChoropleth(rows) {
+    const numericOnly = rows.filter((r) => r.isNumeric === true);
     if (!numericOnly.length) {
-      setParsedData([]);
-      setNumericStats({
+      setSession((prev) => ({ ...prev, parsedData: [] }));
+      setNumericStats((prev) => ({
+        ...prev,
         lowestValue: null,
-        lowestCountry: '',
+        lowestCountry: "",
         highestValue: null,
-        highestCountry: '',
+        highestCountry: "",
         averageValue: null,
         medianValue: null,
         standardDeviation: null,
         numberOfValues: 0,
         totalCountries: dataSource.length,
-      });
+      }));
       return;
     }
-    const numericParsed = numericOnly.map(r => ({
+
+    const numericParsed = numericOnly.map((r) => ({
       name: r.name,
       code: r.code,
-      numericValue: parseFloat(r.rawValue),
+      numericValue: toNum(r.rawValue),
+      ...(r.description != null && r.description !== "" ? { description: r.description } : {}),
     }));
-    setParsedData(numericParsed);
+
+    setSession((prev) => ({ ...prev, parsedData: numericParsed }));
     updateNumericStats(numericParsed);
   }
 
-  // finalizeCategorical => only keep lines where isNumeric===false
-  function finalizeCategorical(allRows) {
-    const textOnly = allRows.filter(r => r.isNumeric === false);
+  function finalizeCategorical(rows) {
+    const textOnly = rows.filter((r) => r.isNumeric === false);
     if (!textOnly.length) {
-      setParsedData([]);
-      setCategoricalStats({
+      setSession((prev) => ({ ...prev, parsedData: [] }));
+      setCategoricalStats((prev) => ({
+        ...prev,
         numberOfUniqueCategories: 0,
-        mostFrequentCategory: '',
+        mostFrequentCategory: "",
         mostFrequentCount: 0,
         totalAssigned: 0,
         totalCountries: dataSource.length,
-      });
+      }));
       return;
     }
-    const catParsed = textOnly.map(r => ({
+
+    const catParsed = textOnly.map((r) => ({
       name: r.name,
       code: r.code,
       categoryValue: r.rawValue,
+      ...(r.description != null && r.description !== "" ? { description: r.description } : {}),
     }));
-    setParsedData(catParsed);
+
+    setSession((prev) => ({ ...prev, parsedData: catParsed }));
     updateCategoricalStats(catParsed);
   }
 
-  // Mixed data popup handlers
-  const handleChooseChoropleth = (e) => {
-    e.stopPropagation();
-    setShowMixedWarning(false);
-    setMapDataType('choropleth');
-    finalizeChoropleth(universalRows);
-  };
-
-  const handleChooseCategorical = (e) => {
-    e.stopPropagation();
-    setShowMixedWarning(false);
-    setMapDataType('categorical');
-    finalizeCategorical(universalRows);
-  };
-
-  // Manual override
-  const handleManualTypeChange = (e) => {
-    const chosen = e.target.value; // 'choropleth' or 'categorical'
-    setMapDataType(chosen);
-    if (chosen === 'choropleth') {
-      finalizeChoropleth(universalRows);
-    } else {
-      finalizeCategorical(universalRows);
-    }
-  };
-
-  // numeric stats
   function updateNumericStats(numericData) {
-    if (!numericData.length) {
-      setNumericStats({
-        lowestValue: null,
-        lowestCountry: '',
-        highestValue: null,
-        highestCountry: '',
-        averageValue: null,
-        medianValue: null,
-        standardDeviation: null,
-        numberOfValues: 0,
-        totalCountries: dataSource.length,
-      });
-      return;
-    }
+    if (!numericData.length) return;
+
     let minVal = numericData[0].numericValue;
     let maxVal = numericData[0].numericValue;
     let minName = numericData[0].name;
@@ -446,9 +760,10 @@ function UploadDataModal({
     let sumVal = 0;
     const arrVals = [];
 
-    numericData.forEach(item => {
+    numericData.forEach((item) => {
       arrVals.push(item.numericValue);
       sumVal += item.numericValue;
+
       if (item.numericValue < minVal) {
         minVal = item.numericValue;
         minName = item.name;
@@ -458,6 +773,7 @@ function UploadDataModal({
         maxName = item.name;
       }
     });
+
     const avg = sumVal / numericData.length;
     const median = calculateMedian(arrVals);
     const stdDev = calculateStdDev(arrVals);
@@ -475,21 +791,13 @@ function UploadDataModal({
     });
   }
 
-  // categorical stats
   function updateCategoricalStats(catData) {
-    if (!catData.length) {
-      setCategoricalStats({
-        numberOfUniqueCategories: 0,
-        mostFrequentCategory: '',
-        mostFrequentCount: 0,
-        totalAssigned: 0,
-        totalCountries: dataSource.length,
-      });
-      return;
-    }
+    if (!catData.length) return;
+
     const { categoryMap, totalAssigned } = aggregateCategories(catData);
     const uniqueCategories = Object.keys(categoryMap).length;
-    let mostCat = '';
+
+    let mostCat = "";
     let mostCount = 0;
     for (const [cat, ccount] of Object.entries(categoryMap)) {
       if (ccount > mostCount) {
@@ -497,6 +805,7 @@ function UploadDataModal({
         mostCat = cat;
       }
     }
+
     setCategoricalStats({
       numberOfUniqueCategories: uniqueCategories,
       mostFrequentCategory: mostCat,
@@ -506,140 +815,119 @@ function UploadDataModal({
     });
   }
 
-  // data completeness
-  let dataCompleteness = 'N/A';
-  if (mapDataType === 'choropleth') {
-    if (numericStats.totalCountries > 0) {
-      dataCompleteness = (
-        (numericStats.numberOfValues / numericStats.totalCountries) * 100
-      ).toFixed(2);
-    }
-  } else if (mapDataType === 'categorical') {
-    if (categoricalStats.totalCountries > 0) {
-      dataCompleteness = (
-        (categoricalStats.totalAssigned / categoricalStats.totalCountries) * 100
-      ).toFixed(2);
-    }
+  // Manual override (only shown if mixed)
+  const handleManualTypeChange = (e) => {
+    const chosen = e.target.value; // 'choropleth' or 'categorical'
+    setSession((prev) => ({ ...prev, mapDataType: chosen }));
+
+    if (chosen === "choropleth") finalizeChoropleth(universalRows);
+    else finalizeCategorical(universalRows);
+
+    log(`Switched interpretation to: ${chosen}`, "warn");
+  };
+
+  // Download template
+  const downloadStarterTemplate = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    dataSource.forEach((item) => {
+      const maybeQuote = item.name.includes(",") ? `"${item.name}"` : item.name;
+      csvContent += `${maybeQuote},\n`;
+    });
+
+    const encoded = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encoded);
+    link.setAttribute(
+      "download",
+      selectedMap === "usa"
+        ? "us_states_template.csv"
+        : selectedMap === "europe"
+        ? "eu_countries_template.csv"
+        : "world_countries_template.csv"
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    log("Downloaded starter template.", "info");
+  };
+
+  // Import
+  const handleImportData = () => {
+    if (mapDataType === "choropleth") onImport(parsedData, numericStats, "choropleth");
+    else onImport(parsedData, categoricalStats, "categorical");
+    onClose();
+  };
+
+  // Completeness (optional)
+  let dataCompleteness = "N/A";
+  if (mapDataType === "choropleth" && numericStats.totalCountries > 0) {
+    dataCompleteness = ((numericStats.numberOfValues / numericStats.totalCountries) * 100).toFixed(2);
+  }
+  if (mapDataType === "categorical" && categoricalStats.totalCountries > 0) {
+    dataCompleteness = ((categoricalStats.totalAssigned / categoricalStats.totalCountries) * 100).toFixed(2);
   }
 
-  // table data
+  // Table helpers (optional)
   const sortedNumericData = useMemo(() => {
-    if (mapDataType !== 'choropleth') return [];
+    if (mapDataType !== "choropleth") return [];
     return [...parsedData].sort((a, b) => (b.numericValue || 0) - (a.numericValue || 0));
   }, [mapDataType, parsedData]);
 
   const categoryFreq = useMemo(() => {
-    if (mapDataType !== 'categorical') return [];
+    if (mapDataType !== "categorical") return [];
     const freqMap = {};
     let totalCatAssignments = 0;
-    parsedData.forEach(item => {
+
+    parsedData.forEach((item) => {
       if (item.categoryValue) {
         totalCatAssignments++;
         freqMap[item.categoryValue] = (freqMap[item.categoryValue] || 0) + 1;
       }
     });
+
     const freqArr = Object.entries(freqMap).map(([cat, cnt]) => {
       const pct = totalCatAssignments > 0 ? (cnt / totalCatAssignments) * 100 : 0;
       return { category: cat, count: cnt, percent: pct };
     });
+
     freqArr.sort((a, b) => b.count - a.count);
     return freqArr;
   }, [mapDataType, parsedData]);
 
-  // Download template
-  const downloadStarterTemplate = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    dataSource.forEach(item => {
-      const maybeQuote = item.name.includes(',') ? `"${item.name}"` : item.name;
-      csvContent += `${maybeQuote},\n`;
-    });
-    const encoded = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encoded);
-    link.setAttribute(
-      'download',
-      selectedMap === 'usa'
-        ? 'us_states_template.csv'
-        : selectedMap === 'europe'
-        ? 'eu_countries_template.csv'
-        : 'world_countries_template.csv'
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  if (!isOpen && !embedded) return null;
 
-  // Import
-  const handleImportData = () => {
-    if (mapDataType === 'choropleth') {
-      onImport(parsedData, numericStats);
-    } else {
-      onImport(parsedData, categoricalStats);
-    }
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className={styles.modalOverlay}
-      onClick={onClose}
-    >
-      {showMixedWarning && (
-        <div
-          className={styles.mixedWarningOverlay}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            className={styles.mixedWarningModal}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className={styles.mixedCloseBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowMixedWarning(false);
-              }}
-            >
-              &times;
-            </button>
-            <div className={styles.mixedWarningContent}>
-              <FaExclamationTriangle className={styles.mixedWarnIcon} />
-              <h2>Mixed data detected</h2>
-              <p>
-                We found both numeric and text rows. 
-                How should we interpret the file?
-              </p>
-              <div className={styles.mixedActions}>
-                <button onClick={handleChooseChoropleth}>
-                  Use numeric (Choropleth)
-                </button>
-                <button onClick={handleChooseCategorical}>
-                  Use text (Categorical)
-                </button>
-              </div>
-            </div>
+  const content = (
+    <div className={styles.modalContent} onClick={embedded ? undefined : (e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={styles.modalHeader}>
+          <div>
+            <div className={styles.modalEyebrow}>Data Import</div>
+            <h2 className={styles.modalTitle}>Upload data</h2>
+            <p className={styles.modalSubtitle}>
+              Drop a file and we’ll match rows to{" "}
+              {selectedMap === "usa" ? "US states" : selectedMap === "europe" ? "Europe" : "countries"}.
+            </p>
           </div>
-        </div>
-      )}
 
-      <div
-        className={styles.modalContent}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button className={styles.closeButton} onClick={onClose}>
-          &times;
-        </button>
+        {!embedded && (
+          <button
+            type="button"
+            className={styles.modalClose}
+            onClick={onClose}
+            aria-label="Close"
+            title="Close"
+          >
+            &times;
+          </button>
+        )}
+      </div>
 
-        <div className={styles.modalBody}>
-          {/* 1) DnD + Map */}
+      <div className={styles.modalBody}>
           <div className={styles.topRow}>
+            {/* Dropzone */}
             <div
               {...getRootProps()}
-              className={
-                isDragActive ? `${styles.dropZone} ${styles.dropZoneActive}` : styles.dropZone
-              }
+              className={isDragActive ? `${styles.dropZone} ${styles.dropZoneActive}` : styles.dropZone}
             >
               <input {...getInputProps()} />
               <FaUpload className={styles.uploadIcon} />
@@ -648,311 +936,121 @@ function UploadDataModal({
               ) : (
                 <>
                   <p>Drag & drop or click to browse</p>
-                  <small>Supports CSV, TSV, XLSX, XLS</small>
+                  <small>CSV, TSV, XLSX, XLS</small>
                 </>
               )}
             </div>
 
-            <div className={styles.mapWrapper}>
-              {selectedMap === 'world' && <WorldMapSVG />}
-              {selectedMap === 'usa' && <UsSVG />}
-              {selectedMap === 'europe' && <EuropeSVG />}
-
-              <div className={styles.mapOverlay}>
-                <div className={styles.mapName}>
-                  {selectedMap === 'world'
-                    ? 'World'
-                    : selectedMap === 'usa'
-                    ? 'USA'
-                    : 'Europe'}
+            {/* Terminal */}
+            <div className={styles.terminalCard}>
+              <div className={styles.terminalHeader}>
+                <div className={styles.terminalDots}>
+                  <span />
+                  <span />
+                  <span />
                 </div>
-                <button
-                  className={styles.downloadBtn}
-                  onClick={downloadStarterTemplate}
-                >
-                  Download Starter Template
-                </button>
+                <div className={styles.terminalTitle}>Import log</div>
+
+                {isParsing ? (
+                  <div className={styles.terminalStatus}>Reading…</div>
+                ) : fileIsValid === true ? (
+                  <div className={styles.terminalStatusOk}>OK</div>
+                ) : fileIsValid === false ? (
+                  <div className={styles.terminalStatusBad}>Errors</div>
+                ) : (
+                  <div className={styles.terminalStatusIdle}>Idle</div>
+                )}
               </div>
-            </div>
-          </div>
 
-          {/* 2) File panel */}
-          <div
-            className={
-              fileName
-                ? fileIsValid
-                  ? `${styles.fileSection} ${styles.fileSectionValid}`
-                  : `${styles.fileSection} ${styles.fileSectionError}`
-                : styles.fileSection
-            }
-          >
-            <FaFileAlt className={styles.fileIcon} />
+              <div ref={terminalRef} className={styles.terminalBody}>
+                {terminalLines.length === 0 ? (
+                  <div className={styles.terminalHint}>Drop a file to see parsing output here.</div>
+                ) : (
+                  terminalLines.map((l) => (
+                    <div
+                      key={l.id}
+                      className={[
+                        styles.termLine,
+                        l.level === "error" ? styles.termError : "",
+                        l.level === "warn" ? styles.termWarn : "",
+                        l.level === "success" ? styles.termSuccess : "",
+                      ].join(" ")}
+                    >
+                      <span className={styles.termPrompt}>$</span>
+                      <span className={styles.termText}>{l.msg}</span>
+                    </div>
+                  ))
+                )}
+              </div>
 
-            <div className={styles.fileDetails}>
-              <div className={styles.fileName}>{fileName || 'No file selected'}</div>
-
-              {/* Always show the auto-detected type: */}
-              {mapDataType && !canManualSwitch && (
-                <div className={styles.detectedType}>
-                  <span>Detected Type: <strong>{mapDataType}</strong></span>
-                </div>
-)}
-
-
-              {/* Only show dropdown if there's a mixture => canManualSwitch */}
+              {/* Inline mixed-data switch */}
               {universalRows.length > 0 && canManualSwitch && (
-                <div className={styles.dataTypeSelect}>
-                  <label>Change Type:</label>
-                  <select value={mapDataType || ''} onChange={handleManualTypeChange}>
-                    <option value="choropleth">Choropleth</option>
-                    <option value="categorical">Categorical</option>
+                <div className={styles.inlineTypeRow}>
+                  <span className={styles.inlineTypeLabel}>Interpret as:</span>
+                  <select
+                    className={styles.inlineTypeSelect}
+                    value={mapDataType || ""}
+                    onChange={handleManualTypeChange}
+                  >
+                    <option value="choropleth">Choropleth (numeric)</option>
+                    <option value="categorical">Categorical (text)</option>
                   </select>
                 </div>
               )}
-            </div>
 
-            {fileName && fileIsValid === true && (
-              <div className={styles.validBadge}>
-                <FaCheckCircle className={styles.checkIcon} />
-                <span>Valid File</span>
-              </div>
-            )}
-            {fileName && fileIsValid === false && (
-              <div className={styles.errorBadge}>
-                <FaExclamationTriangle className={styles.warnIcon} />
-                <span>{errors.length} error{errors.length > 1 ? 's' : ''}</span>
-                <div className={styles.errorTooltip}>
-                  <ul>
-                    {errors.map((err, i) => (
-                      <li key={i}>
-                        <strong>Line {err.line}:</strong> {err.message}
-                      </li>
-                    ))}
-                  </ul>
+              {/* If not mixed, show detected type */}
+              {mapDataType && !canManualSwitch && (
+                <div className={styles.inlineDetected}>
+                  Detected: <strong>{mapDataType}</strong>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-
-          {/* 3) Stats & Table */}
-          {mapDataType === 'choropleth' && (
-            <div className={styles.statsAndTable}>
-              <div className={styles.statsGrid}>
-                {/*lowest*/}
-                <div className={styles.statItem}>
-                  <FaArrowDown className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Lowest Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.lowestValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaMapMarkerAlt className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>State (Lowest)</div>
-                    <div className={styles.statValue}>
-                      {numericStats.lowestCountry || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*highest*/}
-                <div className={styles.statItem}>
-                  <FaArrowUp className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Highest Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.highestValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaMapMarkerAlt className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>State (Highest)</div>
-                    <div className={styles.statValue}>
-                      {numericStats.highestCountry || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*average*/}
-                <div className={styles.statItem}>
-                  <FaCalculator className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Average Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.averageValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*median*/}
-                <div className={styles.statItem}>
-                  <FaRuler className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Median Value</div>
-                    <div className={styles.statValue}>
-                      {numericStats.medianValue ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*std dev*/}
-                <div className={styles.statItem}>
-                  <FaChartLine className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Std Dev</div>
-                    <div className={styles.statValue}>
-                      {numericStats.standardDeviation ?? 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                {/*count*/}
-                <div className={styles.statItem}>
-                  <FaListUl className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Values Count</div>
-                    <div className={styles.statValue}>
-                      {numericStats.numberOfValues}
-                    </div>
-                  </div>
-                </div>
-                {/*completeness*/}
-                <div className={styles.statItem}>
-                  <FaPercent className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Data %</div>
-                    <div className={styles.statValue}>
-                      {dataCompleteness}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* numeric table */}
-              <div className={styles.valuesTableWrapper}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>State/Country</th>
-                      <th>Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedNumericData.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.name}</td>
-                        <td>{item.numericValue}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {mapDataType === 'categorical' && (
-            <div className={styles.statsAndTable}>
-              <div className={styles.statsGrid}>
-                <div className={styles.statItem}>
-                  <FaListUl className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}># Unique Categories</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.numberOfUniqueCategories}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaGlobe className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Total Countries</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.totalCountries}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaPercent className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Data %</div>
-                    <div className={styles.statValue}>
-                      {dataCompleteness}%
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaCalculator className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Assigned Values</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.totalAssigned}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaChartLine className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Most Frequent</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.mostFrequentCategory || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.statItem}>
-                  <FaListUl className={styles.statIcon} />
-                  <div className={styles.statText}>
-                    <div className={styles.statLabel}>Count (Most Freq)</div>
-                    <div className={styles.statValue}>
-                      {categoricalStats.mostFrequentCount}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* cat table */}
-              <div className={styles.valuesTableWrapper}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th># Countries</th>
-                      <th>%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categoryFreq.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.category}</td>
-                        <td>{item.count}</td>
-                        <td>{item.percent.toFixed(1)}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
 
           {/* Action row */}
           <div className={styles.actionsRow}>
-            <button
-              className={styles.importDataBtn}
-              disabled={!fileIsValid || !mapDataType || parsedData.length === 0}
-              onClick={handleImportData}
-            >
-              Import Data
+            <button type="button" className={styles.templateLink} onClick={downloadStarterTemplate}>
+              <span className={styles.templateLinkIcon}>
+                <FaDownload />
+              </span>
+              <span className={styles.templateLinkText}>
+                Don’t have a file? <span className={styles.templateLinkUnderline}>See our starter template</span>
+              </span>
             </button>
-            <button
-              className={styles.closeModalBtn}
-              onClick={onClose}
-            >
-              Manually Adjust Values
-            </button>
+
+            {embedded ? (
+              <p className={styles.embeddedHint}>Try processing your own file</p>
+            ) : (
+              <div className={styles.actionsRight}>
+                <button className={styles.btn} type="button" onClick={onClose}>
+                  Cancel
+                </button>
+
+                <button
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  type="button"
+                  disabled={isParsing || !mapDataType || parsedData.length === 0}
+                  onClick={handleImportData}
+                >
+                  Import data
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* (Optional) You can render stats/tables below if you want,
+              but I’m keeping this minimal so you can compile immediately. */}
         </div>
-      </div>
+    </div>
+  );
+
+  if (embedded) {
+    return <div className={styles.embeddedWrap}>{content}</div>;
+  }
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      {content}
     </div>
   );
 }
-
-export default UploadDataModal;

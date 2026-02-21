@@ -20,10 +20,10 @@ async function auth(req, res, next) {
     // Verify the JWT from the header
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check the user from DB
+    // Check the user from DB (include is_admin for admin route checks)
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
-      .select('id, status')
+      .select('id, status, is_admin')
       .eq('id', decoded.id)
       .maybeSingle();
 
@@ -41,8 +41,8 @@ async function auth(req, res, next) {
       return res.status(403).json({ msg: 'Your account is banned.' });
     }
 
-    // Attach user to req & continue
-    req.user = { id: userRow.id };
+    // Attach user to req & continue (is_admin: ensure users.is_admin column exists, default false)
+    req.user = { id: userRow.id, is_admin: userRow.is_admin === true };
     next();
   } catch (err) {
     console.log('Token is invalid', err);

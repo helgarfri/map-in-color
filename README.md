@@ -1,123 +1,111 @@
-# MIC MVP Release v2.0.0
+# MIC v3.0.0
 
-## Table of Contents
+**Map in Color** is a web-based platform for creating interactive choropleth and categorical maps from structured data. Upload your own datasets, customize map design, and control how your maps are presented and shared.
 
-- [Introduction](#introduction)
-- [Key Features](#key-features)
-- [Setup & Installation (For devs)](#setup--installation-for-devs)
-  - [Project Structure](#project-structure)
-  - [Prerequisites](#prerequisites)
-  - [Cloning the Repository](#cloning-the-repository)
-  - [Environment Variables](#environment-variables)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
-- [Live Site and Docs](#live-site-and-docs)
-- [Contact and Contributions](#contact-and-contributions)
+- **Choropleth maps** — Numerical data (e.g. GDP, population, HDI) with automatic or manual value ranges and color gradients.
+- **Categorical maps** — Classification data (e.g. World Cup winners, EU membership) with named groups and distinct colors.
+- **Explore & community** — Discover public maps, star and comment, search and filter by tags. Playground works without an account; sign up to save, publish, and embed.
+
+Map in Color is for researchers, educators, journalists, and anyone who needs to visualize geographic data without coding.
 
 ---
 
-## Introduction
+## Live site and docs
 
-Map in Color (MIC) is an open-source platform designed to transform your geographical data into dynamic choropleth maps. Whether you’re a researcher, a data journalist, or simply curious about geographical patterns, MIC enables you to upload CSV files, define ranges, and create color-coded maps of the World, the United States, or Europe in just a few steps.
+- **Live site:** [mapincolor.com](https://mapincolor.com)
+- **User docs:** [mapincolor.com/docs](https://mapincolor.com/docs) — getting started, creating maps, data import, ownership & sharing, explore & community.
 
-Beyond visualization, MIC offers a built-in sharing platform that encourages collaboration and community engagement. By setting your map to public, you can showcase it on our Explore page for others to discover, star, and comment on—fostering new insights and conversations around the data. If you prefer to work privately, you can keep your maps hidden from the public eye and still enjoy all the core features.
+---
 
-## Key Features
-
-- A set of three maps (World Map, United States, and Europe) – with more to be added over time.
-- The ability to instantly generate data ranges with ease (either suggested or manually defined).
-- A sharing platform with tags for potential future data collection across diverse subjects, browsable via an _explore_ page.
-- Public or private map settings for each user’s preference.
-- User profiles that allow personal info, stars, and comments on maps.
-
-## Setup & Installation (For devs)
-
-We welcome contributions. If you want to set up the project for contribution purposes, here are the instructions for setting up the project:
-
-### Project Structure
-
-```plaintext
-map-in-color/
-│── app-backend/ # Backend code (Node.js + Supabase)
-│── src/ # Frontend (React)
-│── public/ # Static assets
-│── package.json # Dependencies and scripts
-│── README.md # Project documentation
-```
+## Setting up the app (developers)
 
 ### Prerequisites
 
-To run this project, make sure you have the following installed:
+- **Node.js** (LTS recommended) and **npm**
+- **Git**
+- **Supabase** project (for database and storage). You need your own project for local development.
 
-- Node.js (Recommended: LTS version)
-- npm (Comes with Node.js)
-- Git (For cloning the repository)
-- Supabase account (Optional, for database access)
-
-### Cloning the Repository
-
-To get started, clone the repository on your local machine:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/helgarfri/map-in-color.git
 cd map-in-color
 ```
 
-### Environment Variables
+### 2. Backend setup
 
-Developers need to configure environment variables to run the backend.
-
-Create a `.env` file in the root directory and add:
-
-```plaintext
-SUPABASE_URL=your-supabase-url
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
-
-**Note:** You can only access the database if you have authorization to do so. If not, you need to use your own dummy database.
-
-### Backend Setup
-
-Guide to starting the backend server:
+The backend is an Express app in `app-backend/`, using Supabase (Postgres + Storage) and optional Resend for email.
 
 ```bash
 cd app-backend
 npm install
+```
+
+Create a `.env` file **inside `app-backend/`** (this is where `dotenv` loads it from when you run the server):
+
+```env
+# Required
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+JWT_SECRET=your-strong-secret-at-least-32-chars
+
+# Optional (defaults shown)
+FRONTEND_URL=http://localhost:3000
+PORT=5000
+
+# For auth emails (verification, password reset). Without these, signup/verification flows will fail.
+RESEND_API_KEY=re_xxxx
+```
+
+Start the backend:
+
+```bash
 node server.js
 ```
 
-The backend will now be running, handling requests from the frontend.
+The API will listen on `http://localhost:5000` (or your `PORT`). Leave this terminal running.
 
-### Frontend Setup
+### 3. Frontend setup
 
-To start the frontend, follow these steps:
+From the **repository root** (not inside `src/`):
 
 ```bash
-cd src
 npm install
 npm start
 ```
 
-This should launch the app on [http://localhost:3000](http://localhost:3000).
+The app will open at [http://localhost:3000](http://localhost:3000).
+
+**Local API:** The frontend talks to the API via `src/api.js`, which is set to the production API URL by default. To use your local backend, change the `baseURL` in `src/api.js` to `http://localhost:5000/api` (or use an env-based URL if you add one).
+
+### 4. Database
+
+Backend expects Supabase tables (e.g. `users`, `maps`, `comments`, etc.). Use your own Supabase project and run any migrations or schema you have. For admin features, ensure `users.is_admin` exists and set at least one user to `is_admin = true`.
 
 ---
 
-## Live Site and Docs
+## Project structure
 
-- **Live site:** [mapincolor.com](https://mapincolor.com)
-- **Detailed Docs**: Visit [mapincolor.com/docs](https://mapincolor.com/docs) for end-user instructions and additional information.
-
-## Contact and Contributions
-
-We welcome forms of feedback, issues, and pull requests.
-
--**Email**: hello@mapincolor.com
-
--**Repo**: [github.com/helgarfri/map-in-color](https://github.com/helgarfri/map-in-color) - open an issue or PR
+```text
+map-in-color/
+├── app-backend/          # Express API (Supabase, auth, maps, profile, etc.)
+│   ├── config/          # Supabase, Resend
+│   ├── middleware/      # auth, authOptional
+│   ├── routes/          # auth, maps, profile, comments, explore, admin, …
+│   └── server.js        # Entry point
+├── public/              # Static assets, terms, privacy
+├── src/                 # React app
+│   ├── api.js           # API client (base URL configured here)
+│   ├── App.js
+│   └── components/
+└── docs/                # Source for in-app docs (e.g. docs/3-0/)
+```
 
 ---
 
-© 2025 Map in Color.  
-Source code is licensed under the [MIT License](./LICENSE).  
-Use of the platform (mapincolor.com) is subject to the [Terms of Use](https://mapincolor.com/terms).
+## Contact and contributions
+
+- **Email:** hello@mapincolor.com  
+- **Repo:** [github.com/helgarfri/map-in-color](https://github.com/helgarfri/map-in-color) — open an issue or PR.
+
+© 2026 Map in Color. Source code is licensed under the [MIT License](./LICENSE). Use of the platform (mapincolor.com) is subject to the [Terms of Use](https://mapincolor.com/terms).

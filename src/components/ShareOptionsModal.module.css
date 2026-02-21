@@ -1,0 +1,912 @@
+/* src/components/ShareOptionsModal.module.css */
+
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --border: rgba(20, 24, 40, 0.10);
+  --text: rgba(15, 23, 42, 0.92);
+  --muted: rgba(15, 23, 42, 0.62);
+  --shadow: 0 20px 60px rgba(15, 23, 42, 0.20);
+  --radius: 16px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 18px;
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: min(720px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  overflow: visible; /* allow tooltips to show outside modal */
+}
+
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(20, 24, 40, 0.08);
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(
+    135deg,
+    rgba(40,168,225,0.08),
+    rgba(20,169,175,0.06),
+    rgba(255,255,255,0.92)
+  );
+}
+
+.titleWrap { min-width: 0; }
+
+.title {
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.sub {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dot { opacity: 0.7; }
+
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(255,255,255,0.72);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: rgba(15, 23, 42, 0.78);
+}
+.closeBtn:hover {
+  background: rgba(255,255,255,0.92);
+}
+.closeBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.card {
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  border-radius: 16px;
+  background:
+    radial-gradient(820px 240px at 18% 0%, rgba(40,168,225,0.10), transparent 60%),
+    radial-gradient(760px 220px at 88% 22%, rgba(20,169,175,0.10), transparent 55%),
+    rgba(255,255,255,0.92);
+  padding: 12px;
+}
+
+.cardTitle {
+  font-size: 12px;
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+  color: rgba(15, 23, 42, 0.82);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.embedCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.embedCardHeader .cardTitle {
+  margin-bottom: 0;
+}
+
+.embedTypeBadge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.08);
+  padding: 4px 10px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.embedPrivateOnly {
+  padding: 8px 0;
+}
+
+.embedPrivateOnlyText {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(15, 23, 42, 0.85);
+}
+
+/* Link row */
+.linkRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.linkBox {
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255,255,255,0.78);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copyBtn {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(20,169,175,0.30);
+  background: rgba(20,169,175,0.18);
+  color: rgba(15, 23, 42, 0.92);
+  font-weight: 950;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.copyBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(20,169,175,0.24);
+  border-color: rgba(20,169,175,0.42);
+}
+.copyBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
+}
+
+/* Social strip — small centered icons, no box */
+.socialStrip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+
+.socialBtnSmall {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(15, 23, 42, 0.7);
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.socialBtnSmall:hover:not(:disabled) {
+  background: rgba(40, 168, 225, 0.08);
+  border-color: rgba(40, 168, 225, 0.2);
+  color: rgba(15, 23, 42, 0.9);
+}
+.socialBtnSmall:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Hints */
+.hintOk {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(20,169,175,0.95);
+}
+
+.hintMuted {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.55);
+  line-height: 1.45;
+}
+
+/* Open page button */
+.openBtn {
+  margin-top: 10px;
+  height: 42px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  color: rgba(15, 23, 42, 0.82);
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.openBtn:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+.openBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* Embed row */
+.embedRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.embedBox {
+  min-height: 120px;
+  resize: none;
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: rgba(255,255,255,0.78);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 750;
+  color: rgba(15, 23, 42, 0.82);
+  line-height: 1.4;
+  outline: none;
+}
+
+/* Embed: description and notes */
+.embedDescription {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.embedPrivateMessage {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(15, 23, 42, 0.8);
+}
+
+.embedPrivateNotice {
+  padding: 16px 0;
+}
+.embedPrivateNoticeText {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(15, 23, 42, 0.8);
+}
+.embedPrivateUpgradeBtn {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #28a8e1, #14a9af);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(40, 168, 225, 0.35);
+}
+.embedPrivateUpgradeBtn:hover {
+  filter: brightness(1.06);
+}
+
+.embedNoteMuted {
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+/* Embed controls: single row above preview + code, compact */
+.embedControls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* Single row for Theme, Branding, Legend, Interactive */
+.embedControlsRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.embedControlsRow .embedOptionBox {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 4px 6px;
+}
+
+.embedControlsRow .embedOptionLabel {
+  font-size: 11px;
+}
+
+.embedControlsRow .themeToggle {
+  padding: 2px;
+}
+
+.embedControlsRow .themeOption span {
+  font-size: 11px;
+}
+
+/* Compact toggle for Theme/Branding in single row */
+.embedRowToggle {
+  display: inline-flex;
+  gap: 2px;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(20, 24, 40, 0.08);
+}
+
+.embedRowToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.7);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.embedRowToggleBtn:hover:not(:disabled):not(.embedToggleBtnDisabled) {
+  background: rgba(15, 23, 42, 0.06);
+  color: rgba(15, 23, 42, 0.9);
+}
+
+.embedRowToggleBtnActive {
+  background: rgba(20, 169, 175, 0.18);
+  color: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(20, 169, 175, 0.35);
+}
+
+.embedRowToggleIcon {
+  font-size: 12px;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.embedRowToggleProBadge {
+  height: 12px;
+  width: auto;
+  margin-left: 2px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.embedControlsRow .embedOptionSelect {
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.embedOptionCheckSmall {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+  box-sizing: border-box;
+  margin: 0;
+  accent-color: rgba(20, 169, 175, 0.9);
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.embedOptionBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(20, 24, 40, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.82);
+  cursor: default;
+}
+
+label.embedOptionBox {
+  cursor: pointer;
+}
+
+.embedOptionLabel {
+  flex-shrink: 0;
+}
+
+/* Theme toggle: light/dark with icons, compact */
+.themeToggle {
+  display: inline-flex;
+  gap: 2px;
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(20, 24, 40, 0.08);
+}
+
+.themeOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.7);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.themeOption:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: rgba(15, 23, 42, 0.9);
+}
+
+.themeOptionActive {
+  background: rgba(20, 169, 175, 0.15);
+  color: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 1px 2px rgba(20, 169, 175, 0.2);
+}
+
+.themeOptionIcon {
+  font-size: 13px;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+/* Legacy embed options grid (kept for any remaining use) */
+.embedOptionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+
+.embedOptionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.82);
+}
+
+.embedOptionSelect {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.9);
+  min-width: 0;
+}
+
+.embedOptionCheck {
+  width: 18px;
+  height: 18px;
+  accent-color: rgba(20, 169, 175, 0.9);
+  cursor: pointer;
+}
+
+.embedControls .embedOptionCheck {
+  width: 14px;
+  height: 14px;
+}
+
+/* Preview (left) + code (right) row */
+.embedPreviewRow {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.embedPreviewThumb {
+  position: relative;
+  aspect-ratio: 2000 / 857; /* match map viewBox so height fits map, no blank space */
+  width: 100%;
+  max-width: 160px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  display: block;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.embedPreviewThumb:hover:not(:disabled) {
+  border-color: rgba(20, 169, 175, 0.4);
+  box-shadow: 0 4px 12px rgba(20, 169, 175, 0.2);
+}
+
+.embedPreviewThumb:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* Fake preview: no absolute so map centers; height fits map via thumb aspect-ratio */
+.embedPreviewMapStage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+/* Dark theme: match MapEmbed dark background */
+.embedPreviewThumbDark .embedPreviewMapStage {
+  background: rgba(15, 23, 42, 0.96);
+}
+
+/* Wrapper so Map is centered and viewBox stays centered in thumb */
+.embedPreviewMapCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+}
+
+.embedPreviewMapCenter > div {
+  flex: 0 0 auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Force the zoom-pan-pinch wrapper (ancestor of .mapCanvas) to center its content so map isn’t stuck at top */
+.embedPreviewMapStage .mapInner div:has(> div:has(> .mapCanvas)) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.embedPreviewMapStage canvas,
+.embedPreviewMapStage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.embedPreviewPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.45);
+}
+
+/* Small watermark for thumb (theme-aware) */
+.embedPreviewWatermark {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.7;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+.embedPreviewWatermarkText {
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(15, 23, 42, 0.8);
+  line-height: 1;
+}
+
+.embedPreviewWatermarkLogo {
+  height: 10px;
+  width: auto;
+  display: block;
+}
+
+/* Dark theme: watermark text light */
+.embedPreviewThumbDark .embedPreviewWatermarkText {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Fake legend box (thumbnail style) – title only, half size */
+.embedPreviewLegend {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  z-index: 2;
+  pointer-events: none;
+  max-width: calc(100% - 8px);
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.embedPreviewLegendTitle {
+  font-size: 5px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.9);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.embedPreviewThumbDark .embedPreviewLegend {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.embedPreviewThumbDark .embedPreviewLegendTitle {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.embedPreviewOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.5);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.embedPreviewThumb:hover .embedPreviewOverlay {
+  opacity: 1;
+}
+
+.embedCodeWrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.embedCodeWrap .embedBox {
+  min-height: 100px;
+}
+
+.embedCodeWrap .embedBox:disabled {
+  opacity: 0.95;
+  cursor: default;
+}
+
+/* Pro owner: Branded / Unbranded toggle */
+.embedToggleRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.embedToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 24, 40, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.7);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.embedToggleBtn:hover {
+  background: rgba(20, 169, 175, 0.08);
+  border-color: rgba(20, 169, 175, 0.25);
+  color: rgba(15, 23, 42, 0.9);
+}
+
+.embedToggleBtnActive {
+  background: rgba(20, 169, 175, 0.12);
+  border-color: rgba(20, 169, 175, 0.4);
+  color: rgba(15, 23, 42, 0.95);
+}
+
+.embedToggleIcon {
+  flex-shrink: 0;
+  font-size: 14px;
+  opacity: 0.9;
+  margin-right: 6px;
+}
+
+.embedToggleBtnDisabled,
+.embedToggleBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: auto; /* keep hover so custom tooltip shows */
+}
+
+/* Wrapper for Unbranded button when it has a tooltip */
+.embedToggleBtnWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.embedTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.96);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(20, 169, 175, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease-out;
+  z-index: 10001; /* above overlay so tooltip is visible outside modal */
+}
+
+.embedTooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: rgba(15, 23, 42, 0.96);
+}
+
+.embedToggleBtnWrap:hover .embedTooltip {
+  opacity: 1;
+}
+
+.embedToggleProBadge {
+  height: 14px;
+  width: auto;
+  margin-left: 6px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.generateTokenBtn {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px dashed rgba(20, 169, 175, 0.5);
+  background: rgba(20, 169, 175, 0.06);
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.generateTokenBtn:hover:not(:disabled) {
+  background: rgba(20, 169, 175, 0.12);
+  border-color: rgba(20, 169, 175, 0.7);
+}
+
+.generateTokenBtn:disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+
+.upgradeCtaBtn {
+  margin-top: 12px;
+  width: 100%;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #15b5b8, #0f9ea1);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(21, 181, 184, 0.35);
+}
+
+.upgradeCtaBtn:hover {
+  background: linear-gradient(135deg, #0f9ea1, #0d8a8d);
+  box-shadow: 0 4px 12px rgba(21, 181, 184, 0.4);
+}
+
+
+/* Mobile */
+@media (max-width: 520px) {
+  .embedControlsRow {
+    flex-wrap: wrap;
+  }
+  .embedPreviewRow {
+    grid-template-columns: 1fr;
+  }
+  .embedPreviewThumb {
+    max-width: none;
+  }
+  .socialStrip {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

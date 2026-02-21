@@ -99,6 +99,29 @@ router.get('/', async (req, res) => {
     const endIndex = startIndex + limitNum; // slice end is exclusive
     const finalSlice = filtered.slice(startIndex, endIndex);
 
+    // 8) Attach comment count per map (visible comments only)
+    if (finalSlice.length > 0) {
+      const mapIds = finalSlice.map((m) => m.id);
+      const { data: commentRows, error: commentErr } = await supabaseAdmin
+        .from('comments')
+        .select('map_id')
+        .in('map_id', mapIds)
+        .eq('status', 'visible');
+
+      if (!commentErr && commentRows && commentRows.length > 0) {
+        const countByMap = {};
+        mapIds.forEach((id) => (countByMap[id] = 0));
+        commentRows.forEach((row) => {
+          countByMap[row.map_id] = (countByMap[row.map_id] || 0) + 1;
+        });
+        finalSlice.forEach((m) => {
+          m.comment_count = countByMap[m.id] ?? 0;
+        });
+      } else {
+        finalSlice.forEach((m) => (m.comment_count = 0));
+      }
+    }
+
     // Return
     return res.json({
       maps: finalSlice,

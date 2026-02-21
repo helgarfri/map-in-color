@@ -1,45 +1,86 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/components/Dashboard.js
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   fetchMaps,
   deleteMap,
   fetchNotifications,
   markNotificationAsRead,
-  fetchSavedMaps
-} from '../api';
-import { differenceInDays, formatDistanceToNow } from 'date-fns';
-import { UserContext } from '../context/UserContext';
+  fetchSavedMaps,
+  resendVerificationEmail,
+} from "../api";
+import { differenceInDays, formatDistanceToNow } from "date-fns";
+import { UserContext } from "../context/UserContext";
+import { FaStar, FaComment, FaMap, FaCalendarAlt, FaEdit, FaEnvelope } from "react-icons/fa";
 
-// Icons
-import {
-  FaStar,
-  FaMap,
-  FaCalendarAlt,
-  FaEdit
-} from 'react-icons/fa';
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+import DashboardActivityFeed from "./DashboardActivityFeed";
+import StaticMapThumbnail from "./StaticMapThumbnail";
 
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { SidebarContext } from "../context/SidebarContext";
+import useWindowSize from "../hooks/useWindowSize";
+import UpgradeProModal from "./UpgradeProModal";
 
-// We keep your existing Activity Feed (which has its own skeleton logic)
-import DashboardActivityFeed from './DashboardActivityFeed';
+import styles from "./Dashboard.module.css";
 
-// Thumbnails
-import WorldMapSVG from './WorldMapSVG';
-import UsSVG from './UsSVG';
-import EuropeSVG from './EuropeSVG';
+// Daily welcome messages (rotate at 6 AM local time each day)
+const DAILY_WELCOME_MESSAGES = [
+  "🌍 Here's what's mapping today.",
+  "Let's color the world.",
+  "Your maps are waiting.",
+  "What will you visualize today?",
+  "The world is blank. Ready to fill it?",
+  "Let's turn data into geography.",
+  "Time to map something meaningful.",
+  "Your cartography lab is open.",
+  "Ready to paint the planet?",
+  "The globe is your canvas.",
+  "Let's make the invisible visible.",
+  "Another day, another map.",
+  "Data deserves borders.",
+  "What story will your map tell?",
+  "Let's give your data a home.",
+  "Your world-building tools are ready.",
+  "Today's forecast: 100% chance of mapping.",
+  "Build something worth exploring.",
+  "Ready to shape the world?",
+  "Make every country count.",
+  "Let's put things on the map.",
+  "Start mapping your next insight.",
+  "The atlas awaits.",
+  "Let's chart new territory.",
+  "Your dashboard. Your world.",
+  "Where will your data take us?",
+  "Time to zoom in on something great.",
+  "The map is yours.",
+  "Create something worth clicking.",
+  "Let's map what matters.",
+];
 
-import { SidebarContext } from '../context/SidebarContext';
-import useWindowSize from '../hooks/useWindowSize';
+/** Returns the message index for "today" using a 6 AM daily boundary (local time). */
+function getDailyMessageIndex() {
+  const now = new Date();
+  const hour = now.getHours();
+  const date = new Date(now);
+  // Before 6 AM counts as previous calendar day for message selection
+  if (hour < 6) date.setDate(date.getDate() - 1);
+  const dayKey = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayIndex = Math.floor(dayKey / (24 * 60 * 60 * 1000));
+  return dayIndex % DAILY_WELCOME_MESSAGES.length;
+}
 
-import styles from './Dashboard.module.css';
-
+function getDailyWelcomeMessage() {
+  return DAILY_WELCOME_MESSAGES[getDailyMessageIndex()];
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
 
   const [maps, setMaps] = useState([]);
   const [savedMaps, setSavedMaps] = useState([]);
@@ -49,24 +90,39 @@ export default function Dashboard() {
   const [mapToDelete, setMapToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // Email verification banner (resend)
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState(null);
+
   const { width } = useWindowSize();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
-  const showOverlay = !isCollapsed && width < 1000;
+
+  // Overlay only matters on small screens
+  const isMobile = width < 1000;
+  const showOverlay = isMobile && !isCollapsed;
+
+  // ✅ IMPORTANT: remove this effect entirely
+  // It was overwriting your global state on every route change.
+  // useEffect(() => {
+  //   if (width < 1000) setIsCollapsed(true);
+  //   else setIsCollapsed(false);
+  // }, [width, setIsCollapsed]);
 
   // Basic Stats
   const totalMapsCreated = maps.length;
-  const totalStarsReceived = maps.reduce(
-    (sum, map) => sum + (map.save_count || 0),
-    0
-  );
+  const totalStarsReceived = maps.reduce((sum, map) => sum + (map.save_count || 0), 0);
   const profileAgeDays = profile?.created_at
     ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
 
-    useEffect(() => {
-      if (width < 1000) setIsCollapsed(true);
-      else setIsCollapsed(false);
-    }, [width, setIsCollapsed]);
+  // Show Upgrade Pro modal when arriving from Pro page CTA (login → dashboard with showUpgradeModal)
+  useEffect(() => {
+    if (location.state?.showUpgradeModal) {
+      setShowUpgradeProModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.showUpgradeModal, location.pathname, navigate]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -77,25 +133,25 @@ export default function Dashboard() {
         const [mapsRes, notificationsRes, savedMapsRes] = await Promise.all([
           fetchMaps(),
           fetchNotifications(),
-          fetchSavedMaps()
+          fetchSavedMaps(),
         ]);
 
         // Sort maps by updated_at desc
-        const sortedMaps = mapsRes.data.sort(
+        const sortedMaps = (mapsRes.data || []).sort(
           (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
         );
         setMaps(sortedMaps);
 
-        // notifications sorted desc, only keep first few
-        const sortedNotifications = notificationsRes.data
+        // Notifications sorted desc, only keep first few
+        const sortedNotifications = (notificationsRes.data || [])
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 6);
         setNotifications(sortedNotifications);
 
-        // saved (starred) maps
-        setSavedMaps(savedMapsRes.data);
+        // Saved (starred) maps
+        setSavedMaps(savedMapsRes.data || []);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -105,7 +161,8 @@ export default function Dashboard() {
   }, [profile]);
 
   // Recently modified maps
-  const recentMaps = maps.slice(0, 4);
+  const recentMaps = maps.slice(0, 2);
+  const recentStarred = savedMaps.slice(0, 3);
 
   // Handlers
   const handleMapClick = (mapId) => {
@@ -130,7 +187,7 @@ export default function Dashboard() {
       await deleteMap(mapToDelete.id);
       setMaps((prev) => prev.filter((m) => m.id !== mapToDelete.id));
     } catch (err) {
-      console.error('Error deleting map:', err);
+      console.error("Error deleting map:", err);
     } finally {
       setShowDeleteModal(false);
       setMapToDelete(null);
@@ -142,25 +199,43 @@ export default function Dashboard() {
     setMapToDelete(null);
   };
 
+  const handleResendVerification = async () => {
+    const email = profile?.email;
+    if (!email) return;
+    setResendError(null);
+    setResendSuccess(false);
+    setResendLoading(true);
+    try {
+      await resendVerificationEmail(email);
+      setResendSuccess(true);
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      setResendError(err?.response?.data?.msg || "Could not send. Try again in a moment.");
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleNotificationClick = async (notif) => {
     try {
       await markNotificationAsRead(notif.id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
-      if (notif.map_id) {
-        navigate(`/map/${notif.map_id}`);
-      }
+      if (notif.map_id) navigate(`/map/${notif.map_id}`);
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      console.error("Error marking notification as read:", err);
     }
   };
 
-  // If we are still loading => SKELETON placeholders
+  // -----------------------
+  // SKELETON
+  // -----------------------
   if (isLoading) {
     return (
       <div className={styles.dashboardContainer}>
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        {/* ✅ Sidebar reads collapse state from context internally now */}
+        <Sidebar />
 
         {showOverlay && (
           <div
@@ -171,36 +246,33 @@ export default function Dashboard() {
 
         <div
           className={`${styles.dashboardContent} ${
-            isCollapsed ? styles.contentCollapsed : ''
+            isCollapsed ? styles.contentCollapsed : ""
           }`}
         >
-          {/* Header with skeleton fallback */}
-          <Header
-            title="Dashboard"
-            notifications={[]} // no data yet
-            onNotificationClick={() => {}}
-            onMarkAllAsRead={() => {}}
-            profile_picture={''}
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />
+          {/* ✅ Header reads collapse state from context internally now */}
+          <Header title="Dashboard" />
 
-          {/* Now the "skeleton" version of main layout */}
           <div className={styles.mainWrapper}>
-            {/* LEFT/CENTER: stats + feed placeholders */}
             <div className={styles.centerColumn}>
-              {/* Stats row skeleton */}
-              <div className={styles.statsContainer}>
-                <div className={styles.skeletonStatItem} />
-                <div className={styles.skeletonStatItem} />
-                <div className={styles.skeletonStatItem} />
+              <div className={styles.topRow}>
+                <div className={styles.welcomeBlock}>
+                  <div className={styles.welcomeLeft}>
+                    <div className={styles.skeletonWelcomeKicker} />
+                    <div className={styles.skeletonWelcomeName} />
+                    <div className={styles.skeletonWelcomeSub} />
+                  </div>
+
+                  <div className={styles.welcomeStats}>
+                    <div className={styles.skeletonChip} />
+                    <div className={styles.skeletonChip} />
+                    <div className={styles.skeletonChip} />
+                  </div>
+                </div>
               </div>
 
-              {/* Activity feed skeleton – or let the feed handle it 
-                  but here we can do a top title bar skeleton + rows */}
               <section className={styles.activityFeedSection}>
                 <div className={styles.skeletonSectionTitle} />
-                {/* If you want the same skeleton rows from the feed: */}
+
                 <div className={styles.skeletonRow}>
                   <div className={styles.skeletonThumb} />
                   <div className={styles.skeletonTextBlock}>
@@ -209,6 +281,7 @@ export default function Dashboard() {
                     <div className={styles.skeletonLine} />
                   </div>
                 </div>
+
                 <div className={styles.skeletonRow}>
                   <div className={styles.skeletonThumb} />
                   <div className={styles.skeletonTextBlock}>
@@ -217,6 +290,7 @@ export default function Dashboard() {
                     <div className={styles.skeletonLine} />
                   </div>
                 </div>
+
                 <div className={styles.skeletonRow}>
                   <div className={styles.skeletonThumb} />
                   <div className={styles.skeletonTextBlock}>
@@ -228,13 +302,13 @@ export default function Dashboard() {
               </section>
             </div>
 
-            {/* RIGHT side: recently modified + starred skeleton */}
             <div className={styles.sideColumn}>
               <div className={styles.sectionCard}>
                 <div className={styles.skeletonSectionTitle} />
                 <div className={styles.skeletonMapCard} />
                 <div className={styles.skeletonMapCard} />
               </div>
+
               <div className={styles.sectionCard}>
                 <div className={styles.skeletonSectionTitle} />
                 <div className={styles.skeletonMapCard} />
@@ -245,14 +319,14 @@ export default function Dashboard() {
         </div>
       </div>
     );
-  } // end if (isLoading)
+  }
 
-  // --------------------------------------------------
-  // If *not* loading, render the REAL dashboard
-  // --------------------------------------------------
+  // -----------------------
+  // REAL DASHBOARD
+  // -----------------------
   return (
     <div className={styles.dashboardContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar />
 
       {showOverlay && (
         <div
@@ -263,249 +337,254 @@ export default function Dashboard() {
 
       <div
         className={`${styles.dashboardContent} ${
-          isCollapsed ? styles.contentCollapsed : ''
+          isCollapsed ? styles.contentCollapsed : ""
         }`}
       >
-        <Header
-          title="Dashboard"
-          notifications={notifications}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={() => {}}
-          profile_picture={profile?.profile_picture}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
+        <Header title="Dashboard" />
 
         <div className={styles.mainWrapper}>
-          {/* CENTER COLUMN: Stats + Activity Feed */}
+          {/* CENTER COLUMN */}
           <div className={styles.centerColumn}>
-            <div className={styles.statsContainer}>
-              <div className={styles.statItem}>
-                <FaMap className={styles.statIcon} />
-                <span className={styles.statLabel}>Maps Created:</span>
-                <span className={styles.statValue}>{totalMapsCreated}</span>
-              </div>
-              <div className={styles.statItem}>
-                <FaStar className={styles.statIcon} />
-                <span className={styles.statLabel}>Stars Received:</span>
-                <span className={styles.statValue}>{totalStarsReceived}</span>
-              </div>
-              <div className={styles.statItem}>
-                <FaCalendarAlt className={styles.statIcon} />
-                <span className={styles.statLabel}>Profile Age:</span>
-                <span className={styles.statValue}>{profileAgeDays} days</span>
+            <div className={styles.topRow}>
+              <div className={styles.welcomeBlock}>
+                <div className={styles.welcomeLeft}>
+                  <div className={styles.welcomeKicker}>
+                    {profileAgeDays <= 2 ? "Welcome to Map in Color" : "Welcome back"}
+                  </div>
+
+                  <div className={styles.welcomeName}>
+                    {profile?.first_name || profile?.username || "there"} 👋
+                  </div>
+
+                  <div className={styles.welcomeSub}>
+                    {profileAgeDays <= 2
+                      ? "Create your first map and make it yours."
+                      : getDailyWelcomeMessage()}
+                  </div>
+                </div>
+
+                <div className={styles.welcomeStats}>
+                  <div className={styles.statChip}>
+                    <div className={styles.chipTop}>
+                      <FaMap className={styles.chipIcon} />
+                      <div className={styles.chipNum}>{totalMapsCreated}</div>
+                    </div>
+                    <div className={styles.chipLabel}>Maps</div>
+                  </div>
+
+                  <div className={styles.statChip}>
+                    <div className={styles.chipTop}>
+                      <FaStar className={styles.chipIcon} />
+                      <div className={styles.chipNum}>{totalStarsReceived}</div>
+                    </div>
+                    <div className={styles.chipLabel}>Stars</div>
+                  </div>
+
+                  <div className={styles.statChip}>
+                    <div className={styles.chipTop}>
+                      <FaCalendarAlt className={styles.chipIcon} />
+                      <div className={styles.chipNum}>{profileAgeDays}</div>
+                    </div>
+                    <div className={styles.chipLabel}>Days</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <section className={styles.activityFeedSection}>
-              <DashboardActivityFeed userProfile={profile} />
+            {profile && !profile.email_verified && (
+              <div className={styles.verificationBanner}>
+                <div className={styles.verificationBannerText}>
+                  <FaEnvelope style={{ marginRight: 8, verticalAlign: "middle", opacity: 0.8 }} />
+                  Please verify your email. We sent a link to <strong>{profile.email || "your email"}</strong>. Check your inbox and spam folder.
+                </div>
+                <div className={styles.verificationBannerActions}>
+                  {resendSuccess ? (
+                    <span className={styles.verificationBannerSuccess}>Sent! Check your inbox.</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.verificationBannerBtn}
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                    >
+                      {resendLoading ? "Sending…" : "Resend verification email"}
+                    </button>
+                  )}
+                  {resendError && (
+                    <span className={styles.verificationBannerSuccess} style={{ color: "var(--text)", opacity: 0.8 }}>
+                      {resendError}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <section className={styles.sectionCard}>
+              <div className={styles.cardHeaderRow}>
+                <h2 className={styles.cardTitle}>
+                  <FaCalendarAlt className={styles.cardTitleIcon} />
+                  Activity
+                </h2>
+              </div>
+
+              <div className={styles.activityScroll}>
+                <DashboardActivityFeed userProfile={profile} />
+              </div>
             </section>
           </div>
 
-          {/* RIGHT SIDE: Recently Modified + Starred Maps */}
+          {/* RIGHT COLUMN (sticky) */}
           <div className={styles.sideColumn}>
-            {/* Recently Modified */}
-            <div className={styles.sectionCard}>
-              <h2>Recently Modified Maps</h2>
-              {recentMaps.length === 0 ? (
-                <p>No maps found.</p>
-              ) : (
-                <div className={styles.mapCardsList}>
-                  {recentMaps.map((map) => {
-                    let Thumbnail = (
-                      <div className={styles.defaultThumbnail}>No preview</div>
-                    );
-                    if (map.selected_map === 'world') {
-                      Thumbnail = (
-                        <WorldMapSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-                        />
-                      );
-                    } else if (map.selected_map === 'usa') {
-                      Thumbnail = (
-                        <UsSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
+            <div className={styles.sideScroll}>
+              {/* Recently Modified */}
+              <div className={styles.sectionCard}>
+                <div className={styles.cardHeaderRow}>
+                  <h2 className={styles.cardTitle}>
+                    <FaMap className={styles.cardTitleIcon} />
+                    Recently Modified
+                  </h2>
 
-                          
-                        />
-                      );
-                    } else if (map.selected_map === 'europe') {
-                      Thumbnail = (
-                        <EuropeSVG
-                          groups={map.groups}
-                          mapTitleValue={map.title}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
+                  <button
+                    className={styles.seeAllLink}
+                    onClick={() => navigate("/your-maps")}
+                    type="button"
+                  >
+                    See all
+                  </button>
+                </div>
 
-                        />
-                      );
-                    }
-
-                    return (
+                {recentMaps.length === 0 ? (
+                  <p className={styles.emptyText}>No maps yet.</p>
+                ) : (
+                  <div className={styles.mapCardsList}>
+                    {recentMaps.map((map) => (
                       <div
                         key={map.id}
                         className={styles.mapCard}
                         onClick={() => handleMapClick(map.id)}
                       >
-                        <div className={styles.mapCardThumb}>{Thumbnail}</div>
+                        <div className={styles.mapCardThumb}>
+                          <StaticMapThumbnail map={map} background="#dddddd" />
+                        </div>
+
                         <div className={styles.mapCardDetails}>
                           <h3 className={styles.mapCardTitle}>
-                            {map.title || 'Untitled Map'}
+                            {map.title || "Untitled Map"}
                           </h3>
+
                           <p className={styles.mapCardTimestamp}>
-                            Last modified{' '}
                             {map.updated_at
-                              ? formatDistanceToNow(
-                                  new Date(map.updated_at),
-                                  { addSuffix: true }
-                                )
-                              : 'Unknown'}
+                              ? `Modified ${formatDistanceToNow(new Date(map.updated_at), {
+                                  addSuffix: true,
+                                })}`
+                              : "Modified unknown"}
                           </p>
 
-                          <div className={styles.editContainer}>
-                            <FaEdit
-                              onClick={(e) => handleEdit(e, map.id)}
-                              className={styles.editIcon}
-                            />
+                          <div className={styles.mapCardMetaRow}>
+                            <div className={styles.mapStats}>
+                              <span className={styles.metaPillSmall}>
+                                <FaStar className={styles.metaIconSmall} />
+                                {map.save_count || 0}
+                              </span>
+                              <span className={styles.metaPillSmall}>
+                                <FaComment className={styles.metaIconSmall} />
+                                {map.comment_count ?? map.comments_count ?? 0}
+                              </span>
+                            </div>
+
                             <button
-                              className={styles.editBtn}
+                              className={styles.quickAction}
                               onClick={(e) => handleEdit(e, map.id)}
+                              type="button"
                             >
-                              Edit Map
+                              <FaEdit />
+                              Edit
                             </button>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
 
-            {/* Starred Maps */}
-            <div className={styles.sectionCard}>
-              <h2>Starred Maps</h2>
-              {savedMaps.length === 0 ? (
-                <p>You haven't saved any maps yet.</p>
-              ) : (
-                <div className={styles.mapCardsList}>
-                  {savedMaps.slice(0, 4).map((map) => {
-                    const userObj = map.user;
-                    const displayName = userObj?.username || 'Unknown';
-                    const mapTitle = map.title || 'Untitled Map';
-
-                    let Thumbnail = (
-                      <div className={styles.defaultThumbnail}>No preview</div>
-                    );
-                    if (map.selected_map === 'world') {
-                      Thumbnail = (
-                        <WorldMapSVG
-                          groups={map.groups}
-                          mapTitleValue={mapTitle}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-                        />
-                      );
-                    } else if (map.selected_map === 'usa') {
-                      Thumbnail = (
-                        <UsSVG
-                          groups={map.groups}
-                          mapTitleValue={mapTitle}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-
-                        />
-                      );
-                    } else if (map.selected_map === 'europe') {
-                      Thumbnail = (
-                        <EuropeSVG
-                          groups={map.groups}
-                          mapTitleValue={mapTitle}
-                          ocean_color={map.ocean_color}
-                          unassigned_color={map.unassigned_color}
-                          data={map.data}
-                          font_color={map.font_color}
-                          is_title_hidden={map.is_title_hidden}
-                          isThumbnail
-                          showNoDataLegend={map.show_no_data_legend}
-                          titleFontSize={map.title_font_size}
-                          legendFontSize={map.legend_font_size}
-
-                        />
-                      );
-                    }
-
-                    return (
-                      <div
-                        key={map.id}
-                        className={styles.mapCard}
-                        onClick={() => navigate(`/map/${map.id}`)}
-                      >
-                        <div className={styles.mapCardThumb}>{Thumbnail}</div>
-                        <div className={styles.mapCardDetails}>
-                          <h3 className={styles.mapCardTitle}>{mapTitle}</h3>
-                          <p className={styles.mapCardTimestamp}>
-                            by {displayName}
-                          </p>
-                          <p className={styles.starCount}>
-                            <FaStar /> {map.save_count || 0}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {savedMaps.length > 4 && (
                 <button
-                  className={styles.viewAllSavedBtn}
-                  onClick={() => navigate('/starred-maps')}
+                  className={styles.primaryMiniBtn}
+                  onClick={() => navigate("/your-maps")}
+                  type="button"
                 >
-                  View All Starred Maps
+                  See all your maps
                 </button>
-              )}
+              </div>
+
+              {/* Starred Maps */}
+              <div className={styles.sectionCard}>
+                <div className={styles.cardHeaderRow}>
+                  <h2 className={styles.cardTitle}>
+                    <FaStar className={styles.cardTitleIcon} />
+                    Starred
+                  </h2>
+
+                  <button
+                    className={styles.seeAllLink}
+                    onClick={() => navigate("/starred-maps")}
+                    type="button"
+                  >
+                    See all
+                  </button>
+                </div>
+
+                {savedMaps.length === 0 ? (
+                  <p className={styles.emptyText}>No starred maps yet.</p>
+                ) : (
+                  <div className={styles.mapCardsList}>
+                    {recentStarred.map((map) => {
+                      const userObj = map.user;
+                      const displayName = userObj?.username || "Unknown";
+
+                      return (
+                        <div
+                          key={map.id}
+                          className={styles.mapCard}
+                          onClick={() => navigate(`/map/${map.id}`)}
+                        >
+                          <div className={styles.mapCardThumb}>
+                            <StaticMapThumbnail map={map} background="#dddddd" />
+                          </div>
+
+                          <div className={styles.mapCardDetails}>
+                            <h3 className={styles.mapCardTitle}>
+                              {map.title || "Untitled Map"}
+                            </h3>
+
+                            <p className={styles.mapCardTimestamp}>by {displayName}</p>
+
+                            <div className={styles.mapCardMetaRow}>
+                              <div className={styles.mapStats}>
+                                <span className={styles.metaPillSmall}>
+                                  <FaStar className={styles.metaIconSmall} />
+                                  {map.save_count || 0}
+                                </span>
+                                <span className={styles.metaPillSmall}>
+                                  <FaComment className={styles.metaIconSmall} />
+                                  {map.comment_count ?? map.comments_count ?? 0}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <button
+                  className={styles.primaryMiniBtn}
+                  onClick={() => navigate("/starred-maps")}
+                  type="button"
+                >
+                  See all your starred maps
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -513,14 +592,10 @@ export default function Dashboard() {
         {/* DELETE MAP MODAL */}
         {showDeleteModal && (
           <div className={styles.modalOverlay} onClick={cancelDelete}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
               <h2>Confirm Deletion</h2>
               <p>
-                Are you sure you want to delete "
-                <strong>{mapToDelete?.title}</strong>"?
+                Are you sure you want to delete "<strong>{mapToDelete?.title}</strong>"?
               </p>
               <div className={styles.modalButtons}>
                 <button className={styles.confirmDelete} onClick={confirmDelete}>
@@ -534,6 +609,12 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <UpgradeProModal
+        isOpen={showUpgradeProModal}
+        onClose={() => setShowUpgradeProModal(false)}
+        onUpgrade={() => setShowUpgradeProModal(false)}
+      />
     </div>
   );
 }

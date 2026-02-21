@@ -23,6 +23,7 @@ import {
   FaThumbsUp,
   FaCheck,
   FaTrash,
+  FaBell,
 } from 'react-icons/fa';
 
 export default function NotificationList() {
@@ -33,16 +34,20 @@ export default function NotificationList() {
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    if (width < 1000) setIsCollapsed(true);
-    else setIsCollapsed(false);
-  }, [width, setIsCollapsed]);
+
+  // Only show notifications from users that still exist (have a valid Sender)
+  const hasValidSender = (n) =>
+    n.Sender != null && (n.Sender.id != null || n.Sender.username != null);
+
+  // Only show notifications for maps that still exist (hide notifications for deleted maps)
+  const hasValidMap = (n) => !n.map_id || n.Map != null;
 
   useEffect(() => {
     const getNotifications = async () => {
       try {
         const res = await fetchNotifications();
-        setNotifications(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setNotifications(list.filter((n) => hasValidSender(n) && hasValidMap(n)));
       } catch (err) {
         console.error('Error fetching notifications:', err);
       } finally {
@@ -168,7 +173,7 @@ export default function NotificationList() {
 
   return (
     <div className={styles.notificationsContainer}>
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar  />
 
       <div
         className={`${styles.mainContent} ${
@@ -176,18 +181,17 @@ export default function NotificationList() {
         }`}
       >
         <Header
-          notifications={notifications.slice(0, 6)}
-          onNotificationClick={handleNotificationClick}
-          onMarkAllAsRead={handleMarkAllAsRead}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          title="Notifications"
+        title="Notifications"
+        notifications={notifications.slice(0, 6)}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllAsRead={handleMarkAllAsRead}
         />
 
         {/* Stat box showing unread notifications */}
         <div className={styles.statsBar}>
           <div className={styles.statBox}>
-            <span className={styles.statValue}>{unreadCount}</span>
+            <FaBell className={styles.statIcon} />
+            <div className={styles.statValue}>{unreadCount}</div>
             <div className={styles.statLabel}>Unread Notifications</div>
           </div>
         </div>
@@ -265,10 +269,12 @@ export default function NotificationList() {
                     <button
                       className={styles.actionButton}
                       onClick={(e) => handleMarkAsRead(e, notification)}
-                      title="Mark as read"
+                      title={notification.is_read ? "Already read" : "Mark as read"}
+                      disabled={notification.is_read}
                     >
                       <FaCheck />
                     </button>
+
                     <button
                       className={styles.actionButton}
                       onClick={(e) => handleDeleteNotification(e, notification)}
