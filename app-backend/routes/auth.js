@@ -7,21 +7,11 @@ const { check, validationResult } = require('express-validator');
 const { supabaseAdmin } = require('../config/supabase'); 
 const { resend } = require('../config/resend');
 const crypto = require("crypto");
+const { passwordRuleFailures } = require('../utils/password');
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 // Base URL for the API (where this Express app is reachable). Use for verify/password links in emails.
 // On Render, RENDER_EXTERNAL_URL is set automatically (e.g. https://your-service.onrender.com).
 const API_BASE_URL = (process.env.API_URL || process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:5000").replace(/\/$/, "");
-
-function passwordRuleFailures(pw) {
-  const fails = [];
-
-  if (!pw || pw.length < 6) fails.push("at least 6 characters");
-  if (!/[A-Z]/.test(pw)) fails.push("one uppercase letter (A-Z)");
-  if (!/[0-9]/.test(pw)) fails.push("one number (0-9)");
-  if (!/[!?.#]/.test(pw)) fails.push("one special character (! ? . #)");
-
-  return fails;
-}
 
 const saltRounds = 10;
 // Full public URL from Supabase

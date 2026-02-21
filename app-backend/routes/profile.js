@@ -383,28 +383,26 @@ router.get('/:username', async (req, res) => {
     const { data: userRow, error } = await supabaseAdmin
       .from('users')
       .select(`
-       id,
-      username,
-      email,
-      first_name,
-      last_name,
-      date_of_birth,
-      location,
-      description,
-      gender,
-      profile_picture,
-      status,
-      profile_visibility,
-      show_saved_maps,
-      star_notifications,
-      show_activity_feed,
-      show_location,
-      show_date_of_birth,
-      created_at,
-      updated_at,
-      plan
+        id,
+        username,
+        first_name,
+        last_name,
+        date_of_birth,
+        location,
+        description,
+        gender,
+        profile_picture,
+        status,
+        profile_visibility,
+        show_saved_maps,
+        star_notifications,
+        show_activity_feed,
+        show_location,
+        show_date_of_birth,
+        created_at,
+        updated_at,
+        plan
       `)
-      
       .eq('username', username)
       .maybeSingle();
 
@@ -420,6 +418,7 @@ router.get('/:username', async (req, res) => {
       return res.status(403).json({ msg: 'This user is banned.' });
     }
 
+    // Email omitted from select above for public profile privacy
     return res.json(userRow);
   } catch (err) {
     console.error('Error fetching user profile:', err);

@@ -6,7 +6,13 @@ const { supabaseAdmin } = require('../config/supabase'); // Use service_role key
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
 
-//helper
+// Allowed fields for map update (prevents mass assignment: no user_id, id, created_at)
+const MAP_UPDATE_ALLOWED = [
+  'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
+  'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
+  'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
+];
+
 function stripEmptyUpdateFields(obj) {
   const clean = { ...obj };
 
@@ -28,6 +34,15 @@ function stripEmptyUpdateFields(obj) {
   }
 
   return clean;
+}
+
+/** Build a safe update payload from body: only allowed keys, snake_case where needed */
+function allowlistMapUpdate(body) {
+  const allowed = {};
+  MAP_UPDATE_ALLOWED.forEach((key) => {
+    if (body[key] !== undefined) allowed[key] = body[key];
+  });
+  return allowed;
 }
 
 /** Attach comment_count to each map (visible comments only). Mutates the array. */
@@ -282,16 +297,17 @@ router.put('/:id', auth, async (req, res) => {
     const mapId = req.params.id;
     const user_id = req.user.id;
 
-    // Pull out the front-end fields
+    // Pull out front-end fields and allowlist to prevent mass assignment
     const { titleFontSize, legendFontSize, ...restRaw } = req.body;
+    const allowed = allowlistMapUpdate({ ...restRaw, title_font_size: titleFontSize, legend_font_size: legendFontSize });
 
-    // ✅ normalize tags on the actual object we will update
-    if (Array.isArray(restRaw.tags)) {
-      restRaw.tags = restRaw.tags.map((t) => t.toLowerCase());
+    // ✅ normalize tags
+    if (Array.isArray(allowed.tags)) {
+      allowed.tags = allowed.tags.map((t) => t.toLowerCase());
     }
 
-    // ✅ remove undefined/null and remove [] overwrites
-    const rest = stripEmptyUpdateFields(restRaw);
+    // ✅ remove undefined/null and empty-array overwrites
+    const rest = stripEmptyUpdateFields(allowed);
 
     // 1) check if map belongs to this user
     const { data: existingMap } = await supabaseAdmin
@@ -307,13 +323,12 @@ router.put('/:id', auth, async (req, res) => {
         .json({ msg: 'Map not found or you are not the owner' });
     }
 
-    // 2) update
+    // 2) update (only allowlisted fields)
     const updatePayload = {
       ...rest,
       updated_at: new Date().toISOString(),
     };
 
-    // only set font sizes if they were actually sent
     if (titleFontSize !== undefined) updatePayload.title_font_size = titleFontSize;
     if (legendFontSize !== undefined) updatePayload.legend_font_size = legendFontSize;
 

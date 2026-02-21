@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const bcrypt = require('bcrypt');
+const { passwordRuleFailures } = require('../utils/password');
 
 // Import the service_role client
 const { supabaseAdmin } = require('../config/supabase');
@@ -93,6 +94,14 @@ router.put('/change-password', auth, async (req, res) => {
 
     if (!oldPassword || !newPassword) {
       return res.status(400).json({ msg: 'Missing required fields.' });
+    }
+
+    const fails = passwordRuleFailures(newPassword);
+    if (fails.length) {
+      return res.status(400).json({
+        msg: `New password must contain ${fails.join(', ')}.`,
+        code: 'PASSWORD_WEAK',
+      });
     }
 
     // 1) fetch user from "users"
