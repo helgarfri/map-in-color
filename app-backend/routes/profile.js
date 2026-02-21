@@ -350,7 +350,8 @@ router.get('/', auth, async (req, res) => {
         created_at,
         updated_at,
         plan,
-        status
+        status,
+        is_admin
       `)
       .eq('id', req.user.id)
       .maybeSingle();

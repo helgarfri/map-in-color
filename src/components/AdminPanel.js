@@ -25,11 +25,11 @@ export default function AdminPanel() {
   const { profile } = useContext(UserContext);
   const navigate = useNavigate();
 
-  // Check if current user is admin => if not, redirect or show error
+  // Check if current user is admin (from backend is_admin) => if not, redirect
   useEffect(() => {
     if (!profile) return;
-    if (profile.id !== 2) {
-      navigate('/'); // or show a 403 message
+    if (!profile.is_admin) {
+      navigate('/');
     }
   }, [profile, navigate]);
 
