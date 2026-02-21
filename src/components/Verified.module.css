@@ -22,6 +22,7 @@
 .card {
   width: 520px;
   max-width: 100%;
+  min-width: 0;
   background: #fff;
   border-radius: 16px;
   border: 1px solid rgba(0,0,0,0.10);
@@ -83,6 +84,7 @@
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .primaryBtn {
@@ -98,6 +100,9 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .primaryBtn:hover {
@@ -115,6 +120,9 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .secondaryBtn:hover {
@@ -133,7 +141,139 @@
   color: rgba(0,0,0,0.55);
 }
 
+/* Mobile: general small screens */
+@media (max-width: 600px) {
+  .page {
+    padding: 16px;
+    align-items: safe center;
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+
+  .goBackButton {
+    top: 12px;
+    left: 12px;
+    padding: 10px;
+    font-size: 1.1rem;
+  }
+
+  .card {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  .header {
+    padding: 18px 18px 14px;
+  }
+
+  .iconWrap {
+    width: 54px;
+    height: 54px;
+    font-size: 26px;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .actions {
+    padding: 14px 18px 14px;
+    gap: 10px;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    height: 44px;
+    padding: 0 18px;
+    min-height: 44px; /* touch target */
+  }
+
+  .footer {
+    padding: 10px 18px 14px;
+  }
+
+  .footerHint {
+    font-size: 11px;
+  }
+}
+
+/* Mobile: narrow phones */
 @media (max-width: 450px) {
-  .title { font-size: 22px; }
-  .card { border-radius: 14px; }
+  .page {
+    padding: 12px;
+  }
+
+  .goBackButton {
+    top: 10px;
+    left: 10px;
+    padding: 8px;
+  }
+
+  .header {
+    padding: 16px 14px 12px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .actions {
+    flex-direction: column;
+    padding: 12px 14px 12px;
+    gap: 8px;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer {
+    padding: 10px 14px 12px;
+  }
+
+  .footerHint {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+}
+
+/* Mobile: very narrow */
+@media (max-width: 360px) {
+  .page {
+    padding: 10px;
+  }
+
+  .header {
+    padding: 14px 12px 10px;
+  }
+
+  .iconWrap {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .actions {
+    padding: 10px 12px 10px;
+  }
 }
