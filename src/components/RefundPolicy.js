@@ -15,7 +15,7 @@ export default function RefundPolicy() {
             }
             }}>
             <img
-                src="/assets/3-0/mic-logo-2-5-text-cropped.png"
+                src="/assets/3-0/MIC-logo-transparent.png"
                 alt="Map in Color"
                 className={styles.logo}
             />
