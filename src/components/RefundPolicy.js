@@ -23,7 +23,7 @@ export default function RefundPolicy() {
 
            
             <iframe
-                src="/refund.html"
+                src="/refund-content.html"
                 style={{ width: '100%', height: '100vh', border: 'none' }}
                 title="Refund Policy"
             ></iframe>

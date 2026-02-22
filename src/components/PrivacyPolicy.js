@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
 
            
             <iframe
-                src="/privacy.html"
+                src="/privacy-content.html"
                 style={{ width: '100%', height: '100vh', border: 'none' }}
                 title="Privacy Policies"
             ></iframe>

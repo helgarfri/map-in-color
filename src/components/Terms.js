@@ -24,7 +24,7 @@ export default function Terms() {
            
             <iframe
 
-                src="/terms.html"
+                src="/terms-content.html"
                 style={{ width: '100%', height: '100vh', border: 'none' }}
                 title="Terms of Use"
             ></iframe>
