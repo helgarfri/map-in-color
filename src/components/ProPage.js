@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import styles from "./ProPage.module.css";
 import ComingSoonProModal from "./ComingSoonProModal";
+import { UserContext } from "../context/UserContext";
+import { fetchUserProfile } from "../api";
+import { openProCheckout } from "../utils/paddleCheckout";
 
 const PRO_LOGO_SRC = "/assets/3-0/PRO-logo.png";
 const PRO_PRICE = "4.99";
@@ -17,9 +20,14 @@ const BENEFITS = [
 
 export default function ProPage() {
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const { profile, setProfile } = useContext(UserContext);
 
-  const handleUpgrade = () => {
-    setShowComingSoon(true);
+  const handleUpgrade = async () => {
+    const refetch = () => fetchUserProfile().then((r) => setProfile(r.data));
+    const result = await openProCheckout(profile?.id, profile?.email, refetch).catch(() => ({ opened: false }));
+    if (result.opened === false && result.reason === "not_configured") {
+      setShowComingSoon(true);
+    }
   };
 
   return (

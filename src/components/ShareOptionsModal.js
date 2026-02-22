@@ -30,6 +30,10 @@ export default function ShareOptionsModal({
   // Optional: from mapData or parent for unbranded embed
   embedToken = null,
   onGenerateUnbrandedEmbed,
+  // Optional: for Paddle checkout (logged-in user)
+  passthroughUserId,
+  passthroughEmail,
+  onProfileRefresh,
 }) {
   const [copyStatus, setCopyStatus] = useState(null); // "copied" | "error" | null
   const [copyEmbedStatus, setCopyEmbedStatus] = useState(null); // "copied" | "error" | null
@@ -472,6 +476,9 @@ export default function ShareOptionsModal({
             setUpgradeProModalOpen(false);
             onUpgradeToPro?.();
           }}
+          passthroughUserId={passthroughUserId}
+          passthroughEmail={passthroughEmail}
+          onProfileRefresh={onProfileRefresh}
         />,
         document.body
       )}

@@ -17,7 +17,9 @@ const exploreRoutes = require('./routes/explore');
 const notifyRoutes = require('./routes/notify'); 
 const adminRoutes = require('./routes/admin'); 
 const activityRoutes = require('./routes/activity'); 
-const unsubscribeRoutes = require('./routes/unsubscribe'); 
+const unsubscribeRoutes = require('./routes/unsubscribe');
+const paddleRoutes = require('./routes/paddle');
+const { handlePaddleWebhook } = require('./routes/paddleWebhook');
 
 // If you want to test a Supabase connection at startup, 
 // you can import the client (optional):
@@ -28,6 +30,8 @@ const app = express();
 
 app.set('trust proxy', 1); // Trust first proxy
 
+// Paddle webhook must receive raw body for signature verification (mount before express.json())
+app.post('/api/webhooks/paddle', express.raw({ type: 'application/json' }), handlePaddleWebhook);
 
 // Middleware
 app.use(express.json());
@@ -70,6 +74,7 @@ app.use('/api/notify', notifyRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api/activity', activityRoutes);
 app.use('/api/unsubscribe', unsubscribeRoutes);
+app.use('/api/paddle', paddleRoutes);
 
 // Handle undefined routes
 app.use((req, res) => {

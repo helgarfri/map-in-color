@@ -45,12 +45,14 @@ export default function DownloadOptionsModal({
   downloadCount,
   isPublic,
 
-  // ✅ new props
   isUserLoggedIn,
   anonId,
   onDownloadCountUpdate,
   isPro,
   onUpgradeToPro,
+  passthroughUserId,
+  passthroughEmail,
+  onProfileRefresh,
 }) {
   const [format, setFormat] = useState("png"); // "png" | "jpg"
   const [formatSelectOpen, setFormatSelectOpen] = useState(false);
@@ -2763,6 +2765,9 @@ const handleDownload = async () => {
           setUpgradeProModalOpen(false);
           onUpgradeToPro?.();
         }}
+        passthroughUserId={passthroughUserId}
+        passthroughEmail={passthroughEmail}
+        onProfileRefresh={onProfileRefresh}
       />
     </>
   );

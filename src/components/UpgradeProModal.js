@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./UpgradeProModal.module.css";
 import ComingSoonProModal from "./ComingSoonProModal";
+import { openProCheckout } from "../utils/paddleCheckout";
 
 const PRO_LOGO_SRC = "/assets/3-0/PRO-logo.png";
 const PRO_PRICE = "4.99";
@@ -20,6 +21,12 @@ export default function UpgradeProModal({
   isOpen,
   onClose,
   onUpgrade,
+  /** Optional: our user id for webhook (logged-in user) */
+  passthroughUserId,
+  /** Optional: prefill checkout email */
+  passthroughEmail,
+  /** Optional: called after checkout completes so parent can refetch profile */
+  onProfileRefresh,
 }) {
   const [showComingSoon, setShowComingSoon] = useState(false);
 
@@ -30,8 +37,13 @@ export default function UpgradeProModal({
     onClose?.();
   };
 
-  const handleUpgrade = () => {
-    setShowComingSoon(true);
+  const handleUpgrade = async () => {
+    const result = await openProCheckout(passthroughUserId, passthroughEmail, onProfileRefresh).catch(() => ({ opened: false }));
+    if (result.opened) {
+      onClose?.();
+    } else if (result.reason === "not_configured") {
+      setShowComingSoon(true);
+    }
   };
 
   const handleComingSoonClose = () => {

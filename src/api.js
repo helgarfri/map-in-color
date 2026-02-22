@@ -182,3 +182,6 @@ export const resendVerificationEmail = (email) =>
 
 export const resetPassword = ({ token, newPassword }) =>
   API.post("/auth/reset-password", { token, newPassword });
+
+/** Paddle checkout: get client token and price id (requires auth) */
+export const getPaddleConfig = () => API.get('/paddle/config');
