@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./ProPage.module.css";
 import ComingSoonProModal from "./ComingSoonProModal";
+import HomeFooter from "./HomeFooter";
 
 const PRO_LOGO_SRC = "/assets/3-0/PRO-logo.png";
 const PRO_PRICE = "4.99";
@@ -83,6 +84,8 @@ export default function ProPage() {
           <p className={styles.priceNote}>${PRO_PRICE}/month</p>
         </section>
       </div>
+
+      <HomeFooter />
 
       <ComingSoonProModal
         isOpen={showComingSoon}
