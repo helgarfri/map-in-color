@@ -183,6 +183,12 @@
   min-width: 0;
 }
 
+.heroNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .heroName {
   font-size: 18px;
   font-weight: 1000;
@@ -834,6 +840,12 @@
 
 .heroText {
   min-width: 0;
+}
+
+.heroNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .heroName {

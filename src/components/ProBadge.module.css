@@ -1,0 +1,39 @@
+/* Reusable Pro badge – premium pill style (all sizes) */
+.wrap,
+.wrapSmall {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 169, 175, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(40, 168, 225, 0.06)
+  );
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.wrap {
+  height: 20px;
+  padding: 0 6px;
+}
+
+.wrapSmall {
+  height: 18px;
+  padding: 0 5px;
+}
+
+.wrapSmall .img {
+  height: 10px;
+}
+
+.img {
+  height: 12px;
+  width: auto;
+  display: block;
+  vertical-align: middle;
+}

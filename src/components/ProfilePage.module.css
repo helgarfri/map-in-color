@@ -112,6 +112,12 @@
   flex-wrap: wrap;
 }
 
+.heroNameAndBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .heroName {
   font-size: 18px;
   font-weight: 1000;

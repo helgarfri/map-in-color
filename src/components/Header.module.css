@@ -620,12 +620,20 @@
   min-width: 0;
 }
 
+.profileMenuNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+}
+
 /* Name: heavier + matches MIC headings */
 .profileMenuName {
   font-size: 14px;
   font-weight: 1000;
   letter-spacing: 0.2px;
   color: rgba(0,0,0,0.82);
+  line-height: 20px;
 
   overflow: hidden;
   text-overflow: ellipsis;

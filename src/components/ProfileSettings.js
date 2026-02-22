@@ -15,6 +15,7 @@ import useWindowSize from '../hooks/useWindowSize';
 import { changeUserPassword } from '../api'; // add at top
 import UpgradeProModal from './UpgradeProModal';
 import ComingSoonProModal from './ComingSoonProModal';
+import ProBadge from './ProBadge';
 
 export default function ProfileSettings() {
   // ----------------------------
@@ -590,8 +591,11 @@ function ChangePasswordModal({ onClose }) {
                   </div>
 
                   <div className={styles.heroText}>
-                    <div className={styles.heroName}>
-                      {(formData.first_name || "Your") + " " + (formData.last_name || "Name")}
+                    <div className={styles.heroNameRow}>
+                      <span className={styles.heroName}>
+                        {(formData.first_name || "Your") + " " + (formData.last_name || "Name")}
+                      </span>
+                      <ProBadge show={isPro} />
                     </div>
 
                     <div className={styles.heroMetaRow}>

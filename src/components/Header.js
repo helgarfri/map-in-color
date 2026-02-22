@@ -10,6 +10,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { UserContext } from "../context/UserContext";
 import { SidebarContext } from "../context/SidebarContext";
+import ProBadge from "./ProBadge";
 import styles from "./Header.module.css";
 
 export default function Header({ title }) {
@@ -259,8 +260,11 @@ export default function Header({ title }) {
                   className={styles.profileMenuAvatar}
                 />
                 <div className={styles.profileMenuInfo}>
-                  <div className={styles.profileMenuName}>
-                    {profile?.first_name} {profile?.last_name}
+                  <div className={styles.profileMenuNameRow}>
+                    <span className={styles.profileMenuName}>
+                      {profile?.first_name} {profile?.last_name}
+                    </span>
+                    <ProBadge show={isPro} />
                   </div>
                   <div className={styles.profileMenuUsername}>@{profile?.username}</div>
                 </div>

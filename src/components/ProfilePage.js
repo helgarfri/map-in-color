@@ -8,6 +8,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import StaticMapThumbnail from "./StaticMapThumbnail";
 import ProfileActivityFeed from "./ProfileActivityFeed";
+import ProBadge, { isProUser } from "./ProBadge";
 
 import {
   fetchUserProfileByUsername,
@@ -336,10 +337,13 @@ if (!loadingProfile && profile?.status === "banned") {
 
               <div className={styles.heroText}>
                 <div className={styles.heroNameRow}>
-                  <div className={styles.heroName}>
-                    {(profile.first_name || profile.last_name)
-                      ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
-                      : `@${profile.username}`}
+                  <div className={styles.heroNameAndBadge}>
+                    <div className={styles.heroName}>
+                      {(profile.first_name || profile.last_name)
+                        ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+                        : `@${profile.username}`}
+                    </div>
+                    <ProBadge show={isProUser(profile)} />
                   </div>
                   <div className={styles.heroHandle}>@{profile.username}</div>
                 </div>

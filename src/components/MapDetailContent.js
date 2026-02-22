@@ -36,6 +36,7 @@ import { getAnonId } from "../utils/annonId"; // add at top
 import DownloadOptionsModal from "./DownloadOptionsModal";
 import ShareOptionsModal from './ShareOptionsModal';
 import SignupPromptModal from './SignupPromptModal';
+import ProBadge, { isProUser } from './ProBadge';
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
@@ -1428,8 +1429,11 @@ if (!mapData) {
                 className={styles.creatorChipAvatar}
               />
               <div className={styles.creatorChipText}>
-                <div className={styles.creatorChipName}>
-                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                <div className={styles.creatorChipNameRow}>
+                  <div className={styles.creatorChipName}>
+                    {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                  </div>
+                  <ProBadge show={isProUser(mapData?.user)} size="small" />
                 </div>
                 <div className={styles.creatorChipUser}>
                   @{mapData?.user?.username || "unknown"}
@@ -1452,8 +1456,11 @@ if (!mapData) {
                 className={styles.creatorChipAvatar}
               />
               <div className={styles.creatorChipText}>
-                <div className={styles.creatorChipName}>
-                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                <div className={styles.creatorChipNameRow}>
+                  <div className={styles.creatorChipName}>
+                    {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                  </div>
+                  <ProBadge show={isProUser(mapData?.user)} size="small" />
                 </div>
                 <div className={styles.creatorChipUser}>
                   @{mapData?.user?.username || "unknown"}
@@ -2292,8 +2299,11 @@ function CommentRow({
                 to={`/profile/${node.user?.username || "unknown"}`}
                 className={styles.commentAuthorLink}
               >
-                <span className={styles.commentAuthor}>
-                  {node.user?.username || "Unknown"}
+                <span className={styles.commentAuthorRow}>
+                  <span className={styles.commentAuthor}>
+                    {node.user?.username || "Unknown"}
+                  </span>
+                  <ProBadge show={isProUser(node.user)} size="small" />
                 </span>
               </Link>
             ) : (
@@ -2302,7 +2312,12 @@ function CommentRow({
                 className={styles.commentAuthorBtn}
                 onClick={() => openLoginModal('comment')}
               >
-                {node.user?.username || "Unknown"}
+                <span className={styles.commentAuthorRow}>
+                  <span className={styles.commentAuthor}>
+                    {node.user?.username || "Unknown"}
+                  </span>
+                  <ProBadge show={isProUser(node.user)} size="small" />
+                </span>
               </button>
             )}
 
@@ -2546,8 +2561,11 @@ function CommentNode({
                 to={`/profile/${node.user?.username || "unknown"}`}
                 className={styles.commentAuthorLink}
               >
-                <span className={styles.commentAuthor}>
-                  {node.user?.username || "Unknown"}
+                <span className={styles.commentAuthorRow}>
+                  <span className={styles.commentAuthor}>
+                    {node.user?.username || "Unknown"}
+                  </span>
+                  <ProBadge show={isProUser(node.user)} size="small" />
                 </span>
               </Link>
             ) : (
@@ -2556,7 +2574,12 @@ function CommentNode({
                 className={styles.commentAuthorBtn}
                 onClick={() => openLoginModal('comment')}
               >
-                {node.user?.username || "Unknown"}
+                <span className={styles.commentAuthorRow}>
+                  <span className={styles.commentAuthor}>
+                    {node.user?.username || "Unknown"}
+                  </span>
+                  <ProBadge show={isProUser(node.user)} size="small" />
+                </span>
               </button>
             )}
 
