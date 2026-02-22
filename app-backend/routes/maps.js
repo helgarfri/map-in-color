@@ -469,7 +469,8 @@ router.get('/:id', authOptional, async (req, res) => {
           first_name,
           last_name,
           profile_picture,
-          status
+          status,
+          plan
         )
       `)
       .eq('id', mapId)
@@ -537,6 +538,7 @@ router.get('/:id', authOptional, async (req, res) => {
           first_name: mapRow.user?.first_name || '',
           last_name: mapRow.user?.last_name || '',
           profile_picture: mapRow.user?.profile_picture || null,
+          plan: mapRow.user?.plan || 'free',
         },
       });
     }

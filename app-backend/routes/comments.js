@@ -25,7 +25,8 @@ router.get('/maps/:mapId/comments', authOptional, async (req, res) => {
           first_name,
           last_name,
           profile_picture,
-          status
+          status,
+          plan
         )
       `)
       .eq('map_id', mapId)
