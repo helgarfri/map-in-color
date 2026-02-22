@@ -446,6 +446,12 @@ setIsLoading(true);
   }, [mapData]);
 
   useEffect(() => {
+    if (mapData?.title != null) {
+      document.title = mapData.title.trim() || "Untitled Map";
+    }
+  }, [mapData?.title]);
+
+  useEffect(() => {
     const getComments = async () => {
       const res = await fetchComments(id);
       setComments(res.data);
