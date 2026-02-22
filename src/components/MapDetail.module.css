@@ -1398,6 +1398,28 @@
   gap: 4px;
 }
 
+.commentCreatorBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(20, 169, 175, 0.26);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(40, 168, 225, 0.06)
+  );
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
 .commentAuthor {
   font-weight: 800;
   font-size: 0.9rem;
@@ -1420,48 +1442,61 @@ a {
   color: rgba(15, 23, 42, 0.85);
 }
 
-/* Actions: pill buttons */
+/* Actions: pill buttons – premium, content-fitting */
 .commentActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   margin-top: 10px;
-  gap: 8px;
+  gap: 6px;
 }
 
 .reactionButton {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
-  height: 34px;
-  padding: 0 10px;
+  height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
 
-  background: rgba(15, 23, 42, 0.04);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(20, 24, 40, 0.10);
   color: rgba(15, 23, 42, 0.78);
 
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
 
-  transition: background-color 0.15s ease, transform 0.12s ease, border-color 0.12s ease;
+  transition: background 0.15s ease, transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
-.reactionButton:hover {
-  background: rgba(15, 23, 42, 0.06);
-  border-color: var(--border2);
+.reactionButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(20, 169, 175, 0.22);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
   transform: translateY(-1px);
 }
+.reactionButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 .reactionButtonActive {
-  background: rgba(40,168,225,0.16);
-  border-color: rgba(40,168,225,0.30);
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.14), rgba(20, 169, 175, 0.10));
+  border-color: rgba(20, 169, 175, 0.32);
   color: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 1px 2px rgba(40, 168, 225, 0.08);
+}
+.reactionButtonActive:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.20), rgba(20, 169, 175, 0.14));
+  border-color: rgba(20, 169, 175, 0.4);
 }
 
 .reactionButtonSmall {
-  height: 30px;
+  height: 28px;
   padding: 0 10px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .icon,
@@ -1510,34 +1545,41 @@ a {
 }
 
 .replyCancelButton {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: rgba(15, 23, 42, 0.70);
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 12px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(20, 24, 40, 0.12);
+  color: rgba(15, 23, 42, 0.72);
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+  transition: background 0.12s ease, transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .replyCancelButton:hover {
-  background: rgba(15, 23, 42, 0.04);
-  border-color: var(--border2);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(20, 24, 40, 0.18);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   transform: translateY(-1px);
 }
 
 .replyButtonSubmit {
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid rgba(40,168,225,0.30);
-  background: rgba(40,168,225,0.16);
-  color: rgba(15, 23, 42, 0.90);
-  border-radius: 12px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 169, 175, 0.32);
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.18), rgba(20, 169, 175, 0.12));
+  color: rgba(15, 23, 42, 0.92);
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 1px 2px rgba(40, 168, 225, 0.1);
 }
-.replyButtonSubmit:hover {
-  background: rgba(40,168,225,0.22);
-  border-color: rgba(40,168,225,0.42);
+.replyButtonSubmit:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(40, 168, 225, 0.26), rgba(20, 169, 175, 0.18));
+  border-color: rgba(20, 169, 175, 0.42);
+  box-shadow: 0 2px 6px rgba(40, 168, 225, 0.12);
   transform: translateY(-1px);
 }
 
@@ -1974,14 +2016,17 @@ a {
   text-decoration: underline;
 }
 
-/* Danger pill for delete, still MIC-styled */
+/* Danger pill for delete */
 .dangerButton {
-  border-color: rgba(187, 101, 91, 0.25);
-  background: rgba(187, 101, 91, 0.08);
+  border-color: rgba(187, 101, 91, 0.28);
+  background: linear-gradient(135deg, rgba(187, 101, 91, 0.10), rgba(187, 101, 91, 0.06));
   color: rgba(187, 101, 91, 0.98);
+  box-shadow: 0 1px 2px rgba(187, 101, 91, 0.06);
 }
 .dangerButton:hover {
-  background: rgba(187, 101, 91, 0.12);
+  background: linear-gradient(135deg, rgba(187, 101, 91, 0.16), rgba(187, 101, 91, 0.10));
+  border-color: rgba(187, 101, 91, 0.35);
+  box-shadow: 0 2px 4px rgba(187, 101, 91, 0.08);
 }
 
 /* Empty state */

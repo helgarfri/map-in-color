@@ -165,6 +165,7 @@ export default function MapEmbed() {
 
           if (codes.size === 0) {
             const matchKeys = [
+              typeof g.id === "string" ? String(g.id).trim() : null,
               label,
               typeof g.name === "string" ? g.name.trim() : null,
               typeof g.title === "string" ? g.title.trim() : null,

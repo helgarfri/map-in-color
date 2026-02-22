@@ -210,8 +210,9 @@ if (type === "categorical") {
 
       // 2) Fallback: if group has no explicit countries, derive from data values
       if (codes.size === 0) {
-        // Try matching by group label/title OR group.name if present
+        // Match by group id (data often stores value = group id), label, title, or name
         const matchKeyCandidates = [
+          typeof g.id === "string" ? String(g.id).trim() : null,
           label,
           typeof g.name === "string" ? g.name.trim() : null,
           typeof g.title === "string" ? g.title.trim() : null,
@@ -1429,11 +1430,8 @@ if (!mapData) {
                 className={styles.creatorChipAvatar}
               />
               <div className={styles.creatorChipText}>
-                <div className={styles.creatorChipNameRow}>
-                  <div className={styles.creatorChipName}>
-                    {mapData.user.first_name || ""} {mapData.user.last_name || ""}
-                  </div>
-                  <ProBadge show={isProUser(mapData?.user)} size="small" />
+                <div className={styles.creatorChipName}>
+                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
                 </div>
                 <div className={styles.creatorChipUser}>
                   @{mapData?.user?.username || "unknown"}
@@ -1456,11 +1454,8 @@ if (!mapData) {
                 className={styles.creatorChipAvatar}
               />
               <div className={styles.creatorChipText}>
-                <div className={styles.creatorChipNameRow}>
-                  <div className={styles.creatorChipName}>
-                    {mapData.user.first_name || ""} {mapData.user.last_name || ""}
-                  </div>
-                  <ProBadge show={isProUser(mapData?.user)} size="small" />
+                <div className={styles.creatorChipName}>
+                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
                 </div>
                 <div className={styles.creatorChipUser}>
                   @{mapData?.user?.username || "unknown"}
@@ -1639,6 +1634,7 @@ if (!mapData) {
       node={comment}
       depth={1}
       isMobileComments={isMobileComments}
+      mapCreatorUser={mapData?.user}
       {...{
         isUserLoggedIn,
         profile,
@@ -1693,6 +1689,7 @@ if (!mapData) {
   }
   dataEntries={parseJsonArray(mapData.data)}
   codeToName={countryCodeToName}
+  groups={parseJsonArray(mapData.groups)}
   hoveredCode={hoveredCode}
   selectedCode={selectedCode}
   onHoverCode={(code) => setHoveredCode(code)}
@@ -2217,6 +2214,7 @@ function flattenReplies(root) {
 function CommentRow({
   node,
   depth,
+  mapCreatorUser,
 
   // state + context
   isUserLoggedIn,
@@ -2248,6 +2246,7 @@ function CommentRow({
   isMobileComments
 }) {
   const isMine = isUserLoggedIn && node.user?.username === profile?.username;
+  const isMapCreator = !!mapCreatorUser && (node.user?.id === mapCreatorUser.id || node.user?.username === mapCreatorUser.username);
   const canReply = isUserLoggedIn && depth < MAX_DEPTH;
 
   const reactionLoading = reactionLoadingById?.[node.id]; // "like" | "dislike" | undefined
@@ -2304,6 +2303,7 @@ function CommentRow({
                     {node.user?.username || "Unknown"}
                   </span>
                   <ProBadge show={isProUser(node.user)} size="small" />
+                  {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </Link>
             ) : (
@@ -2317,6 +2317,7 @@ function CommentRow({
                     {node.user?.username || "Unknown"}
                   </span>
                   <ProBadge show={isProUser(node.user)} size="small" />
+                  {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </button>
             )}
@@ -2461,6 +2462,7 @@ function CommentRow({
 function CommentNode({
   node,
   depth = 1,
+  mapCreatorUser,
 
   // state + context
   isUserLoggedIn,
@@ -2496,6 +2498,7 @@ function CommentNode({
   isMobileComments
 }) {
   const isMine = isUserLoggedIn && node.user?.username === profile?.username;
+  const isMapCreator = !!mapCreatorUser && (node.user?.id === mapCreatorUser.id || node.user?.username === mapCreatorUser.username);
 
   const replies = node.Replies || [];
   const total = replies.length;
@@ -2566,6 +2569,7 @@ function CommentNode({
                     {node.user?.username || "Unknown"}
                   </span>
                   <ProBadge show={isProUser(node.user)} size="small" />
+                  {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </Link>
             ) : (
@@ -2579,6 +2583,7 @@ function CommentNode({
                     {node.user?.username || "Unknown"}
                   </span>
                   <ProBadge show={isProUser(node.user)} size="small" />
+                  {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </button>
             )}
@@ -2735,6 +2740,7 @@ function CommentNode({
               key={flatNode.id}
               node={flatNode}
               depth={flatDepth}
+              mapCreatorUser={mapCreatorUser}
               reactionLoadingById={reactionLoadingById}
               isMobileComments={isMobileComments}
               {...{
@@ -2766,6 +2772,7 @@ function CommentNode({
             key={child.id}
             node={child}
             depth={depth + 1}
+            mapCreatorUser={mapCreatorUser}
             reactionLoadingById={reactionLoadingById}
             isMobileComments={isMobileComments}
             {...{

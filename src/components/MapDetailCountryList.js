@@ -146,15 +146,15 @@ function getCategoricalLabel(value) {
 
   // If groups contain “label/name/category”, return the group label for the matching value.
   for (const g of groups || []) {
-    const label = safeTrim(g?.label) || safeTrim(g?.name) || safeTrim(g?.category) || safeTrim(g?.value);
-    if (!label) continue;
+    const label = safeTrim(g?.title) || safeTrim(g?.name) || safeTrim(g?.label) || safeTrim(g?.category) || safeTrim(g?.value);
 
-    if (safeTrim(g?.value) === v) return label;
-    if (safeTrim(g?.label) === v) return label;
-    if (safeTrim(g?.category) === v) return label;
+    if (safeTrim(g?.id) === v) return label || v;
+    if (safeTrim(g?.value) === v) return label || v;
+    if (safeTrim(g?.label) === v) return label || v;
+    if (safeTrim(g?.category) === v) return label || v;
 
-    if (Array.isArray(g?.values) && g.values.map(safeTrim).includes(v)) return label;
-    if (Array.isArray(g?.items) && g.items.map(safeTrim).includes(v)) return label;
+    if (Array.isArray(g?.values) && g.values.map(safeTrim).includes(v)) return label || v;
+    if (Array.isArray(g?.items) && g.items.map(safeTrim).includes(v)) return label || v;
   }
 
   // fallback: the raw category itself
@@ -198,7 +198,8 @@ function pickCategoricalColor(value) {
     const col = safeColor(g?.color);
     if (!col) continue;
 
-    // Try common shapes
+    // Match by id first (data often stores value = group id), then label/value/category
+    if (safeTrim(g?.id) === v) return col;
     if (safeTrim(g?.value) === v) return col;
     if (safeTrim(g?.label) === v) return col;
     if (safeTrim(g?.category) === v) return col;
@@ -441,8 +442,8 @@ const renderValue = (r) => {
     const n = toNumOrNull(r.value);
     return n == null ? "No data" : formatValueLong(n);
   }
-  const v = safeTrim(r.value);
-  return v ? v : "No data";
+  // Categorical: show group display name (title/name), not raw id (e.g. group_3)
+  return getValueLabel(r);
 };
 
 

@@ -624,7 +624,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 20px;
+  min-height: 18px;
 }
 
 /* Name: heavier + matches MIC headings */
@@ -633,7 +633,7 @@
   font-weight: 1000;
   letter-spacing: 0.2px;
   color: rgba(0,0,0,0.82);
-  line-height: 20px;
+  line-height: 18px;
 
   overflow: hidden;
   text-overflow: ellipsis;

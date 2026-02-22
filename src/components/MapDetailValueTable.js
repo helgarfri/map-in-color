@@ -10,10 +10,27 @@ function isFiniteNumber(x) {
   return typeof x === "number" && Number.isFinite(x);
 }
 
+function getCategoricalDisplayValue(rawValue, groups = []) {
+  const v = safeStr(rawValue);
+  if (!v) return "No data";
+  for (const g of groups) {
+    const label =
+      safeStr(g?.title) || safeStr(g?.name) || safeStr(g?.label) || safeStr(g?.category) || safeStr(g?.value);
+    if (safeStr(g?.id) === v) return label || v;
+    if (safeStr(g?.value) === v) return label || v;
+    if (safeStr(g?.label) === v) return label || v;
+    if (safeStr(g?.category) === v) return label || v;
+    if (Array.isArray(g?.values) && g.values.map((x) => safeStr(x)).includes(v)) return label || v;
+    if (Array.isArray(g?.items) && g.items.map((x) => safeStr(x)).includes(v)) return label || v;
+  }
+  return v;
+}
+
 export default function MapDetailValueTable({
   mapDataType,
   dataEntries,
   codeToName,
+  groups = [],
   hoveredCode,
   selectedCode,
   onHoverCode,
@@ -41,7 +58,6 @@ export default function MapDetailValueTable({
       .filter(Boolean);
 
     if (type === "categorical") {
-      // keep rows with non-empty categories (optional: remove this filter if you want blanks too)
       const withCats = normalized
         .map((r) => ({ ...r, category: safeStr(r.raw) }))
         .filter((r) => r.category.length > 0);
@@ -50,7 +66,7 @@ export default function MapDetailValueTable({
       return withCats.map((r) => ({
         code: r.code,
         name: r.name,
-        display: r.category,
+        display: getCategoricalDisplayValue(r.category, groups),
       }));
     }
 
@@ -71,7 +87,7 @@ export default function MapDetailValueTable({
         ? (typeof formatValue === "function" ? formatValue(r.num) : String(r.num))
         : "",
     }));
-  }, [dataEntries, codeToName, type, formatValue]);
+  }, [dataEntries, codeToName, type, formatValue, groups]);
 
   const valueLabel = type === "categorical" ? "Category" : "Value";
 

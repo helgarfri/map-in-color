@@ -264,7 +264,7 @@ export default function Header({ title }) {
                     <span className={styles.profileMenuName}>
                       {profile?.first_name} {profile?.last_name}
                     </span>
-                    <ProBadge show={isPro} />
+                    <ProBadge show={isPro} size="small" />
                   </div>
                   <div className={styles.profileMenuUsername}>@{profile?.username}</div>
                 </div>
