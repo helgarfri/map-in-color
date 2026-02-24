@@ -123,11 +123,16 @@ export default function MapEmbed() {
     if (!mapData) return [];
     const dataArr = parseJsonArray(mapData.data);
 
+    const pickValue = (d) =>
+      d?.value ?? d?.Value ?? d?.val ?? d?.numericValue ?? undefined;
+    const pickCode = (d) =>
+      d?.code ?? d?.countryCode ?? d?.iso2 ?? d?.country_code ?? "";
+
     const codeToValue = new Map();
     for (const d of dataArr) {
-      const code = String(d.code || "").trim().toUpperCase();
+      const code = String(pickCode(d) || "").trim().toUpperCase();
       if (!code) continue;
-      codeToValue.set(code, d.value);
+      codeToValue.set(code, pickValue(d));
     }
 
     // categorical
@@ -136,9 +141,9 @@ export default function MapEmbed() {
 
       const codeToCat = new Map();
       for (const d of dataArr) {
-        const code = String(d.code || "").trim().toUpperCase();
+        const code = String(pickCode(d) || "").trim().toUpperCase();
         if (!code) continue;
-        const cat = d.value == null ? "" : String(d.value).trim();
+        const cat = pickValue(d) == null ? "" : String(pickValue(d)).trim();
         codeToCat.set(code, cat);
       }
 
