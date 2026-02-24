@@ -11,6 +11,7 @@ const MAP_UPDATE_ALLOWED = [
   'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
   'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
   'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
+  'placeholders', 'file_stats', 'sources',
 ];
 
 function stripEmptyUpdateFields(obj) {
