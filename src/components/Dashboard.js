@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   fetchMaps,
+  fetchUserProfile,
   deleteMap,
   fetchNotifications,
   markNotificationAsRead,
@@ -77,7 +78,7 @@ function getDailyWelcomeMessage() {
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile } = useContext(UserContext);
+  const { profile, setProfile } = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
   const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
@@ -614,6 +615,12 @@ export default function Dashboard() {
         isOpen={showUpgradeProModal}
         onClose={() => setShowUpgradeProModal(false)}
         onUpgrade={() => setShowUpgradeProModal(false)}
+        passthroughUserId={profile?.id}
+        passthroughEmail={profile?.email}
+        onProfileRefresh={async () => {
+          const res = await fetchUserProfile();
+          setProfile(res.data);
+        }}
       />
     </div>
   );

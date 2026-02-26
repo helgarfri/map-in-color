@@ -408,10 +408,10 @@
   display: flex;
   flex-direction: column;
   padding: 10px 12px;
-  background: #f5f5f5;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: rgba(15, 23, 42, 0.02);
+  border-radius: 18px;
+  border: 1px solid rgba(20, 24, 40, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   min-width: 0;
 }
 
@@ -421,67 +421,46 @@
 
 .replyItem {
   position: relative;
-  margin-left: 32px;
-  padding: 8px 10px;
-  background: #f5f5f5;
+  margin-left: 16px;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.02);
+  border-left: 2px solid rgba(20, 24, 40, 0.14);
   min-width: 0;
-}
-
-.replyItem::before {
-  content: "";
-  position: absolute;
-  left: -16px;
-  top: -6px;
-  bottom: -6px;
-  width: 2px;
-  border-radius: 2px;
-  background: #add8e6;
-}
-
-.replyItem::after {
-  content: "";
-  position: absolute;
-  left: -16px;
-  top: 18px;
-  width: 16px;
-  height: 2px;
-  border-radius: 2px;
-  background: #add8e6;
 }
 
 .repliesList {
   list-style: none;
   padding: 0;
-  margin: 8px 0 0 32px;
+  margin: 10px 0 0 46px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   max-width: 100%;
 }
 
 .repliesList .repliesList {
-  margin-left: 32px;
+  margin-left: 0;
 }
 
 .commentHeader {
   display: flex;
   width: 100%;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
 }
 
 .commentAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
   object-fit: cover;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(20, 24, 40, 0.10);
   flex-shrink: 0;
 }
 
 .replyItem .commentAvatar {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
 }
 
 .commentBody {
@@ -496,31 +475,58 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.commentAuthorRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .commentAuthor {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #2c3e50;
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: rgba(15, 23, 42, 0.9);
 }
 
 .commentDot {
-  color: rgba(0, 0, 0, 0.35);
+  color: rgba(15, 23, 42, 0.4);
   font-weight: 700;
   line-height: 1;
 }
 
 .commentTime {
-  font-size: 0.8rem;
-  color: rgba(44, 62, 80, 0.65);
+  font-size: 0.74rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.badgePro,
+.badgeCreator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(20, 169, 175, 0.26);
+  background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(40,168,225,0.06));
+  box-shadow: 0 1px 2px rgba(15,23,42,0.05), inset 0 1px 0 rgba(255,255,255,0.75);
+  color: rgba(15,23,42,0.82);
 }
 
 .commentContent {
   font-size: 0.92rem;
-  line-height: 1.5;
+  line-height: 1.45;
   margin: 0;
-  color: rgba(44, 62, 80, 0.88);
+  color: rgba(15, 23, 42, 0.85);
   overflow-wrap: break-word;
   word-break: break-word;
   text-align: left;
@@ -530,8 +536,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-top: 10px;
-  gap: 8px;
+  margin-top: 8px;
+  gap: 6px;
 }
 
 .actionBtn {
@@ -539,13 +545,28 @@
   align-items: center;
   gap: 6px;
   height: 32px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: #2c3e50;
-  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(20, 24, 40, 0.10);
+  color: rgba(15, 23, 42, 0.78);
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: default;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.actionBtnActive {
+  background: linear-gradient(135deg, rgba(40,168,225,0.14), rgba(20,169,175,0.10));
+  border-color: rgba(20,169,175,0.32);
+  color: rgba(15,23,42,0.92);
+  box-shadow: 0 1px 2px rgba(40,168,225,0.08);
+}
+
+.replyBtn {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 0.76rem;
 }
 
 .actionBtn svg {

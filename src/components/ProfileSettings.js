@@ -1090,9 +1090,12 @@ function ChangePasswordModal({ onClose }) {
       <UpgradeProModal
         isOpen={showUpgradeProModal}
         onClose={() => setShowUpgradeProModal(false)}
-        onUpgrade={() => {
-          setShowUpgradeProModal(false);
-          navigate("/signup", { state: { returnTo: "/settings" } });
+        onUpgrade={() => setShowUpgradeProModal(false)}
+        passthroughUserId={profile?.id}
+        passthroughEmail={profile?.email}
+        onProfileRefresh={async () => {
+          const res = await fetchUserProfile();
+          setProfile(res.data);
         }}
       />
 
