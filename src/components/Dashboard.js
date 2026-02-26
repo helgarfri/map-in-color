@@ -78,7 +78,7 @@ function getDailyWelcomeMessage() {
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, setProfile } = useContext(UserContext);
+  const { profile, setProfile, isPro } = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
   const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
@@ -117,13 +117,13 @@ export default function Dashboard() {
     ? differenceInDays(new Date(), new Date(profile.created_at))
     : 0;
 
-  // Show Upgrade Pro modal when arriving from Pro page CTA (login → dashboard with showUpgradeModal)
+  // Show Upgrade Pro modal when arriving from Pro page CTA (login → dashboard with showUpgradeModal), but not if already Pro
   useEffect(() => {
     if (location.state?.showUpgradeModal) {
-      setShowUpgradeProModal(true);
+      if (!isPro) setShowUpgradeProModal(true);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state?.showUpgradeModal, location.pathname, navigate]);
+  }, [location.state?.showUpgradeModal, location.pathname, navigate, isPro]);
 
   // Fetch Data on Mount
   useEffect(() => {
