@@ -595,6 +595,17 @@ useEffect(() => {
 const hydrated = (existingMapData.groups || []).map(normalizeGroup);
 const groupsToSet = hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)];
 setGroups(groupsToSet);
+// Ensure next addCategory() gets a unique id (avoid reusing group_1, group_2 from loaded map)
+let maxN = nextGroupIdRef.current;
+groupsToSet.forEach((g) => {
+  const id = g?.id != null ? String(g.id) : "";
+  const m = id.match(/^group_(\d+)$/);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= maxN) maxN = n + 1;
+  }
+});
+nextGroupIdRef.current = maxN;
 // Categorical: value is stored as group id in DB; keep id as-is, only migrate legacy names -> id
 const rawData = existingMapData.data || [];
 const migratedData = (existingMapData.map_data_type === "categorical" || existingMapData.mapDataType === "categorical")
