@@ -1,10 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./ProPage.module.css";
-import ComingSoonProModal from "./ComingSoonProModal";
 import { UserContext } from "../context/UserContext";
-import { fetchUserProfile } from "../api";
-import { openProCheckout } from "../utils/paddleCheckout";
 import HomeFooter from "./HomeFooter";
 
 const PRO_LOGO_SRC = "/assets/3-0/PRO-logo.png";
@@ -21,22 +18,19 @@ const BENEFITS = [
 ];
 
 export default function ProPage() {
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const navigate = useNavigate();
-  const { profile, setProfile, authToken } = useContext(UserContext);
+  const { profile, authToken, isPro } = useContext(UserContext);
 
   const handleUpgrade = () => {
     if (!authToken || !profile) {
       navigate("/login", { state: { returnTo: "/dashboard", showUpgradeModal: true } });
       return;
     }
-    (async () => {
-      const refetch = () => fetchUserProfile().then((r) => setProfile(r.data));
-      const result = await openProCheckout(profile?.id, profile?.email, refetch).catch(() => ({ opened: false }));
-      if (result.opened === false && result.reason === "not_configured") {
-        setShowComingSoon(true);
-      }
-    })();
+    if (isPro) {
+      navigate("/dashboard", { state: { showAlreadyProModal: true } });
+      return;
+    }
+    navigate("/dashboard", { state: { showUpgradeModal: true } });
   };
 
   return (
@@ -102,11 +96,6 @@ export default function ProPage() {
       </div>
 
       <HomeFooter />
-
-      <ComingSoonProModal
-        isOpen={showComingSoon}
-        onClose={() => setShowComingSoon(false)}
-      />
     </div>
   );
 }

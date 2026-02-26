@@ -22,6 +22,7 @@ import StaticMapThumbnail from "./StaticMapThumbnail";
 import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
 import UpgradeProModal from "./UpgradeProModal";
+import AlreadyProModal from "./AlreadyProModal";
 
 import styles from "./Dashboard.module.css";
 
@@ -82,6 +83,7 @@ export default function Dashboard() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
+  const [showAlreadyProModal, setShowAlreadyProModal] = useState(false);
 
   const [maps, setMaps] = useState([]);
   const [savedMaps, setSavedMaps] = useState([]);
@@ -124,6 +126,14 @@ export default function Dashboard() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state?.showUpgradeModal, location.pathname, navigate, isPro]);
+
+  // Show "You're already Pro" modal when a Pro user clicks Upgrade on Pro page and is sent to dashboard
+  useEffect(() => {
+    if (location.state?.showAlreadyProModal && isPro) {
+      setShowAlreadyProModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.showAlreadyProModal, location.pathname, navigate, isPro]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -621,6 +631,11 @@ export default function Dashboard() {
           const res = await fetchUserProfile();
           setProfile(res.data);
         }}
+      />
+
+      <AlreadyProModal
+        isOpen={showAlreadyProModal}
+        onClose={() => setShowAlreadyProModal(false)}
       />
     </div>
   );
