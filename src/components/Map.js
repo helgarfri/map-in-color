@@ -230,6 +230,13 @@ onTransformChange,
    * 3) Normalize data depending on map type
    * ─────────────────────────────── */
   const data = useMemo(() => {
+    const pick = (obj, keys) => {
+      if (!obj || typeof obj !== "object") return undefined;
+      for (const k of keys) {
+        if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+      }
+      return undefined;
+    };
     const toNumber = (x) => {
       const n =
         typeof x === "number" ? x : parseFloat(String(x).replace(",", "."));
@@ -237,11 +244,14 @@ onTransformChange,
     };
 
     return (rawData || []).map((d) => {
-      const code = norm(d.code);
+      const codeRaw = pick(d, ["code", "countryCode", "iso2", "ISO2", "country_code", "Country Code"]);
+      const code = norm(codeRaw ?? d?.code ?? "");
+      const valueRaw = pick(d, ["value", "Value", "val", "numericValue"]);
       if (effectiveMapType === "choropleth") {
-        return { ...d, code, value: toNumber(d.value) };
+        return { ...d, code, value: toNumber(valueRaw ?? d?.value) };
       }
-      return { ...d, code, value: d.value == null ? "" : String(d.value) };
+      const v = valueRaw ?? d?.value;
+      return { ...d, code, value: v == null ? "" : String(v) };
     });
   }, [rawData, effectiveMapType]);
 
@@ -314,7 +324,7 @@ onTransformChange,
       return [];
     }
 
-    // CATEGORICAL: data.value is group id; resolve id -> name/color from parsedGroups
+    // CATEGORICAL: data.value can be group id OR group name (API stores names); resolve to group for color
     if (hasOldGroups) return normalizeGroups(parsedGroups);
 
     const idToGroup = (() => {
@@ -328,6 +338,22 @@ onTransformChange,
       return m;
     })();
 
+    // Also map by name so we can resolve data.value when it's stored as group name (e.g. from file upload)
+    const nameToGroup = (() => {
+      const m = new JSMap();
+      const arr = Array.isArray(parsedGroups) ? parsedGroups : [];
+      for (const g of arr) {
+        if (!g) continue;
+        const name = String(g?.name ?? g?.category ?? g?.label ?? "").trim();
+        if (name) m.set(name, g);
+      }
+      return m;
+    })();
+
+    const resolveGroup = (val) =>
+      idToGroup.get(String(val ?? "").trim()) ??
+      nameToGroup.get(String(val ?? "").trim());
+
     const categoryIds = Array.from(
       new Set(
         data
@@ -337,7 +363,7 @@ onTransformChange,
     );
 
     return categoryIds.map((catId) => {
-      const g = idToGroup.get(catId);
+      const g = resolveGroup(catId);
       const name = (g?.name ?? g?.category ?? g?.label ?? catId).toString().trim() || "(Unnamed)";
       const color = (g?.color ?? g?.hex ?? g?.fill ?? "#c0c0c0").toString().trim();
       return {

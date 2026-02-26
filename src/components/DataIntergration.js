@@ -595,6 +595,17 @@ useEffect(() => {
 const hydrated = (existingMapData.groups || []).map(normalizeGroup);
 const groupsToSet = hydrated.length ? hydrated : [normalizeGroup(DEFAULT_GROUP)];
 setGroups(groupsToSet);
+// Ensure next addCategory() gets a unique id (avoid reusing group_1, group_2 from loaded map)
+let maxN = nextGroupIdRef.current;
+groupsToSet.forEach((g) => {
+  const id = g?.id != null ? String(g.id) : "";
+  const m = id.match(/^group_(\d+)$/);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= maxN) maxN = n + 1;
+  }
+});
+nextGroupIdRef.current = maxN;
 // Categorical: value is stored as group id in DB; keep id as-is, only migrate legacy names -> id
 const rawData = existingMapData.data || [];
 const migratedData = (existingMapData.map_data_type === "categorical" || existingMapData.mapDataType === "categorical")
@@ -1952,34 +1963,47 @@ const rangeCountryLabel = (d) =>
     return Number.isFinite(n) ? n : null;
   }
 
-  const buildSavePayload = () => ({
-    title: mapTitle,
-    description,
-    tags,
-    is_public,
-    data: mapDataType === "categorical"
-      ? (mapDataNormalized || []).map((d) => {
-          const g = (groups || []).find((x) => String(x.id) === String(d?.value ?? ""));
-          return { ...d, value: g ? String(g?.name ?? "").trim() : "" };
-        })
-      : mapDataNormalized,
-    map_data_type: mapDataType,
-    custom_ranges,
-    groups,
-    selected_map,
-    ocean_color,
-    unassigned_color,
-    font_color,
-    selected_palette,
-    selected_map_theme,
-    file_stats,
-    is_title_hidden,
-    show_no_data_legend: showNoDataLegend,
-    sources: references,
-    titleFontSize: titleFontSize ?? null,
-    legendFontSize: legendFontSize ?? null,
-    placeholders
-  });
+  const buildSavePayload = () => {
+    // Merge descriptions from data rows (e.g. from file import) into placeholders so they persist on save.
+    // User-edited placeholders take precedence; data descriptions fill in any gaps.
+    const mergedPlaceholders = { ...(placeholders && typeof placeholders === "object" ? placeholders : {}) };
+    for (const d of mapDataNormalized || []) {
+      const code = normCode(d?.code);
+      const desc = d?.description != null ? String(d.description).trim() : "";
+      if (code && desc && !mergedPlaceholders[code]) {
+        mergedPlaceholders[code] = desc;
+      }
+    }
+
+    return {
+      title: mapTitle,
+      description,
+      tags,
+      is_public,
+      data: mapDataType === "categorical"
+        ? (mapDataNormalized || []).map((d) => {
+            const g = (groups || []).find((x) => String(x.id) === String(d?.value ?? ""));
+            return { ...d, value: g ? String(g?.name ?? "").trim() : "" };
+          })
+        : mapDataNormalized,
+      map_data_type: mapDataType,
+      custom_ranges,
+      groups,
+      selected_map,
+      ocean_color,
+      unassigned_color,
+      font_color,
+      selected_palette,
+      selected_map_theme,
+      file_stats,
+      is_title_hidden,
+      show_no_data_legend: showNoDataLegend,
+      sources: references,
+      titleFontSize: titleFontSize ?? null,
+      legendFontSize: legendFontSize ?? null,
+      placeholders: mergedPlaceholders,
+    };
+  };
 
   const buildComparablePayload = () => {
     const p = buildSavePayload();
@@ -2153,29 +2177,7 @@ const handleSaveMap = async () => {
     return;
   }
 
-  const payload = {
-    title: mapTitle,
-    description,
-    tags,
-    is_public,
-    data: mapDataNormalized,
-    map_data_type: mapDataType,
-    custom_ranges,
-    groups,
-    selected_map,
-    ocean_color,
-    unassigned_color,
-    font_color,
-    selected_palette,
-    selected_map_theme,
-    file_stats,
-    is_title_hidden,
-    show_no_data_legend: showNoDataLegend,
-    sources: references,
-    titleFontSize: titleFontSize ?? null,
-    legendFontSize: legendFontSize ?? null,
-    placeholders,
-  };
+  const payload = buildSavePayload();
 
   // open modal
   setIsSaving(true);

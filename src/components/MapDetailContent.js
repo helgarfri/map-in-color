@@ -140,6 +140,14 @@ const [showDownloadModal, setShowDownloadModal] = useState(false);
   // Ref for the map display container
   const mapDisplayRef = useRef(null);
 
+  // Compact hero: smaller wrap title, icons-only buttons, avatar-only profile when space is tight
+  const heroRowRef = useRef(null);
+  const heroActionsRef = useRef(null);
+  const heroProfileRef = useRef(null);
+  const [compactTitle, setCompactTitle] = useState(false);
+  const [compactActions, setCompactActions] = useState(false);
+  const [compactProfile, setCompactProfile] = useState(false);
+
   // near the top:
 const [fetchError, setFetchError] = useState(null);
 // { kind: "unavailable" | "temporary", title: string, message: string }
@@ -163,11 +171,16 @@ const legendModels = useMemo(() => {
   const type = mapType; // from your existing mapType memo
 
   const dataArr = parseJsonArray(mapData.data);
+  const pickValue = (d) =>
+    d?.value ?? d?.Value ?? d?.val ?? d?.numericValue ?? undefined;
+  const pickCode = (d) =>
+    d?.code ?? d?.countryCode ?? d?.iso2 ?? d?.country_code ?? "";
+
   const codeToValue = new Map();
   for (const d of dataArr) {
-    const code = String(d.code || "").trim().toUpperCase();
+    const code = String(pickCode(d) || "").trim().toUpperCase();
     if (!code) continue;
-    codeToValue.set(code, d.value);
+    codeToValue.set(code, pickValue(d));
   }
 
 
@@ -180,9 +193,9 @@ if (type === "categorical") {
   // Build code -> categoryValue from data (same normalization idea as Map.js)
   const codeToCat = new Map();
   for (const d of dataArr) {
-    const code = String(d.code || "").trim().toUpperCase();
+    const code = String(pickCode(d) || "").trim().toUpperCase();
     if (!code) continue;
-    const cat = d.value == null ? "" : String(d.value).trim();
+    const cat = pickValue(d) == null ? "" : String(pickValue(d)).trim();
     codeToCat.set(code, cat);
   }
 
@@ -447,6 +460,12 @@ setIsLoading(true);
   }, [mapData]);
 
   useEffect(() => {
+    if (mapData?.title != null) {
+      document.title = mapData.title.trim() || "Untitled Map";
+    }
+  }, [mapData?.title]);
+
+  useEffect(() => {
     const getComments = async () => {
       const res = await fetchComments(id);
       setComments(res.data);
@@ -482,6 +501,44 @@ setIsLoading(true);
       document.body.classList.remove('scrollLocked');
     };
   }, [showDownloadModal, showShareModal]);
+
+  // Detect cramped hero row → compact title (smaller, wrap), icon-only buttons, avatar-only profile
+  useEffect(() => {
+    if (isFullScreen) return; /* hero row not rendered in fullscreen */
+    const el = heroRowRef.current;
+    if (!el) return;
+
+    const COMPACT_ACTIONS_AT = 1050;   // px (row layout): below this, shrink title + icons-only
+    const COMPACT_ACTIONS_COLUMN = 480; // px (column layout): only icon-only when really narrow
+    const COMPACT_PROFILE_AT = 600;    // px: below this only, avatar-only (keep name when buttons wrap)
+
+    const isColumnLayout = width <= 980; // matches CSS: title on top, actions have full row below
+
+    const updateCompact = () => {
+      const w = el.offsetWidth;
+      const actionsThreshold = isColumnLayout ? COMPACT_ACTIONS_COLUMN : COMPACT_ACTIONS_AT;
+      setCompactTitle(w < actionsThreshold);
+      setCompactActions(w < actionsThreshold);
+
+      // Profile: avatar-only when cramped, but if profile has wrapped to its own row (below buttons)
+      // it has space — show full name + username
+      const actionsEl = heroActionsRef.current;
+      const profileEl = heroProfileRef.current;
+      let profileCompact = w < COMPACT_PROFILE_AT;
+      if (actionsEl && profileEl) {
+        const actionsRect = actionsEl.getBoundingClientRect();
+        const profileRect = profileEl.getBoundingClientRect();
+        const profileOnOwnRow = profileRect.top > actionsRect.bottom - 4;
+        if (profileOnOwnRow) profileCompact = false; // has space, show full profile
+      }
+      setCompactProfile(profileCompact);
+    };
+
+    updateCompact();
+    const ro = new ResizeObserver(updateCompact);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [loadState, isFullScreen, width]);
 
   useEffect(() => {
   if (loadState !== "ready") return;
@@ -1300,10 +1357,10 @@ if (!mapData) {
   {/* HERO */}
 {/* HERO */}
 <div className={styles.detailsHero}>
-  <div className={styles.heroRow}>
+  <div className={`${styles.heroRow} ${compactTitle ? styles.heroRowCompact : ''}`} ref={heroRowRef}>
     {/* LEFT: Title + meta */}
     <div className={styles.heroLeft}>
-      <h1 className={styles.detailsTitle}>
+      <h1 className={`${styles.detailsTitle} ${compactTitle ? styles.detailsTitleCompact : ''}`}>
         {mapData.title || "Untitled Map"}
         {isOwner && (
           <span className={styles.visibilityPill}>
@@ -1318,7 +1375,7 @@ if (!mapData) {
     {/* RIGHT: Actions + Profile (profile last = far right) */}
     <div className={styles.heroRight}>
       {/* Actions should flow LEFT of profile, so we put them first */}
-      <div className={styles.heroActions}>
+      <div ref={heroActionsRef} className={`${styles.heroActions} ${compactActions ? styles.heroActionsCompact : ''}`}>
      
    
 
@@ -1343,13 +1400,17 @@ if (!mapData) {
                 type="button"
                 disabled={isSaving}
                 aria-pressed={!!isSaved}
-                title={isSaved ? "Unstar" : "Star"}
+                title={isSaved ? `Unstar (${save_count})` : `Star (${save_count})`}
               >
                 <span className={styles.statActionIcon}><FaStar /></span>
-                <span className={styles.statActionLabel}>
-                  {isSaving ? "Starring…" : "Stars"}
-                </span>
-                <span className={styles.statActionValue}>{save_count}</span>
+                {!compactActions && (
+                  <>
+                    <span className={styles.statActionLabel}>
+                      {isSaving ? "Starring…" : "Stars"}
+                    </span>
+                    <span className={styles.statActionValue}>{save_count}</span>
+                  </>
+                )}
                 {isSaving && <span className={styles.miniSpinner} aria-hidden="true" />}
               </button>
 
@@ -1366,13 +1427,17 @@ if (!mapData) {
     setShowDownloadModal(true);
   }}
   type="button"
-  title="Download map"
+  title={is_public ? `Download (${download_count})` : "Download map"}
 >
   <span className={styles.statActionIcon}><BiDownload /></span>
-  <span className={styles.statActionLabel}>
-    {is_public ? "Downloads" : "Download"}
-  </span>
-  {is_public && <span className={styles.statActionValue}>{download_count}</span>}
+  {!compactActions && (
+    <>
+      <span className={styles.statActionLabel}>
+        {is_public ? "Downloads" : "Download"}
+      </span>
+      {is_public && <span className={styles.statActionValue}>{download_count}</span>}
+    </>
+  )}
 </button>
 
 {/* Share */}
@@ -1389,7 +1454,7 @@ if (!mapData) {
   title="Share map"
 >
   <span className={styles.statActionIcon}><BiShare /></span>
-  <span className={styles.statActionLabel}>Share</span>
+  {!compactActions && <span className={styles.statActionLabel}>Share</span>}
 </button>
 
 
@@ -1404,8 +1469,20 @@ if (!mapData) {
         </button>
 
            {isOwner && (
-          <button className={styles.editButton} onClick={handleEdit} type="button">
-            Edit Map
+          <button
+            className={`${styles.editButton} ${compactActions ? styles.editButtonCompact : ''}`}
+            onClick={handleEdit}
+            type="button"
+            title="Edit Map"
+          >
+            {compactActions ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            ) : (
+              'Edit Map'
+            )}
           </button>
         )}
 
@@ -1414,12 +1491,13 @@ if (!mapData) {
       </div>
 
       {/* Profile chip MUST be far right */}
-      <div className={styles.heroProfile}>
-        <div className={styles.creatorChip}>
+      <div ref={heroProfileRef} className={styles.heroProfile}>
+        <div className={`${styles.creatorChip} ${compactProfile ? styles.creatorChipCompact : ''}`}>
           {isUserLoggedIn ? (
             <Link
               to={`/profile/${mapData?.user?.username || "unknown"}`}
               className={styles.creatorChipLink}
+              title={compactProfile ? `@${mapData?.user?.username || "unknown"}` : undefined}
             >
               <img
                 src={
@@ -1430,20 +1508,23 @@ if (!mapData) {
                 alt="Creator profile"
                 className={styles.creatorChipAvatar}
               />
-              <div className={styles.creatorChipText}>
-                <div className={styles.creatorChipName}>
-                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+              {!compactProfile && (
+                <div className={styles.creatorChipText}>
+                  <div className={styles.creatorChipName}>
+                    {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                  </div>
+                  <div className={styles.creatorChipUser}>
+                    @{mapData?.user?.username || "unknown"}
+                  </div>
                 </div>
-                <div className={styles.creatorChipUser}>
-                  @{mapData?.user?.username || "unknown"}
-                </div>
-              </div>
+              )}
             </Link>
           ) : (
             <button
               className={styles.creatorChipLink}
               onClick={() => openLoginModal('profile')}
               type="button"
+              title={compactProfile ? `@${mapData?.user?.username || "unknown"}` : undefined}
             >
               <img
                 src={
@@ -1454,14 +1535,16 @@ if (!mapData) {
                 alt="Creator profile"
                 className={styles.creatorChipAvatar}
               />
-              <div className={styles.creatorChipText}>
-                <div className={styles.creatorChipName}>
-                  {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+              {!compactProfile && (
+                <div className={styles.creatorChipText}>
+                  <div className={styles.creatorChipName}>
+                    {mapData.user.first_name || ""} {mapData.user.last_name || ""}
+                  </div>
+                  <div className={styles.creatorChipUser}>
+                    @{mapData?.user?.username || "unknown"}
+                  </div>
                 </div>
-                <div className={styles.creatorChipUser}>
-                  @{mapData?.user?.username || "unknown"}
-                </div>
-              </div>
+              )}
             </button>
           )}
         </div>

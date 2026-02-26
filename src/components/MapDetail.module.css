@@ -873,6 +873,11 @@
   width: 100%;
 }
 
+/* When title wraps (compact), align actions to top */
+.heroRowCompact {
+  align-items: flex-start;
+}
+
 /* LEFT: Title/meta */
 .heroLeft {
   min-width: 0;
@@ -899,6 +904,13 @@
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+/* Compact: icon-only buttons, reduced padding */
+.heroActionsCompact .statActionBtn {
+  padding: 0 10px;
+  min-width: 38px;
+  justify-content: center;
 }
 
 /* Profile wrapper (keeps chip at far right) */
@@ -939,11 +951,21 @@
   min-width: 0;
 }
 
-/* Truncate long titles nicely on desktop */
+/* Truncate long titles nicely on desktop (when not cramped) */
 .heroLeft .detailsTitle {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Compact: smaller font, allow wrap so full title is always visible, never overlap */
+.heroLeft .detailsTitleCompact {
+  font-size: 1rem;
+  line-height: 1.25;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
 }
 
 .detailsMetaLine {
@@ -1036,6 +1058,12 @@
   white-space: nowrap;
 }
 
+/* Compact creator chip: avatar only, minimal padding */
+.creatorChipCompact .creatorChipLink {
+  padding: 6px;
+  max-width: none;
+}
+
 /* =========================
    EDIT BUTTON
 ========================= */
@@ -1059,6 +1087,15 @@
   border-color: rgba(40,168,225,0.35);
   transform: translateY(-1px);
   box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+}
+
+/* Compact edit button: icon-only, square like view button */
+.editButtonCompact {
+  padding: 0;
+  width: 38px;
+  min-width: 38px;
+  display: grid;
+  place-items: center;
 }
 
 /* =========================
@@ -1241,7 +1278,8 @@
   .creatorChipLink { max-width: 260px; }
 }
 
-@media (max-width: 860px) {
+/* Break to column (title on top, actions below) earlier so iPad gets full-width actions row */
+@media (max-width: 980px) {
   .heroRow {
     flex-direction: column;
     align-items: stretch;

@@ -15,7 +15,7 @@ export default function Terms() {
             }
             }}>
             <img
-                src="/assets/3-0/mic-logo-2-5-text-cropped.png"
+                src="/assets/3-0/MIC-logo-transparent.png"
                 alt="Map in Color"
                 className={styles.logo}
             />
@@ -24,7 +24,7 @@ export default function Terms() {
            
             <iframe
 
-                src="/terms.html"
+                src="/terms-content.html"
                 style={{ width: '100%', height: '100vh', border: 'none' }}
                 title="Terms of Use"
             ></iframe>

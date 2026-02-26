@@ -23,6 +23,13 @@ export default function EditMap({ isCollapsed, setIsCollapsed }) {
     fetchMap();
   }, [mapId]);
 
+  useEffect(() => {
+    if (mapData?.title != null) {
+      const name = (mapData.title || "").trim() || "Map";
+      document.title = `Edit ${name}`;
+    }
+  }, [mapData?.title]);
+
   if (error) return <p>{error}</p>;
 
   // ✅ Always render DataIntegration; let it show skeleton while loading

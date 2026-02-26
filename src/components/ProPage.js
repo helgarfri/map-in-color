@@ -4,6 +4,7 @@ import ComingSoonProModal from "./ComingSoonProModal";
 import { UserContext } from "../context/UserContext";
 import { fetchUserProfile } from "../api";
 import { openProCheckout } from "../utils/paddleCheckout";
+import HomeFooter from "./HomeFooter";
 
 const PRO_LOGO_SRC = "/assets/3-0/PRO-logo.png";
 const PRO_PRICE = "4.99";
@@ -91,6 +92,8 @@ export default function ProPage() {
           <p className={styles.priceNote}>${PRO_PRICE}/month</p>
         </section>
       </div>
+
+      <HomeFooter />
 
       <ComingSoonProModal
         isOpen={showComingSoon}

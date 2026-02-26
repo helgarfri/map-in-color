@@ -49,11 +49,59 @@ import ProPage from "./components/ProPage";
 import { UserContext } from "./context/UserContext";
 import { SidebarContext } from "./context/SidebarContext";
 
-/* Scroll to top on route change */
+const DEFAULT_TITLE = "Map in Color";
+
+const ROUTE_TITLES = {
+  "/": "Map in Color",
+  "/explore": "Explore",
+  "/dashboard": "Dashboard",
+  "/create": "Create a new map",
+  "/your-maps": "Your Maps",
+  "/starred-maps": "Starred Maps",
+  "/login": "Login",
+  "/signup": "Signup",
+  "/settings": "Settings",
+  "/notifications": "Notifications",
+  "/change-password": "Change Password",
+  "/delete-account": "Delete Account",
+  "/faq": "FAQ",
+  "/pro": "Pro",
+  "/playground": "Playground",
+  "/privacy": "Privacy Policy",
+  "/terms": "Terms",
+  "/refund": "Refund Policy",
+  "/verify-account": "Verify Account",
+  "/verified": "Verified",
+  "/verification-error": "Verification Error",
+  "/reset-password": "Reset Password",
+  "/adminPanel": "Admin",
+  "/banned": "Banned",
+  "/map": "Map",
+  "/explore-old": "Explore",
+};
+
+function getPageTitle(pathname) {
+  if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
+  if (pathname.startsWith("/map/")) return "Map";
+  if (pathname.startsWith("/embed/")) return "Map";
+  if (pathname.startsWith("/edit/")) return "Edit Map";
+  const profileMatch = pathname.match(/^\/profile\/([^/]+)/);
+  if (profileMatch) {
+    const username = decodeURIComponent(profileMatch[1]);
+    return `${username}'s profile`;
+  }
+  if (pathname.startsWith("/docs")) return pathname === "/docs" ? "Docs" : "Docs";
+  return DEFAULT_TITLE;
+}
+
+/* Scroll to top and set document title on route change */
 function ScrollToTopWrapper() {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, [pathname]);
+  useEffect(() => {
+    document.title = getPageTitle(pathname);
   }, [pathname]);
   return <Outlet />;
 }
