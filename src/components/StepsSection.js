@@ -102,7 +102,9 @@ function DiscoverConnectDemo({ className }) {
             <img src="/comment-avatars/lukas.png" alt="" className={styles.commentAvatar} />
             <div className={styles.commentBody}>
               <div className={styles.commentMeta}>
-                <span className={styles.commentAuthor}>lukasmeyer</span>
+                <span className={styles.commentAuthorRow}>
+                  <span className={styles.commentAuthor}>lukasmeyer</span>
+                </span>
                 <span className={styles.commentDot}>•</span>
                 <span className={styles.commentTime}>3 hours ago</span>
               </div>
@@ -110,7 +112,7 @@ function DiscoverConnectDemo({ className }) {
                 This really highlights the digital divide. Some regions are still far behind.
               </p>
               <div className={styles.commentActions}>
-                <span className={styles.actionBtn}>
+                <span className={`${styles.actionBtn} ${styles.actionBtnActive}`}>
                   <LikeIcon /> 3
                 </span>
                 <span className={styles.actionBtn}>
@@ -128,7 +130,10 @@ function DiscoverConnectDemo({ className }) {
                 <img src="/comment-avatars/elena.png" alt="" className={styles.commentAvatar} />
                 <div className={styles.commentBody}>
                   <div className={styles.commentMeta}>
-                    <span className={styles.commentAuthor}>elena.maps</span>
+                    <span className={styles.commentAuthorRow}>
+                      <span className={styles.commentAuthor}>elena.maps</span>
+                      <span className={styles.badgeCreator}>Creator</span>
+                    </span>
                     <span className={styles.commentDot}>•</span>
                     <span className={styles.commentTime}>2 hours ago</span>
                   </div>
@@ -136,7 +141,7 @@ function DiscoverConnectDemo({ className }) {
                     Yes, especially parts of Sub-Saharan Africa. The gap is still significant compared to Europe and East Asia.
                   </p>
                   <div className={styles.commentActions}>
-                    <span className={styles.actionBtn}><LikeIcon /> 4</span>
+                    <span className={`${styles.actionBtn} ${styles.actionBtnActive}`}><LikeIcon /> 4</span>
                     <span className={styles.actionBtn}><DislikeIcon /> 0</span>
                     <span className={`${styles.actionBtn} ${styles.replyBtn}`}><ReplyIcon /> Reply</span>
                   </div>
@@ -148,7 +153,9 @@ function DiscoverConnectDemo({ className }) {
                 <img src="/comment-avatars/marta.png" alt="" className={styles.commentAvatar} />
                 <div className={styles.commentBody}>
                   <div className={styles.commentMeta}>
-                    <span className={styles.commentAuthor}>marta.kovacs</span>
+                    <span className={styles.commentAuthorRow}>
+                      <span className={styles.commentAuthor}>marta.kovacs</span>
+                    </span>
                     <span className={styles.commentDot}>•</span>
                     <span className={styles.commentTime}>1 hour ago</span>
                   </div>
@@ -168,7 +175,10 @@ function DiscoverConnectDemo({ className }) {
                     <img src="/comment-avatars/elena.png" alt="" className={styles.commentAvatar} />
                     <div className={styles.commentBody}>
                       <div className={styles.commentMeta}>
-                        <span className={styles.commentAuthor}>elena.maps</span>
+                        <span className={styles.commentAuthorRow}>
+                          <span className={styles.commentAuthor}>elena.maps</span>
+                          <span className={styles.badgeCreator}>Creator</span>
+                        </span>
                         <span className={styles.commentDot}>•</span>
                         <span className={styles.commentTime}>42 minutes ago</span>
                       </div>

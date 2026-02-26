@@ -10,6 +10,7 @@ import { BiDownload, BiSend, BiShare } from 'react-icons/bi';
 import { createPortal } from "react-dom";
 import {
   fetchMapById,
+  fetchUserProfile,
   saveMap,
   unsaveMap,
   fetchComments,
@@ -36,7 +37,7 @@ import { getAnonId } from "../utils/annonId"; // add at top
 import DownloadOptionsModal from "./DownloadOptionsModal";
 import ShareOptionsModal from './ShareOptionsModal';
 import SignupPromptModal from './SignupPromptModal';
-import ProBadge, { isProUser } from './ProBadge';
+import { isProUser } from './ProBadge';
 
 
 export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
@@ -119,7 +120,7 @@ const [isDeleting, setIsDeleting] = useState(false);
   const [selectedCodeNonce, setSelectedCodeNonce] = useState(0);
 
 
-  const { authToken, profile, isPro } = useContext(UserContext);
+  const { authToken, profile, setProfile, isPro } = useContext(UserContext);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -1991,12 +1992,16 @@ if (!mapData) {
   mapDataProps={mapDataProps}
   downloadCount={download_count}
   isPublic={is_public}
-  // ✅ pass auth info so modal can increment properly
   isUserLoggedIn={isUserLoggedIn}
   anonId={getAnonId()}
-  // ✅ let modal tell MapDetail the new count
   onDownloadCountUpdate={(nextCount) => setDownloadCount(nextCount)}
   isPro={isPro}
+  passthroughUserId={profile?.id}
+  passthroughEmail={profile?.email}
+  onProfileRefresh={async () => {
+    const res = await fetchUserProfile();
+    setProfile(res.data);
+  }}
 />
 
 <ShareOptionsModal
@@ -2007,6 +2012,12 @@ if (!mapData) {
   isPublic={is_public}
   isPro={isPro}
   isOwner={isOwner}
+  passthroughUserId={profile?.id}
+  passthroughEmail={profile?.email}
+  onProfileRefresh={async () => {
+    const res = await fetchUserProfile();
+    setProfile(res.data);
+  }}
 />
 
 
@@ -2385,7 +2396,7 @@ function CommentRow({
                   <span className={styles.commentAuthor}>
                     {node.user?.username || "Unknown"}
                   </span>
-                  <ProBadge show={isProUser(node.user)} size="small" />
+                  {isProUser(node.user) && <span className={styles.commentCreatorBadge}>Pro</span>}
                   {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </Link>
@@ -2399,7 +2410,7 @@ function CommentRow({
                   <span className={styles.commentAuthor}>
                     {node.user?.username || "Unknown"}
                   </span>
-                  <ProBadge show={isProUser(node.user)} size="small" />
+                  {isProUser(node.user) && <span className={styles.commentCreatorBadge}>Pro</span>}
                   {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </button>
@@ -2651,7 +2662,7 @@ function CommentNode({
                   <span className={styles.commentAuthor}>
                     {node.user?.username || "Unknown"}
                   </span>
-                  <ProBadge show={isProUser(node.user)} size="small" />
+                  {isProUser(node.user) && <span className={styles.commentCreatorBadge}>Pro</span>}
                   {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </Link>
@@ -2665,7 +2676,7 @@ function CommentNode({
                   <span className={styles.commentAuthor}>
                     {node.user?.username || "Unknown"}
                   </span>
-                  <ProBadge show={isProUser(node.user)} size="small" />
+                  {isProUser(node.user) && <span className={styles.commentCreatorBadge}>Pro</span>}
                   {isMapCreator && <span className={styles.commentCreatorBadge}>Creator</span>}
                 </span>
               </button>
