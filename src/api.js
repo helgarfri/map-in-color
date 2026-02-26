@@ -2,7 +2,11 @@
 
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'https://map-in-color.onrender.com/api' });
+const API_BASE =
+  typeof process !== 'undefined' && process.env.REACT_APP_API_URL
+    ? process.env.REACT_APP_API_URL.replace(/\/$/, '')
+    : 'https://map-in-color.onrender.com/api';
+const API = axios.create({ baseURL: API_BASE });
 
 // Add token to headers
 API.interceptors.request.use((req) => {
