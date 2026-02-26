@@ -55,6 +55,9 @@ async function ensurePaddleInitialized(clientToken) {
             lastOnComplete();
           } catch (_) {}
         }
+        if (data?.name === 'checkout.error') {
+          console.error('Paddle checkout.error:', data);
+        }
       },
     });
     paddleInitialized = true;
