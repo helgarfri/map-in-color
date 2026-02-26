@@ -925,7 +925,8 @@ function ChangePasswordModal({ onClose }) {
                               try {
                                 const res = await getPaddlePortalUrl();
                                 if (res.data?.url) {
-                                  window.open(res.data.url, '_blank', 'noopener,noreferrer');
+                                  // Same-tab navigation so mobile browsers don't block (window.open after async is often blocked)
+                                  window.location.href = res.data.url;
                                 } else {
                                   setShowComingSoonProModal(true);
                                 }
