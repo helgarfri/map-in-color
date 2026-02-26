@@ -45,9 +45,13 @@ function getUserIdFromPayload(data) {
   return id != null ? id : null; // keep as-is (number or string for UUID)
 }
 
-async function setUserPlan(userId, plan) {
+async function setUserPlan(userId, plan, paddleCustomerId = null) {
   if (userId == null || userId === '') return;
-  const { data, error } = await supabaseAdmin.from('users').update({ plan }).eq('id', userId).select('id');
+  const updates = { plan };
+  if (paddleCustomerId != null && String(paddleCustomerId).trim() !== '') {
+    updates.paddle_customer_id = paddleCustomerId;
+  }
+  const { data, error } = await supabaseAdmin.from('users').update(updates).eq('id', userId).select('id');
   if (error) {
     console.error('Paddle webhook: failed to update user plan:', { userId, plan, error: error.message, code: error.code });
     return;
@@ -91,7 +95,8 @@ async function handlePaddleWebhook(req, res) {
   }
 
   const userId = getUserIdFromPayload(data);
-  console.log('Paddle webhook: extracted userId', { eventType, userId });
+  const paddleCustomerId = data?.customer_id || null;
+  console.log('Paddle webhook: extracted userId', { eventType, userId, paddleCustomerId: !!paddleCustomerId });
 
   const activeStatuses = ['active', 'trialing'];
   const inactiveStatuses = ['canceled', 'past_due', 'paused'];
@@ -100,13 +105,13 @@ async function handlePaddleWebhook(req, res) {
     case 'subscription.created':
     case 'subscription.activated':
     case 'subscription.resumed':
-      await setUserPlan(userId, 'pro');
+      await setUserPlan(userId, 'pro', paddleCustomerId);
       break;
     case 'subscription.updated':
       if (data.status && inactiveStatuses.includes(data.status)) {
         await setUserPlan(userId, 'free');
       } else if (data.status && activeStatuses.includes(data.status)) {
-        await setUserPlan(userId, 'pro');
+        await setUserPlan(userId, 'pro', paddleCustomerId);
       }
       break;
     case 'subscription.canceled':

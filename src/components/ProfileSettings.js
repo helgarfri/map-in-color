@@ -1,7 +1,7 @@
 // src/components/ProfileSettings.js
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import styles from './ProfileSettings.module.css';
-import { fetchUserProfile, updateUserProfile } from '../api';
+import { fetchUserProfile, updateUserProfile, getPaddlePortalUrl } from '../api';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -921,7 +921,18 @@ function ChangePasswordModal({ onClose }) {
                           <button
                             type="button"
                             className={styles.subscriptionManageBtn}
-                            onClick={() => setShowComingSoonProModal(true)}
+                            onClick={async () => {
+                              try {
+                                const res = await getPaddlePortalUrl();
+                                if (res.data?.url) {
+                                  window.open(res.data.url, '_blank', 'noopener,noreferrer');
+                                } else {
+                                  setShowComingSoonProModal(true);
+                                }
+                              } catch {
+                                setShowComingSoonProModal(true);
+                              }
+                            }}
                           >
                             Manage subscription
                           </button>

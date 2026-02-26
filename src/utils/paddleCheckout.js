@@ -86,7 +86,7 @@ export async function openProCheckout(userId, customerEmail, onProfileRefresh) {
 
   const options = {
     items: [{ priceId, quantity: 1 }],
-    customData: userId != null ? { user_id: Number(userId) } : undefined,
+    customData: userId != null ? { user_id: userId } : undefined,
     customer: customerEmail ? { email: customerEmail } : undefined,
   };
 

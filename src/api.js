@@ -189,3 +189,6 @@ export const resetPassword = ({ token, newPassword }) =>
 
 /** Paddle checkout: get client token and price id (requires auth) */
 export const getPaddleConfig = () => API.get('/paddle/config');
+
+/** Paddle customer portal: get authenticated URL to manage subscription (requires auth, Pro only) */
+export const getPaddlePortalUrl = () => API.get('/paddle/portal');
