@@ -28,21 +28,34 @@ function verifySignature(rawBody, signatureHeader) {
 }
 
 /**
- * Resolve user id from webhook payload. We pass custom_data: { user_id: <our user id> } at checkout.
- * Paddle puts this on the subscription (and transaction) in subscription events.
+ * Parse custom_data object or JSON string and return user_id.
+ * We pass custom_data: { user_id: <our user id> } at checkout; Paddle attaches it to transaction and subscription.
+ */
+function parseUserIdFromCustomData(customData) {
+  if (customData == null) return null;
+  const obj = typeof customData === 'string'
+    ? (() => { try { return JSON.parse(customData); } catch { return null; } })()
+    : customData;
+  if (!obj || typeof obj !== 'object') return null;
+  const id = obj.user_id;
+  return id != null && id !== '' ? id : null;
+}
+
+/**
+ * Resolve user id from webhook payload. Check transaction top-level custom_data first (from checkout),
+ * then subscription top-level, then subscription items' custom_data.
  */
 function getUserIdFromPayload(data) {
   if (!data) return null;
-  // Subscription entity has custom_data at top level
-  let customData = data.custom_data;
-  if (customData == null && data.items && data.items[0]) {
-    customData = data.items[0].custom_data;
+  let userId = parseUserIdFromCustomData(data.custom_data);
+  if (userId != null) return userId;
+  if (data.items && Array.isArray(data.items)) {
+    for (const item of data.items) {
+      userId = parseUserIdFromCustomData(item?.custom_data);
+      if (userId != null) return userId;
+    }
   }
-  if (!customData) return null;
-  const id = typeof customData === 'string'
-    ? (() => { try { return JSON.parse(customData).user_id; } catch { return null; } })()
-    : customData.user_id;
-  return id != null ? id : null; // keep as-is (number or string for UUID)
+  return null;
 }
 
 async function setUserPlan(userId, plan, paddleCustomerId = null) {
@@ -73,6 +86,7 @@ async function handlePaddleWebhook(req, res) {
   const signature = req.headers['paddle-signature'];
 
   if (!verifySignature(bodyStr, signature)) {
+    if (!WEBHOOK_SECRET) console.error('Paddle webhook: PADDLE_WEBHOOK_SECRET is not set');
     console.warn('Paddle webhook: invalid signature or missing secret');
     return res.status(401).json({ error: 'Invalid signature' });
   }
@@ -102,6 +116,11 @@ async function handlePaddleWebhook(req, res) {
   const inactiveStatuses = ['canceled', 'past_due', 'paused'];
 
   switch (eventType) {
+    case 'transaction.completed':
+    case 'transaction.paid':
+      // Transaction fires when payment succeeds; custom_data is on transaction (from checkout). Most reliable for first payment.
+      await setUserPlan(userId, 'pro', paddleCustomerId);
+      break;
     case 'subscription.created':
     case 'subscription.activated':
     case 'subscription.resumed':

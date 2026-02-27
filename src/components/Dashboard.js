@@ -659,6 +659,7 @@ export default function Dashboard() {
         onProfileRefresh={async () => {
           const res = await fetchUserProfile();
           setProfile(res.data);
+          setShowProThankYouModal(true);
         }}
       />
 

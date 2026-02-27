@@ -1108,6 +1108,7 @@ function ChangePasswordModal({ onClose }) {
         onProfileRefresh={async () => {
           const res = await fetchUserProfile();
           setProfile(res.data);
+          navigate('/dashboard?show_pro_thank_you=1');
         }}
       />
 

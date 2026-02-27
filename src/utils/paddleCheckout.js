@@ -46,7 +46,7 @@ async function ensurePaddleInitialized(clientToken) {
           displayMode: 'overlay',
           theme: 'light',
           locale: 'en',
-          successUrl: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined,
+          successUrl: typeof window !== 'undefined' ? `${window.location.origin}/dashboard?show_pro_thank_you=1` : undefined,
         },
       },
       eventCallback: (data) => {
