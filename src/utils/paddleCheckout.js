@@ -50,10 +50,15 @@ async function ensurePaddleInitialized(clientToken) {
         },
       },
       eventCallback: (data) => {
-        if (data?.name === 'checkout.completed' && typeof lastOnComplete === 'function') {
+        if (data?.name === 'checkout.completed') {
           try {
-            lastOnComplete();
+            sessionStorage.setItem('pro_just_subscribed', '1');
           } catch (_) {}
+          if (typeof lastOnComplete === 'function') {
+            try {
+              lastOnComplete();
+            } catch (_) {}
+          }
         }
         if (data?.name === 'checkout.error') {
           console.error('Paddle checkout.error:', data);

@@ -1,6 +1,6 @@
 // src/components/Dashboard.js
 import React, { useState, useEffect, useContext } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   fetchMaps,
   fetchUserProfile,
@@ -23,6 +23,7 @@ import { SidebarContext } from "../context/SidebarContext";
 import useWindowSize from "../hooks/useWindowSize";
 import UpgradeProModal from "./UpgradeProModal";
 import AlreadyProModal from "./AlreadyProModal";
+import ProThankYouModal from "./ProThankYouModal";
 
 import styles from "./Dashboard.module.css";
 
@@ -79,11 +80,13 @@ function getDailyWelcomeMessage() {
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { profile, setProfile, isPro } = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
   const [showUpgradeProModal, setShowUpgradeProModal] = useState(false);
   const [showAlreadyProModal, setShowAlreadyProModal] = useState(false);
+  const [showProThankYouModal, setShowProThankYouModal] = useState(false);
 
   const [maps, setMaps] = useState([]);
   const [savedMaps, setSavedMaps] = useState([]);
@@ -134,6 +137,32 @@ export default function Dashboard() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state?.showAlreadyProModal, location.pathname, navigate, isPro]);
+
+  // Show "Thank you for going Pro" when user lands on dashboard after completing checkout (or ?show_pro_thank_you=1 to preview)
+  useEffect(() => {
+    const fromCheckout = typeof sessionStorage !== "undefined" && sessionStorage.getItem("pro_just_subscribed") === "1";
+    const fromUrl = searchParams.get("show_pro_thank_you") === "1";
+    const fromWindow = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("show_pro_thank_you") === "1";
+    const preview = fromUrl || fromWindow;
+    if (fromCheckout) {
+      try {
+        sessionStorage.removeItem("pro_just_subscribed");
+      } catch (_) {}
+      setShowProThankYouModal(true);
+    } else if (preview) {
+      setShowProThankYouModal(true);
+    }
+  }, [searchParams]);
+
+  // Clear preview param from URL after showing thank-you modal so refresh doesn't re-show
+  useEffect(() => {
+    if (!showProThankYouModal || searchParams.get("show_pro_thank_you") !== "1") return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("show_pro_thank_you");
+      return next;
+    }, { replace: true });
+  }, [showProThankYouModal, searchParams, setSearchParams]);
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -636,6 +665,11 @@ export default function Dashboard() {
       <AlreadyProModal
         isOpen={showAlreadyProModal}
         onClose={() => setShowAlreadyProModal(false)}
+      />
+
+      <ProThankYouModal
+        isOpen={showProThankYouModal}
+        onClose={() => setShowProThankYouModal(false)}
       />
     </div>
   );
