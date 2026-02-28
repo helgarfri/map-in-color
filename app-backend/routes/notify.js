@@ -3,6 +3,7 @@ const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
 const { resend } = require('../config/resend');
+const { wrapEmailBody, P } = require('../utils/emailLayout');
 
 // Stricter limit for newsletter signup to reduce abuse and email probing
 const notifyLimiter = rateLimit({
@@ -45,16 +46,15 @@ router.post('/', notifyLimiter, async (req, res) => {
     }
 
     // Send welcome email to new subscribers
+    const content =
+      P.p('Hey there!') +
+      P.p('Thanks for signing up to get notified about <strong>Map in Color</strong>—you\'re officially among the first to know what\'s coming.') +
+      P.p('We\'ll be sure to keep you updated with new features and news.');
     await resend.emails.send({
-      from: 'no-reply@mapincolor.com',
+      from: 'Map in Color <no-reply@mapincolor.com>',
       to: email,
-      subject: '🎉 You\'re officially on the list!',
-      html: `
-        <p>Hey there!</p>
-        <p>Thanks for signing up to get notified about <strong>Map in Color v2</strong>—you're officially among the first to know what's coming!</p>
-        <p>We’re excited to release on <strong>March 28th</strong>, and we’ll be sure to keep you updated along the way.</p>
-        <p>Cheers,<br/>The Map in Color team</p>
-      `,
+      subject: "You're on the list – Map in Color",
+      html: wrapEmailBody(content),
     });
 
     console.log('Inserted subscription and sent email to:', email);

@@ -3,7 +3,8 @@ const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
-const { resend } = require('../config/resend'); //  <-- import Resend client
+const { resend } = require('../config/resend');
+const { wrapEmailBody, P, escapeHtml } = require('../utils/emailLayout');
 
 /* -----------------------------------------------
    GET /maps/:mapId/comments (Fetch comments + replies)
@@ -532,15 +533,16 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
    //   b) Send a confirmation email to the user who submitted the report
    if (userEmail) {
      try {
+       const content =
+         P.greeting(userName) +
+         P.p(`We have received your report regarding comment #${comment_id}.`) +
+         P.p(`Reasons: ${escapeHtml(reasons)}<br/>Details: ${escapeHtml(details)}`) +
+         P.p('Thank you for helping us keep the community safe.');
        await resend.emails.send({
-         from: 'no-reply@mapincolor.com',
+         from: 'Map in Color <no-reply@mapincolor.com>',
          to: userEmail,
          subject: 'We have received your report',
-         text: `Hello ${userName},\n\n` +
-               `We have received your report regarding comment #${comment_id}.\n` +
-               `Reasons: ${reasons}\nDetails: ${details}\n\n` +
-               `Thank you for helping us keep the community safe.\n` +
-               `- The Map in Color team`
+         html: wrapEmailBody(content),
        });
      } catch (emailErr) {
        console.error('Error sending user confirmation email:', emailErr);
@@ -548,17 +550,16 @@ router.post('/comments/:comment_id/report', auth, async (req, res) => {
    }
 
    //   c) Send an email to admin with the details
-   //      So you (hello@mapincolor.com) are aware that a new report just came in
    try {
+     const adminContent =
+       P.p(`A user has reported comment #${comment_id}.`) +
+       P.p(`Reporter: ${escapeHtml(userName)} (ID: ${user_id}, email: ${escapeHtml(userEmail)})<br/>Reasons: ${escapeHtml(reasons)}<br/>Details: ${escapeHtml(details)}`) +
+       P.p(`Total unique reporters so far: ${reportCount}`);
      await resend.emails.send({
-       from: 'no-reply@mapincolor.com',
+       from: 'Map in Color <no-reply@mapincolor.com>',
        to: 'hello@mapincolor.com',
        subject: `New comment report (#${comment_id})`,
-       text: `A user has reported comment #${comment_id}\n` +
-             `Reporter: ${userName} (ID: ${user_id}, email: ${userEmail})\n` +
-             `Reasons: ${reasons}\n` +
-           `Details: ${details}\n\n` +
-             `Total unique reporters so far: ${reportCount}\n`
+       html: wrapEmailBody(adminContent),
      });
    } catch (emailAdminErr) {
      console.error('Error sending admin notification email:', emailAdminErr);

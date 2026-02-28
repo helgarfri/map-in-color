@@ -8,6 +8,7 @@ const { supabaseAdmin } = require('../config/supabase');
 const { resend } = require('../config/resend');
 const crypto = require("crypto");
 const { passwordRuleFailures } = require('../utils/password');
+const { wrapEmailBody, emailCtaButton, P } = require('../utils/emailLayout');
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 // Base URL for the API (where this Express app is reachable). Use for verify/password links in emails.
 // On Render, RENDER_EXTERNAL_URL is set automatically (e.g. https://your-service.onrender.com).
@@ -163,16 +164,15 @@ router.post(
 
       // 7) Send a verification email with the link
       try {
-        const welcomeEmailHTML = `
-          <p>Hello ${newUser.first_name},</p>
-          <p>Welcome to Map in Color! Please verify your account by clicking the link below:</p>
-          <p><a href="${verifyLink}">Verify Your Account</a></p>
-          <p>Once verified, you can log in and start creating and exploring data through maps!</p>
-          <p>Cheers,<br/>The Map in Color team</p>
-        `;
+        const content =
+          P.greeting(newUser.first_name) +
+          P.p('Welcome to Map in Color! Please verify your account by clicking the button below.') +
+          emailCtaButton(verifyLink, 'Verify your account') +
+          P.small('Once verified, you can log in and start creating and exploring data through maps.');
+        const welcomeEmailHTML = wrapEmailBody(content);
 
         await resend.emails.send({
-          from: 'no-reply@mapincolor.com',
+          from: 'Map in Color <no-reply@mapincolor.com>',
           to: newUser.email,
           subject: 'Please verify your account - Map in Color',
           html: welcomeEmailHTML,
@@ -365,17 +365,18 @@ router.post('/resend-verification', async (req, res) => {
 
     // Send the email
     try {
+      const content =
+        P.greeting(foundUser.first_name || '') +
+        P.p('We noticed you haven\'t verified your account yet. Click the button below to verify.') +
+        emailCtaButton(newVerifyLink, 'Verify your account') +
+        P.small('If you didn\'t request this email, you can ignore it.');
+      const html = wrapEmailBody(content);
+
       await resend.emails.send({
-        from: 'no-reply@mapincolor.com',
+        from: 'Map in Color <no-reply@mapincolor.com>',
         to: foundUser.email,
-        subject: 'Please verify your account (Resend) - Map in Color',
-        html: `
-          <p>Hello ${foundUser.first_name || ''},</p>
-          <p>We noticed you haven't verified your account yet. Here's a new link:</p>
-          <p><a href="${newVerifyLink}">Verify Your Account</a></p>
-          <p>If you didn't request this email, you can ignore it.</p>
-          <p>Cheers,<br/>The Map in Color team</p>
-        `,
+        subject: 'Verify your account - Map in Color',
+        html,
       });
 
       console.log(`Verification email re-sent to: ${foundUser.email}`);
@@ -445,18 +446,18 @@ router.post("/request-password-reset", async (req, res) => {
     const resetLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
 
     try {
+      const content =
+        P.greeting(user.first_name || '') +
+        P.p('We received a request to reset your password. Click the button below to choose a new password.') +
+        emailCtaButton(resetLink, 'Reset password') +
+        P.small('This link expires in 30 minutes. If you didn\'t request this, you can ignore this email.');
+      const html = wrapEmailBody(content);
+
       await resend.emails.send({
-        from: "no-reply@mapincolor.com",
+        from: 'Map in Color <no-reply@mapincolor.com>',
         to: user.email,
-        subject: "Reset your password - Map in Color",
-        html: `
-          <p>Hello ${user.first_name || ""},</p>
-          <p>We received a request to reset your password.</p>
-          <p><a href="${resetLink}">Reset password</a></p>
-          <p>This link expires in 30 minutes.</p>
-          <p>If you didn't request this, you can ignore this email.</p>
-          <p>Cheers,<br/>The Map in Color team</p>
-        `,
+        subject: 'Reset your password - Map in Color',
+        html,
       });
     } catch (mailErr) {
       console.error("request-password-reset email send error:", mailErr);

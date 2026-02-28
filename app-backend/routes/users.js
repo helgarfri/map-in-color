@@ -9,6 +9,7 @@ const { passwordRuleFailures } = require('../utils/password');
 // Import the service_role client
 const { supabaseAdmin } = require('../config/supabase');
 const { resend } = require('../config/resend');
+const { wrapEmailBody, P } = require('../utils/emailLayout');
 
 /* --------------------------------------------
    DELETE /api/users/deleteAccount
@@ -69,16 +70,15 @@ router.delete('/deleteAccount', auth, async (req, res) => {
     // 5) Send confirmation email before deleting (so we still have the email)
     if (userRow.email) {
       try {
+        const content =
+          P.greeting(userRow.first_name || 'there') +
+          P.p('This is to confirm that your Map in Color account has been permanently deleted.') +
+          P.p('We\'re sorry to see you go. If you change your mind, you can always create a new account.');
         await resend.emails.send({
-          from: 'no-reply@mapincolor.com',
+          from: 'Map in Color <no-reply@mapincolor.com>',
           to: userRow.email,
           subject: 'Your account has been deleted - Map in Color',
-          html: `
-            <p>Hello ${userRow.first_name || 'there'},</p>
-            <p>This is to confirm that your Map in Color account has been permanently deleted.</p>
-            <p>We're sorry to see you go. If you change your mind, you can always create a new account.</p>
-            <p>Cheers,<br/>The Map in Color team</p>
-          `,
+          html: wrapEmailBody(content),
         });
         console.log(`Account-deletion confirmation email sent to: ${userRow.email}`);
       } catch (emailErr) {
@@ -165,16 +165,16 @@ router.put('/change-password', auth, async (req, res) => {
     // 5) Send confirmation email (non-blocking; don't fail the request if email fails)
     if (userRow.email) {
       try {
+        const contactLink = P.link('mailto:hello@mapincolor.com', 'hello@mapincolor.com');
+        const content =
+          P.greeting(userRow.first_name || 'there') +
+          P.p('This is to confirm that your Map in Color account password was changed successfully.') +
+          P.p(`If you did not make this change, please contact ${contactLink} or reset your password immediately.`);
         await resend.emails.send({
-          from: 'no-reply@mapincolor.com',
+          from: 'Map in Color <no-reply@mapincolor.com>',
           to: userRow.email,
           subject: 'Your password was changed - Map in Color',
-          html: `
-            <p>Hello ${userRow.first_name || 'there'},</p>
-            <p>This is to confirm that your Map in Color account password was changed successfully.</p>
-            <p>If you did not make this change, please contact <a href="mailto:support@mapincolor.com">support@mapincolor.com</a> or reset your password immediately.</p>
-            <p>Cheers,<br/>The Map in Color team</p>
-          `,
+          html: wrapEmailBody(content),
         });
         console.log(`Password-change confirmation email sent to: ${userRow.email}`);
       } catch (emailErr) {
