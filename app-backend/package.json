@@ -7,7 +7,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "SEE LICENSE IN LICENSE",
   "description": "",
   "dependencies": {
     "@supabase/storage-js": "^2.7.1",

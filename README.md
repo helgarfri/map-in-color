@@ -103,9 +103,11 @@ map-in-color/
 
 ---
 
-## Contact and contributions
+## License and contributions
+
+This project is licensed under the **[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/)** license ([LICENSE](./LICENSE)). You may use, modify, and share the code for **non-commercial** purposes (personal use, education, contributing). **Commercial use is not permitted** without permission from the copyright holder. Contributions (issues, pull requests) are welcome.
 
 - **Email:** hello@mapincolor.com  
 - **Repo:** [github.com/helgarfri/map-in-color](https://github.com/helgarfri/map-in-color) — open an issue or PR.
 
-© 2026 Map in Color. Source code is licensed under the [MIT License](./LICENSE). Use of the platform (mapincolor.com) is subject to the [Terms of Use](https://mapincolor.com/terms).
+© 2026 Map in Color. Use of the platform (mapincolor.com) is subject to the [Terms of Use](https://mapincolor.com/terms).

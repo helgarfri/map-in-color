@@ -2,6 +2,7 @@
   "name": "map-in-color",
   "version": "3.0.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
