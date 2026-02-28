@@ -9,12 +9,13 @@ export default function PublicMapDetail() {
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   return (
-    <div className={styles.publicMapDetailContainer}>
+    <div className={`forceLightMode ${styles.publicMapDetailContainer}`}>
       {!isFullScreen && <HomeHeader />}
       <div className={isFullScreen ? styles.publicMapDetailContentWrapFullScreen : styles.publicMapDetailContentWrap}>
         <MapDetailContent
           isFullScreen={isFullScreen}
           toggleFullScreen={() => setIsFullScreen((v) => !v)}
+          forceMapTheme="light"
         />
       </div>
       {!isFullScreen && <HomeFooter />}

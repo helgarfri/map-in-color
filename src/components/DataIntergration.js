@@ -39,6 +39,7 @@ import {
   faEraser,
 } from "@fortawesome/free-solid-svg-icons";
 import { SidebarContext } from "../context/SidebarContext";
+import { ThemeContext } from "../context/ThemeContext";
 import useWindowSize from "../hooks/useWindowSize";
 
 // API calls
@@ -362,6 +363,8 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const location = useLocation();
   const navigate = useNavigate();
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
+  const { darkMode } = useContext(ThemeContext);
+  const mapPreviewTheme = isPlayground ? "light" : (darkMode ? "dark" : "light");
   const { width } = useWindowSize();
   const hasHydratedFromPlaygroundRef = useRef(false);
   const persistTimeoutRef = useRef(null);
@@ -2399,8 +2402,10 @@ try {
                       setActiveLegendKey(null);
                       setHoverLegendKey(null);
                     }}
-                    compactUi={false}
+                    compactUi={true}
+                    compactUiShowInfoBoxes={true}
                     codeToName={codeToName}
+                    theme={mapPreviewTheme}
                   />
                 </div>
                 <MapLegendOverlay
@@ -2413,7 +2418,7 @@ try {
                   }}
                   setHoverLegendKey={setHoverLegendKey}
                   isEmbed={false}
-                  theme="light"
+                  theme={mapPreviewTheme}
                   interactive={true}
                   compact={true}
                 />

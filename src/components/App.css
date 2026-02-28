@@ -348,11 +348,12 @@ li:hover > .header-dropdown {
 }
 
 input.group-title {
-  background-color: #e9ecef;
+  background-color: var(--input-bg);
+  color: var(--input-color);
   border-radius: 5px;
   padding-left: 7px;
-  height: 40px ;
-  border: 3px solid #e9ecef;
+  height: 40px;
+  border: 3px solid var(--input-border);
 }
 
 .group-show {

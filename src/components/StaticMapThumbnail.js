@@ -3,15 +3,20 @@ import React from 'react';
 import Map from './Map';
 import styles from './StaticMapThumbnail.module.css';
 
+const DEFAULT_THUMB_BG = '#dddddd';
+
 export default function StaticMapThumbnail({
   map,
   className = '',
-  background = '#dddddd',
+  background = DEFAULT_THUMB_BG,
   children,
 }) {
+  /* When background is the default, use CSS (var(--thumbnail-bg)) so dark mode applies */
+  const inlineBg = background !== DEFAULT_THUMB_BG ? { background } : undefined;
+
   if (!map) {
     return (
-      <div className={`${styles.container} ${className}`} style={{ background }}>
+      <div className={`${styles.container} ${className}`} style={inlineBg}>
         <div className={styles.fallback}>No preview</div>
       </div>
     );
@@ -58,7 +63,7 @@ const mapDataType =
 
 
   return (
-    <div className={`${styles.container} ${className}`} style={{ background }}>
+    <div className={`${styles.container} ${className}`} style={inlineBg}>
       <div className={styles.stage}>
      <Map
   groups={groups}

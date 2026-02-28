@@ -224,7 +224,7 @@ const cancelDelete = () => {
           </div>
 
           <div className={styles.statBox}>
-            <FaStar className={styles.statIcon} style={{ color: '#000' }} />
+            <FaStar className={styles.statIcon} />
             <div className={styles.statValue}>{totalStars}</div>
             <div className={styles.statLabel}>Stars</div>
           </div>

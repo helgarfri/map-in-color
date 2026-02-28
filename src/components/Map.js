@@ -172,6 +172,8 @@ onTransformChange,
   viewBox,
   theme = "light",
   compactUi = false,
+  /** When compactUi is true, still show country/range info boxes (just smaller). Used by DataIntegration preview. */
+  compactUiShowInfoBoxes = false,
 
 } = {}) {
   const isDarkTheme = theme === "dark";
@@ -1264,7 +1266,7 @@ useEffect(() => {
   );
 
 const renderInfoBox = () => {
-  if (suppressInfoBox || compactUi) return null;
+  if (suppressInfoBox || (compactUi && !compactUiShowInfoBoxes)) return null;
   if (!selected) return null;
 
   const desc = (selected.placeholder ?? "").trim();
@@ -1322,7 +1324,7 @@ const renderInfoBox = () => {
 };
 
 const renderGroupInfoBox = () => {
-  if (compactUi || !activeLegendModel) return null;
+  if ((compactUi && !compactUiShowInfoBoxes) || !activeLegendModel) return null;
 
   const codes = activeLegendCodes;
 

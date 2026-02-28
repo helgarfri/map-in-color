@@ -234,7 +234,7 @@ export default function Signup() {
   };
 
   return (
-    <div className={styles.splitContainer}>
+    <div className={`forceLightMode ${styles.splitContainer}`}>
       {/* MIC Loader */}
       {isSigningUp && (
         <div className={styles.micModalOverlay} role="presentation">

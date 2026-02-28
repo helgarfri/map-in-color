@@ -1,14 +1,7 @@
+/* Layout/brand only – theme from index.css for dark frosted mode */
 :root {
   --mic-cyan: #14a9af;
   --mic-azure: #28a8e1;
-
-  --bg: #f5f6f8;
-  --card: #ffffff;
-  --text: #1f2937;
-  --muted: rgba(0,0,0,0.62);
-  --border: rgba(0,0,0,0.10);
-  --shadow: 0 24px 70px rgba(0,0,0,0.08);
-  --shadow-sm: 0 10px 28px rgba(0,0,0,0.08);
 }
 
 /* ===== Layout ===== */
@@ -41,7 +34,7 @@
   left: 0;
   width: 100%;
   height: calc(100% - 60px);
-  background: rgba(0,0,0,0.45);
+  background: var(--modal-overlay);
   z-index: 998;
 }
 
@@ -98,9 +91,9 @@
   width: 10px;
 }
 .sideScroll::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.16);
+  background: var(--border);
   border-radius: 999px;
-  border: 3px solid rgba(255,255,255,0.9);
+  border: 3px solid var(--card);
 }
 
 
@@ -140,9 +133,9 @@
   padding: 0 12px;
   border-radius: 999px;
 
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(0,0,0,0.10);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .statIcon {
@@ -153,13 +146,13 @@
 .statValue {
   font-weight: 1000;
   font-size: 13px;
-  color: rgba(0,0,0,0.78);
+  color: var(--text);
 }
 
 .statLabel {
   font-weight: 900;
   font-size: 12px;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
 }
 
 .topRow {
@@ -183,7 +176,7 @@
 .verificationBannerText {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.72);
+  color: var(--text);
   line-height: 1.35;
 }
 
@@ -230,9 +223,9 @@
   padding: 14px 14px;
   border-radius: 18px;
 
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(0,0,0,0.10);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadowSm);
 
   display: flex;
   align-items: center;
@@ -248,7 +241,7 @@
 .welcomeKicker {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   letter-spacing: 0.2px;
 }
 
@@ -256,7 +249,7 @@
   margin-top: 2px;
   font-size: 18px;
   font-weight: 1000;
-  color: rgba(0,0,0,0.82);
+  color: var(--text);
   line-height: 1.1;
 
   white-space: nowrap;
@@ -268,7 +261,7 @@
   margin-top: 6px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   line-height: 1.25;
 }
 
@@ -295,16 +288,12 @@
   border-radius: 16px;
 
   border: 1px solid rgba(20,169,175,0.22);
-  background: linear-gradient(
-    135deg,
-    rgba(40,168,225,0.14),
-    rgba(20,169,175,0.10)
-  );
+  background: var(--card2);
 
   display: flex;
   flex-direction: column;
-  gap: 6px; /* was 2px */
-  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  gap: 6px;
+  box-shadow: var(--shadowSm);
 }
 
 .chipIcon {
@@ -316,14 +305,14 @@
 .chipNum {
   font-size: 16px;
   font-weight: 1000;
-  color: rgba(0,0,0,0.82);
+  color: var(--text);
   line-height: 1;
 }
 
 .chipLabel {
   font-size: 11px;
   font-weight: 900;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   line-height: 1.1;
 }
 
@@ -392,8 +381,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.10);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 10px;
   cursor: pointer;
@@ -403,7 +392,7 @@
 .mapCard:hover {
   transform: translateY(-1px);
   border-color: rgba(20,169,175,0.30);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+  box-shadow: var(--shadow);
 }
 
 .mapCardThumb {
@@ -411,8 +400,8 @@
   height: 100%;
   border-radius: 12px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(40,168,225,0.20), rgba(20,169,175,0.15));
-  border: 1px solid rgba(0,0,0,0.10);
+  background: var(--thumbnail-bg, linear-gradient(135deg, rgba(40,168,225,0.20), rgba(20,169,175,0.15)));
+  border: 1px solid var(--border);
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -440,14 +429,14 @@
 .mapCardTimestamp {
   margin: 4px 0 0;
   font-size: 12px;
-  color: rgba(0,0,0,0.58);
+  color: var(--muted);
 }
 
 /* star count */
 .starCount {
   margin: 6px 0 0;
   font-size: 12px;
-  color: rgba(0,0,0,0.70);
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -472,7 +461,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 1000;
-  color: rgba(0,0,0,0.78);
+  color: var(--text);
 }
 
 .cardTitleIcon {
@@ -485,16 +474,16 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(0,0,0,0.62);
+  color: var(--muted);
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border);
+  background: var(--card2);
 }
 
 .seeAllLink:hover {
   border-color: rgba(20,169,175,0.22);
-  background: rgba(20,169,175,0.06);
+  background: var(--card2);
 }
 
 .mapCardMetaRow {
@@ -512,11 +501,11 @@
   height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border);
+  background: var(--card2);
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(0,0,0,0.70);
+  color: var(--text);
 }
 
 .metaIcon {
@@ -539,9 +528,9 @@
   border-radius: 999px;
   font-size: 10px;
   font-weight: 900;
-  color: rgba(0,0,0,0.70);
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(0,0,0,0.03);
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: var(--card2);
 }
 
 .metaIconSmall {
@@ -572,7 +561,7 @@
 
 .quickAction:hover {
   filter: brightness(0.98);
-  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  box-shadow: var(--shadowSm);
 }
 
 .primaryMiniBtn {
@@ -602,11 +591,11 @@
   width: fit-content;
   font-size: 12px;
   font-weight: 900;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border);
+  background: var(--card2);
 }
 
 
@@ -620,7 +609,7 @@
 }
 
 .editIcon {
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   font-size: 14px;
 }
 
@@ -638,7 +627,7 @@
 }
 
 .editBtn:hover {
-  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 
@@ -658,9 +647,9 @@
   width: 10px;
 }
 .activityScroll::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.16);
+  background: var(--border);
   border-radius: 999px;
-  border: 3px solid rgba(255,255,255,0.9);
+  border: 3px solid var(--card);
 }
 
 
@@ -701,7 +690,7 @@
 .skeletonWelcomeName,
 .skeletonWelcomeSub,
 .skeletonChip {
-  background: rgba(0,0,0,0.06);
+  background: var(--skeleton-bg, rgba(0,0,0,0.06));
   position: relative;
   overflow: hidden;
   border-radius: 12px;
@@ -719,7 +708,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.55) 50%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.55)) 50%,
     transparent 100%
   );
   animation: shimmer 1.15s infinite;
@@ -759,7 +748,7 @@
 .skeletonMapCard,
 .skeletonThumb,
 .skeletonLine {
-  background: rgba(0,0,0,0.06);
+  background: var(--skeleton-bg, rgba(0,0,0,0.06));
   position: relative;
   overflow: hidden;
   border-radius: 12px;
@@ -779,7 +768,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.55) 50%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.55)) 50%,
     transparent 100%
   );
   animation: shimmer 1.15s infinite;
@@ -831,7 +820,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: var(--modal-overlay, rgba(0,0,0,0.55));
   display: grid;
   place-items: center;
   z-index: 9999;
@@ -841,10 +830,10 @@
 .modalContent {
   width: 520px;
   max-width: calc(100vw - 36px);
-  background: #fff;
+  background: var(--modal-content-bg, var(--card));
   border-radius: 16px;
-  border: 1px solid rgba(0,0,0,0.12);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
   padding: 18px;
   text-align: left;
 }
@@ -859,7 +848,7 @@
 .modalContent p {
   margin: 0;
   font-size: 13px;
-  color: rgba(0,0,0,0.62);
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -883,17 +872,17 @@
 }
 
 .cancelDelete {
-  background: rgba(0,0,0,0.08);
-  color: rgba(0,0,0,0.70);
+  background: var(--card2);
+  color: var(--text);
 }
 
 .cancelDelete:hover {
-  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 
 .confirmDelete {
-  background: #b42318;
+  background: var(--danger, #b42318);
   color: #fff;
 }
 

@@ -1,6 +1,7 @@
 // src/components/Header.js
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { FaBell, FaRegBell, FaPlus, FaBars, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { BiSun, BiMoon } from "react-icons/bi";
 import { Link, useNavigate } from "react-router-dom";
 import {
   fetchNotifications,
@@ -10,6 +11,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { UserContext } from "../context/UserContext";
 import { SidebarContext } from "../context/SidebarContext";
+import { ThemeContext } from "../context/ThemeContext";
 import ProBadge from "./ProBadge";
 import styles from "./Header.module.css";
 
@@ -23,9 +25,9 @@ export default function Header({ title }) {
 
     const navigate = useNavigate();
 
-  // ✅ get context FIRST
   const { profile, setAuthToken, isPro } = useContext(UserContext);
   const { isCollapsed, toggleCollapsed } = useContext(SidebarContext);
+  const { darkMode, setDarkMode } = useContext(ThemeContext);
 
   // ✅ then compute things that depend on it
   const isProUser = !!isPro; // uses your context logic: plan === "pro"
@@ -134,6 +136,18 @@ export default function Header({ title }) {
         <button className={styles.createMapButton} onClick={handleCreateMap}>
           <FaPlus className={styles.plusIcon} />
           <span>Create</span>
+        </button>
+
+        <button
+          type="button"
+          className={styles.themeToggleButton}
+          onClick={() => setDarkMode((p) => !p)}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          title={darkMode ? "Light mode" : "Dark mode"}
+        >
+          <span className={styles.themeToggleIcon}>
+            {darkMode ? <BiSun aria-hidden /> : <BiMoon aria-hidden />}
+          </span>
         </button>
 
         <div className={styles.notificationWrapper} ref={notificationRef}>

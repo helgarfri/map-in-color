@@ -1,22 +1,15 @@
-:root {
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --border: rgba(20, 24, 40, 0.10);
-  --text: rgba(15, 23, 42, 0.92);
-  --muted: rgba(15, 23, 42, 0.62);
-  --shadow: 0 20px 60px rgba(15, 23, 42, 0.20);
-  --radius: 16px;
-}
+/* Theme (--card, --text, --modal-overlay, etc.) from index.css / html[data-theme="dark"] */
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--modal-overlay);
   display: grid;
   place-items: center;
   z-index: 9999;
   padding: 18px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .modal {
@@ -24,7 +17,7 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  background: var(--card);
+  background: var(--modal-content-bg, var(--card));
   border: 1px solid var(--border);
   border-radius: 18px;
   box-shadow: var(--shadow);
@@ -37,12 +30,12 @@
   justify-content: space-between;
   gap: 12px;
   padding: 16px 16px 12px;
-  border-bottom: 1px solid rgba(20, 24, 40, 0.08);
+  border-bottom: 1px solid var(--border);
   background: linear-gradient(
     135deg,
     rgba(40,168,225,0.08),
     rgba(20,169,175,0.06),
-    rgba(255,255,255,0.92)
+    var(--card)
   );
 }
 
@@ -69,12 +62,15 @@
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.72);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   cursor: pointer;
   font-size: 20px;
   line-height: 1;
-  color: rgba(15, 23, 42, 0.78);
+}
+.closeBtn:hover {
+  background: var(--card);
 }
 .closeBtn:disabled {
   opacity: 0.6;
@@ -101,11 +97,11 @@
 }
 
 .previewCard {
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 16px;
   background: radial-gradient(1000px 400px at 30% 0%, rgba(40,168,225,0.10), transparent 60%),
               radial-gradient(900px 350px at 85% 20%, rgba(20,169,175,0.10), transparent 55%),
-              rgba(255,255,255,0.92);
+              var(--card);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -115,7 +111,7 @@
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: 0.16px;
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
   text-transform: uppercase;
   padding: 10px 12px 0;
   margin: 0;
@@ -155,18 +151,18 @@
   font-weight: 1000;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--muted);
   margin: 0;
 }
 
 .previewLegendPositionSelect {
   font-size: 11px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   padding: 4px 8px;
   border-radius: 8px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--border);
+  background: var(--card);
   cursor: pointer;
   min-width: 100px;
 }
@@ -179,7 +175,7 @@
 .previewSettingsDivider {
   width: 1px;
   align-self: stretch;
-  background: rgba(20, 24, 40, 0.14);
+  background: var(--card2);
   border-radius: 1px;
 }
 
@@ -195,9 +191,9 @@
   border-radius: 8px;
   font-size: 11px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.88);
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(20, 24, 40, 0.12);
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: border-color 140ms ease, background 140ms ease;
 }
@@ -215,7 +211,7 @@
 .previewSettingsCropBtnIcon {
   font-size: 14px;
   flex-shrink: 0;
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
 }
 
 .previewSettingsLegendInner {
@@ -224,8 +220,8 @@
   gap: 8px;
   padding: 6px 8px;
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border);
+  background: var(--card);
 }
 
 .previewSettingsSliders {
@@ -246,7 +242,7 @@
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(20, 24, 40, 0.12);
+  background: var(--card2);
   border-radius: 999px;
   outline: none;
 }
@@ -257,7 +253,7 @@
   height: 12px;
   border-radius: 50%;
   background: rgba(20, 169, 175, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--border);
   cursor: pointer;
 }
 
@@ -266,12 +262,12 @@
   height: 12px;
   border-radius: 50%;
   background: rgba(20, 169, 175, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--border);
   cursor: pointer;
 }
 
 .rangeSliderCompact::-moz-range-track {
-  background: rgba(20, 24, 40, 0.12);
+  background: var(--card2);
   border-radius: 999px;
   height: 4px;
 }
@@ -279,7 +275,7 @@
 .sliderValueCompact {
   font-size: 10px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   min-width: 18px;
   text-align: right;
 }
@@ -294,7 +290,7 @@
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: 0.16px;
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
   text-transform: uppercase;
 }
 
@@ -304,7 +300,7 @@
   min-width: 36px;
   font-size: 11px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
 }
 
 .cropOpenBtnIcon {
@@ -315,8 +311,8 @@
 .previewInner {
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid rgba(20, 24, 40, 0.08);
-  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border);
+  background: var(--card);
   height:470px;
   pointer-events: none; /* makes it feel like a preview */
 }
@@ -332,9 +328,9 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
   padding: 14px;
   gap: 0;
 }
@@ -369,8 +365,8 @@
   gap: 10px;
   padding: 11px 13px;
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid var(--border);
+  background: var(--card2);
   cursor: pointer;
   text-align: left;
   transition: border-color 140ms ease, background 140ms ease;
@@ -393,8 +389,8 @@
   height: 34px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.06);
-  color: rgba(15, 23, 42, 0.78);
+  background: var(--card2);
+  color: var(--text);
   font-size: 19px;
 }
 
@@ -415,13 +411,13 @@
 .formatSelectLabel {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
 }
 
 .formatSelectDesc {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -429,7 +425,7 @@
   flex-shrink: 0;
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.5);
+  color: var(--muted);
 }
 
 .formatSelectDropdown {
@@ -441,8 +437,8 @@
   padding: 5px;
   list-style: none;
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--border);
+  background: var(--card);
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15);
   z-index: 10;
   max-height: 240px;
@@ -474,8 +470,8 @@
   height: 32px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.06);
-  color: rgba(15, 23, 42, 0.78);
+  background: var(--card2);
+  color: var(--text);
   font-size: 17px;
 }
 
@@ -496,13 +492,13 @@
 .formatSelectOptionLabel {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
 }
 
 .formatSelectOptionDesc {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -510,7 +506,7 @@
   font-size: 11px;
   font-weight: 1000;
   letter-spacing: 0.2px;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   text-transform: uppercase;
 }
 
@@ -520,9 +516,9 @@
 }
 
 .radioCard {
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
   padding: 12px;
   display: flex;
   gap: 10px;
@@ -550,13 +546,13 @@
 .radioTitle {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.86);
+  color: var(--text);
 }
 .radioHint {
   margin-top: 4px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.58);
+  color: var(--muted);
 }
 
 .actions {
@@ -566,7 +562,7 @@
   gap: 10px;
   margin-top: 11px;
   padding-top: 11px;
-  border-top: 1px solid rgba(20, 24, 40, 0.08);
+  border-top: 1px solid var(--border);
 }
 
 .primaryBtn {
@@ -574,7 +570,7 @@
   border-radius: 8px;
   border: 1px solid rgba(20,169,175,0.30);
   background: rgba(20,169,175,0.18);
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
   font-size: 12px;
   font-weight: 950;
   cursor: pointer;
@@ -598,8 +594,8 @@
 }
 
 .primaryBtnLoading {
-  background: rgba(15, 23, 42, 0.04);
-  border-color: rgba(20, 24, 40, 0.14);
+  background: var(--card2);
+  border-color: var(--border);
 }
 
 .primaryIcon {
@@ -612,8 +608,8 @@
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  border: 2px solid rgba(15,23,42,0.22);
-  border-top-color: rgba(15,23,42,0.60);
+  border: 2px solid var(--border);
+  border-top-color: var(--muted);
   animation: spin 0.7s linear infinite;
 }
 
@@ -654,7 +650,7 @@
   display: grid;
   place-items: center;
   gap: 10px;
-  background: rgba(255,255,255,0.6);
+  background: var(--card2);
   backdrop-filter: blur(6px);
 }
 
@@ -667,9 +663,9 @@
   display: grid;
   gap: 10px;
   padding: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
 }
 
 .legendLabel {
@@ -677,7 +673,7 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--muted);
 }
 
 .legendRange {
@@ -687,13 +683,13 @@
 .legendResetBtn {
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.75);
+  border: 1px solid var(--border);
+  background: var(--card);
   font-weight: 900;
   cursor: pointer;
 }
 .legendResetBtn:hover {
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
 }
 
 .leftControls {
@@ -715,15 +711,15 @@
 .ghostBtn {
   height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(15, 23, 42, 0.03);
-  color: rgba(15, 23, 42, 0.82);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
 }
 .ghostBtn:hover {
-  background: rgba(15, 23, 42, 0.05);
+  background: var(--card2);
 }
 
 .ghostBtn:disabled {
@@ -734,7 +730,7 @@
 .footnote {
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   line-height: 1.45;
   margin-top: 6px;
 }
@@ -760,14 +756,14 @@
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: 0.16px;
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
   text-transform: uppercase;
 }
 
 .sectionDesc {
   font-size: 11px;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   line-height: 1.4;
   margin: 0 0 6px 0;
 }
@@ -777,8 +773,8 @@
   gap: 10px;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid var(--border);
+  background: var(--card2);
   min-width: 0;
 }
 
@@ -835,7 +831,7 @@
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: 0.16px;
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
   text-transform: uppercase;
 }
 
@@ -860,7 +856,7 @@
 .sliderLabel {
   font-size: 11px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--muted);
   cursor: default;
 }
 
@@ -875,7 +871,7 @@
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   min-width: 28px;
   text-align: right;
 }
@@ -887,7 +883,7 @@
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(20, 24, 40, 0.12);
+  background: var(--card2);
   border-radius: 999px;
   outline: none;
 }
@@ -898,7 +894,7 @@
   height: 16px;
   border-radius: 50%;
   background: rgba(20, 169, 175, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--border);
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   cursor: pointer;
   transition: transform 100ms ease, background 100ms ease;
@@ -919,7 +915,7 @@
   height: 16px;
   border-radius: 50%;
   background: rgba(20, 169, 175, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--border);
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   cursor: pointer;
 }
@@ -930,7 +926,7 @@
 }
 
 .rangeSlider::-moz-range-track {
-  background: rgba(20, 24, 40, 0.12);
+  background: var(--card2);
   border-radius: 999px;
   height: 6px;
 }
@@ -995,7 +991,7 @@
   max-width: 140px;
   aspect-ratio: 4 / 3;
   border-radius: 10px;
-  border: 2px solid rgba(20, 24, 40, 0.18);
+  border: 2px solid var(--border);
   background: linear-gradient(135deg, rgba(40, 168, 225, 0.08), rgba(20, 169, 175, 0.06));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
@@ -1007,16 +1003,16 @@
 .stepperVertical .stepperInput {
   border-left: none;
   border-right: none;
-  border-top: 1px solid rgba(20, 24, 40, 0.08);
-  border-bottom: 1px solid rgba(20, 24, 40, 0.08);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 /* Unified stepper: − [input] + in one white rounded box (kept for other uses) */
 .stepper {
   display: inline-flex;
   align-items: stretch;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(20, 24, 40, 0.12);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -1028,7 +1024,7 @@
   place-items: center;
   border: none;
   background: transparent;
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -1037,7 +1033,7 @@
 
 .stepperBtn:hover:not(:disabled) {
   background: rgba(40, 168, 225, 0.08);
-  color: rgba(15, 23, 42, 0.9);
+  color: var(--text);
 }
 
 .stepperBtn:disabled {
@@ -1049,19 +1045,19 @@
   width: 30px;
   min-width: 0;
   border: none;
-  border-left: 1px solid rgba(20, 24, 40, 0.08);
-  border-right: 1px solid rgba(20, 24, 40, 0.08);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   background: transparent;
   text-align: center;
   font-size: 11px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   padding: 0 4px;
   outline: none;
 }
 
 .stepperInput:focus {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--card2);
 }
 
 .stepperInput::-webkit-outer-spin-button,
@@ -1083,7 +1079,7 @@
 .stepperSuffix {
   font-size: 11px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
 }
 
 /* ===== Legend row ===== */
@@ -1110,7 +1106,7 @@
   font-weight: 1000;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.62);
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -1118,12 +1114,12 @@
   width: 34px;
   height: 18px;
   border-radius: 7px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border);
+  background: var(--card);
   text-align: center;
   font-size: 10px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   outline: none;
   padding: 0;
 }
@@ -1136,7 +1132,7 @@
 .miniSuffix{
   font-size: 10px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
 }
 
 /* icon-only +/- buttons */
@@ -1148,7 +1144,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
   font-weight: 1100;
   font-size: 12px;
   line-height: 1;
@@ -1157,7 +1153,7 @@
 }
 
 .iconBtn:hover{
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
   background: rgba(40,168,225,0.10);
 }
 
@@ -1172,11 +1168,11 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.78);
+  border: 1px solid var(--border);
+  background: var(--card);
   font-size: 10px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.76);
+  color: var(--text);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1214,7 +1210,7 @@
   gap: 4px;
   min-width: 0;
   padding-left: 4px;
-  border-left: 1px solid rgba(20, 24, 40, 0.08);
+  border-left: 1px solid var(--border);
 }
 
 .legendLabel {
@@ -1222,7 +1218,7 @@
   font-weight: 1000;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -1247,12 +1243,12 @@
   width: 54px;
   height: 18px;
   border-radius: 7px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border);
+  background: var(--card);
   text-align: center;
   font-size: 10px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   outline: none;
   padding: 0;
 }
@@ -1293,7 +1289,7 @@
   font-weight: 1000;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.62);
+  color: var(--muted);
   line-height: 1;
   white-space: nowrap;
 }
@@ -1338,7 +1334,7 @@
 .expandArea{
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(20, 24, 40, 0.10);
+  border-top: 1px solid var(--border);
   display: grid;
   gap: 8px;
 }
@@ -1348,7 +1344,7 @@
   font-weight: 1000;
   letter-spacing: 0.16px;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--muted);
 }
 
 /* ===== Format select ===== */
@@ -1363,9 +1359,9 @@
   width: 100%;
   height: 40px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(15, 23, 42, 0.02);
-  color: rgba(15, 23, 42, 0.86);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   font-size: 13px;
   font-weight: 1000;
   padding: 0 38px 0 12px;
@@ -1403,16 +1399,16 @@
   transform: translateY(-50%);
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   pointer-events: none;
 }
 
 /* ===== Options panel under select ===== */
 
 .formatPanel{
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
   padding: 12px;
   display: grid;
   gap: 11px;
@@ -1440,8 +1436,8 @@
 .subRow{
   width: 100%;
   text-align: left;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid var(--border);
+  background: var(--card2);
   border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
@@ -1479,7 +1475,7 @@
 .subName{
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1489,18 +1485,18 @@
   margin-top: 3px;
   font-size: 11px;
   font-weight: 850;
-  color: rgba(15, 23, 42, 0.60);
+  color: var(--muted);
   line-height: 1.3;
 }
 
 .subMeta{
   font-size: 11px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.70);
+  color: var(--muted);
   padding: 5px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(255,255,255,0.72);
+  border: 1px solid var(--border);
+  background: var(--card);
 }
 
 .defaultPill{
@@ -1510,7 +1506,7 @@
   border-radius: 999px;
   border: 1px solid rgba(20,169,175,0.22);
   background: rgba(20,169,175,0.10);
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
 }
 
 .proBadge{
@@ -1528,9 +1524,9 @@
 /* ===== Toggle rows (PNG + watermark) ===== */
 
 .proCallout{
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
   padding: 11px 13px;
 }
 
@@ -1546,7 +1542,7 @@
 .toggleName{
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1556,7 +1552,7 @@
   margin-top: 3px;
   font-size: 11px;
   font-weight: 850;
-  color: rgba(15, 23, 42, 0.60);
+  color: var(--muted);
   line-height: 1.3;
 }
 
@@ -1578,8 +1574,8 @@
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.75);
+  border: 1px solid var(--border);
+  background: var(--card);
   transition: background 120ms ease, border-color 120ms ease;
 }
 
@@ -1592,7 +1588,7 @@
   top: 50%;
   transform: translateY(-50%);
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.18);
+  background: var(--card2);
   transition: transform 140ms ease, background 120ms ease;
 }
 
@@ -1603,7 +1599,7 @@
 
 .switch input:checked + .slider::before{
   transform: translate(20px, -50%);
-  background: rgba(15, 23, 42, 0.45);
+  background: var(--card2);
 }
 
 .switch input:disabled + .slider{

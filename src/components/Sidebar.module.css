@@ -74,7 +74,7 @@
 /* Divider */
 .divider {
   height: 1px;
-  background: rgba(0,0,0,0.08);
+  background: var(--border, rgba(0,0,0,0.08));
   margin: 2px 0 4px;
 }
 
@@ -147,7 +147,7 @@
 
 .navLink:hover {
   background: rgba(20,169,175,0.08);
-  color: rgba(0,0,0,0.82);
+  color: var(--text);
 }
 
 .active {
@@ -167,7 +167,7 @@
   flex-direction: column;
   gap: 10px;
   padding-top: 12px;
-  border-top: 1px solid rgba(0,0,0,0.08);
+  border-top: 1px solid var(--border);
 }
 
 .docsButton {
@@ -182,8 +182,8 @@
   padding: 0 12px;
   border-radius: 14px;
 
-  background: rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.08);
+  background: var(--chip-bg, rgba(0,0,0,0.03));
+  border: 1px solid var(--border);
   color: var(--text);
   font-size: 13px;
   font-weight: 900;
@@ -201,12 +201,12 @@
 .externalIcon {
   margin-left: auto;
   font-size: 12px;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
 }
 
 .copyright {
   font-size: 10px;
-  color: rgba(0,0,0,0.52);
+  color: var(--muted);
   font-weight: 800;
   line-height: 1.2;
 }

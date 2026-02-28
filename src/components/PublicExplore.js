@@ -8,7 +8,7 @@ import styles from './PublicExplore.module.css';
 
 export default function PublicExplore() {
   return (
-    <div className={styles.publicExploreContainer}>
+    <div className={`forceLightMode ${styles.publicExploreContainer}`}>
       <HomeHeader />
 
       {/* Content width matches HomeHeader horizontal padding */}

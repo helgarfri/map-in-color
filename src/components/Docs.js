@@ -838,7 +838,7 @@ npm start`}
 // ——— Docs layout (header + outlet + footer) for nested routes ———
 export function DocsLayout() {
   return (
-    <div className={styles.documentationContainer}>
+    <div className={`forceLightMode ${styles.documentationContainer}`}>
       <HomeHeader />
       <div className={styles.docsBody}>
         <Outlet />

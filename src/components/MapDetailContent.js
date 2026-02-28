@@ -27,8 +27,10 @@ import Header from './Header';
 import LoadingSpinner from './LoadingSpinner'; 
 import { FaDownload } from 'react-icons/fa'; // icon for download
 import { SidebarContext } from '../context/SidebarContext';
+import { ThemeContext } from '../context/ThemeContext';
 import useWindowSize from '../hooks/useWindowSize';
 import { FaEye, FaEyeSlash, FaStar } from 'react-icons/fa';
+import MapLegendOverlay from './MapLegendOverlay';
 import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
 import MapView from './Map';
@@ -40,7 +42,7 @@ import SignupPromptModal from './SignupPromptModal';
 import { isProUser } from './ProBadge';
 
 
-export default function MapDetailContent({isFullScreen, toggleFullScreen}) {
+export default function MapDetailContent({ isFullScreen, toggleFullScreen, forceMapTheme = null }) {
 
   
   const { id } = useParams();
@@ -110,9 +112,6 @@ const [isDeleting, setIsDeleting] = useState(false);
   const [activeLegendKey, setActiveLegendKey] = useState(null);
   const [hoverLegendKey, setHoverLegendKey] = useState(null);
 
-  // View mode only: collapse legend items (header stays visible)
-  const [legendCollapsed, setLegendCollapsed] = useState(false);
-
   // controls whether Map should zoom when syncing selection
   const [selectedCodeZoom, setSelectedCodeZoom] = useState(false);
 
@@ -121,6 +120,8 @@ const [isDeleting, setIsDeleting] = useState(false);
 
 
   const { authToken, profile, setProfile, isPro } = useContext(UserContext);
+  const { darkMode } = useContext(ThemeContext);
+  const mapTheme = forceMapTheme ?? (darkMode ? 'dark' : 'light');
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -1215,6 +1216,7 @@ if (!mapData) {
   {...mapDataProps()}
   isLargeMap={isFullScreen}
   compactUi={width < 400}
+  theme={mapTheme}
   hoveredCode={hoveredCode}
   selectedCode={selectedCode}
   selectedCodeZoom={selectedCodeZoom}
@@ -1222,7 +1224,6 @@ if (!mapData) {
   groupHoveredCodes={hoveredLegendCodes}
   groupActiveCodes={activeLegendCodes}
   suppressInfoBox={suppressInfoBox}
-  // ✅ NEW
   activeLegendModel={activeLegendModel}
   codeToName={countryCodeToName}
   onCloseActiveLegend={() => {
@@ -1264,73 +1265,20 @@ if (!mapData) {
   </div>
 )}
 
-<div className={styles.mapLegendBox} aria-label="Legend">
-    {/* Header with title + collapse toggle: always visible so we can collapse from anywhere */}
-    <div className={styles.mapLegendHeader}>
-  <div className={styles.mapLegendHeaderRow}>
-    <div className={styles.mapLegendTitle}>
-      {mapData?.title || "Untitled Map"}
-    </div>
-    <button
-      type="button"
-      className={`${styles.mapLegendToggleBtn} ${legendCollapsed ? styles.mapLegendToggleBtnCollapsed : ''}`}
-      onClick={() => setLegendCollapsed((c) => !c)}
-      aria-label={legendCollapsed ? 'Show legend' : 'Hide legend'}
-      aria-expanded={!legendCollapsed}
-      title={legendCollapsed ? 'Show legend' : 'Hide legend'}
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M6 9l6 6 6-6" />
-      </svg>
-    </button>
-  </div>
-    </div>
-
-<div className={`${styles.mapLegendItemsWrap} ${legendCollapsed ? styles.mapLegendItemsWrapCollapsed : ''}`}>
-<div className={styles.mapLegendItems}>
-  {legendModels.length === 0 ? (
-    <div className={styles.mapLegendEmpty}>No legend data</div>
-  ) : (
-    legendModels.map((item) => {
-      const isActive = activeLegendKey === item.key;
-
-      return (
-        <div
-          key={item.key}
-          className={`${styles.mapLegendRow} ${isActive ? styles.mapLegendRowActive : ""}`}
-
-
-          onMouseEnter={() => setHoverLegendKey(item.key)}
-          onMouseLeave={() => setHoverLegendKey(null)}
-
-          onClick={() => {
-            // toggling this group
-            setSelectedCode(null);         // stop showing any country selection
-            setSelectedCodeZoom(false);
-            setSelectedCodeNonce((n) => n + 1);
-
-            setActiveLegendKey(item.key); // ✅ never toggle off by clicking again
-          }}
-          role="button"
-          tabIndex={0}
-        >
-          <span
-            className={styles.mapLegendDot}
-            style={{ backgroundColor: item.color }}
-          />
-          <div className={styles.mapLegendText}>
-            <div className={styles.mapLegendLabel}>{item.label}</div>
-            {item.meta && <div className={styles.mapLegendMeta}>{item.meta}</div>}
-          </div>
-          <span className={styles.mapLegendHoverHint} aria-hidden="true">↗</span>
-        </div>
-      );
-    })
-  )}
-</div>
-</div>
-
-</div>
+<MapLegendOverlay
+    title={mapData?.title || 'Untitled Map'}
+    legendModels={legendModels}
+    activeLegendKey={activeLegendKey}
+    setActiveLegendKey={(k) => {
+      setSelectedCode(null);
+      setSelectedCodeZoom(false);
+      setSelectedCodeNonce((n) => n + 1);
+      setActiveLegendKey(k);
+    }}
+    setHoverLegendKey={setHoverLegendKey}
+    theme={mapTheme}
+    interactive
+  />
 
 
 

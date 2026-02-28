@@ -13,7 +13,7 @@ export default function PublicLayout() {
   const isHome = pathname === "/";
 
   return (
-    <div className={styles.wrap}>
+    <div className={`forceLightMode ${styles.wrap}`}>
       {isHome && <div className={styles.heroBackgroundLayer} aria-hidden="true" />}
       <HomeHeader />
       <div className={`${styles.outletWrap} ${isHome ? styles.outletWrapHome : ""}`}>

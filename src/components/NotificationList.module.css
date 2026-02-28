@@ -46,7 +46,7 @@
 }
 
 .statBox {
-  background: rgba(255,255,255,0.90);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 10px 12px;
@@ -67,20 +67,20 @@
 
 .statIcon {
   font-size: 14px;
-  color: rgba(0,0,0,0.62);
+  color: var(--muted);
 }
 
 .statValue {
   font-size: 16px;
   font-weight: 900;
-  color: rgba(0,0,0,0.78);
+  color: var(--text);
   line-height: 1;
 }
 
 .statLabel {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   margin-left: 2px;
 }
 
@@ -166,12 +166,12 @@
   margin: 0;
   font-size: 14px;
   font-weight: 800;
-  color: rgba(0,0,0,0.78);
+  color: var(--text);
   line-height: 1.4;
 }
 
 .senderLink {
-  color: rgba(0,0,0,0.85);
+  color: var(--text);
   font-weight: 900;
   text-decoration: none;
 }
@@ -184,7 +184,7 @@
 .notificationTime {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(0,0,0,0.55);
+  color: var(--muted);
   margin-top: 4px;
 }
 
@@ -205,9 +205,9 @@
   display: grid;
   place-items: center;
   font-size: 14px;
-  color: rgba(0,0,0,0.62);
+  color: var(--muted);
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.90);
+  background: var(--card);
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
@@ -215,7 +215,7 @@
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
   border-color: rgba(20,169,175,0.18);
-  color: rgba(0,0,0,0.78);
+  color: var(--text);
 }
 
 .actionButton:disabled {
@@ -232,7 +232,7 @@
 .noNotifications {
   text-align: left;
   margin-top: 20px;
-  color: rgba(0,0,0,0.62);
+  color: var(--muted);
   font-weight: 800;
 }
 
@@ -253,7 +253,7 @@
   display: flex;
   align-items: center;
   padding: 14px 16px;
-  background: rgba(255,255,255,0.90);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
@@ -263,7 +263,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.06);
+  background: var(--skeleton-bg, rgba(0,0,0,0.06));
   margin-right: 12px;
   position: relative;
   overflow: hidden;
@@ -279,7 +279,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.60) 50%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.60)) 50%,
     transparent 100%
   );
   animation: shimmer 1.15s infinite;
@@ -296,7 +296,7 @@
 .skeletonLine {
   height: 12px;
   border-radius: 10px;
-  background: rgba(0,0,0,0.06);
+  background: var(--skeleton-bg, rgba(0,0,0,0.06));
   position: relative;
   overflow: hidden;
 }
@@ -310,7 +310,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.60) 50%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.60)) 50%,
     transparent 100%
   );
   animation: shimmer 1.15s infinite;
@@ -320,7 +320,7 @@
   width: 80px;
   height: 36px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.06);
+  background: var(--skeleton-bg, rgba(0,0,0,0.06));
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -335,7 +335,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.60) 50%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.60)) 50%,
     transparent 100%
   );
   animation: shimmer 1.15s infinite;

@@ -1,29 +1,22 @@
 /* src/components/ShareOptionsModal.module.css */
 
-:root {
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --border: rgba(20, 24, 40, 0.10);
-  --text: rgba(15, 23, 42, 0.92);
-  --muted: rgba(15, 23, 42, 0.62);
-  --shadow: 0 20px 60px rgba(15, 23, 42, 0.20);
-  --radius: 16px;
-}
+/* Theme from index.css / html[data-theme="dark"] */
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--modal-overlay);
   display: grid;
   place-items: center;
   z-index: 9999;
   padding: 18px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .modal {
   width: min(720px, 100%);
-  background: var(--card);
+  background: var(--modal-content-bg, var(--card));
   border: 1px solid var(--border);
   border-radius: 18px;
   box-shadow: var(--shadow);
@@ -36,13 +29,13 @@
   justify-content: space-between;
   gap: 12px;
   padding: 16px 16px 12px;
-  border-bottom: 1px solid rgba(20, 24, 40, 0.08);
+  border-bottom: 1px solid var(--border);
   border-radius: 18px 18px 0 0;
   background: linear-gradient(
     135deg,
     rgba(40,168,225,0.08),
     rgba(20,169,175,0.06),
-    rgba(255,255,255,0.92)
+    var(--card)
   );
 }
 
@@ -72,15 +65,15 @@
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.72);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   cursor: pointer;
   font-size: 20px;
   line-height: 1;
-  color: rgba(15, 23, 42, 0.78);
 }
 .closeBtn:hover {
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
 }
 .closeBtn:disabled {
   opacity: 0.6;
@@ -94,12 +87,12 @@
 }
 
 .card {
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   border-radius: 16px;
   background:
     radial-gradient(820px 240px at 18% 0%, rgba(40,168,225,0.10), transparent 60%),
     radial-gradient(760px 220px at 88% 22%, rgba(20,169,175,0.10), transparent 55%),
-    rgba(255,255,255,0.92);
+    var(--card);
   padding: 12px;
 }
 
@@ -107,7 +100,7 @@
   font-size: 12px;
   font-weight: 1000;
   letter-spacing: 0.2px;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   text-transform: uppercase;
   margin-bottom: 10px;
 }
@@ -128,8 +121,8 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: rgba(15, 23, 42, 0.6);
-  background: rgba(15, 23, 42, 0.08);
+  color: var(--muted);
+  background: var(--card2);
   padding: 4px 10px;
   border-radius: 8px;
   flex-shrink: 0;
@@ -143,7 +136,7 @@
   margin: 0 0 14px;
   font-size: 14px;
   line-height: 1.5;
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
 }
 
 /* Link row */
@@ -155,13 +148,13 @@
 }
 
 .linkBox {
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(255,255,255,0.78);
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 14px;
   padding: 10px 12px;
   font-size: 12px;
   font-weight: 850;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -173,7 +166,7 @@
   border-radius: 14px;
   border: 1px solid rgba(20,169,175,0.30);
   background: rgba(20,169,175,0.18);
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
   font-weight: 950;
   cursor: pointer;
   display: inline-flex;
@@ -205,9 +198,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255, 255, 255, 0.7);
-  color: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
   font-size: 16px;
   display: grid;
   place-items: center;
@@ -217,7 +210,7 @@
 .socialBtnSmall:hover:not(:disabled) {
   background: rgba(40, 168, 225, 0.08);
   border-color: rgba(40, 168, 225, 0.2);
-  color: rgba(15, 23, 42, 0.9);
+  color: var(--text);
 }
 .socialBtnSmall:disabled {
   opacity: 0.5;
@@ -236,7 +229,7 @@
   margin-top: 10px;
   font-size: 12px;
   font-weight: 850;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   line-height: 1.45;
 }
 
@@ -246,9 +239,9 @@
   height: 42px;
   width: 100%;
   border-radius: 14px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(15, 23, 42, 0.03);
-  color: rgba(15, 23, 42, 0.82);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   font-weight: 900;
   cursor: pointer;
   display: inline-flex;
@@ -257,7 +250,7 @@
   gap: 10px;
 }
 .openBtn:hover {
-  background: rgba(15, 23, 42, 0.05);
+  background: var(--card2);
 }
 .openBtn:disabled {
   opacity: 0.65;
@@ -275,13 +268,13 @@
 .embedBox {
   min-height: 120px;
   resize: none;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(255,255,255,0.78);
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 14px;
   padding: 10px 12px;
   font-size: 12px;
   font-weight: 750;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   line-height: 1.4;
   outline: none;
 }
@@ -291,14 +284,14 @@
   margin: 0 0 10px;
   font-size: 13px;
   line-height: 1.45;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--muted);
 }
 
 .embedPrivateMessage {
   margin: 12px 0 0;
   font-size: 13px;
   line-height: 1.45;
-  color: rgba(15, 23, 42, 0.8);
+  color: var(--text);
 }
 
 .embedPrivateNotice {
@@ -308,7 +301,7 @@
   margin: 0 0 14px;
   font-size: 14px;
   line-height: 1.5;
-  color: rgba(15, 23, 42, 0.8);
+  color: var(--text);
 }
 .embedPrivateUpgradeBtn {
   padding: 12px 24px;
@@ -329,7 +322,7 @@
   margin: 10px 0 0;
   font-size: 12px;
   font-weight: 850;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
 }
 
 /* Embed controls: single row above preview + code, compact */
@@ -377,8 +370,8 @@
   gap: 2px;
   border-radius: 6px;
   padding: 2px;
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(20, 24, 40, 0.08);
+  background: var(--card2);
+  border: 1px solid var(--border);
 }
 
 .embedRowToggleBtn {
@@ -391,19 +384,19 @@
   background: transparent;
   font-size: 11px;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
 }
 
 .embedRowToggleBtn:hover:not(:disabled):not(.embedToggleBtnDisabled) {
-  background: rgba(15, 23, 42, 0.06);
-  color: rgba(15, 23, 42, 0.9);
+  background: var(--card2);
+  color: var(--text);
 }
 
 .embedRowToggleBtnActive {
   background: rgba(20, 169, 175, 0.18);
-  color: rgba(15, 23, 42, 0.95);
+  color: var(--text);
   border: 1px solid rgba(20, 169, 175, 0.35);
 }
 
@@ -426,8 +419,8 @@
   padding: 4px 6px;
   font-size: 11px;
   border-radius: 6px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  background: var(--card);
   font-weight: 700;
   cursor: pointer;
 }
@@ -452,11 +445,11 @@
   gap: 6px;
   padding: 5px 8px;
   border-radius: 8px;
-  border: 1px solid rgba(20, 24, 40, 0.1);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border);
+  background: var(--card2);
   font-size: 11px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   cursor: default;
 }
 
@@ -474,8 +467,8 @@ label.embedOptionBox {
   gap: 2px;
   border-radius: 6px;
   padding: 2px;
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(20, 24, 40, 0.08);
+  background: var(--card2);
+  border: 1px solid var(--border);
 }
 
 .themeOption {
@@ -488,19 +481,19 @@ label.embedOptionBox {
   background: transparent;
   font-size: 11px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .themeOption:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: rgba(15, 23, 42, 0.9);
+  background: var(--card);
+  color: var(--text);
 }
 
 .themeOptionActive {
   background: rgba(20, 169, 175, 0.15);
-  color: rgba(15, 23, 42, 0.95);
+  color: var(--text);
   box-shadow: 0 1px 2px rgba(20, 169, 175, 0.2);
 }
 
@@ -525,17 +518,17 @@ label.embedOptionBox {
   gap: 8px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
 }
 
 .embedOptionSelect {
   padding: 6px 8px;
   border-radius: 8px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  background: var(--card);
   font-size: 12px;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.9);
+  color: var(--text);
   min-width: 0;
 }
 
@@ -559,6 +552,7 @@ label.embedOptionBox {
   align-items: start;
 }
 
+/* Preview thumb: always reflect embed theme (light = white, dark = frosted), not app theme */
 .embedPreviewThumb {
   position: relative;
   aspect-ratio: 2000 / 857; /* match map viewBox so height fits map, no blank space */
@@ -566,12 +560,17 @@ label.embedOptionBox {
   max-width: 160px;
   border-radius: 12px;
   border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(15, 23, 42, 0.06);
+  background: #ffffff;
   overflow: hidden;
   cursor: pointer;
   padding: 0;
   display: block;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.embedPreviewThumbDark.embedPreviewThumb {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .embedPreviewThumb:hover:not(:disabled) {
@@ -584,7 +583,7 @@ label.embedOptionBox {
   opacity: 0.7;
 }
 
-/* Fake preview: no absolute so map centers; height fits map via thumb aspect-ratio */
+/* Fake preview: always match embed theme (white for light, frosted dark for dark), not app theme */
 .embedPreviewMapStage {
   position: relative;
   width: 100%;
@@ -593,12 +592,11 @@ label.embedOptionBox {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.06);
+  background: #ffffff;
 }
 
-/* Dark theme: match MapEmbed dark background */
 .embedPreviewThumbDark .embedPreviewMapStage {
-  background: rgba(15, 23, 42, 0.96);
+  background: rgba(30, 41, 59, 0.95);
 }
 
 /* Wrapper so Map is centered and viewBox stays centered in thumb */
@@ -644,7 +642,11 @@ label.embedOptionBox {
   justify-content: center;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.45);
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.embedPreviewThumbDark .embedPreviewPlaceholder {
+  color: rgba(255, 255, 255, 0.65);
 }
 
 /* Small watermark for thumb (theme-aware) */
@@ -663,12 +665,17 @@ label.embedOptionBox {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
 }
 
+/* Watermark: light preview = dark text, dark preview = light text (embed theme only) */
 .embedPreviewWatermarkText {
   font-size: 6px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: rgba(15, 23, 42, 0.8);
+  color: rgba(15, 23, 42, 0.78);
   line-height: 1;
+}
+
+.embedPreviewThumbDark .embedPreviewWatermarkText {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .embedPreviewWatermarkLogo {
@@ -677,12 +684,7 @@ label.embedOptionBox {
   display: block;
 }
 
-/* Dark theme: watermark text light */
-.embedPreviewThumbDark .embedPreviewWatermarkText {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* Fake legend box (thumbnail style) – title only, half size */
+/* Fake legend box: light = white, dark = frosted (embed theme only) */
 .embedPreviewLegend {
   position: absolute;
   left: 3px;
@@ -692,8 +694,8 @@ label.embedOptionBox {
   max-width: calc(100% - 8px);
   padding: 2px 4px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(20, 24, 40, 0.1);
   backdrop-filter: blur(6px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
@@ -701,7 +703,7 @@ label.embedOptionBox {
 .embedPreviewLegendTitle {
   font-size: 5px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.9);
+  color: rgba(15, 23, 42, 0.92);
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
@@ -717,18 +719,20 @@ label.embedOptionBox {
   color: rgba(226, 232, 240, 0.95);
 }
 
+/* Hover overlay: same in light/dark app theme so "Click to open" is always readable */
 .embedPreviewOverlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.5);
-  color: #fff;
+  background: rgba(15, 23, 42, 0.75);
+  color: rgba(255, 255, 255, 0.95);
   font-size: 11px;
   font-weight: 800;
   opacity: 0;
   transition: opacity 0.15s ease;
+  border-radius: 12px;
 }
 
 .embedPreviewThumb:hover .embedPreviewOverlay {
@@ -764,11 +768,11 @@ label.embedOptionBox {
   align-items: center;
   padding: 8px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  background: var(--card);
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
@@ -776,13 +780,13 @@ label.embedOptionBox {
 .embedToggleBtn:hover {
   background: rgba(20, 169, 175, 0.08);
   border-color: rgba(20, 169, 175, 0.25);
-  color: rgba(15, 23, 42, 0.9);
+  color: var(--text);
 }
 
 .embedToggleBtnActive {
   background: rgba(20, 169, 175, 0.12);
   border-color: rgba(20, 169, 175, 0.4);
-  color: rgba(15, 23, 42, 0.95);
+  color: var(--text);
 }
 
 .embedToggleIcon {
@@ -812,15 +816,15 @@ label.embedOptionBox {
   transform: translateX(-50%);
   margin-bottom: 8px;
   padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.96);
-  color: rgba(255, 255, 255, 0.95);
+  background: var(--card);
+  color: var(--text);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.35;
   white-space: nowrap;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
-  border: 1px solid rgba(20, 169, 175, 0.35);
+  box-shadow: var(--shadow, 0 4px 16px rgba(15, 23, 42, 0.25));
+  border: 1px solid var(--border);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.08s ease-out;
@@ -834,7 +838,7 @@ label.embedOptionBox {
   left: 50%;
   margin-left: -6px;
   border: 6px solid transparent;
-  border-top-color: rgba(15, 23, 42, 0.96);
+  border-top-color: var(--card);
 }
 
 .embedToggleBtnWrap:hover .embedTooltip {
@@ -858,7 +862,7 @@ label.embedOptionBox {
   background: rgba(20, 169, 175, 0.06);
   font-size: 13px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }

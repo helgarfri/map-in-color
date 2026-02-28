@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import Cropper from 'react-easy-crop';
 import { SidebarContext } from '../context/SidebarContext';
 import { UserContext } from '../context/UserContext';
+import { ThemeContext } from '../context/ThemeContext';
 import useWindowSize from '../hooks/useWindowSize';
 import { changeUserPassword } from '../api'; // add at top
 import UpgradeProModal from './UpgradeProModal';
@@ -23,6 +24,7 @@ export default function ProfileSettings() {
   // ----------------------------
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { profile, setProfile, isPro } = useContext(UserContext);
+  const { darkMode, setDarkMode } = useContext(ThemeContext);
   const { width } = useWindowSize();
   const navigate = useNavigate();
 
@@ -669,6 +671,13 @@ function ChangePasswordModal({ onClose }) {
 </button>
 
 <button type="button" className={styles.sideNavLink} onClick={() => {
+  document.getElementById("appearance")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.history.replaceState(null, "", "#appearance");
+}}>
+  Appearance
+</button>
+
+<button type="button" className={styles.sideNavLink} onClick={() => {
   document.getElementById("subscription")?.scrollIntoView({ behavior: "smooth", block: "start" });
   window.history.replaceState(null, "", "#subscription");
 }}>
@@ -890,6 +899,24 @@ function ChangePasswordModal({ onClose }) {
                         desc="Notify others when you star a map."
                         isOn={starNotifications}
                         onToggle={() => setStarNotifications((p) => !p)}
+                        disabled={false}
+                      />
+                    </div>
+                  </section>
+
+                  {/* APPEARANCE */}
+                  <section id="appearance" className={styles.card}>
+                    <div className={styles.cardHeader}>
+                      <h2 className={styles.cardTitle}>Appearance</h2>
+                      <div className={styles.cardSub}>Customize how the app looks</div>
+                    </div>
+
+                    <div className={styles.privacyGrid}>
+                      <ToggleCard
+                        label="Dark mode"
+                        desc="Use a dark, frosty theme across the entire app."
+                        isOn={darkMode}
+                        onToggle={() => setDarkMode((p) => !p)}
                         disabled={false}
                       />
                     </div>

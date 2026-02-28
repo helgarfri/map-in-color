@@ -1,31 +1,15 @@
 /* DataIntergration.module.css — MIC Theme v2.5 (clean + bright) */
 
 /* ============================
-   Theme tokens
+   Layout/brand tokens only (theme from index.css)
    ============================ */
 :root {
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --card2: #fbfbfd;
-
-  --border: rgba(20, 24, 40, 0.10);
-  --border2: rgba(20, 24, 40, 0.16);
-
-  --text: #0f172a;
-  --muted: rgba(15, 23, 42, 0.65);
-
-  --brand: #28a8e1;  /* mic blue */
-  --brand2: #14a9af; /* mic teal */
-
-  --danger: #b42318;
-  --success: #2ea36a;
-
-  --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-  --shadow2: 0 6px 18px rgba(15, 23, 42, 0.08);
-
   --r: 16px;
   --r2: 12px;
-
+  --brand: #28a8e1;
+  --brand2: #14a9af;
+  --danger: #b42318;
+  --success: #2ea36a;
   --focus: 0 0 0 3px rgba(20, 169, 175, 0.16);
 }
 
@@ -103,17 +87,17 @@
 
 .layoutContainerPlayground .leftSidebar {
   padding-top: 0;
-  background: #fff;
+  background: var(--card);
 }
 
 .layoutContainerPlayground .rightPanel {
   padding-bottom: 32px; /* breathing room so Save button isn’t flush at bottom */
-  background: #f6f7fb; /* match gutter so right side blends */
+  background: var(--bg); /* match gutter so right side blends */
 }
 
 .layoutContainerPlayground .mapSection,
 .layoutContainerPlayground .navSection {
-  background: #f6f7fb;
+  background: var(--bg);
 }
 
 /* ============================
@@ -168,8 +152,8 @@
 .layoutContainerPlayground .mapBox,
 .layoutContainerPlayground .section,
 .layoutContainerPlayground .tableBox {
-  border-color: rgba(20, 24, 40, 0.07);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  border-color: var(--border);
+  box-shadow: var(--shadowSm);
 }
 
 /* Playground loading: smooth enter so transition from home feels continuous */
@@ -350,10 +334,10 @@
   padding: 0 8px;
 
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
 
-  background: #fbfbfd;
-  color: rgba(15, 23, 42, 0.86);
+  background: var(--card2);
+  color: var(--text);
 
   font-size: 12px;
   font-weight: 800;
@@ -374,10 +358,10 @@
   padding: 0 8px;
 
   border-radius: 999px;
-  border: 1px dashed rgba(20, 24, 40, 0.18);
+  border: 1px dashed var(--border);
 
   background: rgba(40, 168, 225, 0.10);
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
 
   font-size: 12px;
   font-weight: 900;
@@ -393,7 +377,7 @@
 .countryChip:hover {
   transform: translateY(-1px);
   border-color: rgba(40, 168, 225, 0.35);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadowSm);
 }
 
 /* driven by hoveredCode */
@@ -407,7 +391,7 @@
   border-color: rgba(20, 169, 175, 0.75);
   box-shadow:
     0 0 0 3px rgba(20, 169, 175, 0.14),
-    0 10px 22px rgba(15, 23, 42, 0.10);
+    var(--shadowSm);
 }
 
 
@@ -427,13 +411,13 @@
   cursor: pointer;
   font-weight: 700;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.70);
+  color: var(--muted);
   border-radius: 999px;
   transition: background-color 140ms ease, transform 140ms ease;
 }
 
 .tabItem:hover {
-  background: rgba(40, 168, 225, 0.08);
+  background: var(--card2);
   transform: translateY(-1px);
 }
 
@@ -467,7 +451,7 @@
 .rangeTable th {
   background: var(--card2);
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
 }
 
 /* row hover and active (focused input) */
@@ -476,15 +460,15 @@
 }
 
 .rangeTable tbody tr.rangeTableRow:hover {
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 }
 
 .rangeTable tbody tr.rangeTableRowActive {
-  background: rgba(15, 23, 42, 0.07);
+  background: var(--card2);
 }
 
 .rangeTable tbody tr.rangeTableRow.rangeTableRowActive:hover {
-  background: rgba(15, 23, 42, 0.09);
+  background: var(--card2);
 }
 
 /* choropleth (6 columns) */
@@ -539,9 +523,10 @@
   padding: 8px 10px;
   font-size: 14px;
 
-  border: 1px solid rgba(20, 24, 40, 0.16);
+  border: 1px solid var(--input-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--input-bg);
+  color: var(--input-color);
 
   box-sizing: border-box;
   outline: none;
@@ -555,7 +540,7 @@
 }
 
 .inputBox::placeholder {
-  color: rgba(15, 23, 42, 0.45);
+  color: var(--placeholder-color, var(--muted));
 }
 
 /* Make textareas match */
@@ -581,8 +566,8 @@
   font-size: 13px;
 
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.16);
-  background: #fbfbfd;
+  border: 1px solid var(--border);
+  background: var(--card2);
 
   outline: none;
   box-sizing: border-box;
@@ -625,9 +610,9 @@
   padding: 0 14px;
 
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
+  border: 1px solid var(--border);
 
-  background: #fff;
+  background: var(--card);
   color: var(--text);
 
   font-size: 13px;
@@ -639,7 +624,7 @@
 
 .actionPill:hover,
 .addRangeButton:hover {
-  box-shadow: var(--shadow2);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 
@@ -664,12 +649,12 @@
 
 /* Cancel variant */
 .cancelPill {
-  background: #fff;
+  background: var(--card);
   color: var(--text);
 }
 
 .cancelPill:hover {
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 }
 
 /* Save (teal) */
@@ -696,7 +681,7 @@
 
 /* Add reference pill */
 .addRefPill {
-  background: #fff;
+  background: var(--card);
   color: var(--text);
 }
 
@@ -706,7 +691,7 @@
 
 /* Danger pill */
 .dangerPill {
-  background: #fff;
+  background: var(--card);
   color: var(--danger);
   border-color: rgba(180, 35, 24, 0.35);
 }
@@ -721,7 +706,7 @@
   padding: 9px 14px;
   font-size: 14px;
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.16);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
@@ -733,22 +718,22 @@
 }
 .primaryButton:hover:not(:disabled) {
   background: #149397;
-  box-shadow: var(--shadow2);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 .primaryButton:disabled {
-  background: #d6d6d6;
-  color: #636363;
+  background: var(--card2);
+  color: var(--muted);
   cursor: not-allowed;
 }
 
 .secondaryButton {
-  background: #fff;
+  background: var(--card);
   color: var(--text);
 }
 .secondaryButton:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.04);
-  box-shadow: var(--shadow2);
+  background: var(--card2);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 .secondaryButton:disabled {
@@ -760,13 +745,13 @@
 .removeButton {
   background: none;
   border: none;
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
   font-size: 24px;
   cursor: pointer;
   transition: color 120ms ease, transform 120ms ease;
 }
 .removeButton:hover:not(:disabled) {
-  color: #ff4d4f;
+  color: var(--danger);
   transform: translateY(-1px);
 }
 
@@ -849,7 +834,7 @@
 .fieldLabel {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
   letter-spacing: 0.25px;
   margin-bottom: 6px;
   display: block;
@@ -868,7 +853,7 @@
   font-size: 12px;
   opacity: 0.65;
   font-style: italic;
-  color: rgba(15, 23, 42, 0.65);
+  color: var(--muted);
 }
 
 .mapInfoActionsBottom {
@@ -906,7 +891,7 @@
 
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.62);
+  color: var(--muted);
 
   white-space: nowrap;
   min-width: 0;
@@ -921,7 +906,7 @@
 }
 
 .actionsMetaValue {
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
 }
 
 /* Responsive: stack nicely */
@@ -965,7 +950,7 @@
   background: var(--card);
   border: 1px solid var(--border2);
   border-radius: var(--r2);
-  box-shadow: var(--shadow2);
+  box-shadow: var(--shadowSm);
   max-height: 160px; /* ~4 items so dropdown stays inside field */
   overflow-y: auto;
   overflow-x: hidden;
@@ -1002,7 +987,7 @@
   max-height: 130px;
   box-sizing: border-box;
 
-  border: 1px dashed rgba(20, 24, 40, 0.22);
+  border: 1px dashed var(--border);
   border-radius: 14px;
 
   padding: 8px;
@@ -1013,7 +998,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   align-content: flex-start;
-  background: #fff;
+  background: var(--card);
 }
 
 .tagItem {
@@ -1022,7 +1007,7 @@
   min-width: 0;
   background: rgba(40, 168, 225, 0.12);
   border: 1px solid rgba(40, 168, 225, 0.18);
-  color: rgba(15, 23, 42, 0.90);
+  color: var(--text);
 
   border-radius: 999px;
   font-size: 12px;
@@ -1049,11 +1034,11 @@
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  color: rgba(15, 23, 42, 0.70);
+  color: var(--text);
 }
 
 .removeTagButton:hover {
-  color: #ff4d4f;
+  color: var(--danger);
 }
 
 /* References list */
@@ -1070,7 +1055,7 @@
   text-align: left;
 
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card);
 
   padding: 10px 10px;
   border-radius: 14px;
@@ -1086,14 +1071,14 @@
 
 .referenceRowBtn:hover {
   background: rgba(20, 169, 175, 0.06);
-  box-shadow: var(--shadow2);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 
 .referenceTitle {
   font-size: 13px;
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1119,7 +1104,7 @@
 }
 
 .referencePublisher {
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1136,7 +1121,7 @@
   box-sizing: border-box;
   padding: 10px 12px;
 
-  border: 1px solid rgba(20, 24, 40, 0.16);
+  border: 1px solid var(--border);
   border-radius: 14px;
 
   cursor: pointer;
@@ -1147,7 +1132,7 @@
   user-select: none;
 
   margin-top: 6px;
-  background: #fff;
+  background: var(--card);
 
   transition: box-shadow 140ms ease, border-color 140ms ease;
 }
@@ -1163,7 +1148,7 @@
   flex-shrink: 0;
   font-size: 16px;
   margin-right: 8px;
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
   /* Nudge icon up to align with text cap-height */
   transform: translateY(-0.12em);
 }
@@ -1177,7 +1162,7 @@
   flex-shrink: 0;
   margin-left: auto;
   font-size: 12px;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   transform: translateY(-0.12em);
 }
 
@@ -1187,14 +1172,14 @@
   left: 0;
   width: 100%;
 
-  border: 1px solid rgba(20, 24, 40, 0.16);
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--card);
   z-index: 100;
 
   border-radius: 14px;
   overflow: hidden;
 
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+  box-shadow: var(--shadow);
 }
 
 .selectOption {
@@ -1213,7 +1198,7 @@
   font-size: 14px;
   font-weight: 800;
 
-  color: rgba(15, 23, 42, 0.86);
+  color: var(--text);
 }
 
 .selectOption:hover {
@@ -1241,7 +1226,7 @@
   width: 20px;
   height: 20px;
   border-radius: 8px;
-  border: 1px solid rgba(20, 24, 40, 0.20);
+  border: 1px solid var(--border);
   cursor: pointer;
   padding: 0;
   display: inline-block;
@@ -1250,7 +1235,7 @@
 
 .swatchButton:hover {
   border-color: rgba(40, 168, 225, 0.70);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+  box-shadow: var(--shadowSm);
   transform: translateY(-1px);
 }
 
@@ -1260,8 +1245,8 @@
   padding: 6px 8px;
   font-size: 12px;
   border-radius: 10px;
-  border: 1px solid rgba(20, 24, 40, 0.16);
-  background: #fbfbfd;
+  border: 1px solid var(--border);
+  background: var(--card2);
 
   box-sizing: border-box;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -1274,7 +1259,7 @@
 .refModalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--modal-overlay);
   display: grid;
   place-items: center;
   z-index: 10000;
@@ -1284,10 +1269,10 @@
 .refModalCard {
   width: 720px;
   max-width: calc(100vw - 36px);
-  background: #fff;
+  background: var(--card);
   border-radius: 18px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.25);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
   overflow: hidden;
   animation: mic_popIn 140ms ease-out;
 }
@@ -1306,7 +1291,7 @@
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.45px;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   text-transform: uppercase;
   margin-bottom: 2px;
 }
@@ -1315,21 +1300,21 @@
   margin: 0;
   font-size: 18px;
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
 }
 
 .refModalSubtitle {
   margin: 6px 0 0;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.62);
+  color: var(--muted);
 }
 
 .refModalClose {
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.16);
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--card);
   cursor: pointer;
   font-size: 22px;
   line-height: 1;
@@ -1338,7 +1323,7 @@
 }
 
 .refModalClose:hover {
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 }
 
 .refModalBody {
@@ -1365,7 +1350,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: #fff;
+  background: var(--card);
   border-top: 1px solid var(--border);
 }
 
@@ -1393,7 +1378,7 @@
 .saveModalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--modal-overlay);
   display: grid;
   place-items: center;
   z-index: 10000;
@@ -1403,10 +1388,10 @@
 .saveModalCard {
   width: 520px;
   max-width: calc(100vw - 36px);
-  background: #fff;
+  background: var(--card);
   border-radius: 18px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.25);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
   overflow: hidden;
   animation: mic_popIn 140ms ease-out;
 }
@@ -1425,7 +1410,7 @@
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.45px;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
   text-transform: uppercase;
   margin-bottom: 2px;
 }
@@ -1434,13 +1419,13 @@
   margin: 0;
   font-size: 18px;
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
 }
 
 .saveModalSubtitle {
   margin: 6px 0 0;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.62);
+  color: var(--muted);
 }
 
 
@@ -1451,7 +1436,7 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  border: 1px solid var(--border);
   margin: 0; /* IMPORTANT for split layout */
 }
 
@@ -1477,7 +1462,7 @@
   width: 100%;
   height: 10px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.10);
+  background: var(--card2);
   overflow: hidden;
 }
 
@@ -1491,7 +1476,7 @@
 .progressMeta {
   margin-top: 8px;
   font-size: 12px;
-  color: rgba(15, 23, 42, 0.60);
+  color: var(--muted);
   display: flex;
   justify-content: center;
 }
@@ -1565,14 +1550,14 @@
   margin-left: auto; /* pushes strip to the right if rangeControls is flex */
   padding: 6px 10px;
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.03);
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: var(--card2);
+  border: 1px solid var(--border);
 }
 
 .basePaletteLabel{
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.65);
+  color: var(--muted);
   margin-right: 4px;
 }
 
@@ -1580,37 +1565,37 @@
   width: 34px;
   height: 32px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--card);
   cursor: pointer;
   display: grid;
   place-items: center;
 }
 
 .baseSwatchBtn:hover{
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 }
 
 .baseSwatchDot{
   width: 16px;
   height: 16px;
   border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.18);
+  border: 1px solid var(--border);
 }
 
 .baseCustomBtn{
   padding: 7px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--card);
   cursor: pointer;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
 }
 
 .baseCustomBtn:hover{
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 }
 
 /* ============================
@@ -1636,8 +1621,8 @@
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  border: 1px solid rgba(20, 24, 40, 0.16);
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--card);
   padding: 0;
   cursor: pointer;
 }
@@ -1655,14 +1640,14 @@
   gap: 6px;
   padding: 10px;
   border-radius: 14px;
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid var(--border);
+  background: var(--card2);
 }
 
 .basePreviewChip{
   height: 18px;
   border-radius: 8px;
-  border: 1px solid rgba(0,0,0,0.10);
+  border: 1px solid var(--border);
 }
 
 .baseCheckboxRow{
@@ -1671,7 +1656,7 @@
   gap: 8px;
   align-items: center;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--text);
   user-select: none;
 }
 
@@ -1684,7 +1669,7 @@
 .skelCard,
 .skelMap,
 .skelTableRow {
-  background: rgba(15, 23, 42, 0.06);
+  background: var(--card2);
   border-radius: 12px;
   position: relative;
   overflow: hidden;
@@ -1692,7 +1677,7 @@
 
 .skelCard {
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--card);
   padding: 12px;
 }
 
@@ -1709,7 +1694,7 @@
   height: 340px;
   border-radius: var(--r);
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.05);
+  background: var(--card2);
 }
 
 .skelTableRow {
@@ -1717,7 +1702,7 @@
   border-radius: 14px;
   margin: 10px 0;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.80);
+  background: var(--card);
 }
 
 .skelBlock::after,
@@ -1748,7 +1733,7 @@
    Errors
    ============================ */
 .errorMessage {
-  color: #d00;
+  color: var(--danger);
   margin-left: 10px;
   font-size: 14px;
 }

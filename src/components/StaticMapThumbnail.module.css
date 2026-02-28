@@ -9,6 +9,8 @@
   justify-content: center; /* center map in thumbnail (e.g. single-column layout) */
   position: relative; /* ✅ anchor the absolute blocker */
   overflow: hidden;   /* ✅ keep map/blocker clipped to the thumbnail */
+  /* theme-aware: dark mode uses --thumbnail-bg (frosty), light uses #dddddd */
+  background: var(--thumbnail-bg, #dddddd);
 }
 
 
@@ -29,7 +31,7 @@
 
 .fallback {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--muted, #666);
   height: 100%;
   width: 100%;
   display: grid;

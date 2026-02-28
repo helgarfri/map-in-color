@@ -1,16 +1,8 @@
 /* MapDetail.module.css */
+/* Theme colors (--bg, --card, --text, --muted, --border) come from index.css / html[data-theme="dark"] */
 
-/* =========================
-   MIC base (soft + clean)
-========================= */
 :root {
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --card2: #fbfbfd;
-  --border: rgba(20, 24, 40, 0.08);
   --border2: rgba(20, 24, 40, 0.12);
-  --text: #0f172a;
-  --muted: rgba(15, 23, 42, 0.65);
   --muted2: rgba(15, 23, 42, 0.45);
 
   --brand: #28a8e1;
@@ -21,6 +13,12 @@
 
   --radius: 16px;
   --radius2: 12px;
+}
+
+/* Dark theme overrides for MapDetail-specific vars */
+html[data-theme="dark"] {
+  --border2: rgba(255, 255, 255, 0.18);
+  --muted2: rgba(255, 255, 255, 0.48);
 }
 
 /* Container around the sidebar & main content */
@@ -53,7 +51,7 @@
 
 /* If you have a "contentCollapsed" class in JS */
 .contentCollapsed {
-  /* keep, but let layout breathe */
+  min-width: 0;
 }
 
 /* =========================
@@ -109,9 +107,10 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.10);
+  box-shadow: var(--shadowSm, 0 6px 14px rgba(15, 23, 42, 0.10));
+  color: var(--text);
   font-size: 18px;
   cursor: pointer;
   backdrop-filter: blur(8px);
@@ -119,9 +118,9 @@
 }
 
 .zoomControls button:hover {
-  background: #fff;
+  background: var(--card2);
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.14);
+  box-shadow: var(--shadowSm, 0 10px 18px rgba(15, 23, 42, 0.14));
 }
 
 /* Full Screen Button (bottom-right) */
@@ -133,20 +132,21 @@
   height: 44px;
   display: grid;
   place-items: center;
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
+  color: var(--text);
   font-size: 20px;
   cursor: pointer;
   z-index: 5;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.10);
+  box-shadow: var(--shadowSm, 0 6px 14px rgba(15, 23, 42, 0.10));
   backdrop-filter: blur(8px);
   transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 .viewModeButton:hover {
-  background: #fff;
+  background: var(--card2);
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.14);
+  box-shadow: var(--shadowSm, 0 10px 18px rgba(15, 23, 42, 0.14));
 }
 
 /* =========================
@@ -215,9 +215,9 @@
 
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
   font-size: 1.05rem;
 
   cursor: pointer;
@@ -266,15 +266,15 @@
   font-size: 0.95rem;
   cursor: pointer;
 
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
   border: 1px solid var(--border);
-  color: rgba(15, 23, 42, 0.80);
+  color: var(--text);
 
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .saveButton:hover {
-  background: rgba(15, 23, 42, 0.06);
+  background: var(--card2);
   border-color: var(--border2);
   transform: translateY(-1px);
 }
@@ -325,7 +325,7 @@
   padding: 0 10px;
   border-radius: 999px;
   background: rgba(40,168,225,0.12);
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
   font-size: 0.8rem;
   font-weight: 600;
   border: 1px solid rgba(40,168,225,0.18);
@@ -336,7 +336,7 @@
   margin-top: 12px;
   font-size: 0.95rem;
   line-height: 1.55;
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
 }
 
 /* Tags */
@@ -352,7 +352,7 @@
 
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.03);
+  background: var(--card2);
 
   font-size: 0.85rem;
   cursor: pointer;
@@ -385,7 +385,7 @@
   margin-bottom: 10px;
   line-height: 1.55;
   font-size: 0.9rem;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
 }
 
 .referenceNotes {
@@ -419,7 +419,7 @@
     135deg,
     rgba(40,168,225,0.10),
     rgba(20,169,175,0.08),
-    rgba(255,255,255,0.92)
+    var(--card)
   );
   box-shadow: var(--shadow2);
   padding: 14px;
@@ -442,7 +442,7 @@
   font-size: 1.28rem;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: rgba(15,23,42,0.92);
+  color: var(--text);
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -453,7 +453,7 @@
   margin-top: 6px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.55);
+  color: var(--muted);
 }
 
 .visibilityPill {
@@ -463,7 +463,7 @@
   font-weight: 900;
   border: 1px solid rgba(40,168,225,0.18);
   background: rgba(40,168,225,0.10);
-  color: rgba(15,23,42,0.78);
+  color: var(--text);
 }
 
 .detailsActions {
@@ -497,15 +497,16 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(255,255,255,0.70);
-  box-shadow: 0 10px 22px rgba(15,23,42,0.06);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
+  box-shadow: var(--shadow2, 0 10px 22px rgba(15,23,42,0.06));
   transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 .creatorChipLink:hover {
   transform: translateY(-1px);
   border-color: rgba(20,169,175,0.22);
-  box-shadow: 0 14px 30px rgba(15,23,42,0.10);
+  box-shadow: var(--shadowSm, 0 14px 30px rgba(15,23,42,0.10));
 }
 
 .creatorChipAvatar {
@@ -513,7 +514,7 @@
   height: 38px;
   border-radius: 999px;
   object-fit: cover;
-  border: 1px solid rgba(20,24,40,0.10);
+  border: 1px solid var(--border);
   flex: 0 0 auto;
 }
 
@@ -526,13 +527,13 @@
 .creatorChipName {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.86);
+  color: var(--text);
   line-height: 1.1;
 }
 .creatorChipUser {
   font-size: 11px;
   font-weight: 900;
-  color: rgba(15,23,42,0.55);
+  color: var(--muted);
   line-height: 1.1;
 }
 
@@ -556,12 +557,12 @@
   border-radius: 999px;
 
   border: 1px solid rgba(20,24,40,0.12);
-  background: rgba(255,255,255,0.72);
+  background: var(--card);
   box-shadow: 0 10px 22px rgba(15,23,42,0.06);
 
   font-size: 12px;
   font-weight: 900;
-  color: rgba(15,23,42,0.72);
+  color: var(--muted);
 
   transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
@@ -579,15 +580,15 @@
   opacity: 0.9;
 }
 
-.pillLabel { color: rgba(15,23,42,0.60); }
-.pillValue { color: rgba(15,23,42,0.86); }
+.pillLabel { color: var(--muted); }
+.pillValue { color: var(--text); }
 
 /* Section cards (Description/Tags/References) */
 .sectionCard {
   margin-top: 12px;
   border-radius: var(--radius);
   border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
   box-shadow: 0 8px 22px rgba(15,23,42,0.05);
   padding: 14px;
 }
@@ -603,7 +604,7 @@
 .sectionTitle {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.82);
+  color: var(--text);
   letter-spacing: 0.2px;
   text-transform: uppercase;
 }
@@ -611,7 +612,7 @@
 .sectionHint {
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.55);
+  color: var(--muted);
 }
 
 /* Description text (cleaner) */
@@ -619,7 +620,7 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.65;
-  color: rgba(15,23,42,0.78);
+  color: var(--text);
 }
 
 /* Tags */
@@ -640,12 +641,12 @@
   padding: 0 12px;
   border-radius: 999px;
 
-  border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(15,23,42,0.03);
+  border: 1px solid var(--border);
+  background: var(--card2);
 
   font-size: 12px;
   font-weight: 900;
-  color: rgba(15,23,42,0.72);
+  color: var(--muted);
 
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
 }
@@ -672,8 +673,8 @@
 
 .refItem {
   border-radius: 14px;
-  border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(15,23,42,0.02);
+  border: 1px solid var(--border);
+  background: var(--card2);
   padding: 12px;
 }
 
@@ -693,7 +694,7 @@
 
   background: rgba(40,168,225,0.14);
   border: 1px solid rgba(40,168,225,0.20);
-  color: rgba(15,23,42,0.80);
+  color: var(--text);
   font-size: 12px;
   font-weight: 1000;
 }
@@ -710,20 +711,20 @@
 .refName {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.84);
+  color: var(--text);
 }
 
 .refYear {
   font-size: 12px;
   font-weight: 900;
-  color: rgba(15,23,42,0.55);
+  color: var(--muted);
 }
 
 .refPublisher {
   margin-top: 4px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.60);
+  color: var(--muted);
 }
 
 .refLink {
@@ -741,12 +742,12 @@
   margin-top: 8px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.62);
+  color: var(--muted);
 }
 
 .refNotesLabel {
   font-weight: 1000;
-  color: rgba(15,23,42,0.72);
+  color: var(--muted);
 }
 
 
@@ -759,7 +760,7 @@
   border-radius: 12px;
   border: 1px solid rgba(40,168,225,0.25);
   background: rgba(40,168,225,0.14);
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
@@ -790,7 +791,7 @@
   gap: 10px;
   padding: 12px;
   border-radius: var(--radius2);
-  background: rgba(15, 23, 42, 0.03);
+  background: var(--card2);
   border: 1px solid var(--border);
   margin-bottom: 0;
 }
@@ -804,13 +805,13 @@
 
 .statLabel {
   justify-self: start;
-  background: rgba(15, 23, 42, 0.05);
+  background: var(--card2);
   border: 1px solid var(--border);
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
 }
 
 .statItem p {
@@ -856,7 +857,7 @@
 }
 
 .countryList tr:nth-child(even) {
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
 }
 
 /* =========================
@@ -931,7 +932,7 @@
     135deg,
     rgba(40,168,225,0.10),
     rgba(20,169,175,0.08),
-    rgba(255,255,255,0.92)
+    var(--card)
   );
   box-shadow: var(--shadow2);
   padding: 14px;
@@ -943,7 +944,7 @@
   font-size: 1.28rem;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: rgba(15,23,42,0.92);
+  color: var(--text);
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -971,7 +972,7 @@
 .detailsMetaLine {
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.55);
+  color: var(--muted);
 }
 
 .visibilityPill {
@@ -981,7 +982,7 @@
   font-weight: 900;
   border: 1px solid rgba(40,168,225,0.18);
   background: rgba(40,168,225,0.10);
-  color: rgba(15,23,42,0.78);
+  color: var(--text);
 }
 
 /* =========================
@@ -1004,7 +1005,7 @@
   padding: 10px 12px;
   border-radius: 999px;
   border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(255,255,255,0.70);
+  background: var(--card);
   box-shadow: 0 10px 22px rgba(15,23,42,0.06);
   transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
   max-width: 320px;
@@ -1041,7 +1042,7 @@
 .creatorChipName {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.86);
+  color: var(--text);
   line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1051,7 +1052,7 @@
 .creatorChipUser {
   font-size: 11px;
   font-weight: 900;
-  color: rgba(15,23,42,0.55);
+  color: var(--muted);
   line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1074,7 +1075,7 @@
   border-radius: 12px;
   border: 1px solid rgba(40,168,225,0.25);
   background: rgba(40,168,225,0.14);
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   font-weight: 800;
   font-size: 12px;
   cursor: pointer;
@@ -1111,7 +1112,7 @@
   display: grid;
   place-items: center;
   border: 1px solid rgba(20,24,40,0.12);
-  background: rgba(255,255,255,0.72);
+  background: var(--card);
   box-shadow: 0 10px 22px rgba(15,23,42,0.06);
   transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
@@ -1138,12 +1139,12 @@
   border-radius: 999px;
 
   border: 1px solid rgba(20,24,40,0.12);
-  background: rgba(255,255,255,0.72);
+  background: var(--card);
   box-shadow: 0 10px 22px rgba(15,23,42,0.06);
 
   font-size: 12px;
   font-weight: 900;
-  color: rgba(15,23,42,0.72);
+  color: var(--muted);
 
   transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, filter 120ms ease;
   position: relative;
@@ -1175,8 +1176,8 @@
   opacity: 0.92;
 }
 
-.statActionLabel { color: rgba(15,23,42,0.60); }
-.statActionValue { color: rgba(15,23,42,0.86); }
+.statActionLabel { color: var(--muted); }
+.statActionValue { color: var(--text); }
 
 /* =========================
    DOWNLOAD ANIMATION (shimmer sweep + icon bounce)
@@ -1247,21 +1248,21 @@
 }
 
 .starActive .statActionLabel {
-  color: rgba(15,23,42,0.72);
+  color: var(--muted);
 }
 
 /* Loading state + spinner */
 .starLoading {
-  background: rgba(15,23,42,0.04);
-  border-color: rgba(20,24,40,0.14);
+  background: var(--card2);
+  border-color: var(--border);
 }
 
 .miniSpinner {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  border: 2px solid rgba(15,23,42,0.22);
-  border-top-color: rgba(15,23,42,0.60);
+  border: 2px solid var(--border);
+  border-top-color: var(--muted);
   animation: micSpin 0.7s linear infinite;
   margin-left: 2px;
 }
@@ -1347,7 +1348,7 @@
   font-size: 0.95rem;
   resize: none;
   min-height: 44px;
-  background: rgba(255,255,255,0.9);
+  background: var(--input-bg, var(--card));
   color: var(--text);
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
@@ -1366,7 +1367,7 @@
 
   border: 1px solid rgba(20,169,175,0.28);
   background: rgba(20,169,175,0.18);
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
 
   border-radius: 14px;
   cursor: pointer;
@@ -1415,7 +1416,7 @@
   border-radius: 999px;
   object-fit: cover;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.08);
+  background: var(--card2);
 }
 
 .commentContentWrapper {
@@ -1446,16 +1447,10 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.03em;
-  color: rgba(15, 23, 42, 0.82);
+  color: var(--text);
   border: 1px solid rgba(20, 169, 175, 0.26);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.96),
-    rgba(40, 168, 225, 0.06)
-  );
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  background: var(--card2);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .commentAuthor {
@@ -1477,7 +1472,7 @@ a {
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
 }
 
 /* Actions: pill buttons – premium, content-fitting */
@@ -1498,9 +1493,9 @@ a {
   padding: 0 12px;
   border-radius: 999px;
 
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(20, 24, 40, 0.10);
-  color: rgba(15, 23, 42, 0.78);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
 
   font-size: 0.8rem;
   font-weight: 700;
@@ -1510,7 +1505,7 @@ a {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .reactionButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card);
   border-color: rgba(20, 169, 175, 0.22);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
   transform: translateY(-1px);
@@ -1522,7 +1517,7 @@ a {
 .reactionButtonActive {
   background: linear-gradient(135deg, rgba(40, 168, 225, 0.14), rgba(20, 169, 175, 0.10));
   border-color: rgba(20, 169, 175, 0.32);
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
   box-shadow: 0 1px 2px rgba(40, 168, 225, 0.08);
 }
 .reactionButtonActive:hover:not(:disabled) {
@@ -1566,7 +1561,8 @@ a {
   font-size: 0.9rem;
   resize: none;
   min-height: 70px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--input-bg, var(--card2));
+  color: var(--text);
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .replyTextarea:focus {
@@ -1586,17 +1582,17 @@ a {
   height: 32px;
   padding: 0 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  color: rgba(15, 23, 42, 0.72);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.12s ease, transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .replyCancelButton:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(20, 24, 40, 0.18);
+  background: var(--card);
+  border-color: var(--border2);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   transform: translateY(-1px);
 }
@@ -1607,7 +1603,7 @@ a {
   border-radius: 999px;
   border: 1px solid rgba(20, 169, 175, 0.32);
   background: linear-gradient(135deg, rgba(40, 168, 225, 0.18), rgba(20, 169, 175, 0.12));
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
@@ -1635,7 +1631,7 @@ a {
   position: relative;
   margin-left: 10px;
   padding: 12px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
   border: 1px solid var(--border);
   margin-bottom: 0;
   display: flex;
@@ -1647,7 +1643,7 @@ a {
 .replyItem::after {
   content: "";
   position: absolute;
-  background-color: rgba(15, 23, 42, 0.12);
+  background-color: var(--card2);
 }
 
 .replyItem::before {
@@ -1706,7 +1702,7 @@ a {
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--card2);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1772,7 +1768,7 @@ a {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
   cursor: pointer;
 }
 
@@ -1784,9 +1780,10 @@ a {
   width: 100%;
   min-height: 90px;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--input-bg);
+  color: var(--input-color);
 }
 
 .modalActions {
@@ -1802,7 +1799,7 @@ a {
   border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
 }
 
 .modalActions button:first-child {
@@ -1812,7 +1809,7 @@ a {
 }
 
 .modalActions button:last-child {
-  background: rgba(15, 23, 42, 0.03);
+  background: var(--card2);
 }
 
 /* =========================
@@ -1861,14 +1858,14 @@ a {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: rgba(255,255,255,0.75);
+  background: var(--card);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
   margin-top: 10px;
   margin-bottom: 14px;
 }
 
 .discussionLockedText {
-  color: rgba(15, 23, 42, 0.78);
+  color: var(--text);
   font-weight: 650;
   font-size: 0.92rem;
 }
@@ -1881,7 +1878,7 @@ a {
 
   border: 1px solid rgba(40,168,225,0.30);
   background: rgba(40,168,225,0.14);
-  color: rgba(15,23,42,0.92);
+  color: var(--text);
   font-weight: 800;
 
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
@@ -1918,7 +1915,7 @@ a {
   border: 1px solid rgba(20,169,175,0.22);
   border-radius: 18px;
 
-  background: rgba(255,255,255,0.80);
+  background: var(--card);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 
   margin-top: 10px;
@@ -1938,7 +1935,7 @@ a {
   border-radius: 999px;
   object-fit: cover;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.06);
+  background: var(--card2);
 }
 
 .composerMain {
@@ -1962,7 +1959,7 @@ a {
 
   min-height: 72px;
 
-  background: rgba(255,255,255,0.9);
+  background: var(--card);
   color: var(--text);
 
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
@@ -1984,7 +1981,7 @@ a {
 
 .composerHint {
   font-size: 0.82rem;
-  color: rgba(15, 23, 42, 0.58);
+  color: var(--muted);
   font-weight: 650;
 }
 
@@ -1999,7 +1996,7 @@ a {
 
   border: 1px solid rgba(20,169,175,0.28);
   background: rgba(20,169,175,0.18);
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
 
   font-weight: 850;
   cursor: pointer;
@@ -2026,7 +2023,7 @@ a {
 
 /* little dot separator in comment meta */
 .dotSep {
-  color: rgba(15, 23, 42, 0.35);
+  color: var(--muted);
   font-weight: 900;
   line-height: 1;
 }
@@ -2069,24 +2066,24 @@ a {
 
 /* Empty state */
 .discussionEmpty {
-  border: 1px dashed rgba(15, 23, 42, 0.18);
+  border: 1px dashed var(--border);
   border-radius: 18px;
   padding: 18px 16px;
-  background: rgba(255,255,255,0.72);
+  background: var(--card2);
   text-align: center;
   margin-top: 6px;
 }
 
 .discussionEmptyTitle {
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   letter-spacing: -0.01em;
 }
 
 .discussionEmptyHint {
   margin-top: 6px;
   font-size: 0.9rem;
-  color: rgba(15, 23, 42, 0.62);
+  color: var(--muted);
   font-weight: 650;
 }
 
@@ -2131,12 +2128,12 @@ a {
   place-items: center;
 
   border-radius: 18px;
-  border: 1px solid rgba(20,24,40,0.10);
+  border: 1px solid var(--border);
   background: linear-gradient(
     135deg,
     rgba(40,168,225,0.12),
     rgba(20,169,175,0.10),
-    rgba(255,255,255,0.90)
+    var(--card)
   );
 
   font-size: 28px;
@@ -2173,7 +2170,7 @@ a {
   font-size: 12px;
   cursor: pointer;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--card2);
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
@@ -2231,7 +2228,7 @@ a {
 
 .lockIcon {
   font-size: 2.8rem;
-  color: rgba(15, 23, 42, 0.75);
+  color: var(--muted);
   margin-bottom: 14px;
 }
 
@@ -2244,7 +2241,7 @@ a {
 .skeletonMapCard,
 .skeletonLine,
 .skeletonMapArea {
-  background-color: rgba(15, 23, 42, 0.06);
+  background-color: var(--skeleton-bg, rgba(15, 23, 42, 0.06));
   position: relative;
   overflow: hidden;
   border-radius: 12px;
@@ -2265,7 +2262,7 @@ a {
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(255,255,255,0.65) 50%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.65)) 50%,
     transparent 100%
   );
   animation: shimmer 1.4s ease-in-out infinite;
@@ -2330,18 +2327,18 @@ a {
   gap: 8px;
   padding: 10px 12px;
   font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
   z-index: 5;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.10);
+  box-shadow: var(--shadowSm);
   backdrop-filter: blur(8px);
   transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 
 .fullScreenBtn:hover {
-  background: #fff;
+  background: var(--card2, var(--card));
   transform: translateY(-1px);
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.14);
 }
@@ -2362,16 +2359,16 @@ a {
   place-items: center;
 
   border-radius: 14px;
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
   border: 1px solid var(--border);
 
-  color: rgba(15, 23, 42, 0.85);
+  color: var(--text);
   font-size: 1.05rem;
 
   cursor: pointer;
   z-index: 6;
 
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+  box-shadow: var(--shadowSm, 0 6px 14px rgba(15, 23, 42, 0.12));
   backdrop-filter: blur(8px);
 
   transition:
@@ -2381,7 +2378,7 @@ a {
 }
 
 .exitViewBtn:hover {
-  background: #fff;
+  background: var(--card);
   transform: translateY(-1px);
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
 }
@@ -2411,12 +2408,12 @@ a {
   height: 64px !important;
   min-width: 8px;
   min-height: 8px;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--muted);
 }
 .turnScreenPrompt span {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(15, 23, 42, 0.75);
+  color: var(--muted);
   text-align: center;
   white-space: nowrap;
   max-width: 90vw;
@@ -2440,16 +2437,14 @@ a {
   max-height: calc(100vh - 32px);
   overflow: auto;
 
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 16px;
 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  box-shadow:
-    0 18px 50px rgba(0,0,0,0.18),
-    0 0 0 1px rgba(255,255,255,0.55) inset;
+  box-shadow: var(--shadowSm, 0 18px 50px rgba(0,0,0,0.18));
 }
 
 /* optional fullscreen entrance */
@@ -2464,7 +2459,7 @@ a {
 
 .mapLegendHeader{
   padding: 6px 12px 6px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .mapLegendHeaderRow{
@@ -2478,7 +2473,7 @@ a {
   font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
 
   min-width: 0;
   max-width: 100%;
@@ -2500,13 +2495,13 @@ a {
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(15, 23, 42, 0.7);
+  color: var(--muted);
   cursor: pointer;
   transition: transform 220ms ease, background 120ms ease, color 120ms ease;
 }
 .mapLegendToggleBtn:hover{
-  background: rgba(15, 23, 42, 0.08);
-  color: rgba(15, 23, 42, 0.9);
+  background: var(--card2);
+  color: var(--text);
 }
 .mapLegendToggleBtnCollapsed{
   transform: rotate(180deg);
@@ -2541,7 +2536,7 @@ a {
   padding: 10px;
   font-weight: 650;
   opacity: 0.75;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--muted);
 }
 
 .mapLegendRow{
@@ -2556,25 +2551,25 @@ a {
   cursor: pointer;
   user-select: none;
 
-  color: rgba(15, 23, 42, 0.90);
+  color: var(--text);
   background: transparent;
 
   transition: background 120ms ease, transform 120ms ease;
 }
 
 .mapLegendRow:hover{
-  background: rgba(15, 23, 42, 0.06);
+  background: var(--card2);
 }
 
 .mapLegendRowActive{
-  background: rgba(15, 23, 42, 0.10);
+  background: var(--card2);
 }
 
 .mapLegendDot{
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18) inset;
+  box-shadow: 0 0 0 1px var(--border) inset;
 }
 
 .mapLegendText{
@@ -2600,7 +2595,7 @@ a {
   font-size: 11px;
   font-weight: 650;
   opacity: 0.70;
-  color: rgba(15, 23, 42, 0.70);
+  color: var(--muted);
 
   min-width: 0;
   white-space: normal;
@@ -2621,12 +2616,11 @@ a {
 /* nicer scrollbars */
 .mapLegendBox::-webkit-scrollbar{ width: 10px; }
 .mapLegendBox::-webkit-scrollbar-thumb{
-  background: rgba(15, 23, 42, 0.14);
-  border: 2px solid rgba(255,255,255,0.75);
+  background: var(--muted);
   border-radius: 999px;
 }
 .mapLegendBox::-webkit-scrollbar-thumb:hover{
-  background: rgba(15, 23, 42, 0.20);
+  background: var(--text);
 }
 
 
@@ -2655,7 +2649,7 @@ a {
   padding: 10px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
@@ -2671,7 +2665,7 @@ a {
   border-bottom: 1px solid var(--border);
 
   font-size: 0.9rem;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
 
   cursor: pointer;
   border-radius: 12px;
@@ -2683,7 +2677,7 @@ a {
 }
 
 .cleanRow:nth-child(even) {
-  background: rgba(15, 23, 42, 0.02);
+  background: var(--card2);
 }
 
 .cleanRow:hover {
@@ -2719,7 +2713,7 @@ a {
 
 .cleanCellValue {
   font-weight: 400;
-  color: rgba(15, 23, 42, 0.70);
+  color: var(--muted);
   justify-self: end;
   white-space: nowrap;
 }
@@ -2751,10 +2745,10 @@ a {
 .replyItem {
   position: relative;
   padding: 10px 12px;      /* tighter than commentItem */
-  background: rgba(15, 23, 42, 0.02);
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: var(--card2);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+  box-shadow: var(--shadow2, 0 4px 14px rgba(15, 23, 42, 0.03));
 }
 
 /* replies should feel tighter overall */
@@ -2849,7 +2843,7 @@ a {
   width: 16px;
   height: 2px;
   border-radius: 2px;
-  background: rgba(20, 24, 40, 0.14);
+  background: var(--card2);
   opacity: 0.9;
 }
 
@@ -2887,8 +2881,8 @@ a {
 /* 1) Make ALL comment cards compact (same as replyItem) */
 .commentItem {
   padding: 10px 12px;                 /* was 14px */
-  background: rgba(15, 23, 42, 0.02); /* was var(--card) */
-  border: 1px solid rgba(20, 24, 40, 0.10);
+  background: var(--card2); /* was var(--card) */
+  border: 1px solid var(--border);
   border-radius: 16px;               /* was var(--radius) */
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
 }
@@ -2995,8 +2989,8 @@ a {
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  border: 2px solid rgba(15, 23, 42, 0.20);
-  border-top-color: rgba(15, 23, 42, 0.75);
+  border: 2px solid var(--border);
+  border-top-color: var(--muted);
   display: inline-block;
   animation: spin 0.7s linear infinite;
 }
@@ -3027,12 +3021,12 @@ a {
   /* remove any horizontal offset on reply cards */
   .replyItem {
     padding-left: 10px;              /* tiny room for the thread line */
-    border-left: 2px solid rgba(20, 24, 40, 0.14);
+    border-left: 2px solid var(--border);
   }
 
   /* keep the line super subtle and near the edge */
   .replyItem {
-    background: rgba(15, 23, 42, 0.015);
+    background: var(--card2);
   }
 
   /* optional: if you want replies *barely* to the right */
@@ -3078,7 +3072,7 @@ a {
   .replyItem {
     margin-left: 6px;                 /* tiny nudge */
     padding-left: 10px;               /* room for line */
-    border-left: 2px solid rgba(20, 24, 40, 0.14);
+    border-left: 2px solid var(--border);
   }
 
   /* disable desktop elbows entirely */
@@ -3120,9 +3114,9 @@ a {
   width: 100%;
   max-width: 520px;
   border-radius: 18px;
-  background: rgba(255,255,255,0.96);
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.30);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow, 0 24px 70px rgba(15, 23, 42, 0.30));
   padding: 16px;
   overflow: hidden;
 }
@@ -3140,7 +3134,7 @@ a {
 .micModalTitle {
   font-size: 16px;
   font-weight: 1000;
-  color: rgba(15, 23, 42, 0.88);
+  color: var(--text);
   letter-spacing: -0.2px;
 }
 
@@ -3148,22 +3142,22 @@ a {
   margin-top: 6px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15, 23, 42, 0.60);
+  color: var(--muted);
 }
 
 .micModalX {
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.12);
-  background: rgba(255,255,255,0.85);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   cursor: pointer;
   display: grid;
   place-items: center;
   font-size: 20px;
   font-weight: 900;
   line-height: 1;
-  color: rgba(15, 23, 42, 0.70);
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
@@ -3195,8 +3189,9 @@ a {
   height: 38px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(20, 24, 40, 0.14);
-  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
   font-size: 12px;
   font-weight: 1000;
   cursor: pointer;
@@ -3223,19 +3218,19 @@ a {
 .micBtnPrimary {
   border-color: rgba(40,168,225,0.30);
   background: rgba(40,168,225,0.16);
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
 }
 
 /* Ghost */
 .micBtnGhost {
-  background: rgba(255,255,255,0.80);
+  background: var(--card);
 }
 
 /* Danger = red */
 .micBtnDanger {
   border-color: rgba(210,75,76,0.30);
   background: rgba(210,75,76,0.14);
-  color: rgba(15, 23, 42, 0.92);
+  color: var(--text);
 }
 
 /* Spinner */
@@ -3246,8 +3241,8 @@ a {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  border: 2px solid rgba(15,23,42,0.18);
-  border-top-color: rgba(40,168,225,0.85);
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
   animation: micSpin 0.8s linear infinite;
 }
 
@@ -3267,8 +3262,8 @@ a {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(15,23,42,0.03);
+  border: 1px solid var(--border);
+  background: var(--card2);
   min-width: 0;
 }
 
@@ -3281,20 +3276,20 @@ a {
 }
 
 .micUserText { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.micUserName { font-size: 13px; font-weight: 1000; color: rgba(15,23,42,0.86); }
-.micUserHint { font-size: 11px; font-weight: 900; color: rgba(15,23,42,0.55); }
+.micUserName { font-size: 13px; font-weight: 1000; color: var(--text); }
+.micUserHint { font-size: 11px; font-weight: 900; color: var(--muted); }
 
 .micModalSectionTitle {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.82);
+  color: var(--text);
   margin-top: 6px;
 }
 
 .micModalSectionSub {
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.58);
+  color: var(--muted);
   margin-top: 6px;
   margin-bottom: 12px;
 }
@@ -3313,7 +3308,7 @@ a {
   padding: 12px;
   border-radius: 14px;
   border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(15,23,42,0.02);
+  background: var(--card2);
   cursor: pointer;
   transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
@@ -3329,7 +3324,7 @@ a {
 .micRadioLabel {
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.78);
+  color: var(--text);
 }
 
 @media (max-width: 520px) {
@@ -3343,7 +3338,7 @@ a {
   display: block;
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.70);
+  color: var(--muted);
   margin-bottom: 6px;
 }
 /* Fix textarea overflow + disable resizing */
@@ -3359,11 +3354,11 @@ a {
 
   border-radius: 14px;
   border: 1px solid rgba(20,24,40,0.12);
-  background: rgba(255,255,255,0.92);
+  background: var(--card);
 
   font-size: 13px;
   font-weight: 800;
-  color: rgba(15,23,42,0.78);
+  color: var(--text);
 
   outline: none;
 
@@ -3382,7 +3377,7 @@ a {
 .micStateBox {
   border-radius: 16px;
   border: 1px solid rgba(20,24,40,0.10);
-  background: rgba(15,23,42,0.02);
+  background: var(--card2);
   padding: 14px;
 }
 
@@ -3395,14 +3390,14 @@ a {
 .micStateTitle {
   font-size: 13px;
   font-weight: 1000;
-  color: rgba(15,23,42,0.84);
+  color: var(--text);
 }
 
 .micStateSub {
   margin-top: 6px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(15,23,42,0.58);
+  color: var(--muted);
 }
 
 .micStateSuccess {

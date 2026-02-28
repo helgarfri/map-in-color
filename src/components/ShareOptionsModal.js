@@ -84,19 +84,9 @@ export default function ShareOptionsModal({
     return `<iframe src="${currentEmbedUrl}" width="900" height="520"></iframe>`;
   }, [currentEmbedUrl]);
 
-  // Fake preview: normalized map + theme (no legend, optional small watermark)
+  // Fake preview: same map props as MapEmbed (no theme-based color overrides so no-data grey matches embed)
   const normalizedMap = useMemo(() => normalizeMapForPreview(mapData), [mapData]);
-  const isDarkTheme = embedTheme === "dark";
-  const previewMapProps = useMemo(() => {
-    if (!normalizedMap) return null;
-    const base = { ...normalizedMap };
-    if (isDarkTheme) {
-      base.ocean_color = "#1e293b";
-      base.unassigned_color = "#334155";
-      base.font_color = "#e2e8f0";
-    }
-    return base;
-  }, [normalizedMap, isDarkTheme]);
+  const previewMapProps = useMemo(() => (normalizedMap ? { ...normalizedMap } : null), [normalizedMap]);
 
   function renderEmbedPreview(openUrl) {
     return (
@@ -398,7 +388,7 @@ export default function ShareOptionsModal({
                 <div className={styles.embedPreviewRow}>
                   <button
                     type="button"
-                    className={`${styles.embedPreviewThumb} ${isDarkTheme ? styles.embedPreviewThumbDark : ""}`}
+                    className={`${styles.embedPreviewThumb} ${embedTheme === "dark" ? styles.embedPreviewThumbDark : ""}`}
                     onClick={() => currentEmbedUrl && safeOpen(currentEmbedUrl)}
                     disabled={!currentEmbedUrl}
                     title="Open preview in new tab"

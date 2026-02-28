@@ -1,25 +1,23 @@
-/* src/components/LoadingSpinner.module.css */
+/* src/components/LoadingSpinner.module.css – theme-aware for dark mode */
 
 .spinnerContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px; /* Adjust as needed */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid var(--card2);
+  border-top-color: #14a9af;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 6px solid #ffffff; /* Light blue */
-    border-top-color: #14a9af; /* Primary blue */
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  
-  /* Spin Animation */
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
+}

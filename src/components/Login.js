@@ -117,7 +117,7 @@ export default function Login() {
   }, [authToken, loadingProfile, navigate, returnTo, location.state]);
 
   return (
-    <div className={styles.splitContainer}>
+    <div className={`forceLightMode ${styles.splitContainer}`}>
       {/* ✅ Reset password modal MUST be inside return */}
       {showResetModal && (
         <ResetPasswordRequestModal onClose={() => setShowResetModal(false)} />

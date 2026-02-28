@@ -1,8 +1,9 @@
+/* Embed theme from URL only: white for light, frosted dark for dark (ignore app theme) */
 .embedRoot {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.82);
+  background: #ffffff;
 }
 
 .embedRootDark {
@@ -32,14 +33,20 @@
   cursor: default;
 }
 
-/* simple skeleton */
+/* simple skeleton: light embed = light shimmer, dark embed = dark shimmer */
 .skeleton {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
   background-size: 200% 100%;
   animation: shimmer 1.1s infinite;
 }
+
+.embedRootDark .skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  background-size: 200% 100%;
+}
+
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -50,10 +57,15 @@
   inset: 0;
   display: grid;
   place-content: center;
-  color: rgba(255,255,255,0.85);
   text-align: center;
   gap: 6px;
+  color: rgba(15, 23, 42, 0.9);
 }
+
+.embedRootDark .errorBox {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .errorTitle { font-weight: 800; font-size: 18px; }
 .errorSub { opacity: 0.8; font-weight: 600; font-size: 13px; }
 
@@ -75,11 +87,24 @@
   );
 }
 
+.embedRootDark .privateBox {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.98) 100%
+  );
+}
+
 .privateLogoWrap {
   padding: 14px 20px;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.94);
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+}
+
+.embedRootDark .privateLogoWrap {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .privateLogo {
@@ -105,11 +130,19 @@
   color: rgba(15, 23, 42, 0.92);
 }
 
+.embedRootDark .privateTitle {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .privateSub {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
   color: rgba(15, 23, 42, 0.65);
+}
+
+.embedRootDark .privateSub {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 
@@ -171,7 +204,7 @@
 }
 .turnScreenPrompt .turnScreenIcon {
   width: 64px;
-  height: px;
+  height: 64px;
   min-width: 8px;
   min-height: 8px;
   color: rgba(15, 23, 42, 0.55);

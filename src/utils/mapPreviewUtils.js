@@ -21,7 +21,7 @@ export function normalizeMapForPreview(mapObj) {
 
   const title = mapObj.title || "Untitled";
   const ocean_color = mapObj.ocean_color ?? "#ffffff";
-  const unassigned_color = mapObj.unassigned_color ?? "#c0c0c0";
+  const unassigned_color = mapObj.unassigned_color ?? "#dedede"; /* match Map.js default so preview matches MapEmbed */
   const font_color = mapObj.font_color ?? "black";
   const is_title_hidden = !!mapObj.is_title_hidden;
   const showNoDataLegend = !!mapObj.show_no_data_legend;

@@ -5,19 +5,17 @@ import reportWebVitals from './reportWebVitals';
 import App from './App';
 import { UserProvider } from './context/UserContext';
 import { SidebarProvider } from './context/SidebarContext';
-
-
-
+import { ThemeProvider } from './context/ThemeContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
- 
-    <UserProvider>
-    <SidebarProvider>
-      <App />
-    </SidebarProvider>
+  <UserProvider>
+    <ThemeProvider>
+      <SidebarProvider>
+        <App />
+      </SidebarProvider>
+    </ThemeProvider>
   </UserProvider>
-
 );
 
 // If you want to start measuring performance in your app, pass a function
