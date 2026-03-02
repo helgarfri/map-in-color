@@ -7,12 +7,11 @@ const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
 
 // Allowed fields for map update and create (prevents mass assignment: no user_id, id, created_at)
-// Add 'custom_map_countries' after running migration 20260228100000_add_custom_map_countries_to_maps.sql
 const MAP_UPDATE_ALLOWED = [
   'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
   'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
   'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
-  'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom',
+  'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom', 'custom_map_countries',
   'selected_palette', 'selected_map_theme',
 ];
 
