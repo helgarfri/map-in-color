@@ -7,7 +7,7 @@ import usStatesCodes from '../united-states.json';
 import euCodes from '../european-countries.json';
 
 import ConfirmModal from "./ConfirmModal";
-
+import StaticMapThumbnail from "./StaticMapThumbnail";
 
 // CSS
 import styles from './DataSidebar.module.css';
@@ -52,6 +52,12 @@ export default function DataSidebar({
   categoryOptions = [], 
   placeholders = {},
   onChangePlaceholder,
+  /** When set, only these country codes are shown (custom map selection). */
+  customMapCountries = null,
+  /** When provided (and selectedMap === 'world'), show custom map button above Upload. Opens modal. */
+  onOpenCustomMapModal,
+  /** Minimal map object for the custom map button thumbnail (selected_map, custom_map_countries, etc.). */
+  mapForThumbnail = null,
 }) {
   const [localData, setLocalData] = useState([]);
 
@@ -129,14 +135,21 @@ useEffect(() => {
       : countryCodes;
   }, [selectedMap]);
 
+  // When custom map is set, only show countries that are in the selection
+  const effectiveDataSource = useMemo(() => {
+    if (!customMapCountries?.length) return dataSource;
+    const set = new Set(customMapCountries.map((c) => String(c).toUpperCase().trim()));
+    return dataSource.filter((item) => set.has(normCode(item?.code)));
+  }, [dataSource, customMapCountries]);
+
   /**
-   * Merge parent's data with dataSource on mount / map change
+   * Merge parent's data with effectiveDataSource on mount / map change
    * Also gather any distinct categories from the parent's data if we are in categorical mode.
    * Includes description from dataEntries (e.g. from CSV/XLS import) so it shows in the sidebar.
    * In categorical mode, push the full merged list to parent so unassigned count is correct from the start.
    */
   useEffect(() => {
-    const merged = dataSource.map((item) => {
+    const merged = effectiveDataSource.map((item) => {
       const existing = dataEntries.find((d) => normCode(d?.code) === normCode(item?.code));
       return {
         code: item.code,
@@ -148,10 +161,18 @@ useEffect(() => {
 
     setLocalData(merged);
 
-    if (mapDataType === 'categorical' && (dataEntries?.length ?? 0) < dataSource.length) {
-      setDataEntries(merged);
+    if (mapDataType === 'categorical' && (dataEntries?.length ?? 0) < effectiveDataSource.length) {
+      if (customMapCountries?.length) {
+        setDataEntries((prev) => {
+          const next = new Map(prev.map((d) => [normCode(d?.code), d]));
+          merged.forEach((row) => next.set(normCode(row?.code), row));
+          return Array.from(next.values());
+        });
+      } else {
+        setDataEntries(merged);
+      }
     }
-  }, [dataSource, dataEntries, mapDataType]);
+  }, [effectiveDataSource, dataEntries, mapDataType, customMapCountries]);
 
 
   useEffect(() => {
@@ -190,14 +211,22 @@ useEffect(() => {
    * Confirm switching => wipe data, switch type
    */
   const handleConfirmSwitch = () => {
-    const cleared = dataSource.map((item) => ({
+    const cleared = effectiveDataSource.map((item) => ({
       code: item.code,
       name: item.name,
       value: '',
     }));
 
     setLocalData(cleared);
-    setDataEntries(cleared);
+    if (customMapCountries?.length) {
+      setDataEntries((prev) => {
+        const next = new Map(prev.map((d) => [normCode(d?.code), d]));
+        cleared.forEach((row) => next.set(normCode(row?.code), row));
+        return Array.from(next.values());
+      });
+    } else {
+      setDataEntries(cleared);
+    }
 
     if (onChangeDataType && pendingType) {
       onChangeDataType(pendingType);
@@ -239,12 +268,20 @@ const handleValueChange = (code, newVal) => {
    * onBlur => push to parent
    * Choropleth: only rows with valid numeric value.
    * Categorical: all rows (including value "" for unassigned) so unassigned count is correct.
+   * When custom map is set, merge visible rows into existing data so we don't drop other countries.
    */
   const handleBlur = () => {
-    if (mapDataType === "choropleth") {
-      setDataEntries(localData.filter((row) => toNumOrNull(row.value) != null));
+    const toPush = mapDataType === "choropleth"
+      ? localData.filter((row) => toNumOrNull(row.value) != null)
+      : localData;
+    if (customMapCountries?.length) {
+      setDataEntries((prev) => {
+        const next = new Map(prev.map((d) => [normCode(d?.code), d]));
+        toPush.forEach((row) => next.set(normCode(row?.code), row));
+        return Array.from(next.values());
+      });
     } else {
-      setDataEntries(localData);
+      setDataEntries(toPush);
     }
   };
 
@@ -374,6 +411,29 @@ useLayoutEffect(() => {
 
   return (
     <div className={styles.sidebarContainer}>
+      {/* CUSTOM MAP BUTTON (world only): thumbnail + label, opens custom map modal — at top */}
+      {selectedMap === 'world' && onOpenCustomMapModal && (
+        <div className={styles.customMapButtonWrap}>
+          <button
+            type="button"
+            className={styles.customMapButton}
+            onClick={onOpenCustomMapModal}
+            aria-label="Choose which countries and microstates to show on the map"
+          >
+            <div className={styles.customMapThumb}>
+              {mapForThumbnail ? (
+                <StaticMapThumbnail map={mapForThumbnail} className={styles.customMapThumbImg} />
+              ) : (
+                <div className={styles.customMapThumbFallback} aria-hidden="true" />
+              )}
+            </div>
+            <span className={styles.customMapLabel}>
+              {Array.isArray(customMapCountries) && customMapCountries.length > 0 ? 'Custom' : 'World'}
+            </span>
+          </button>
+        </div>
+      )}
+
       {/* TAB ROW */}
 <div className={styles.tabRow}>
   <button

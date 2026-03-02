@@ -277,6 +277,9 @@ export default function MapEmbed() {
       show_top_high_values: toBool(mapData.show_top_high_values),
       show_top_low_values: toBool(mapData.show_top_low_values),
       showNoDataLegend: toBool(mapData.show_no_data_legend),
+      show_microstates: mapData.show_microstates !== false,
+      microstates_custom: mapData.microstates_custom ?? null,
+      custom_map_countries: mapData.custom_map_countries ?? null,
       top_low_values: parseJsonArray(mapData.top_low_values),
 
       strokeMode: "thick",

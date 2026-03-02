@@ -11,15 +11,17 @@ const MAP_UPDATE_ALLOWED = [
   'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
   'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
   'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
-  'placeholders', 'file_stats', 'sources',
+  'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom', 'custom_map_countries',
 ];
 
 function stripEmptyUpdateFields(obj) {
   const clean = { ...obj };
 
-  // remove undefined / null
+  // remove undefined; allow null for keys that explicitly mean "reset" (e.g. custom_map_countries)
+  const nullableKeys = new Set(['custom_map_countries', 'microstates_custom']);
   Object.keys(clean).forEach((k) => {
-    if (clean[k] === undefined || clean[k] === null) delete clean[k];
+    if (clean[k] === undefined) delete clean[k];
+    if (clean[k] === null && !nullableKeys.has(k)) delete clean[k];
   });
 
   // IMPORTANT: don't overwrite stored arrays with empty arrays

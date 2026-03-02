@@ -106,6 +106,9 @@ export default function ShareOptionsModal({
               font_color={previewMapProps.font_color}
               is_title_hidden={previewMapProps.is_title_hidden}
               showNoDataLegend={false}
+              show_microstates={previewMapProps.show_microstates !== false}
+              microstates_custom={previewMapProps.microstates_custom ?? null}
+              custom_map_countries={previewMapProps.custom_map_countries ?? null}
               titleFontSize={previewMapProps.titleFontSize}
               legendFontSize={previewMapProps.legendFontSize}
               strokeMode="thin"

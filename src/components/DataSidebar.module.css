@@ -74,6 +74,62 @@
   box-shadow: var(--shadowSm);
 }
 
+/* ===== Custom map button (thumbnail + label) ===== */
+.customMapButtonWrap {
+  margin-bottom: 10px;
+}
+
+.customMapButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--card2);
+  box-shadow: var(--shadow-sm);
+
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.customMapButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadowSm);
+  border-color: rgba(20, 169, 175, 0.25);
+}
+
+.customMapThumb {
+  width: 56px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--thumbnail-bg, #dddddd);
+}
+
+.customMapThumbImg {
+  width: 100%;
+  height: 100%;
+}
+
+.customMapThumbFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--card) 0%, var(--border) 100%);
+}
+
+.customMapLabel {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  text-align: left;
+}
+
 /* ===== Upload CTA (more premium) ===== */
 .uploadButtonWrap {
   display: flex;

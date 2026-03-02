@@ -30,6 +30,9 @@ export default function StaticMapThumbnail({
 
   const is_title_hidden = !!map.is_title_hidden;
   const showNoDataLegend = !!map.show_no_data_legend;
+  const show_microstates = map.show_microstates !== false;
+  const microstates_custom = map.microstates_custom ?? null;
+  const custom_map_countries = map.custom_map_countries ?? null;
 
   const titleFontSize = map.title_font_size ?? map.titleFontSize ?? null;
   const legendFontSize = map.legend_font_size ?? map.legendFontSize ?? null;
@@ -78,6 +81,9 @@ const mapDataType =
   is_title_hidden={is_title_hidden}
   isThumbnail={true}
   showNoDataLegend={showNoDataLegend}
+  show_microstates={show_microstates}
+  microstates_custom={microstates_custom}
+  custom_map_countries={custom_map_countries}
   titleFontSize={titleFontSize}
   legendFontSize={legendFontSize}
   strokeMode='thin'

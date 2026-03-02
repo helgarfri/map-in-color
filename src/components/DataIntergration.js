@@ -14,7 +14,9 @@ import Header from "./Header";
 import DataSidebar from "./DataSidebar";
 import UploadDataModal from "./UploadDataModal";
 import ConfirmModal from "./ConfirmModal";
+import CustomMapModal from "./CustomMapModal";
 import useUnsavedChangesPrompt from "../hooks/useUnsavedChangesPrompt";
+import { MICROSTATES_LIST } from "../constants/microstates";
 
 import { createPortal } from "react-dom";
 import { BiDownload } from "react-icons/bi";
@@ -413,6 +415,16 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   // title & legend
   const [is_title_hidden, setIsTitleHidden] = useState(!!existingMapData?.is_title_hidden);
   const [showNoDataLegend, setShowNoDataLegend] = useState(!!existingMapData?.show_no_data_legend);
+  // map settings: which microstates to show (null = all, [] = none, [...] = only these)
+  const [microstatesCustom, setMicrostatesCustom] = useState(() => {
+    const custom = existingMapData?.microstates_custom;
+    if (custom != null) return custom;
+    if (existingMapData?.show_microstates === false) return [];
+    return null;
+  });
+  const [customMapCountries, setCustomMapCountries] = useState(existingMapData?.custom_map_countries ?? null);
+  const [customMapPresetId, setCustomMapPresetId] = useState(existingMapData?.custom_map_preset_id ?? null);
+  const [showCustomMapModal, setShowCustomMapModal] = useState(false);
   const [titleFontSize, setTitleFontSize] = useState(existingMapData?.title_font_size ?? null);
   const [legendFontSize, setLegendFontSize] = useState(existingMapData?.legend_font_size ?? null);
 
@@ -578,6 +590,7 @@ useEffect(() => {
       setSelectedMapTheme("Default");
       setIsTitleHidden(false);
       setShowNoDataLegend(false);
+      setMicrostatesCustom(null);
       setTitleFontSize(null);
       setLegendFontSize(null);
       setReferences([]);
@@ -631,6 +644,11 @@ setData(migratedData);
 
     setIsTitleHidden(!!existingMapData.is_title_hidden);
     setShowNoDataLegend(!!existingMapData.show_no_data_legend);
+    setMicrostatesCustom(
+      existingMapData.microstates_custom ?? (existingMapData.show_microstates === false ? [] : null)
+    );
+    setCustomMapCountries(existingMapData.custom_map_countries ?? null);
+    setCustomMapPresetId(existingMapData.custom_map_preset_id ?? null);
     setTitleFontSize(existingMapData.title_font_size ?? null);
     setLegendFontSize(existingMapData.legend_font_size ?? null);
 
@@ -692,6 +710,9 @@ setData(migratedData);
     setFileStats(p.file_stats && typeof p.file_stats === "object" ? p.file_stats : defaultFileStats);
     setIsTitleHidden(!!p.is_title_hidden);
     setShowNoDataLegend(!!p.show_no_data_legend);
+    setMicrostatesCustom(p.microstates_custom ?? (p.show_microstates === false ? [] : null));
+    setCustomMapCountries(p.custom_map_countries ?? null);
+    setCustomMapPresetId(p.custom_map_preset_id ?? null);
     setTitleFontSize(p.titleFontSize ?? null);
     setLegendFontSize(p.legendFontSize ?? null);
     setReferences(Array.isArray(p.sources) ? p.sources : []);
@@ -726,6 +747,8 @@ setData(migratedData);
     file_stats,
     is_title_hidden,
     showNoDataLegend,
+    microstatesCustom,
+    customMapCountries,
     references,
     titleFontSize,
     legendFontSize,
@@ -1027,8 +1050,14 @@ const onClickGenerateRanges = () => {
 const generateRangesFromData = () => {
   if (mapDataType !== "choropleth") return;
 
-  // grab numeric values
-  const values = (mapDataNormalized || [])
+  // Use only countries that are on the map when a custom map is selected
+  let data = mapDataNormalized || [];
+  if (Array.isArray(customMapCountries) && customMapCountries.length > 0) {
+    const allowed = new Set(customMapCountries.map((c) => normCode(c)).filter(Boolean));
+    data = data.filter((d) => allowed.has(normCode(d?.code)));
+  }
+
+  const values = data
     .map((d) => (typeof d.value === "number" ? d.value : null))
     .filter((v) => Number.isFinite(v));
 
@@ -1559,10 +1588,18 @@ const categoryRows = useMemo(() => {
     idToCountries.set(groupId, list);
   }
 
+  const allowedCodes =
+    Array.isArray(customMapCountries) && customMapCountries.length > 0
+      ? new Set(customMapCountries.map((c) => normCode(c)).filter(Boolean))
+      : null;
+
   // 1) rows for ALL defined groups (even if empty)
   const rows = groupsArr.map((g) => {
     const gid = String(g.id);
-    const countries = (idToCountries.get(gid) || []).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    let countries = (idToCountries.get(gid) || []).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    if (allowedCodes) {
+      countries = countries.filter((c) => allowedCodes.has(normCode(c)));
+    }
     return {
       id: g.id,
       name: g.name,
@@ -1574,14 +1611,19 @@ const categoryRows = useMemo(() => {
   });
 
   return rows;
-}, [mapDataType, groups, mapDataNormalized]);
+}, [mapDataType, groups, mapDataNormalized, customMapCountries]);
 
-/** Count of countries with no category assigned (categorical only). Resolves value so legacy names count as assigned. */
+/** Count of countries with no category assigned (categorical only). Resolves value so legacy names count as assigned. When custom map is set, only counts countries that are on the map. */
 const unassignedCountryCount = useMemo(() => {
   if (mapDataType !== "categorical") return 0;
   const groupsArr = (Array.isArray(groups) ? groups : []).map(ensureGroupShape);
-  return (mapDataNormalized || []).filter((d) => resolveValueToGroupId(d?.value, groupsArr) === "").length;
-}, [mapDataType, groups, mapDataNormalized]);
+  let list = (mapDataNormalized || []).filter((d) => resolveValueToGroupId(d?.value, groupsArr) === "");
+  if (Array.isArray(customMapCountries) && customMapCountries.length > 0) {
+    const allowed = new Set(customMapCountries.map((c) => normCode(c)).filter(Boolean));
+    list = list.filter((d) => allowed.has(normCode(d?.code)));
+  }
+  return list.length;
+}, [mapDataType, groups, mapDataNormalized, customMapCountries]);
 
   const categoryOptions = useMemo(() => {
   const arr = Array.isArray(groups) ? groups : [];
@@ -1821,21 +1863,29 @@ const rangeCountryLabel = (d) =>
   d?.code ? String(d.code).trim().toUpperCase() : "";
 
 
+    const allowedCodes =
+      Array.isArray(customMapCountries) && customMapCountries.length > 0
+        ? new Set(customMapCountries.map((c) => normCode(c)).filter(Boolean))
+        : null;
+
     const rows = rangesClean.map((r) => {
       const valid = r.lower != null && r.upper != null;
-      const countries = valid
+      let countries = valid
         ? (mapDataNormalized || [])
             .filter((d) => typeof d.value === "number" && d.value >= r.lower && d.value <= r.upper)
             .map(rangeCountryLabel)
             .filter(Boolean)
             .sort((a, b) => a.localeCompare(b))
         : [];
+      if (allowedCodes) {
+        countries = countries.filter((c) => allowedCodes.has(normCode(c)));
+      }
 
       return { ...r, countries, count: countries.length, isValidRange: valid };
     });
 
     return rows;
-  }, [custom_ranges, mapDataNormalized]);
+  }, [custom_ranges, mapDataNormalized, customMapCountries]);
 
   // Legend models for MapLegendOverlay (choropleth ranges or categorical groups)
   const legendModels = useMemo(() => {
@@ -2001,6 +2051,10 @@ const rangeCountryLabel = (d) =>
       file_stats,
       is_title_hidden,
       show_no_data_legend: showNoDataLegend,
+      show_microstates: !(Array.isArray(microstatesCustom) && microstatesCustom.length === 0),
+      microstates_custom: microstatesCustom,
+      custom_map_countries: customMapCountries,
+      custom_map_preset_id: customMapPresetId,
       sources: references,
       titleFontSize: titleFontSize ?? null,
       legendFontSize: legendFontSize ?? null,
@@ -2069,7 +2123,10 @@ const rangeCountryLabel = (d) =>
       .map(([k, v]) => [normStr(k).toUpperCase(), normStr(v)])
       .filter(([k, v]) => k && v) // keep only meaningful entries
 ),
-
+      custom_map_countries: p.custom_map_countries == null
+        ? null
+        : [...p.custom_map_countries].map((c) => String(c).toUpperCase().trim()).sort((a, b) => a.localeCompare(b)),
+      custom_map_preset_id: p.custom_map_preset_id ?? null,
     };
   };
 
@@ -2098,7 +2155,49 @@ const rangeCountryLabel = (d) =>
     references,
     titleFontSize,
     legendFontSize,
-    placeholders
+    placeholders,
+    microstatesCustom,
+    customMapCountries,
+    customMapPresetId,
+  ]);
+
+  // Minimal map object for the custom map button thumbnail in DataSidebar (world map only)
+  const mapForThumbnail = useMemo(() => {
+    if (selected_map !== 'world') return null;
+    return {
+      title: mapTitle || '',
+      ocean_color: ocean_color ?? '#ffffff',
+      unassigned_color: unassigned_color ?? '#c0c0c0',
+      font_color: font_color ?? 'black',
+      is_title_hidden: !!is_title_hidden,
+      show_no_data_legend: !!showNoDataLegend,
+      show_microstates: !(Array.isArray(microstatesCustom) && microstatesCustom.length === 0),
+      microstates_custom: microstatesCustom,
+      custom_map_countries: customMapCountries,
+      title_font_size: titleFontSize,
+      legend_font_size: legendFontSize,
+      groups: groups || [],
+      data: mapDataNormalized || [],
+      selected_map: 'world',
+      custom_ranges: custom_ranges || [],
+      mapDataType: mapDataType,
+    };
+  }, [
+    selected_map,
+    mapTitle,
+    ocean_color,
+    unassigned_color,
+    font_color,
+    is_title_hidden,
+    showNoDataLegend,
+    microstatesCustom,
+    customMapCountries,
+    titleFontSize,
+    legendFontSize,
+    groups,
+    mapDataNormalized,
+    custom_ranges,
+    mapDataType,
   ]);
 
   // Allow 0 categories in categorical mode; no longer force at least one group
@@ -2360,6 +2459,9 @@ try {
             categoryOptions={categoryOptions}
             placeholders={placeholders}
             onChangePlaceholder={handleChangePlaceholder}
+            customMapCountries={customMapCountries}
+            onOpenCustomMapModal={() => setShowCustomMapModal(true)}
+            mapForThumbnail={mapForThumbnail}
           />
         </div>
 
@@ -2381,6 +2483,9 @@ try {
                     selected_map="world"
                     font_color={font_color}
                     showNoDataLegend={showNoDataLegend}
+                    show_microstates={!(Array.isArray(microstatesCustom) && microstatesCustom.length === 0)}
+                    microstates_custom={microstatesCustom}
+                    custom_map_countries={customMapCountries}
                     is_title_hidden={is_title_hidden}
                     titleFontSize={titleFontSize}
                     legendFontSize={legendFontSize}
@@ -2406,6 +2511,7 @@ try {
                     compactUiShowInfoBoxes={true}
                     codeToName={codeToName}
                     theme={mapPreviewTheme}
+                    staticView={true}
                   />
                 </div>
                 <MapLegendOverlay
@@ -2423,6 +2529,21 @@ try {
                   compact={true}
                 />
               </div>
+              <CustomMapModal
+                isOpen={showCustomMapModal}
+                selectedCodes={customMapCountries}
+                savedPresetId={customMapPresetId}
+                onSave={(codes, presetId) => {
+                  setCustomMapCountries(codes);
+                  setCustomMapPresetId(presetId ?? null);
+                }}
+                onCancel={() => setShowCustomMapModal(false)}
+                microstatesList={MICROSTATES_LIST}
+                microstatesSelectedCodes={microstatesCustom}
+                onMicrostatesSave={(codes) => {
+                  setMicrostatesCustom(codes == null || codes.length === MICROSTATES_LIST.length ? null : codes);
+                }}
+              />
             </div>
           </div>
 

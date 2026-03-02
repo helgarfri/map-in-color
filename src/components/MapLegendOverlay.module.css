@@ -4,7 +4,7 @@
   position: absolute;
   z-index: 50;
 
-  /* ✅ bottom-left */
+  /* default: bottom-left */
   left: 16px;
   bottom: 16px;
 
@@ -24,6 +24,17 @@
   box-shadow:
     0 18px 50px rgba(0,0,0,0.18),
     0 0 0 1px rgba(255,255,255,0.55) inset;
+}
+
+/* In compact preview mode (DataIntegration sidebar), keep legend fully inside
+   the map area, but still anchored to the bottom-left corner of the map. */
+.mapLegendBox[data-compact="1"] {
+  left: 16px;
+  bottom: 16px;
+  right: auto;
+  margin: 0;
+  max-width: 220px;
+  transform: none;
 }
 
 /* embed variant tweaks */

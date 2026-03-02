@@ -25,6 +25,9 @@ export function normalizeMapForPreview(mapObj) {
   const font_color = mapObj.font_color ?? "black";
   const is_title_hidden = !!mapObj.is_title_hidden;
   const showNoDataLegend = !!mapObj.show_no_data_legend;
+  const show_microstates = mapObj.show_microstates !== false;
+  const microstates_custom = mapObj.microstates_custom ?? null;
+  const custom_map_countries = mapObj.custom_map_countries ?? null;
   const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
   const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
 
@@ -70,6 +73,9 @@ export function normalizeMapForPreview(mapObj) {
     font_color,
     is_title_hidden,
     showNoDataLegend,
+    show_microstates,
+    microstates_custom,
+    custom_map_countries,
     titleFontSize,
     legendFontSize,
     groups,
