@@ -2336,8 +2336,11 @@ try {
   setSaveSuccess(false);
   setSaveProgress(0);
 
-  console.error("❌ Save map failed:", err?.response?.data || err);
-  alert(err?.response?.data?.msg || "Failed to save map (check console).");
+  const errData = err?.response?.data;
+  console.error("❌ Save map failed:", errData || err);
+  const msg = errData?.msg || "Failed to save map (check console).";
+  const detail = errData?.error ? `\n\n${errData.error}` : "";
+  alert(msg + detail);
 }
 
 };

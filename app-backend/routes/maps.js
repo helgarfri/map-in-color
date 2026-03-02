@@ -7,11 +7,12 @@ const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
 
 // Allowed fields for map update and create (prevents mass assignment: no user_id, id, created_at)
+// Add 'custom_map_countries' after running migration 20260228100000_add_custom_map_countries_to_maps.sql
 const MAP_UPDATE_ALLOWED = [
   'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
   'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
   'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
-  'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom', 'custom_map_countries',
+  'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom',
   'selected_palette', 'selected_map_theme',
 ];
 
@@ -128,7 +129,10 @@ router.post('/', auth, async (req, res) => {
 
     if (error) {
       console.error('Error creating map:', error);
-      return res.status(500).json({ msg: 'Server error' });
+      return res.status(500).json({
+        msg: 'Server error',
+        error: error.message || String(error),
+      });
     }
 
 
@@ -144,7 +148,10 @@ router.post('/', auth, async (req, res) => {
     res.json(newMap);
   } catch (err) {
     console.error('Error creating map:', err);
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({
+      msg: 'Server error',
+      error: err?.message || String(err),
+    });
   }
 });
 
@@ -339,14 +346,20 @@ router.put('/:id', auth, async (req, res) => {
       .single();
 
     if (updateErr) {
-      console.error(updateErr);
-      return res.status(500).json({ msg: 'Error updating map' });
+      console.error('Error updating map:', updateErr);
+      return res.status(500).json({
+        msg: 'Error updating map',
+        error: updateErr.message || String(updateErr),
+      });
     }
 
     res.json(updatedMap);
   } catch (err) {
     console.error('Error updating map:', err);
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({
+      msg: 'Server error',
+      error: err?.message || String(err),
+    });
   }
 });
 
