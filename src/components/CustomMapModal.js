@@ -34,10 +34,23 @@ export default function CustomMapModal({
   /** Preset id that was active when last saved (so it stays active when re-opening) */
   savedPresetId = null,
 }) {
-  const allCodes = ALL_COUNTRIES.map((c) => c.code);
   const norm = (c) => String(c).toUpperCase().trim();
 
-  const [checked, setChecked] = useState(() => new Set(allCodes));
+  /** Microstates appear only in the right column; exclude their codes from the Countries list */
+  const microstateCodeSet = useMemo(
+    () => new Set(microstatesList.map((m) => norm(m.code))),
+    [microstatesList]
+  );
+
+  /** Countries only (no microstates) for the left column */
+  const countriesOnlyList = useMemo(
+    () => ALL_COUNTRIES.filter((c) => !microstateCodeSet.has(norm(c.code))),
+    [microstateCodeSet]
+  );
+
+  const allCountryCodes = useMemo(() => countriesOnlyList.map((c) => c.code), [countriesOnlyList]);
+
+  const [checked, setChecked] = useState(() => new Set(allCountryCodes.map(norm)));
   const [searchQuery, setSearchQuery] = useState("");
   const [microstatesChecked, setMicrostatesChecked] = useState(() => new Set());
   const [microstatesSearchQuery, setMicrostatesSearchQuery] = useState("");
@@ -48,15 +61,16 @@ export default function CustomMapModal({
 
   const hasMicrostates = microstatesList.length > 0;
 
-  /** Which preset (if any) matches this set of country codes exactly */
+  /** Which preset (if any) matches this set of country codes exactly (countries only, no microstates) */
   const getPresetIdForSet = (codeSet) => {
     for (const preset of REGION_PRESETS) {
-      if (preset.codes == null) {
-        if (codeSet.size === allCodes.length) return preset.id;
-      } else {
-        if (codeSet.size !== preset.codes.length) continue;
-        if (preset.codes.every((c) => codeSet.has(norm(c)))) return preset.id;
-      }
+      const presetCountryCodes =
+        preset.codes == null
+          ? allCountryCodes
+          : preset.codes.filter((c) => !microstateCodeSet.has(norm(c)));
+      const presetSet = new Set(presetCountryCodes.map(norm));
+      if (codeSet.size !== presetSet.size) continue;
+      if ([...presetSet].every((c) => codeSet.has(c))) return preset.id;
     }
     return null;
   };
@@ -65,17 +79,17 @@ export default function CustomMapModal({
     if (!isOpen) return;
     setSearchQuery("");
     setMicrostatesSearchQuery("");
-    const codes = ALL_COUNTRIES.map((c) => c.code);
     const toSet = (arr) => new Set(arr.map((c) => norm(c)));
     let nextChecked;
     if (selectedCodes == null) {
-      nextChecked = toSet(codes);
+      nextChecked = new Set(allCountryCodes.map(norm));
       setChecked(nextChecked);
     } else if (Array.isArray(selectedCodes)) {
-      nextChecked = toSet(selectedCodes);
+      const countryOnly = [...toSet(selectedCodes)].filter((c) => !microstateCodeSet.has(c));
+      nextChecked = new Set(countryOnly);
       setChecked(nextChecked);
     } else {
-      nextChecked = toSet(codes);
+      nextChecked = new Set(allCountryCodes.map(norm));
       setChecked(nextChecked);
     }
     const inferredPresetId = getPresetIdForSet(nextChecked);
@@ -92,7 +106,7 @@ export default function CustomMapModal({
         setMicrostatesChecked(new Set(microstatesSelectedCodes.map((c) => String(c).toUpperCase().trim())));
       }
     }
-  }, [isOpen, selectedCodes, hasMicrostates, microstatesSelectedCodes, microstatesList, savedPresetId]);
+  }, [isOpen, selectedCodes, hasMicrostates, microstatesSelectedCodes, microstatesList, savedPresetId, allCountryCodes, microstateCodeSet]);
 
   useEffect(() => {
     if (isOpen) {
@@ -110,20 +124,20 @@ export default function CustomMapModal({
   const inPresetSet = useMemo(() => {
     if (activePreset) {
       return activePreset.codes == null
-        ? new Set(allCodes.map(norm))
+        ? new Set(allCountryCodes.map(norm))
         : new Set(activePreset.codes.map(norm));
     }
     return checked;
-  }, [activePreset, checked, allCodes]);
+  }, [activePreset, checked, allCountryCodes]);
 
-  // Countries: in-preset first, then outside (both sections show all countries, split by preset)
+  // Countries only (no microstates): in-preset first, then outside
   const countriesInPreset = useMemo(
-    () => ALL_COUNTRIES.filter((c) => inPresetSet.has(norm(c.code))),
-    [inPresetSet]
+    () => countriesOnlyList.filter((c) => inPresetSet.has(norm(c.code))),
+    [countriesOnlyList, inPresetSet]
   );
   const countriesOutsidePreset = useMemo(
-    () => ALL_COUNTRIES.filter((c) => !inPresetSet.has(norm(c.code))),
-    [inPresetSet]
+    () => countriesOnlyList.filter((c) => !inPresetSet.has(norm(c.code))),
+    [countriesOnlyList, inPresetSet]
   );
 
   const query = searchQuery.trim().toLowerCase();
@@ -177,7 +191,7 @@ export default function CustomMapModal({
     });
   };
 
-  const selectAll = () => setChecked(new Set(allCodes.map((c) => norm(c))));
+  const selectAll = () => setChecked(new Set(allCountryCodes.map(norm)));
   const deselectAll = () => setChecked(new Set());
   const microstatesSelectAll = () =>
     setMicrostatesChecked(new Set(microstatesList.map((m) => m.code)));
@@ -186,13 +200,13 @@ export default function CustomMapModal({
   const applyPreset = (preset) => {
     setSelectedPresetId(preset.id);
     if (preset.codes == null) {
-      setChecked(new Set(allCodes.map(norm)));
+      setChecked(new Set(allCountryCodes.map(norm)));
       setMicrostatesChecked(new Set(microstatesList.map((m) => m.code)));
     } else {
-      const countrySet = new Set(preset.codes.map(norm));
-      setChecked(countrySet);
+      const presetCountryCodes = preset.codes.filter((c) => !microstateCodeSet.has(norm(c)));
+      setChecked(new Set(presetCountryCodes.map(norm)));
       const microInPreset = microstatesList
-        .filter((m) => countrySet.has(norm(m.code)))
+        .filter((m) => preset.codes.includes(m.code))
         .map((m) => m.code);
       setMicrostatesChecked(new Set(microInPreset));
     }
@@ -200,7 +214,7 @@ export default function CustomMapModal({
 
   const handleSave = () => {
     const arr = Array.from(checked);
-    const isWorld = arr.length === allCodes.length;
+    const isWorld = arr.length === allCountryCodes.length;
     onSave?.(isWorld ? null : arr, selectedPresetId);
     if (hasMicrostates && onMicrostatesSave) {
       const microArr = Array.from(microstatesChecked);

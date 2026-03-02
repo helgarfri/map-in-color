@@ -6,12 +6,13 @@ const { supabaseAdmin } = require('../config/supabase'); // Use service_role key
 const auth = require('../middleware/auth');
 const authOptional = require('../middleware/authOptional');
 
-// Allowed fields for map update (prevents mass assignment: no user_id, id, created_at)
+// Allowed fields for map update and create (prevents mass assignment: no user_id, id, created_at)
 const MAP_UPDATE_ALLOWED = [
   'title', 'description', 'is_public', 'tags', 'selected_map', 'ocean_color',
   'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
   'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
   'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom', 'custom_map_countries',
+  'selected_palette', 'selected_map_theme',
 ];
 
 function stripEmptyUpdateFields(obj) {
@@ -105,24 +106,19 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const user_id = req.user.id;
-     // Destructure titleFontSize and legendFontSize from req.body
-     const { titleFontSize, legendFontSize, ...mapData } = req.body;
-
-
+    const { titleFontSize, legendFontSize, ...restRaw } = req.body;
+    const mapData = allowlistMapUpdate({ ...restRaw, title_font_size: titleFontSize, legend_font_size: legendFontSize });
 
     // If "tags" is an array, normalize to lowercase
     if (Array.isArray(mapData.tags)) {
       mapData.tags = mapData.tags.map((tag) => tag.toLowerCase());
     }
 
-  
-    // Insert into "maps" (IMPORTANT: use .select() so Supabase returns the inserted row)
+    // Insert only allowlisted fields (e.g. do not send custom_map_preset_id; column may not exist)
     const { data: newMap, error } = await supabaseAdmin
       .from('maps')
       .insert({
         ...mapData,
-        title_font_size: titleFontSize,
-        legend_font_size: legendFontSize,
         user_id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
