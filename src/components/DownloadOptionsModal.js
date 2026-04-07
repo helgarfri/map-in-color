@@ -153,6 +153,15 @@ const getViewBoxFromSvg = (svgEl) => {
   return { x: parts[0], y: parts[1], w: parts[2], h: parts[3] };
 };
 
+const waitForRenderStageSvg = async (container, maxFrames = 40) => {
+  for (let i = 0; i < maxFrames; i += 1) {
+    const svg = container?.querySelector?.("svg");
+    if (svg) return svg;
+    await new Promise((r) => requestAnimationFrame(() => r()));
+  }
+  return null;
+};
+
 const safeBase = (base) => {
   if (!base || !Number.isFinite(base.w) || !Number.isFinite(base.h) || base.w <= 0 || base.h <= 0) {
     return { x: 0, y: 0, w: VBW, h: VBH };
@@ -261,12 +270,8 @@ useEffect(() => {
   let cancelled = false;
 
   const init = async () => {
-    // wait for render stage to paint the SVG
-    await new Promise((r) => requestAnimationFrame(() => r()));
-    await new Promise((r) => requestAnimationFrame(() => r()));
-
     const container = renderStageRef.current;
-    const svg = container?.querySelector("svg");
+    const svg = await waitForRenderStageSvg(container);
     if (!svg || cancelled) return;
     const detectedBase = getViewBoxFromSvg(svg);
     const baseForInit = safeBase(detectedBase || baseViewBox);
