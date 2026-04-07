@@ -34,6 +34,9 @@ import MapLegendOverlay from './MapLegendOverlay';
 import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
 import MapView from './Map';
+import MapUS from './MapUS';
+import { inferPresetIdFromCodes } from '../constants/regionPresets';
+import { getMapVerticalOffsetPx } from "../utils/mapPreviewUtils";
 import MapDetailValueTable from "./MapDetailValueTable";
 import { getAnonId } from "../utils/annonId"; // add at top
 import DownloadOptionsModal from "./DownloadOptionsModal";
@@ -122,6 +125,16 @@ const [isDeleting, setIsDeleting] = useState(false);
   const { authToken, profile, setProfile, isPro } = useContext(UserContext);
   const { darkMode } = useContext(ThemeContext);
   const mapTheme = forceMapTheme ?? (darkMode ? 'dark' : 'light');
+  const parsedCustomMapCountries = parseJsonArray(mapData?.custom_map_countries);
+  const parsedMicrostatesCustom = parseJsonArray(mapData?.microstates_custom);
+  const selectedMapType = mapData?.selected_map ?? mapData?.selectedMap ?? "world";
+  const fullscreenMapOffsetPx = getMapVerticalOffsetPx({
+    selectedMapType,
+    customMapPresetId:
+      mapData?.custom_map_preset_id ??
+      mapData?.customMapPresetId ??
+      inferPresetIdFromCodes(parsedCustomMapCountries),
+  });
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -963,6 +976,51 @@ const legendHeaderTitle = useMemo(() => {
 
 const suppressInfoBox = !!activeLegendKey;
 
+const resolvedMapDataProps = useMemo(() => {
+  if (!mapData) return {};
+  return {
+    selected_map: mapData.selected_map ?? mapData.selectedMap ?? "world",
+    selectedMap: mapData.selected_map ?? mapData.selectedMap ?? "world",
+    mapDataType:
+      mapData.mapDataType ??
+      mapData.map_data_type ??
+      mapData.map_type ??
+      mapData.type ??
+      null,
+    data: parseJsonArray(mapData.data),
+    custom_ranges: parseJsonArray(mapData.custom_ranges ?? mapData.customRanges),
+    groups: parseJsonArray(mapData.groups),
+    placeholders: parseJsonObject(mapData.placeholders),
+    customDescriptions: parseJsonObject(mapData.placeholders),
+    ocean_color: mapData.ocean_color,
+    unassigned_color: mapData.unassigned_color,
+    font_color: mapData.font_color,
+    mapTitleValue: mapData.title,
+    title: mapData.title,
+    mapTitle: mapData.title,
+    is_title_hidden: toBool(mapData.is_title_hidden),
+    titleFontSize: Number(mapData.title_font_size) || 28,
+    legendFontSize: Number(mapData.legend_font_size) || 18,
+    show_top_high_values: toBool(mapData.show_top_high_values),
+    show_top_low_values: toBool(mapData.show_top_low_values),
+    showNoDataLegend: toBool(mapData.show_no_data_legend),
+    show_microstates: mapData.show_microstates !== false,
+    microstates_custom: parsedMicrostatesCustom.length ? parsedMicrostatesCustom : null,
+    custom_map_countries: parsedCustomMapCountries.length ? parsedCustomMapCountries : null,
+    custom_map_preset_id:
+      mapData.custom_map_preset_id ??
+      mapData.customMapPresetId ??
+      inferPresetIdFromCodes(parsedCustomMapCountries) ??
+      null,
+    top_low_values: parseJsonArray(mapData.top_low_values),
+    strokeMode: "thick",
+  };
+}, [mapData, parsedCustomMapCountries, parsedMicrostatesCustom]);
+
+function mapDataProps() {
+  return resolvedMapDataProps;
+}
+
 
 
 
@@ -1212,48 +1270,79 @@ if (!mapData) {
   className={`${styles.mapDisplay} ${isFullScreen ? styles.fullScreen : ''}`}
   style={{ position: 'relative', cursor: isPanning.current ? 'grabbing' : 'grab' }}
 >
-  <MapView
-  {...mapDataProps()}
-  isLargeMap={isFullScreen}
-  compactUi={width < 400}
-  theme={mapTheme}
-  hoveredCode={hoveredCode}
-  selectedCode={selectedCode}
-  selectedCodeZoom={selectedCodeZoom}
-  selectedCodeNonce={selectedCodeNonce}
-  groupHoveredCodes={hoveredLegendCodes}
-  groupActiveCodes={activeLegendCodes}
-  suppressInfoBox={suppressInfoBox}
-  activeLegendModel={activeLegendModel}
-  codeToName={countryCodeToName}
-  onCloseActiveLegend={() => {
-    setActiveLegendKey(null);
-    setHoverLegendKey(null);
-  }}
-  onHoverCode={(code) => setHoveredCode(code)}
-  onSelectCode={(code) => {
-  if (code) {
-    setActiveLegendKey(null);
-    setHoverLegendKey(null);
-  }
+  {selectedMapType === "usa" ? (
+    <MapUS
+      {...mapDataProps()}
+      isLargeMap={false}
+      staticView={!isFullScreen}
+      compactUi={width < 400}
+      verticalOffsetPx={isFullScreen ? fullscreenMapOffsetPx : 0}
+      horizontalOffsetPx={isFullScreen ? -110 : 0}
+      theme={mapTheme}
+      hoveredCode={hoveredCode}
+      selectedCode={selectedCode}
+      groupHoveredCodes={hoveredLegendCodes}
+      groupActiveCodes={activeLegendCodes}
+      suppressInfoBox={suppressInfoBox}
+      activeLegendModel={activeLegendModel}
+      onCloseActiveLegend={() => {
+        setActiveLegendKey(null);
+        setHoverLegendKey(null);
+      }}
+      codeToName={countryCodeToName}
+      onHoverCode={(code) => setHoveredCode(code)}
+      onSelectCode={(code) => {
+        if (code) {
+          setActiveLegendKey(null);
+          setHoverLegendKey(null);
+        }
+        setSelectedCode(code);
+        setSelectedCodeZoom(false);
+        setSelectedCodeNonce((n) => n + 1);
+      }}
+    />
+  ) : (
+    <MapView
+      {...mapDataProps()}
+      isLargeMap={false}
+      staticView={!isFullScreen}
+      compactUi={width < 400}
+      verticalOffsetPx={isFullScreen ? fullscreenMapOffsetPx : 0}
+      theme={mapTheme}
+      hoveredCode={hoveredCode}
+      selectedCode={selectedCode}
+      selectedCodeZoom={selectedCodeZoom}
+      selectedCodeNonce={selectedCodeNonce}
+      groupHoveredCodes={hoveredLegendCodes}
+      groupActiveCodes={activeLegendCodes}
+      suppressInfoBox={suppressInfoBox}
+      activeLegendModel={activeLegendModel}
+      codeToName={countryCodeToName}
+      onCloseActiveLegend={() => {
+        setActiveLegendKey(null);
+        setHoverLegendKey(null);
+      }}
+      onHoverCode={(code) => setHoveredCode(code)}
+      onSelectCode={(code) => {
+        if (code) {
+          setActiveLegendKey(null);
+          setHoverLegendKey(null);
+        }
+        setSelectedCode(code);
+        setSelectedCodeZoom(false);
+        setSelectedCodeNonce((n) => n + 1);
+      }}
+    />
+  )}
 
-  setSelectedCode(code);
-  setSelectedCodeZoom(false);
-  setSelectedCodeNonce((n) => n + 1);
-}}
-
-/>
-
-{isFullScreen && (
-  <button
-    onClick={toggleFullScreen}
-    aria-label="Exit view mode"
-    title="Exit view mode"
-    className={styles.exitViewBtn}
-  >
-    <FaEyeSlash />
-  </button>
-)}
+<button
+  onClick={toggleFullScreen}
+  aria-label={isFullScreen ? "Exit view mode" : "Enter view mode"}
+  title={isFullScreen ? "Exit view mode" : "Enter view mode"}
+  className={styles.exitViewBtn}
+>
+  {isFullScreen ? <FaEyeSlash /> : <FaEye />}
+</button>
 
 {isFullScreen && isNarrowPortrait && (
   <div className={styles.turnScreenPrompt} role="status" aria-live="polite">
@@ -1404,17 +1493,6 @@ if (!mapData) {
   <span className={styles.statActionIcon}><BiShare /></span>
   {!compactActions && <span className={styles.statActionLabel}>Share</span>}
 </button>
-
-
-                 <button
-          className={styles.viewIconButton}
-          onClick={toggleFullScreen}
-          aria-label="Enter view mode"
-          title="View mode"
-          type="button"
-        >
-          <FaEye />
-        </button>
 
            {isOwner && (
           <button
@@ -2044,50 +2122,6 @@ function toBool(v) {
   return false;
 }
 
-
-function mapDataProps() {
-  return {
-    // modes + data
-    mapDataType:
-      mapData.mapDataType ??
-      mapData.map_data_type ??
-      mapData.map_type ??
-      mapData.type ??
-      null,
-
-    data: parseJsonArray(mapData.data),
-
-    // choropleth ranges / categorical groups
-    custom_ranges: parseJsonArray(mapData.custom_ranges ?? mapData.customRanges),
-    groups: parseJsonArray(mapData.groups),
-
-    // ✅ THIS is commonly what controls “text”
-    placeholders: parseJsonObject(mapData.placeholders),
-    customDescriptions: parseJsonObject(mapData.placeholders), // alias in case Map expects this
-
-    // styling
-    ocean_color: mapData.ocean_color,
-    unassigned_color: mapData.unassigned_color,
-    font_color: mapData.font_color,
-
-    // title
-    mapTitleValue: mapData.title,
-    title: mapData.title,      // alias
-    mapTitle: mapData.title,   // alias
-
-    is_title_hidden: toBool(mapData.is_title_hidden),
-    titleFontSize: Number(mapData.title_font_size) || 28,
-    legendFontSize: Number(mapData.legend_font_size) || 18,
-
-    // optional flags
-    show_top_high_values: toBool(mapData.show_top_high_values),
-    show_top_low_values: toBool(mapData.show_top_low_values),
-    showNoDataLegend: toBool(mapData.show_no_data_legend),
-    top_low_values: parseJsonArray(mapData.top_low_values),
-
-    strokeMode: "thick"
-  };
-}
 
 
 

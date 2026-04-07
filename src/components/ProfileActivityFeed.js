@@ -9,7 +9,8 @@ import {
   FaInfoCircle,
 } from 'react-icons/fa';
 
-import { fetchUserActivity } from '../api';
+import { fetchUserActivity, fetchMapById } from '../api';
+import { inferPresetIdFromCodes } from '../constants/regionPresets';
 import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
 
@@ -85,6 +86,13 @@ function normalizeMapForPreview(mapObj) {
     mapObj.type ??
     (customRanges.length ? 'choropleth' : 'categorical');
 
+  const custom_map_countries = toArrayMaybeJson(
+    mapObj.custom_map_countries ?? mapObj.customMapCountries
+  );
+  const custom_map_preset_id = mapObj.custom_map_preset_id ?? mapObj.customMapPresetId ?? inferPresetIdFromCodes(custom_map_countries) ?? null;
+  const show_microstates = mapObj.show_microstates !== false;
+  const microstates_custom = toArrayMaybeJson(mapObj.microstates_custom ?? mapObj.microstatesCustom) || null;
+
   return {
     title,
     ocean_color,
@@ -99,6 +107,10 @@ function normalizeMapForPreview(mapObj) {
     selectedMap,
     customRanges,
     mapDataType,
+    custom_map_countries: custom_map_countries.length ? custom_map_countries : null,
+    custom_map_preset_id,
+    show_microstates,
+    microstates_custom,
   };
 }
 
@@ -117,6 +129,41 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const sentinelRef = useRef(null);
+  const [mapCache, setMapCache] = useState({});
+  const [readyThumbIds, setReadyThumbIds] = useState(() => new Set());
+
+  // Fetch full map for any activity map not yet in cache, so we have custom_map_countries for correct thumbnail.
+  useEffect(() => {
+    const idsToFetch = [];
+    for (const act of activities) {
+      const m = act?.map;
+      if (!m?.id) continue;
+      if (mapCache[m.id]) continue;
+      idsToFetch.push(m.id);
+    }
+    if (idsToFetch.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const results = await Promise.allSettled(
+          idsToFetch.map((id) => fetchMapById(id))
+        );
+        if (cancelled) return;
+        setMapCache((prev) => {
+          const next = { ...prev };
+          for (const r of results) {
+            if (r.status !== 'fulfilled') continue;
+            const fullMap = r.value?.data;
+            if (fullMap?.id) next[fullMap.id] = fullMap;
+          }
+          return next;
+        });
+      } catch (e) {
+        console.error('Profile activity map hydration failed:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activities, mapCache]);
 
   // Only show activities for maps that still exist and are public (no "No Map" / private thumbnails)
   const isMapValidForFeed = (act) => {
@@ -272,13 +319,21 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   }
 
   function renderMapThumbnail(mapObj) {
-    const normalized = normalizeMapForPreview(mapObj);
+    const mapToRender = mapObj?.id && mapCache[mapObj.id] ? mapCache[mapObj.id] : mapObj;
+    const normalized = normalizeMapForPreview(mapToRender);
 
     if (!normalized) return <div className={styles.defaultThumbnail}>No Map</div>;
 
+    const mapId = mapToRender.id;
+    const isFromCache = !!(mapObj?.id && mapCache[mapObj.id]);
+    const isThumbReady = readyThumbIds.has(mapId) && isFromCache;
+
     return (
       <div className={styles.thumbContainer}>
-        <div className={styles.thumbMapStage}>
+        <div
+          className={`${styles.thumbMapStage} ${!isThumbReady ? styles.thumbMapStageHidden : ''}`}
+          aria-hidden={!isThumbReady}
+        >
           <Map
             groups={normalized.groups}
             data={normalized.data}
@@ -292,12 +347,26 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
             is_title_hidden={normalized.is_title_hidden}
             isThumbnail={true}
             showNoDataLegend={normalized.showNoDataLegend}
+            show_microstates={normalized.show_microstates}
+            microstates_custom={normalized.microstates_custom}
+            custom_map_countries={normalized.custom_map_countries}
+            custom_map_preset_id={normalized.custom_map_preset_id}
             titleFontSize={normalized.titleFontSize}
             legendFontSize={normalized.legendFontSize}
+            strokeMode='thin'
+            onViewReady={() => {
+              if (!isFromCache) return;
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => setReadyThumbIds((prev) => new Set(prev).add(mapId)));
+              });
+            }}
           />
         </div>
 
-        {/* Blocks hover/zoom/pan/tooltips; row click still works */}
+        {!isThumbReady && (
+          <div className={styles.thumbMapSkeleton} aria-hidden="true" />
+        )}
+
         <div className={styles.interactionBlocker} aria-hidden="true" />
       </div>
     );

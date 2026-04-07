@@ -274,9 +274,88 @@
   width: 100%;
 }
 
+/* Stage for map + skeleton; keeps layout stable when preset changes */
+.mapPreviewStage {
+  position: relative;
+  width: 100%;
+}
+
+/* Wrapper for map and skeleton overlay (skeleton covers this area only). Height comes from map content. */
+.mapPreviewOuter {
+  position: relative;
+  width: 100%;
+  min-height: 240px;
+  isolation: isolate; /* stacking context so skeleton z-index is above map */
+}
+
 .mapPreview {
   width: 100%;
   height: auto;
+  min-height: 240px;
+  transition: opacity 0.35s ease-out;
+}
+
+/* Hide map until view is ready; keep it in layout so skeleton matches map height, then fade in. */
+.mapPreviewHidden {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* Skeleton overlay until map view is ready (hides world-then-preset flash). Must sit above map. */
+.mapPreviewSkeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: var(--skeleton-bg, #e8eaed);
+  border-radius: var(--r, 12px);
+  overflow: hidden;
+  pointer-events: none;
+}
+.mapPreviewSkeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skeleton-shimmer, rgba(255, 255, 255, 0.5)) 50%,
+    transparent 100%
+  );
+  animation: di_shimmer 1.25s ease-in-out infinite;
+}
+
+.mapOptionsRow {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.microstatesButton {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.microstatesButton:hover {
+  background: var(--card);
+  border-color: var(--link, #14a9af);
+  color: var(--link, #14a9af);
 }
 
 .section {
@@ -854,6 +933,14 @@
   opacity: 0.65;
   font-style: italic;
   color: var(--muted);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .mapInfoActionsBottom {

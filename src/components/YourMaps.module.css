@@ -110,14 +110,16 @@
   box-shadow: var(--shadow);
 }
 
-/* Thumbnail */
+/* Thumbnail: fixed height so all cards same size; map fits inside and is centered */
 .thumbnail {
   width: 100%;
+  height: 160px;
   overflow: hidden;
-
   position: relative;
   isolation: isolate;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--thumbnail-bg, linear-gradient(135deg, rgba(40,168,225,0.18), rgba(20,169,175,0.14)));
   border-bottom: 1px solid var(--border);
 }
@@ -127,7 +129,7 @@
 .thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* Body */
@@ -764,10 +766,9 @@
 }
 
 /* ===========================================
-   MOBILE: thumbnail should fill card width
+   MOBILE: thumbnail same fixed height, map fits and centered
    =========================================== */
 @media (max-width: 600px) {
-  /* Ensure the card + thumbnail don't create weird sizing */
   .mapCard,
   .thumbnail {
     width: 100% !important;
@@ -775,33 +776,26 @@
     box-sizing: border-box !important;
   }
 
-  /* Center the thumbnail content and remove "inline whitespace" issues */
   .thumbnail {
-    display: grid !important;
-    place-items: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     overflow: hidden !important;
+    height: 140px !important;
   }
 
-  /* Force whatever StaticMapThumbnail outputs to fill width */
   .thumbnail > * {
     width: 100% !important;
+    height: 100% !important;
     max-width: 100% !important;
     display: block !important;
   }
 
-  /* If it's an svg/canvas/img, force it to fit and center */
   .thumbnail svg,
   .thumbnail canvas,
   .thumbnail img {
-    display: block !important;
     width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;       /* keeps aspect ratio for svg/img */
-  }
-
-  /* If the thumbnail uses an inner wrapper div, this catches it too */
-  .thumbnail div {
-    width: 100% !important;
-    max-width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
   }
 }

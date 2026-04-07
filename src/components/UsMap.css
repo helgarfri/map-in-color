@@ -60,6 +60,37 @@ Place this code in the empty space below. */
     
 }
 
+.us-map-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.us-map-inner {
+    width: 100%;
+    height: 100%;
+    transition: opacity 140ms ease;
+}
+
+.us-map-skeleton {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: linear-gradient(
+      90deg,
+      rgba(0,0,0,0.06),
+      rgba(0,0,0,0.10),
+      rgba(0,0,0,0.06)
+    );
+    background-size: 200% 100%;
+    animation: usMapShimmer 1.1s infinite linear;
+}
+
+@keyframes usMapShimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+}
+
  @media (max-width: 735px) {
     #usMap {
        width: 100%;

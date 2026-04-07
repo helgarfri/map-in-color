@@ -3,6 +3,18 @@
  * Normalizes API map shape so Map component gets consistent props.
  */
 
+import { inferPresetIdFromCodes } from "../constants/regionPresets";
+
+const CONTINENT_PRESET_IDS = new Set([
+  "europe",
+  "northAmerica",
+  "southAmerica",
+  "latinAmerica",
+  "africa",
+  "asia",
+  "oceania",
+]);
+
 export function toArrayMaybeJson(value) {
   if (Array.isArray(value)) return value;
   if (typeof value === "string") {
@@ -25,6 +37,14 @@ export function normalizeMapForPreview(mapObj) {
   const font_color = mapObj.font_color ?? "black";
   const is_title_hidden = !!mapObj.is_title_hidden;
   const showNoDataLegend = !!mapObj.show_no_data_legend;
+  const show_microstates = mapObj.show_microstates !== false;
+  const microstates_custom = mapObj.microstates_custom ?? null;
+  const custom_map_countries = mapObj.custom_map_countries ?? null;
+  const custom_map_preset_id =
+    mapObj.custom_map_preset_id ??
+    mapObj.customMapPresetId ??
+    inferPresetIdFromCodes(Array.isArray(custom_map_countries) ? custom_map_countries : []) ??
+    null;
   const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
   const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
 
@@ -70,6 +90,10 @@ export function normalizeMapForPreview(mapObj) {
     font_color,
     is_title_hidden,
     showNoDataLegend,
+    show_microstates,
+    microstates_custom,
+    custom_map_countries,
+    custom_map_preset_id,
     titleFontSize,
     legendFontSize,
     groups,
@@ -78,4 +102,24 @@ export function normalizeMapForPreview(mapObj) {
     customRanges,
     mapDataType,
   };
+}
+
+/**
+ * Keeps world maps slightly lower while nudging continent/custom views higher.
+ * This aligns cropped continent maps better in embed/fullscreen contexts.
+ */
+export function getMapVerticalOffsetPx({ selectedMapType, customMapPresetId }) {
+  const mapType = String(selectedMapType ?? "world").trim();
+  const presetId = String(customMapPresetId ?? "").trim();
+
+  const isContinentLike =
+    mapType === "europe" ||
+    mapType === "custom" ||
+    (presetId && presetId !== "world" && presetId !== "usa") ||
+    CONTINENT_PRESET_IDS.has(mapType) ||
+    CONTINENT_PRESET_IDS.has(presetId);
+
+  if (mapType === "usa") return -24;
+  if (mapType === "world" && !isContinentLike) return 70;
+  return isContinentLike ? 0 : -24;
 }

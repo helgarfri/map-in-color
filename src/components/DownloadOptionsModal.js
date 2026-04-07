@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { createPortal } from "react-dom";
 import { BiDownload, BiImage, BiFile, BiCodeBlock, BiCrop } from "react-icons/bi";
 import MapView from "./Map";
+import MapUS from "./MapUS";
 import MapCropModal from "./MapCropModal";
 import UpgradeProModal from "./UpgradeProModal";
 import styles from "./DownloadOptionsModal.module.css";
 import { incrementMapDownloadCount } from "../api";
-import { viewBoxFromInsets, insetsFromViewBox, VBW, VBH } from "../utils/downloadViewBoxUtils";
+import { VBW, VBH } from "../utils/downloadViewBoxUtils";
 
 const FORMAT_OPTIONS = [
   { value: "jpg", label: "JPG", Icon: BiImage, description: "Smaller file size, ideal for sharing and web." },
@@ -67,6 +68,7 @@ export default function DownloadOptionsModal({
 
   const renderStageRef = useRef(null);
 const [mapTransform, setMapTransform] = useState({ x: 0, y: 0, scale: 1 });
+const [baseViewBox, setBaseViewBox] = useState({ x: 0, y: 0, w: VBW, h: VBH });
 
 const [legendPos, setLegendPos] = useState({ x: 0.02, y: 0.92 }); // default: bottom-left
 
@@ -143,6 +145,48 @@ const debouncedRenderParams = useDebouncedValue(renderParams, 350);
 
 
 const clampNum = (n, a, b) => Math.max(a, Math.min(b, n));
+const getViewBoxFromSvg = (svgEl) => {
+  const vbAttr = svgEl?.getAttribute?.("viewBox");
+  if (!vbAttr) return null;
+  const parts = vbAttr.trim().split(/[\s,]+/).map(Number);
+  if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) return null;
+  return { x: parts[0], y: parts[1], w: parts[2], h: parts[3] };
+};
+
+const safeBase = (base) => {
+  if (!base || !Number.isFinite(base.w) || !Number.isFinite(base.h) || base.w <= 0 || base.h <= 0) {
+    return { x: 0, y: 0, w: VBW, h: VBH };
+  }
+  return base;
+};
+
+function viewBoxFromInsetsForBase(insets, base) {
+  const b = safeBase(base);
+  const l = clamp01((insets?.left ?? 0) / 100);
+  const r = clamp01((insets?.right ?? 0) / 100);
+  const t = clamp01((insets?.top ?? 0) / 100);
+  const bo = clamp01((insets?.bottom ?? 0) / 100);
+  let x = b.x + b.w * l;
+  let y = b.y + b.h * t;
+  let w = b.w * (1 - l - r);
+  let h = b.h * (1 - t - bo);
+  if (w < 1) w = 1;
+  if (h < 1) h = 1;
+  x = clamp(x, b.x, b.x + b.w - w);
+  y = clamp(y, b.y, b.y + b.h - h);
+  return { x, y, w, h };
+}
+
+function insetsFromViewBoxForBase(vb, base) {
+  const b = safeBase(base);
+  const round = (n) => Math.round(n * 10) / 10;
+  return {
+    left: round(clamp(((vb.x - b.x) / b.w) * 100, 0, 100)),
+    top: round(clamp(((vb.y - b.y) / b.h) * 100, 0, 100)),
+    right: round(clamp(((b.x + b.w - (vb.x + vb.w)) / b.w) * 100, 0, 100)),
+    bottom: round(clamp(((b.y + b.h - (vb.y + vb.h)) / b.h) * 100, 0, 100)),
+  };
+}
 
 const renderInFlightRef = useRef(false);
 const pendingRenderRef = useRef(false);
@@ -224,10 +268,17 @@ useEffect(() => {
     const container = renderStageRef.current;
     const svg = container?.querySelector("svg");
     if (!svg || cancelled) return;
+    const detectedBase = getViewBoxFromSvg(svg);
+    const baseForInit = safeBase(detectedBase || baseViewBox);
+    if (detectedBase) setBaseViewBox(detectedBase);
 
-    const activeCodes = getActiveCodesFromMapData(mapData);
-    let bbox = null;
-    if (activeCodes.length) bbox = getBBoxUnionForCodesInSvg(svg, activeCodes);
+    // Prefer full visible geometry (matches Crop modal behavior), not just active data codes.
+    // Using only active codes can make US/custom exports look tiny/off-center when data is sparse.
+    let bbox = getBBoxAllMapShapes(svg);
+    if (!bbox) {
+      const activeCodes = getActiveCodesFromMapData(mapData);
+      if (activeCodes.length) bbox = getBBoxUnionForCodesInSvg(svg, activeCodes);
+    }
 
     // If no bbox, default to full map (no insets)
 if (!bbox) {
@@ -235,15 +286,15 @@ if (!bbox) {
   const fullBBox = getBBoxAllMapShapes(svg);
 
   if (fullBBox) {
-    const fullVB = buildExportViewBoxDefault(fullBBox, 0.02); // smaller padding for full world
-    const fullInsets = insetsFromViewBox(fullVB);
+    const fullVB = buildExportViewBoxDefault(fullBBox, 0.02, baseForInit); // smaller padding for full world
+    const fullInsets = insetsFromViewBoxForBase(fullVB, baseForInit);
 
     defaultCropRef.current = fullInsets;
     setCrop(fullInsets);
 
     if (!didInitLegendWidthRef.current) {
   const scaleFactor = 3;
-  const vb = viewBoxFromInsets(fullInsets);
+  const vb = viewBoxFromInsetsForBase(fullInsets, baseForInit);
   const exportCanvasW = Math.round(vb.w * scaleFactor);
 
 if (!didInitLegendWidthRef.current) {
@@ -262,7 +313,7 @@ if (!didInitLegendWidthRef.current) {
     sizeForWidth = s0;
   }
 
-  const vb2 = viewBoxFromInsets(fullInsets);
+  const vb2 = viewBoxFromInsetsForBase(fullInsets, baseForInit);
   const exportCanvasW = Math.round(vb2.w * 3);
 
   const w0 = computeLegendNoWrapWidthPx(mapData, exportCanvasW, sizeForWidth);
@@ -289,8 +340,8 @@ if (!didInitLegendWidthRef.current) {
   return;
 }
 
-const baseVB = buildExportViewBoxDefault(bbox);
-const insets = insetsFromViewBox(baseVB);
+const baseVB = buildExportViewBoxDefault(bbox, 0.035, baseForInit);
+const insets = insetsFromViewBoxForBase(baseVB, baseForInit);
 
 defaultCropRef.current = insets; // ✅ store default
 setCrop(insets);
@@ -314,7 +365,7 @@ if (!didInitLegendSizeRef.current) {
 }
 
 if (!didInitLegendWidthRef.current) {
-  const vb2 = viewBoxFromInsets(insets);
+  const vb2 = viewBoxFromInsetsForBase(insets, baseForInit);
   const exportCanvasW = Math.round(vb2.w * 3);
 
   const w0 = computeLegendNoWrapWidthPx(mapData, exportCanvasW, sizeForWidth);
@@ -391,7 +442,7 @@ function computeAutoLegendWidthFromCrop(initialInsets) {
   const scaleFactor = 3;
 
   // how wide is the EXPORT actually (after crop)?
-  const vb = viewBoxFromInsets(initialInsets);
+  const vb = viewBoxFromInsetsForBase(initialInsets, baseViewBox);
   const exportCanvasW = Math.round(vb.w * scaleFactor);
 
   // pick a reasonable default as a fraction of export width
@@ -525,7 +576,8 @@ function clamp(x, a, b) {
 }
 
 
-function buildExportViewBoxDefault(bbox, padFrac = 0.035) {
+function buildExportViewBoxDefault(bbox, padFrac = 0.035, baseArg = baseViewBox) {
+  const base = safeBase(baseArg);
   const padX = bbox.width * padFrac;
   const padY = bbox.height * padFrac;
 
@@ -534,10 +586,10 @@ function buildExportViewBoxDefault(bbox, padFrac = 0.035) {
   let x1 = bbox.x + bbox.width + padX;
   let y1 = bbox.y + bbox.height + padY;
 
-  x0 = clamp(x0, 0, VBW);
-  y0 = clamp(y0, 0, VBH);
-  x1 = clamp(x1, 0, VBW);
-  y1 = clamp(y1, 0, VBH);
+  x0 = clamp(x0, base.x, base.x + base.w);
+  y0 = clamp(y0, base.y, base.y + base.h);
+  x1 = clamp(x1, base.x, base.x + base.w);
+  y1 = clamp(y1, base.y, base.y + base.h);
 
   return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
 }
@@ -1056,7 +1108,7 @@ function addExportLegendToSvg(
   );
 
   // Viewport-based max: full world → narrower legend (smaller fraction); cropped map → wider fraction so legend stays readable
-  const fullArea = VBW * VBH;
+  const fullArea = Math.max(1, baseViewBox.w * baseViewBox.h);
   const visibleArea = vb.w * vb.h;
   const visibleAreaRatio = Math.min(1, visibleArea / fullArea);
   const maxWidthFrac = 0.14 + (1 - visibleAreaRatio) * 0.22;
@@ -1809,7 +1861,7 @@ const exportFromSvg = useCallback(
 
 
     // ✅ crop (same as you already do)
-    const vb = viewBoxFromInsets(cropLocal);
+    const vb = viewBoxFromInsetsForBase(cropLocal, baseViewBox);
     svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
 
     // ✅ your foreignObject => text conversion (same as you already do)
@@ -2179,6 +2231,15 @@ const handleDownload = async () => {
 
   if (!isOpen) return null;
 
+  const resolvedMapProps = mapDataProps?.() ?? {};
+  const selectedMapForDownload =
+    resolvedMapProps.selected_map ??
+    resolvedMapProps.selectedMap ??
+    mapData?.selected_map ??
+    mapData?.selectedMap ??
+    "world";
+  const isUsDownloadMap = String(selectedMapForDownload).toLowerCase() === "usa";
+
   const renderFormatOptions = () => {
   if (format === "jpg") {
     return (
@@ -2428,23 +2489,40 @@ const handleDownload = async () => {
 
                 {/* ✅ hidden render stage that produces the SVG used for export */}
                 <div className={styles.renderStage} ref={renderStageRef} aria-hidden="true">
-                  <MapView
-                    {...mapDataProps()}
+                  {isUsDownloadMap ? (
+                    <MapUS
+                      {...resolvedMapProps}
                       staticView={true}
-                    isLargeMap={false}
-                    hoveredCode={null}
-                    selectedCode={null}
-                    selectedCodeZoom={false}
-                    selectedCodeNonce={0}
-                    groupHoveredCodes={[]}
-                    groupActiveCodes={[]}
-                    suppressInfoBox={true}
-                    activeLegendModel={null}
-                    onCloseActiveLegend={() => {}}
-                    onHoverCode={() => {}}
-                    onSelectCode={() => {}}
-                      onTransformChange={(t) => setMapTransform(t)}   // ✅ IMPORTANT
-                  />
+                      isLargeMap={false}
+                      hoveredCode={null}
+                      selectedCode={null}
+                      groupHoveredCodes={[]}
+                      groupActiveCodes={[]}
+                      suppressInfoBox={true}
+                      activeLegendModel={null}
+                      onCloseActiveLegend={() => {}}
+                      onHoverCode={() => {}}
+                      onSelectCode={() => {}}
+                    />
+                  ) : (
+                    <MapView
+                      {...resolvedMapProps}
+                      staticView={true}
+                      isLargeMap={false}
+                      hoveredCode={null}
+                      selectedCode={null}
+                      selectedCodeZoom={false}
+                      selectedCodeNonce={0}
+                      groupHoveredCodes={[]}
+                      groupActiveCodes={[]}
+                      suppressInfoBox={true}
+                      activeLegendModel={null}
+                      onCloseActiveLegend={() => {}}
+                      onHoverCode={() => {}}
+                      onSelectCode={() => {}}
+                      onTransformChange={(t) => setMapTransform(t)}
+                    />
+                  )}
                 </div>
               </div>
             </div>

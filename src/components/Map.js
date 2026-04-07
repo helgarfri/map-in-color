@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import cls from "./Map.module.css";
+import { MICROSTATE_CODES } from "../constants/microstates";
 
 const JSMap = window.Map;
 
@@ -81,6 +82,21 @@ function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
 
 
 const norm = (c = "") => String(c || "").trim().toUpperCase();
+
+/** ViewBox is "0 0 2000 857". When fitting a region that includes Russia (RU), cap its eastern extent so Europe-focused maps show only up to ~Moscow. Russia's bbox is limited to this x. */
+const EUROPE_EAST_X = 300;
+
+/** When fitting Europe, crop the top so we don't show too much ocean above the continent. The view's top (minY) is at least this value. Skip this crop when Svalbard (SJ) is selected so it stays visible. */
+const EUROPE_NORTH_Y = 50;
+const SVALBARD_CODE = "SJ";
+
+/** When fitting a region that includes Greenland (GL), cap its western and northern extent so the view isn't pulled too far west/north. Min x and min y contributed by GL are clamped to these values. */
+const GREENLAND_WEST_X = 800;
+const GREENLAND_NORTH_Y = 200;
+
+/** When the union bbox is wider than this (e.g. Oceania with Pacific microstates on the left and Australia on the right), we refit using only the "main" side so the view focuses on Australia and surrounding countries. */
+const WRAP_DETECT_WIDTH = 1200;
+const MAP_CENTER_X = 1000;
 
 /**
  * Small countries drawn as custom SVG paths (not in the main map source).
@@ -156,8 +172,10 @@ export default function Map({
 codeToName = {},
 onCloseActiveLegend,
 
-onTransformChange,
-  staticView = false,   // ✅ ADD
+  onTransformChange,
+  staticView: propStaticView = false,
+  /** When true (e.g. StaticMapThumbnail), map is non-interactive and layout centers/fits the SVG in the container. */
+  isThumbnail = false,
 
 
   // ✅ NEW: controlled hover/selection from parent (DataIntegration)
@@ -174,9 +192,24 @@ onTransformChange,
   compactUi = false,
   /** When compactUi is true, still show country/range info boxes (just smaller). Used by DataIntegration preview. */
   compactUiShowInfoBoxes = false,
+  /** When false, microstates (e.g. Monaco, Vatican, Singapore) are hidden on the world map. Default true. */
+  show_microstates = true,
+  /** When set (non-empty array), only these ISO2 codes are shown among microstates. When null/empty, all microstates are shown (if show_microstates is true). */
+  microstates_custom = null,
+  /** When set (non-empty array), only these ISO2 country codes are shown on the map. When null/empty, all countries are shown (world). */
+  custom_map_countries = null,
+  /** When set to a region preset id (europe, asia, africa, etc.), the map fits/crops to that region so the continent fills the view. When "world" or null, view stays full world. */
+  custom_map_preset_id = null,
+  /** Called when the map view is ready (e.g. cropped to custom countries). Use in activity feed to hide skeleton. */
+  onViewReady,
+  verticalOffsetPx = null,
 
 } = {}) {
+  const staticView = propStaticView || isThumbnail;
   const isDarkTheme = theme === "dark";
+
+  const WORLD_VIEWBOX = "0 0 2000 857";
+  const [croppedViewBox, setCroppedViewBox] = useState(null);
 
   
 
@@ -426,21 +459,31 @@ onTransformChange,
   const lastClickRef = useRef({ code: null, t: 0 });
   const lastFitBBoxRef = useRef(null);
 const DOUBLE_CLICK_MS = 260; // tweak 220–320 to taste
+const fitBBoxToViewRef = useRef(null);
 
 const groupHoverRef = useRef(new Set());
 const groupActiveRef = useRef(new Set());
 
 const [isViewReady, setIsViewReady] = useState(false);
 const didInitialFitRef = useRef(false);
+/** Retry counter so we re-run the fit effect when SVG wasn't ready on first paint (initial load / refresh). */
+const [initialFitAttempt, setInitialFitAttempt] = useState(0);
 
-
-
+useEffect(() => {
+  if (isViewReady) onViewReady?.();
+}, [isViewReady, onViewReady]);
+const initialFitRetryTimeoutRef = useRef(null);
+/** Called from TransformWrapper onInit when DOM is ready so initial view is correct on load/refresh. */
+const runInitialFitRef = useRef(null);
 
 const [showResetBtn, setShowResetBtn] = useState(false);
 
 const FULLSCREEN_Y_OFFSET = 70; // ✅ move map DOWN in fullscreen
 const baseX = 0;
-const baseY = isLargeMap ? FULLSCREEN_Y_OFFSET : 0;
+const baseY =
+  typeof verticalOffsetPx === "number"
+    ? verticalOffsetPx
+    : (isLargeMap ? FULLSCREEN_Y_OFFSET : 0);
 const baseScale = 1;
 
 const lastTransformRef = useRef({ x: baseX, y: baseY, scale: 1 });
@@ -487,9 +530,14 @@ const applyNoDataBaseline = useCallback((ms = 0, { store = true } = {}) => {
   const svgEl = svgRef.current;
   if (!api || !svgEl) return null;
 
-  // your preferred global look
+  // Keep world-only downward nudge off for continent presets that still use selected_map=world.
+  const isWorldBaseMap = selected_map === "world";
+  const hasRegionPreset =
+    !!custom_map_preset_id &&
+    custom_map_preset_id !== "world" &&
+    custom_map_preset_id !== "usa";
   const GLOBAL_SCALE = 0.92;
-  const GLOBAL_Y_NUDGE = 0.05; // moves DOWN
+  const GLOBAL_Y_NUDGE = isWorldBaseMap && !hasRegionPreset ? 0.05 : 0;
 
   const vpH = svgEl.clientHeight;
   const t = {
@@ -506,7 +554,7 @@ if (store) {
 }
 return t;
 
-}, [baseX, baseY]);
+}, [baseX, baseY, selected_map, custom_map_preset_id]);
 
 
 
@@ -642,9 +690,9 @@ const resetPanZoom = useCallback((ms = 220) => {
   if (typeof api.setTransform === "function") {
     setTransformAndTrack(baseX, baseY, 1, ms);
     lastTransformRef.current = { x: baseX, y: baseY, scale: 1 };
-  } else if (typeof api.resetTransform === "function") {
+  }
+  if (typeof api.resetTransform === "function") {
     api.resetTransform(ms);
-    // best guess baseline
     lastTransformRef.current = { x: baseX, y: baseY, scale: 1 };
   }
 
@@ -713,6 +761,12 @@ const resetPanZoom = useCallback((ms = 220) => {
 
 
 
+      // if we’re in static preview mode, never change zoom/pan – just update info box
+      if (staticView) {
+        isZoomedRef.current = false;
+        return;
+      }
+
       // if we’re selecting without zoom, mark zoom state off
       if (!zoom) {
         isZoomedRef.current = false;
@@ -721,14 +775,29 @@ const resetPanZoom = useCallback((ms = 220) => {
 
       if (!wrapperRef.current || !svgRef.current) return;
 
+      // In cropped/continent view, reuse bbox-fit zoom path for stable and smoother targeting.
+      // The custom world zoom math can feel jumpy here because the effective viewport is cropped.
+      if (croppedViewBox) {
+        fitBBoxToViewRef.current?.(bbox, {
+          ms: 180,
+          padding: 0.24,
+          store: false,
+          maxScale: 3.2,
+          tightness: 1.12,
+        });
+        return;
+      }
+
       // zoom math (same as your click handler)
       const svgEl = svgRef.current;
       const vpW = svgEl.clientWidth;
       const vpH = svgEl.clientHeight;
-      const vbW = 2000; // your viewBox width
-      const vbH = 857;  // your viewBox height
+      const vb = svgEl.viewBox?.baseVal;
+      const vbX = Number.isFinite(vb?.x) ? vb.x : 0;
+      const vbY = Number.isFinite(vb?.y) ? vb.y : 0;
+      const vbW = Number.isFinite(vb?.width) && vb.width > 0 ? vb.width : 2000;
+      const vbH = Number.isFinite(vb?.height) && vb.height > 0 ? vb.height : 857;
 
-      const scale0 = currentScaleRef.current || 1;
       const fit = Math.min(vpW / vbW, vpH / vbH);
       const pxPerUnit = fit;
 
@@ -737,8 +806,8 @@ const resetPanZoom = useCallback((ms = 220) => {
 
       const centerX = bbox.x + bbox.width * 0.5;
       const centerY = bbox.y + bbox.height * 0.5;
-      const cx = stripeXpx / scale0 + centerX * pxPerUnit;
-      const cy = stripeYpx / scale0 + centerY * pxPerUnit;
+      const cxInView = stripeXpx + (centerX - vbX) * pxPerUnit;
+      const cyInView = stripeYpx + (centerY - vbY) * pxPerUnit;
 
       const targetScale = Math.min(
         4,
@@ -748,13 +817,13 @@ const resetPanZoom = useCallback((ms = 220) => {
 
       // Center the country in the viewport; nudge up slightly so it doesn't feel too low
       const targetCenterY = vpH * 0.48;
-      const x = vpW * 0.5 - cx * targetScale;
-      const y = targetCenterY - cy * targetScale;
+      const x = vpW * 0.5 - cxInView * targetScale;
+      const y = targetCenterY - cyInView * targetScale;
 
       setTransformAndTrack(x, y, targetScale, 250);
 
     },
-    [findColor, findValue]
+    [findColor, findValue, croppedViewBox]
   );
 
   /* ───────────────────────────────
@@ -895,7 +964,7 @@ const handleClick = (e) => {
   // update last click time every time
   lastClickRef.current = { code, t: now };
 
-  if (isFastDouble) {
+  if (isFastDouble && !croppedViewBox) {
     selectCountryByCode(code, { zoom: true });
   }
 
@@ -991,36 +1060,93 @@ const codesWithData = useMemo(() => {
   return Array.from(out);
 }, [data, effectiveMapType]);
 
+// Preset ids for which we fit/crop the view to the region (continent fills the map). World, usa, custom = full world view.
+const REGION_FIT_PRESET_IDS = ["europe", "northAmerica", "southAmerica", "africa", "asia", "oceania", "latinAmerica"];
 
-const getBBoxUnionForCodes = useCallback((codes) => {
-  const svg = svgRef.current;
-  if (!svg) return null;
+// When a region preset is selected (europe, asia, etc.), fit viewport to those countries so the continent fills the map. For "world" or a custom subset of world, keep full world view.
+// When Europe and Svalbard (SJ) is in microstates_custom, include SJ so the view extends north to show it.
+const codesForViewportFit = useMemo(() => {
+  const isRegionPreset = custom_map_preset_id && REGION_FIT_PRESET_IDS.includes(custom_map_preset_id);
+  if (isRegionPreset && Array.isArray(custom_map_countries) && custom_map_countries.length > 0) {
+    const codes = custom_map_countries.map((c) => norm(c)).filter(Boolean);
+    if (
+      custom_map_preset_id === "europe" &&
+      Array.isArray(microstates_custom) &&
+      microstates_custom.some((c) => String(c).toUpperCase().trim() === SVALBARD_CODE)
+    ) {
+      if (!codes.includes(SVALBARD_CODE)) codes.push(SVALBARD_CODE);
+    }
+    return codes;
+  }
+  return codesWithData;
+}, [custom_map_countries, custom_map_preset_id, microstates_custom, codesWithData]);
 
+function getBBoxUnionForCodesInner(svg, codes) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   let found = 0;
-
   for (const code of codes) {
-    const els = getCountryEls(svg, norm(code));
+    const n = norm(code);
+    const els = getCountryEls(svg, n);
+    const isRussia = n === "RU";
+    const isGreenland = n === "GL";
     els.forEach((el) => {
+      if (el.getAttribute("data-territory") === "canary") return;
       try {
         const b = el.getBBox();
-        minX = Math.min(minX, b.x);
-        minY = Math.min(minY, b.y);
-        maxX = Math.max(maxX, b.x + b.width);
+        const left = isGreenland ? Math.max(b.x, GREENLAND_WEST_X) : b.x;
+        const top = isGreenland ? Math.max(b.y, GREENLAND_NORTH_Y) : b.y;
+        minX = Math.min(minX, left);
+        minY = Math.min(minY, top);
+        const right = isRussia ? Math.min(b.x + b.width, EUROPE_EAST_X) : b.x + b.width;
+        maxX = Math.max(maxX, right);
         maxY = Math.max(maxY, b.y + b.height);
         found++;
       } catch {}
     });
   }
-
   if (!found) return null;
-
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+function getOneCodeBBox(svg, code) {
+  return getBBoxUnionForCodesInner(svg, [code]);
+}
+
+const getBBoxUnionForCodes = useCallback((codes) => {
+  const svg = svgRef.current;
+  if (!svg || !codes?.length) return null;
+
+  let bbox = getBBoxUnionForCodesInner(svg, codes);
+  if (!bbox) return null;
+
+  if (bbox.width > WRAP_DETECT_WIDTH) {
+    let leftArea = 0, rightArea = 0;
+    const leftCodes = [], rightCodes = [];
+    for (const code of codes) {
+      const one = getOneCodeBBox(svg, code);
+      if (!one) continue;
+      const centerX = one.x + one.width / 2;
+      const area = one.width * one.height;
+      if (centerX < MAP_CENTER_X) {
+        leftArea += area;
+        leftCodes.push(code);
+      } else {
+        rightArea += area;
+        rightCodes.push(code);
+      }
+    }
+    const keepCodes = rightArea >= leftArea ? rightCodes : leftCodes;
+    if (keepCodes.length > 0) {
+      bbox = getBBoxUnionForCodesInner(svg, keepCodes);
+    }
+  }
+
+  return bbox;
 }, []);
 
 
 const fitBBoxToView = useCallback(
-  (bbox, { ms = 260, padding = 0.12, store = false } = {}) => {
+  (bbox, { ms = 260, padding = 0.12, store = false, maxScale = 6, tightness = 1.5 } = {}) => {
     const api = wrapperRef.current;
     const svgEl = svgRef.current;
     if (!api || !svgEl || !bbox) return null;
@@ -1028,8 +1154,11 @@ const fitBBoxToView = useCallback(
     const vpW = svgEl.clientWidth;
     const vpH = svgEl.clientHeight;
 
-    const vbW = 2000;
-    const vbH = 857;
+    const vb = svgEl.viewBox?.baseVal;
+    const vbX = Number.isFinite(vb?.x) ? vb.x : 0;
+    const vbY = Number.isFinite(vb?.y) ? vb.y : 0;
+    const vbW = Number.isFinite(vb?.width) && vb.width > 0 ? vb.width : 2000;
+    const vbH = Number.isFinite(vb?.height) && vb.height > 0 ? vb.height : 857;
 
     const fit = Math.min(vpW / vbW, vpH / vbH);
     const pxPerUnit = fit;
@@ -1055,8 +1184,13 @@ const fitBBoxToView = useCallback(
       coverX > 0.88 || coverY > 0.88 || coverA > 0.60;
 
 
+const isWorldBaseMap = selected_map === "world";
+const hasRegionPreset =
+  !!custom_map_preset_id &&
+  custom_map_preset_id !== "world" &&
+  custom_map_preset_id !== "usa";
 const GLOBAL_SCALE = 0.92;           // tweak: 0.88–0.95
-const GLOBAL_Y_NUDGE = 0.05;         // +4% of viewport height (moves map DOWN)
+const GLOBAL_Y_NUDGE = isWorldBaseMap && !hasRegionPreset ? 0.05 : 0;
 
 if (isGlobalSpread) {
   const nudgeYpx = vpH * GLOBAL_Y_NUDGE;
@@ -1083,17 +1217,15 @@ if (isGlobalSpread) {
     const stripeXpx = (vpW - vbW * fit) * 0.5;
     const stripeYpx = (vpH - vbH * fit) * 0.5;
 
-    const centerX = stripeXpx + (bb.x + bb.width / 2) * pxPerUnit;
-    const centerY = stripeYpx + (bb.y + bb.height / 2) * pxPerUnit;
+    const centerX = stripeXpx + ((bb.x + bb.width / 2) - vbX) * pxPerUnit;
+    const centerY = stripeYpx + ((bb.y + bb.height / 2) - vbY) * pxPerUnit;
 
       const computedScale = Math.min(
-        6,
+        maxScale,
         (vpW * 0.94) / (bb.width * pxPerUnit),
         (vpH * 0.94) / (bb.height * pxPerUnit)
       );
-
-      const TIGHTNESS = 1.5; // 1.05–1.18 is realistic
-      const scale = Math.max(1, Math.min(6, computedScale * TIGHTNESS));
+      const scale = Math.max(1, Math.min(maxScale, computedScale * tightness));
 
 
     const yOffsetPx = baseY;
@@ -1112,8 +1244,12 @@ if (isGlobalSpread) {
     }
     return t;
   },
-  [baseX, baseY]
+  [baseX, baseY, selected_map, custom_map_preset_id]
 );
+
+useEffect(() => {
+  fitBBoxToViewRef.current = fitBBoxToView;
+}, [fitBBoxToView]);
 
 
 
@@ -1200,55 +1336,221 @@ useEffect(() => {
   }
 }, [codesWithData.length]);
 
+// Reset retry counter only when the fit target actually changes (stable key). Avoids resetting on every render when codesForViewportFit is a new array reference, which would cancel the retry timeout and leave the skeleton loading forever.
+const fitTargetKey = `${selected_map}-${custom_map_preset_id ?? ""}-${(codesForViewportFit || []).join(",")}`;
+const prevFitTargetKeyRef = useRef("");
 useEffect(() => {
-  if (didInitialFitRef.current) return;
+  if (prevFitTargetKeyRef.current !== fitTargetKey) {
+    prevFitTargetKeyRef.current = fitTargetKey;
+    setInitialFitAttempt(0);
+  }
+}, [fitTargetKey]);
 
-  // ✅ CASE A: no data assigned → reveal immediately with global baseline
-  if (!codesWithData.length) {
+// When preset or countries change, mark view not ready so parent can show skeleton until new view is applied.
+useEffect(() => {
+  setIsViewReady(false);
+  didInitialFitRef.current = false;
+}, [custom_map_preset_id, custom_map_countries]);
+
+// Ref used by TransformWrapper onInit to run initial fit when wrapper/SVG are ready (fixes initial view on load/refresh).
+useEffect(() => {
+  runInitialFitRef.current = () => {
+    if (didInitialFitRef.current) return;
+    if (codesForViewportFit.length === 0) {
+      setCroppedViewBox(null);
+      applyNoDataBaseline(0, { store: true });
+      didInitialFitRef.current = true;
+      setIsViewReady(true);
+      return;
+    }
+    const bbox = getBBoxUnionForCodes(codesForViewportFit);
+    if (!bbox) return;
+    const isRegionPresetFit = custom_map_preset_id && REGION_FIT_PRESET_IDS.includes(custom_map_preset_id) && Array.isArray(custom_map_countries) && custom_map_countries.length > 0;
+    if (isRegionPresetFit) {
+      const pad = 0.04;
+      const padX = bbox.width * pad;
+      const padY = bbox.height * pad;
+      let bb = { x: bbox.x - padX, y: bbox.y - padY, width: bbox.width + padX * 2, height: bbox.height + padY * 2 };
+      const includesSvalbard =
+        codesForViewportFit.some((c) => norm(c) === SVALBARD_CODE) ||
+        (Array.isArray(microstates_custom) && microstates_custom.some((c) => String(c).toUpperCase().trim() === SVALBARD_CODE));
+      if (custom_map_preset_id === "europe" && !includesSvalbard && bb.y < EUROPE_NORTH_Y) {
+        const cropTop = EUROPE_NORTH_Y - bb.y;
+        bb = { x: bb.x, y: EUROPE_NORTH_Y, width: bb.width, height: bb.height - cropTop };
+      }
+      if (bb.width > 0 && bb.height > 0) {
+        setCroppedViewBox(`${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
+        requestAnimationFrame(() => {
+          resetPanZoom(0);
+          setIsViewReady(true);
+        });
+      } else {
+        setCroppedViewBox(null);
+        requestAnimationFrame(() => setIsViewReady(true));
+      }
+      didAutoFitRef.current = true;
+      didInitialFitRef.current = true;
+      return;
+    }
+    setCroppedViewBox(null);
+    fitBBoxToView(bbox, { ms: 220, padding: 0.12, store: true });
+    didAutoFitRef.current = true;
+    didInitialFitRef.current = true;
+    requestAnimationFrame(() => setIsViewReady(true));
+  };
+}, [codesForViewportFit, custom_map_countries, custom_map_preset_id, microstates_custom, getBBoxUnionForCodes, fitBBoxToView, applyNoDataBaseline, resetPanZoom]);
+
+const MAX_INITIAL_FIT_RETRIES = 8;
+
+useEffect(() => {
+  // Fit viewport to visible countries: custom_map_countries when set, else codesWithData; empty = full world
+  if (codesForViewportFit.length === 0) {
+    if (initialFitRetryTimeoutRef.current) {
+      clearTimeout(initialFitRetryTimeoutRef.current);
+      initialFitRetryTimeoutRef.current = null;
+    }
+    setCroppedViewBox(null); // full world
     requestAnimationFrame(() => {
       applyNoDataBaseline(0, { store: true });
       didInitialFitRef.current = true;
-
       requestAnimationFrame(() => setIsViewReady(true));
     });
     return;
   }
 
-  // ✅ CASE B: normal maps with data → fit bbox then reveal
   requestAnimationFrame(() => {
-    const bbox = getBBoxUnionForCodes(codesWithData);
+    const bbox = getBBoxUnionForCodes(codesForViewportFit);
     if (!bbox) {
-      // super defensive fallback (rare): still reveal
-      applyNoDataBaseline(0, { store: true });
-      didInitialFitRef.current = true;
-      requestAnimationFrame(() => setIsViewReady(true));
+      // SVG may not be laid out yet on first paint (initial load / refresh). Retry a few times.
+      if (initialFitAttempt < MAX_INITIAL_FIT_RETRIES) {
+        if (initialFitRetryTimeoutRef.current) clearTimeout(initialFitRetryTimeoutRef.current);
+        initialFitRetryTimeoutRef.current = setTimeout(() => {
+          initialFitRetryTimeoutRef.current = null;
+          setInitialFitAttempt((a) => a + 1);
+        }, 60);
+      } else {
+        setCroppedViewBox(null);
+        applyNoDataBaseline(0, { store: true });
+        didInitialFitRef.current = true;
+        requestAnimationFrame(() => setIsViewReady(true));
+      }
       return;
     }
 
-    fitBBoxToView(bbox, { ms: 0, padding: 0.12, store: true });
+    const isRegionPresetFit = custom_map_preset_id && REGION_FIT_PRESET_IDS.includes(custom_map_preset_id) && Array.isArray(custom_map_countries) && custom_map_countries.length > 0;
+    if (isRegionPresetFit) {
+      const pad = 0.04;
+      const padX = bbox.width * pad;
+      const padY = bbox.height * pad;
+      let bb = { x: bbox.x - padX, y: bbox.y - padY, width: bbox.width + padX * 2, height: bbox.height + padY * 2 };
+      const includesSvalbard =
+        codesForViewportFit.some((c) => norm(c) === SVALBARD_CODE) ||
+        (Array.isArray(microstates_custom) && microstates_custom.some((c) => String(c).toUpperCase().trim() === SVALBARD_CODE));
+      if (custom_map_preset_id === "europe" && !includesSvalbard && bb.y < EUROPE_NORTH_Y) {
+        const cropTop = EUROPE_NORTH_Y - bb.y;
+        bb = { x: bb.x, y: EUROPE_NORTH_Y, width: bb.width, height: bb.height - cropTop };
+      }
+      if (bb.width > 0 && bb.height > 0) {
+        setCroppedViewBox(`${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
+        requestAnimationFrame(() => {
+          resetPanZoom(0);
+          setIsViewReady(true);
+        });
+      } else {
+        setCroppedViewBox(null);
+        requestAnimationFrame(() => setIsViewReady(true));
+      }
+      didAutoFitRef.current = true;
+      didInitialFitRef.current = true;
+      return;
+    }
+    setCroppedViewBox(null);
+    fitBBoxToView(bbox, { ms: 220, padding: 0.12, store: true });
     didAutoFitRef.current = true;
     didInitialFitRef.current = true;
 
     requestAnimationFrame(() => setIsViewReady(true));
   });
-}, [codesWithData, getBBoxUnionForCodes, fitBBoxToView, applyNoDataBaseline]);
 
+  return () => {
+    if (initialFitRetryTimeoutRef.current) {
+      clearTimeout(initialFitRetryTimeoutRef.current);
+      initialFitRetryTimeoutRef.current = null;
+    }
+  };
+}, [codesForViewportFit, custom_map_countries, custom_map_preset_id, microstates_custom, compactUi, getBBoxUnionForCodes, fitBBoxToView, applyNoDataBaseline, initialFitAttempt, resetPanZoom]);
+
+
+const prevIsLargeMapRef = useRef(isLargeMap);
+const prevStaticViewRef = useRef(staticView);
 
 useEffect(() => {
-  // When entering/leaving fullscreen: viewport size and baseY change.
-  // If we have a stored bbox (adjusted view from selected countries), re-fit it
-  // so we keep the same view instead of jumping to full world. Otherwise reset.
-  if (lastFitBBoxRef.current) {
-    setIsViewReady(false);
-    requestAnimationFrame(() => {
-      fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
-      requestAnimationFrame(() => setIsViewReady(true));
-    });
-  } else {
-    resetPanZoom(0);
+  const wasFullScreen = prevIsLargeMapRef.current;
+  prevIsLargeMapRef.current = isLargeMap;
+
+  // Exiting fullscreen: always reset view to initial so non-fullscreen view is unchanged.
+  // Always run resetPanZoom first (fixes world map case); then re-apply data fit if we have a stored bbox.
+  if (wasFullScreen && !isLargeMap) {
     setShowResetBtn(false);
+    resetPanZoom(0);
+    if (lastFitBBoxRef.current) {
+      setIsViewReady(false);
+      requestAnimationFrame(() => {
+        fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+        requestAnimationFrame(() => setIsViewReady(true));
+      });
+    }
+    const t = setTimeout(() => {
+      resetPanZoom(0);
+      if (lastFitBBoxRef.current) {
+        fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+      }
+    }, 80);
+    return () => clearTimeout(t);
+  }
+
+  // Entering fullscreen: re-fit for new viewport size so view doesn't jump.
+  if (!wasFullScreen && isLargeMap) {
+    if (lastFitBBoxRef.current) {
+      setIsViewReady(false);
+      requestAnimationFrame(() => {
+        fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+        requestAnimationFrame(() => setIsViewReady(true));
+      });
+    } else {
+      resetPanZoom(0);
+    }
   }
 }, [isLargeMap, fitBBoxToView, resetPanZoom]);
+
+// When switching to static view (e.g. exited fullscreen), force reset view multiple times
+// so the pan/zoom library reliably applies it (it often ignores updates right when disabled becomes true).
+// Always run resetPanZoom first (fixes world map); then re-apply data fit if we have a stored bbox.
+useEffect(() => {
+  const wasStatic = prevStaticViewRef.current;
+  prevStaticViewRef.current = staticView;
+  if (!staticView || wasStatic) return;
+
+  setShowResetBtn(false);
+  const runReset = () => {
+    resetPanZoom(0);
+    if (lastFitBBoxRef.current) {
+      fitBBoxToView(lastFitBBoxRef.current, { ms: 0, padding: 0, store: true });
+    }
+  };
+
+  runReset();
+  const t1 = requestAnimationFrame(runReset);
+  const t2 = setTimeout(runReset, 50);
+  const t3 = setTimeout(runReset, 150);
+  const t4 = setTimeout(runReset, 300);
+  return () => {
+    cancelAnimationFrame(t1);
+    clearTimeout(t2);
+    clearTimeout(t3);
+    clearTimeout(t4);
+  };
+}, [staticView, fitBBoxToView, resetPanZoom]);
 
 
 
@@ -1417,6 +1719,59 @@ useLayoutEffect(() => {
   svg.classList.remove(cls.isPainting);
   svg.classList.add(cls.isReady);
 }, [derivedGroups, unassigned_color]);
+
+// When custom_map_countries is set, only show those countries; hide all others.
+// Canary Islands (Tenerife etc.) are always hidden — they use data-territory="canary".
+useLayoutEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+  const allowedSet = Array.isArray(custom_map_countries) && custom_map_countries.length > 0
+    ? new Set(custom_map_countries.map((c) => String(c).toUpperCase().trim()))
+    : null;
+  if (allowedSet) {
+    svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+      if (el.getAttribute("data-territory") === "canary") {
+        el.style.display = "none";
+        return;
+      }
+      const code = el.id ? String(el.id).toUpperCase().trim() : "";
+      el.style.display = code && allowedSet.has(code) ? "" : "none";
+    });
+  } else {
+    svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+      if (el.getAttribute("data-territory") === "canary") {
+        el.style.display = "none";
+        return;
+      }
+      el.style.display = "";
+    });
+  }
+}, [custom_map_countries]);
+
+// Hide or show microstates based on show_microstates and optional microstates_custom
+// (Do not touch non-microstate elements here so custom_map_countries visibility is preserved.)
+useLayoutEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+  const customSet = Array.isArray(microstates_custom) && microstates_custom.length > 0
+    ? new Set(microstates_custom.map((c) => String(c).toUpperCase().trim()))
+    : null;
+  svg.querySelectorAll("path[id], polygon[id], rect[id]").forEach((el) => {
+    const code = el.id ? String(el.id).toUpperCase().trim() : "";
+    const isMicrostate = code && MICROSTATE_CODES.has(code);
+    if (!isMicrostate) return;
+    if (!show_microstates) {
+      el.style.display = "none";
+      return;
+    }
+    if (customSet) {
+      el.style.display = customSet.has(code) ? "" : "none";
+      return;
+    }
+    el.style.display = "";
+  });
+}, [show_microstates, microstates_custom]);
+
 const handleResetViewClick = useCallback(() => {
   resetToDataView(220);
 
@@ -1430,7 +1785,11 @@ const handleResetViewClick = useCallback(() => {
 
   /* ── jsx ─────────────────────────────────────────────────────────── */
   return (
-    <div className={cls.mapRoot} data-theme={isDarkTheme ? "dark" : "light"} data-compact-ui={compactUi ? "1" : "0"}>
+    <div
+      className={cls.mapRoot}
+      data-theme={isDarkTheme ? "dark" : "light"}
+      data-compact-ui={compactUi ? "1" : "0"}
+    >
     {renderGroupInfoBox()}
     {renderInfoBox()}
 
@@ -1480,6 +1839,10 @@ onInit={({ state }) => {
   lastTransformRef.current = { x: state.positionX, y: state.positionY, scale: state.scale };
   updateResetBtn(state);
   emitTransform(state);
+  // Run initial fit when wrapper/SVG are ready so view is correct on first load and refresh (not full world).
+  requestAnimationFrame(() => {
+    runInitialFitRef.current?.();
+  });
 }}
 onZoomStop={({ state }) => {
   currentScaleRef.current = state.scale;
@@ -1501,7 +1864,8 @@ onPanningStop={({ state }) => {
           wrapperStyle={{ width: "100%", height: "100%" }}
           contentStyle={{
             width: "100%",
-            height: "auto",
+            /* In thumbnail mode, content must fill height so flex centering works; otherwise height: auto can make content overflow at top */
+            height: isThumbnail ? "100%" : "auto",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1512,15 +1876,13 @@ onPanningStop={({ state }) => {
   ref={svgRef}
   className={cls.mapCanvas}
   data-stroke={strokeMode}
-  viewBox="0 0 2000 857"
+  viewBox={croppedViewBox || WORLD_VIEWBOX}
   /*              ▼ swap “slice” for “meet”     */
   preserveAspectRatio="xMidYMid meet"
   strokeLinecap="round"
   strokeLinejoin="round"
   xmlns="http://www.w3.org/2000/svg"
 onPointerDownCapture={(e) => {
-  if (staticView) return; // ✅ don't clear stuff in static preview
-
   const t = e.target;
   const isCountryEl =
     t &&
@@ -1529,6 +1891,7 @@ onPointerDownCapture={(e) => {
 
   if (isCountryEl) return;
 
+  // Clicking ocean (or non-country) clears selection in both static and interactive view
   clearAll();
 }}
 
@@ -2432,19 +2795,19 @@ onPointerDownCapture={(e) => {
             </path>
             <path d="M644 406.9l0 0.2 0.4-0.1-0.2 0.5 0.2 0.2 0 0.2 0.2 0.2 0.2 0.9-0.3 0.3-0.1-0.4-0.1 0.1-0.6-0.1-0.4 0-0.2-0.3 0.6-0.5-0.4 0-0.4-0.4-0.1-0.5-0.2-0.5 0.3-0.4 0.4 0.1 0.5 0.3 0.2 0.2z" id="MQ" name="Martinique">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 888.4 323.4 888.1 323.9 887.7 324.4 887.4 324 887 324 886.8 323.8 887 323.5 887.4 323.6 887.8 323.2 888.1 323 888.3 323.1 888.4 323.4 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 888.4 323.4 888.1 323.9 887.7 324.4 887.4 324 887 324 886.8 323.8 887 323.5 887.4 323.6 887.8 323.2 888.1 323 888.3 323.1 888.4 323.4 Z">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 902 321.1 902 321.6 902.2 322 902 322.7 902.1 323 901.7 323.4 901.2 323.6 901 323.8 900.4 323.6 899.9 323.1 899.7 322.7 899.7 322.1 900.3 321.7 900.4 321.2 900.4 321 901 321.1 901.4 321.1 901.7 321.2 902 321.1 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 902 321.1 902 321.6 902.2 322 902 322.7 902.1 323 901.7 323.4 901.2 323.6 901 323.8 900.4 323.6 899.9 323.1 899.7 322.7 899.7 322.1 900.3 321.7 900.4 321.2 900.4 321 901 321.1 901.4 321.1 901.7 321.2 902 321.1 Z">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 892.1 321.9 891.9 321.9 891.6 321.7 891.4 321.4 891.5 321 891.6 320.7 891.9 320.7 892.2 320.7 892.7 321.1 892.8 321.4 892.3 321.9 892.1 321.9 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 892.1 321.9 891.9 321.9 891.6 321.7 891.4 321.4 891.5 321 891.6 320.7 891.9 320.7 892.2 320.7 892.7 321.1 892.8 321.4 892.3 321.9 892.1 321.9 Z">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 898.2 318.4 898.2 318.6 897.6 318.9 897.2 319.4 896.9 319.6 896.9 320 896.5 320.7 896.4 321.1 895.9 321.7 895.8 321.9 895.6 321.9 895 322.1 894.9 322 894.8 321.6 894.5 321.2 894.4 321 894.2 320.7 894.2 320.4 893.8 319.8 894.3 319.5 894.6 319.7 895.2 319.5 895.6 319.5 896.1 319.3 896.6 318.9 896.6 318.7 897.2 318.4 897.8 318.4 898.1 318.3 898.2 318.4 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 898.2 318.4 898.2 318.6 897.6 318.9 897.2 319.4 896.9 319.6 896.9 320 896.5 320.7 896.4 321.1 895.9 321.7 895.8 321.9 895.6 321.9 895 322.1 894.9 322 894.8 321.6 894.5 321.2 894.4 321 894.2 320.7 894.2 320.4 893.8 319.8 894.3 319.5 894.6 319.7 895.2 319.5 895.6 319.5 896.1 319.3 896.6 318.9 896.6 318.7 897.2 318.4 897.8 318.4 898.1 318.3 898.2 318.4 Z">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 908.4 321.2 908.1 321.6 907.7 321.7 907.4 321.6 907 321.6 907 321.4 907.3 321.4 907.9 321.2 908.3 320.9 908.6 320.6 908.7 320.1 908.8 319.8 909 319.3 909.3 318.9 909.6 318.3 909.8 317.5 910 317.3 910.4 317.2 910.7 317.5 910.8 318 910.7 318.5 910.6 319 910.6 319.5 910.5 319.6 910.2 320.3 909.9 320.6 909.3 320.7 908.6 321 908.4 321.2 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 908.4 321.2 908.1 321.6 907.7 321.7 907.4 321.6 907 321.6 907 321.4 907.3 321.4 907.9 321.2 908.3 320.9 908.6 320.6 908.7 320.1 908.8 319.8 909 319.3 909.3 318.9 909.6 318.3 909.8 317.5 910 317.3 910.4 317.2 910.7 317.5 910.8 318 910.7 318.5 910.6 319 910.6 319.5 910.5 319.6 910.2 320.3 909.9 320.6 909.3 320.7 908.6 321 908.4 321.2 Z">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 888.8 316.7 889.1 316.6 889.3 316.9 889.5 317.4 889.3 317.7 889.4 318.1 888.8 319.1 888.7 319 888.6 318.6 888.2 317.7 888.1 317.4 888 317.2 888.2 316.8 888.5 316.6 888.8 316.7 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 888.8 316.7 889.1 316.6 889.3 316.9 889.5 317.4 889.3 317.7 889.4 318.1 888.8 319.1 888.7 319 888.6 318.6 888.2 317.7 888.1 317.4 888 317.2 888.2 316.8 888.5 316.6 888.8 316.7 Z">
             </path>
-            <path class="Canary Islands (Spain)" id="ES" name="Spain" d="M 912.9 314.7 912.9 315.1 912.7 315.6 912 316.1 911.5 316.2 911.1 316.7 910.6 316.5 910.6 316.4 910.8 316 910.8 315.6 911 315.3 911.3 315.1 911.6 315.1 911.9 314.8 912.4 314.8 912.5 314.7 912.7 314.2 912.9 314.1 913.1 314.3 912.9 314.7 Z">
+            <path class="Canary Islands (Spain)" data-territory="canary" id="ES" name="Spain" d="M 912.9 314.7 912.9 315.1 912.7 315.6 912 316.1 911.5 316.2 911.1 316.7 910.6 316.5 910.6 316.4 910.8 316 910.8 315.6 911 315.3 911.3 315.1 911.6 315.1 911.9 314.8 912.4 314.8 912.5 314.7 912.7 314.2 912.9 314.1 913.1 314.3 912.9 314.7 Z">
             </path>
             <path d="M1240.2 583.1l0.2 0.3 0.5 0.2 0 0.3-0.2 0.2 0.1 0.2-0.3 0.6 0.1 0.2-0.3 0.1-0.2-0.3 0-0.3 0.2-0.2-0.2-0.7-0.1-0.1-0.1-0.2 0.3-0.3z" id="YT" name="Mayotte">
             </path>
