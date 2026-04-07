@@ -877,24 +877,6 @@ function confirmClearData() {
   clearPlaygroundDraft();
 }
 
-  /** Compare two code arrays (null or array) for equality. */
-  function customMapSelectionEqual(a, b) {
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-    const setA = new Set((a || []).map((c) => normCode(c)).filter(Boolean));
-    const setB = new Set((b || []).map((c) => normCode(c)).filter(Boolean));
-    if (setA.size !== setB.size) return false;
-    for (const c of setA) if (!setB.has(c)) return false;
-    return true;
-  }
-
-  const hasMeaningfulData = (dataArr) =>
-    Array.isArray(dataArr) && dataArr.some((d) => {
-      const v = d?.value;
-      return v != null && String(v).trim() !== "";
-    });
-
   function handleSelectMapPreset(presetId) {
     const preset = CUSTOM_MAP_MODAL_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
@@ -937,12 +919,6 @@ function confirmClearData() {
   function handleCustomMapSave(codes, presetId, microstatesCodes) {
     if (presetId === "usa") {
       if (selected_map !== "usa") {
-        if (hasMeaningfulData(data)) {
-          pendingCustomMapSaveRef.current = { codes: null, presetId: "usa", microstatesCodes: null };
-          setShowCustomMapModal(false);
-          setShowChangePresetModal(true);
-          return;
-        }
         setSelectedMap("usa");
         setCustomMapCountries(codes);
         setCustomMapPresetId("usa");
@@ -955,16 +931,8 @@ function confirmClearData() {
       setShowCustomMapModal(false);
       return;
     }
-    const selectionChanged =
-      !customMapSelectionEqual(customMapCountries, codes) ||
-      customMapPresetId !== (presetId ?? null) ||
-      (microstatesCodes !== undefined && !customMapSelectionEqual(microstatesCustom, microstatesCodes));
-    if (selectionChanged && hasMeaningfulData(data)) {
-      pendingCustomMapSaveRef.current = { codes, presetId: presetId ?? null, microstatesCodes: microstatesCodes ?? null };
-      setShowCustomMapModal(false);
-      setShowChangePresetModal(true);
-      return;
-    }
+    // Preserve entered/imported data when changing custom country/microstate selections.
+    // We only change map visibility/preset metadata here.
     setCustomMapCountries(codes);
     setCustomMapPresetId(presetId ?? null);
     setMicrostatesCustom(microstatesCodes === undefined ? microstatesCustom : microstatesCodes);
@@ -986,12 +954,6 @@ function confirmClearData() {
       setCustomMapPresetId(pending.presetId);
       setMicrostatesCustom(pending.microstatesCodes);
     }
-    setData([]);
-    setFileStats(defaultFileStats);
-    setPlaceholders({});
-    setCustomRanges([{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
-    setGroups([normalizeGroup({ id: Date.now(), name: "", color: "#c0c0c0" })]);
-    clearPlaygroundDraft();
   }
 
   function cancelChangePreset() {

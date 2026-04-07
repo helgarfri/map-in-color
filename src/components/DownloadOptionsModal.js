@@ -162,6 +162,12 @@ const waitForRenderStageSvg = async (container, maxFrames = 40) => {
   return null;
 };
 
+const waitFrames = async (count = 1) => {
+  for (let i = 0; i < count; i += 1) {
+    await new Promise((r) => requestAnimationFrame(() => r()));
+  }
+};
+
 const safeBase = (base) => {
   if (!base || !Number.isFinite(base.w) || !Number.isFinite(base.h) || base.w <= 0 || base.h <= 0) {
     return { x: 0, y: 0, w: VBW, h: VBH };
@@ -273,6 +279,9 @@ useEffect(() => {
     const container = renderStageRef.current;
     const svg = await waitForRenderStageSvg(container);
     if (!svg || cancelled) return;
+    // Give the hidden render stage a couple of frames so Map visibility styles are applied.
+    await waitFrames(2);
+    if (cancelled) return;
     const detectedBase = getViewBoxFromSvg(svg);
     const baseForInit = safeBase(detectedBase || baseViewBox);
     if (detectedBase) setBaseViewBox(detectedBase);
@@ -561,8 +570,20 @@ function getBBoxUnionForCodesInSvg(svgEl, codes) {
       `path[id='${code}'], polygon[id='${code}'], rect[id='${code}']`
     );
     els.forEach((el) => {
+      const inlineDisplay = (el.style?.display || "").toLowerCase();
+      if (inlineDisplay === "none") return;
+      const computed = window.getComputedStyle(el);
+      if (
+        computed.display === "none" ||
+        computed.visibility === "hidden" ||
+        Number(computed.opacity) === 0
+      ) {
+        return;
+      }
       try {
         const b = el.getBBox();
+        if (!Number.isFinite(b?.width) || !Number.isFinite(b?.height)) return;
+        if (b.width <= 0 || b.height <= 0) return;
         minX = Math.min(minX, b.x);
         minY = Math.min(minY, b.y);
         maxX = Math.max(maxX, b.x + b.width);
@@ -634,8 +655,20 @@ function getBBoxAllMapShapes(svgEl) {
   // tweak selectors if your map has other stuff
   const els = svgEl.querySelectorAll("path[id], polygon[id], rect[id]");
   els.forEach((el) => {
+    const inlineDisplay = (el.style?.display || "").toLowerCase();
+    if (inlineDisplay === "none") return;
+    const computed = window.getComputedStyle(el);
+    if (
+      computed.display === "none" ||
+      computed.visibility === "hidden" ||
+      Number(computed.opacity) === 0
+    ) {
+      return;
+    }
     try {
       const b = el.getBBox();
+      if (!Number.isFinite(b?.width) || !Number.isFinite(b?.height)) return;
+      if (b.width <= 0 || b.height <= 0) return;
       minX = Math.min(minX, b.x);
       minY = Math.min(minY, b.y);
       maxX = Math.max(maxX, b.x + b.width);

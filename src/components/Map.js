@@ -1063,11 +1063,15 @@ const codesWithData = useMemo(() => {
 // Preset ids for which we fit/crop the view to the region (continent fills the map). World, usa, custom = full world view.
 const REGION_FIT_PRESET_IDS = ["europe", "northAmerica", "southAmerica", "africa", "asia", "oceania", "latinAmerica"];
 
-// When a region preset is selected (europe, asia, etc.), fit viewport to those countries so the continent fills the map. For "world" or a custom subset of world, keep full world view.
+// Fit viewport to selected custom countries whenever we are on the world map.
+// This keeps continent/custom selections framed correctly even if preset id is null/non-region.
 // When Europe and Svalbard (SJ) is in microstates_custom, include SJ so the view extends north to show it.
 const codesForViewportFit = useMemo(() => {
-  const isRegionPreset = custom_map_preset_id && REGION_FIT_PRESET_IDS.includes(custom_map_preset_id);
-  if (isRegionPreset && Array.isArray(custom_map_countries) && custom_map_countries.length > 0) {
+  const hasCustomCountrySelection =
+    selected_map === "world" &&
+    Array.isArray(custom_map_countries) &&
+    custom_map_countries.length > 0;
+  if (hasCustomCountrySelection) {
     const codes = custom_map_countries.map((c) => norm(c)).filter(Boolean);
     if (
       custom_map_preset_id === "europe" &&
@@ -1079,7 +1083,7 @@ const codesForViewportFit = useMemo(() => {
     return codes;
   }
   return codesWithData;
-}, [custom_map_countries, custom_map_preset_id, microstates_custom, codesWithData]);
+}, [selected_map, custom_map_countries, custom_map_preset_id, microstates_custom, codesWithData]);
 
 function getBBoxUnionForCodesInner(svg, codes) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
