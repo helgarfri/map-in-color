@@ -39,11 +39,11 @@
   box-shadow: var(--shadow);
 }
 
-/* ===== Thumbnail ===== */
+/* ===== Thumbnail (fixed size like StaticMapThumbnail / Dashboard map cards) ===== */
 .thumbContainer {
   position: relative;
-  width: 350px;
-  height: 100%;
+  width: 220px;
+  height: 120px; /* fixed height so all thumbnails are same size; map scales to fit */
   flex-shrink: 0;
 
   border-radius: 14px;
@@ -52,13 +52,61 @@
 
   display: grid;
   place-items: center;
-  /* Slightly different from card so thumbnail area stands out */
   background: var(--thumbnail-bg, #e5e9ed);
 }
 
-/* stage wrapper around <Map/> */
+/* stage wrapper around <Map/> – fill container so Map gets fixed box and scales to fit inside */
 .thumbMapStage {
   width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Hide the entire Map until view is ready: zero height + invisible so no frame can paint */
+.thumbMapStageHidden {
+  position: absolute !important;
+  width: 100% !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+/* Map root fills stage */
+.thumbMapStage > * {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Center and contain SVG like StaticMapThumbnail */
+.thumbMapStage div:has(> svg) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.thumbMapStage svg {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  flex-shrink: 0;
 }
 
 .thumbContainer svg,
@@ -74,6 +122,31 @@
   font-size: 12px;
   font-weight: 900;
   color: var(--muted);
+}
+
+/* Skeleton overlay until map view is ready (fully opaque so map transition is never visible) */
+.thumbMapSkeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--thumbnail-bg, #e5e9ed);
+  border-radius: 14px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.thumbMapSkeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skeleton-shimmer, rgba(255,255,255,0.5)) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.15s infinite;
 }
 
 /* blocks hover/drag/zoom inside Map */

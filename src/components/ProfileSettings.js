@@ -42,7 +42,6 @@ export default function ProfileSettings() {
     last_name: '',
     location: '',
     description: '',
-    gender: '',
     date_of_birth: '',
   });
 
@@ -72,7 +71,6 @@ export default function ProfileSettings() {
 
   // Modals
   const [showCountryModal, setShowCountryModal] = useState(false);
-  const [showGenderModal, setShowGenderModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
 
@@ -155,7 +153,6 @@ useEffect(() => {
       last_name: profile.last_name || '',
       location: profile.location || '',
       description: profile.description || '',
-      gender: profile.gender || '',
       date_of_birth: profile.date_of_birth || '',
     }));
 
@@ -329,7 +326,6 @@ const handleSubmit = async (e) => {
     payload.append("last_name", formData.last_name);
     payload.append("location", formData.location);
     payload.append("description", formData.description);
-    payload.append("gender", formData.gender);
 
     // Date of birth (only send if user edited it and it has a value)
     if (editFields.date_of_birth && formData.date_of_birth) {
@@ -707,13 +703,7 @@ function ChangePasswordModal({ onClose }) {
                       <FieldDisplay label="Username" value={formData.username} />
 
                       <FieldAction
-                        label="Gender"
-                        value={formData.gender || "Not specified"}
-                        onEdit={() => setShowGenderModal(true)}
-                      />
-
-                      <FieldAction
-                        label="Location"
+                        label="Country"
                         value={formData.location || "Not specified"}
                         onEdit={() => setShowCountryModal(true)}
                       />
@@ -1092,18 +1082,6 @@ function ChangePasswordModal({ onClose }) {
         />
       )}
 
-      {/* Gender Picker Modal */}
-      {showGenderModal && (
-        <GenderPickerModal
-          selectedGender={formData.gender}
-          onSelectGender={(g) => {
-            setFormData((prev) => ({ ...prev, gender: g }));
-            setShowGenderModal(false);
-          }}
-          onClose={() => setShowGenderModal(false)}
-        />
-      )}
-
       {/* Crop Modal */}
       {showCropModal && (
         <CropModal
@@ -1232,37 +1210,6 @@ function CountryPickerModal({ onSelectCountry, onClose }) {
               onClick={() => onSelectCountry(country)}
             >
               {country}
-            </div>
-          ))}
-        </div>
-        <button className={styles.modalCloseButton} onClick={onClose}>
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------
-   GenderPickerModal
------------------------------- */
-function GenderPickerModal({ selectedGender, onSelectGender, onClose }) {
-  const genders = ['Male', 'Female', 'Prefer not to say'];
-
-  return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <h2>Select Gender</h2>
-        <div className={styles.genderList}>
-          {genders.map((g) => (
-            <div
-              key={g}
-              className={
-                styles.genderItem + ' ' + (g === selectedGender ? styles.selectedItem : '')
-              }
-              onClick={() => onSelectGender(g)}
-            >
-              {g}
             </div>
           ))}
         </div>

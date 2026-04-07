@@ -17,6 +17,7 @@ import ConfirmModal from "./ConfirmModal";
 import CustomMapModal from "./CustomMapModal";
 import useUnsavedChangesPrompt from "../hooks/useUnsavedChangesPrompt";
 import { MICROSTATES_LIST } from "../constants/microstates";
+import { CUSTOM_MAP_MODAL_PRESETS, getCountryOnlyCodesInPreset, getMicrostateCodesInPreset, inferPresetIdFromCodes } from "../constants/regionPresets";
 
 import { createPortal } from "react-dom";
 import { BiDownload } from "react-icons/bi";
@@ -49,6 +50,7 @@ import { API, updateMap, createMap } from "../api";
 
 // Map preview
 import MapPreview from "./Map";
+import MapUS from "./MapUS";
 import MapLegendOverlay from "./MapLegendOverlay";
 
 /** Example Color Palettes **/
@@ -371,8 +373,8 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const hasHydratedFromPlaygroundRef = useRef(false);
   const persistTimeoutRef = useRef(null);
 
-  // Map selection (world only)
-  const [selected_map] = useState("world");
+  // Map type: "world" | "europe" | "usa" (US states)
+  const [selected_map, setSelectedMap] = useState(existingMapData?.selected_map || "world");
 
   // choropleth | categorical
   const [mapDataType, setMapDataType] = useState("choropleth");
@@ -420,11 +422,32 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
     const custom = existingMapData?.microstates_custom;
     if (custom != null) return custom;
     if (existingMapData?.show_microstates === false) return [];
+    const presetId =
+      existingMapData?.custom_map_preset_id ?? inferPresetIdFromCodes(Array.isArray(existingMapData?.custom_map_countries) ? existingMapData.custom_map_countries : []);
+    if (presetId === "europe") return []; // Europe: no microstates initially
+    if (presetId && getMicrostateCodesInPreset(presetId).length > 0) return getMicrostateCodesInPreset(presetId);
     return null;
   });
-  const [customMapCountries, setCustomMapCountries] = useState(existingMapData?.custom_map_countries ?? null);
-  const [customMapPresetId, setCustomMapPresetId] = useState(existingMapData?.custom_map_preset_id ?? null);
+  const [customMapCountries, setCustomMapCountries] = useState(() => {
+    const data = existingMapData;
+    if (!data) return null;
+    const countries = data.custom_map_countries ?? null;
+    const presetId =
+      data.custom_map_preset_id ?? data.customMapPresetId ?? inferPresetIdFromCodes(Array.isArray(countries) ? countries : []) ?? null;
+    if (presetId && getCountryOnlyCodesInPreset(presetId).length > 0) return getCountryOnlyCodesInPreset(presetId);
+    return countries;
+  });
+  const [customMapPresetId, setCustomMapPresetId] = useState(
+    () => existingMapData?.custom_map_preset_id ?? existingMapData?.customMapPresetId ?? inferPresetIdFromCodes(Array.isArray(existingMapData?.custom_map_countries) ? existingMapData.custom_map_countries : []) ?? null
+  );
   const [showCustomMapModal, setShowCustomMapModal] = useState(false);
+  /** Map preview: hide map and show skeleton until view is ready (correct preset view applied). Avoids flash of wrong view when changing presets. */
+  const [mapPreviewViewReady, setMapPreviewViewReady] = useState(false);
+  const mapPreviewSkeletonShownAtRef = useRef(0);
+  const mapPreviewReadyTimeoutRef = useRef(null);
+  const mapPreviewMinSkeletonMs = 450;
+  /** If Map never calls onViewReady (e.g. fit effect stuck), stop showing skeleton after this. */
+  const mapPreviewFallbackReadyMs = 1500;
   const [titleFontSize, setTitleFontSize] = useState(existingMapData?.title_font_size ?? null);
   const [legendFontSize, setLegendFontSize] = useState(existingMapData?.legend_font_size ?? null);
 
@@ -486,6 +509,8 @@ const [deleteMapError, setDeleteMapError] = useState(null);
 
 const [showDeleteReferenceModal, setShowDeleteReferenceModal] = useState(false);
 const [showClearDataModal, setShowClearDataModal] = useState(false);
+  const [showChangePresetModal, setShowChangePresetModal] = useState(false);
+  const pendingCustomMapSaveRef = useRef(null);
   const [showSignupRequiredModal, setShowSignupRequiredModal] = useState(false);
 
 // custom base-color modal
@@ -596,6 +621,7 @@ useEffect(() => {
       setReferences([]);
       setFileStats(defaultFileStats);
       setPlaceholders({});
+      setSelectedMap("world");
       return;
     }
 
@@ -644,13 +670,29 @@ setData(migratedData);
 
     setIsTitleHidden(!!existingMapData.is_title_hidden);
     setShowNoDataLegend(!!existingMapData.show_no_data_legend);
-    setMicrostatesCustom(
-      existingMapData.microstates_custom ?? (existingMapData.show_microstates === false ? [] : null)
-    );
-    setCustomMapCountries(existingMapData.custom_map_countries ?? null);
-    setCustomMapPresetId(existingMapData.custom_map_preset_id ?? null);
+    const rawPresetId = existingMapData.custom_map_preset_id ?? existingMapData.customMapPresetId ?? null;
+    const customCountries = existingMapData.custom_map_countries ?? null;
+    const presetId = rawPresetId ?? inferPresetIdFromCodes(Array.isArray(customCountries) ? customCountries : []) ?? null;
+    const microstatesFromApi = existingMapData.microstates_custom ?? (existingMapData.show_microstates === false ? [] : null);
+    const microstatesToSet =
+      microstatesFromApi != null
+        ? microstatesFromApi
+        : presetId === "europe"
+          ? [] // Europe: no microstates initially (no Cyprus, Faroe Islands, etc.)
+          : presetId && getMicrostateCodesInPreset(presetId).length > 0
+            ? getMicrostateCodesInPreset(presetId)
+            : null;
+    setMicrostatesCustom(microstatesToSet);
+    // Use canonical preset country list when we have a region preset so Map gets same list as after modal save (fixes Europe initial view)
+    const countriesToSet =
+      presetId && getCountryOnlyCodesInPreset(presetId).length > 0
+        ? getCountryOnlyCodesInPreset(presetId)
+        : customCountries;
+    setCustomMapCountries(countriesToSet);
+    setCustomMapPresetId(presetId);
     setTitleFontSize(existingMapData.title_font_size ?? null);
     setLegendFontSize(existingMapData.legend_font_size ?? null);
+    setSelectedMap(existingMapData.selected_map || "world");
 
     setReferences(existingMapData.sources || []);
     setFileStats(existingMapData.file_stats || defaultFileStats);
@@ -710,11 +752,19 @@ setData(migratedData);
     setFileStats(p.file_stats && typeof p.file_stats === "object" ? p.file_stats : defaultFileStats);
     setIsTitleHidden(!!p.is_title_hidden);
     setShowNoDataLegend(!!p.show_no_data_legend);
-    setMicrostatesCustom(p.microstates_custom ?? (p.show_microstates === false ? [] : null));
-    setCustomMapCountries(p.custom_map_countries ?? null);
-    setCustomMapPresetId(p.custom_map_preset_id ?? null);
+    const draftPresetId = p.custom_map_preset_id ?? inferPresetIdFromCodes(Array.isArray(p.custom_map_countries) ? p.custom_map_countries : []) ?? null;
+    const draftMicrostates =
+      p.microstates_custom != null ? p.microstates_custom : draftPresetId === "europe" ? [] : (p.show_microstates === false ? [] : null);
+    setMicrostatesCustom(draftMicrostates);
+    const draftCountries =
+      draftPresetId && getCountryOnlyCodesInPreset(draftPresetId).length > 0
+        ? getCountryOnlyCodesInPreset(draftPresetId)
+        : (p.custom_map_countries ?? null);
+    setCustomMapCountries(draftCountries);
+    setCustomMapPresetId(draftPresetId ?? p.custom_map_preset_id ?? null);
     setTitleFontSize(p.titleFontSize ?? null);
     setLegendFontSize(p.legendFontSize ?? null);
+    setSelectedMap(p.selected_map ?? "world");
     setReferences(Array.isArray(p.sources) ? p.sources : []);
     setPlaceholders(p.placeholders && typeof p.placeholders === "object" ? p.placeholders : {});
   }, [existingMapData, isPlayground, isUserLoggedIn]);
@@ -755,6 +805,31 @@ setData(migratedData);
     placeholders,
     isPlayground,
   ]);
+
+  // When map preset or type changes, hide map and show skeleton until new view is ready.
+  useEffect(() => {
+    if (mapPreviewReadyTimeoutRef.current) {
+      clearTimeout(mapPreviewReadyTimeoutRef.current);
+      mapPreviewReadyTimeoutRef.current = null;
+    }
+    setMapPreviewViewReady(false);
+    mapPreviewSkeletonShownAtRef.current = Date.now();
+    if (selected_map === "usa") {
+      mapPreviewReadyTimeoutRef.current = setTimeout(
+        () => setMapPreviewViewReady(true),
+        mapPreviewMinSkeletonMs
+      );
+    } else {
+      // World presets: fallback so skeleton doesn't show forever if Map never calls onViewReady
+      mapPreviewReadyTimeoutRef.current = setTimeout(
+        () => setMapPreviewViewReady(true),
+        mapPreviewFallbackReadyMs
+      );
+    }
+    return () => {
+      if (mapPreviewReadyTimeoutRef.current) clearTimeout(mapPreviewReadyTimeoutRef.current);
+    };
+  }, [selected_map, customMapPresetId]);
 
   async function confirmDeleteMap() {
   if (isDeletingMap) return;
@@ -802,7 +877,127 @@ function confirmClearData() {
   clearPlaygroundDraft();
 }
 
+  /** Compare two code arrays (null or array) for equality. */
+  function customMapSelectionEqual(a, b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+    const setA = new Set((a || []).map((c) => normCode(c)).filter(Boolean));
+    const setB = new Set((b || []).map((c) => normCode(c)).filter(Boolean));
+    if (setA.size !== setB.size) return false;
+    for (const c of setA) if (!setB.has(c)) return false;
+    return true;
+  }
 
+  const hasMeaningfulData = (dataArr) =>
+    Array.isArray(dataArr) && dataArr.some((d) => {
+      const v = d?.value;
+      return v != null && String(v).trim() !== "";
+    });
+
+  function handleSelectMapPreset(presetId) {
+    const preset = CUSTOM_MAP_MODAL_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    // Show skeleton immediately when user picks a preset (don't wait for effect)
+    if (mapPreviewReadyTimeoutRef.current) {
+      clearTimeout(mapPreviewReadyTimeoutRef.current);
+      mapPreviewReadyTimeoutRef.current = null;
+    }
+    setMapPreviewViewReady(false);
+    mapPreviewSkeletonShownAtRef.current = Date.now();
+    if (presetId === "usa") {
+      setSelectedMap("usa");
+      setCustomMapPresetId("usa");
+      setCustomMapCountries(null);
+      setMicrostatesCustom(null);
+      mapPreviewReadyTimeoutRef.current = setTimeout(
+        () => setMapPreviewViewReady(true),
+        mapPreviewMinSkeletonMs
+      );
+      return;
+    }
+    setSelectedMap("world");
+    setCustomMapPresetId(presetId);
+    // Use country-only codes (same format as CustomMapModal and API) so first save persists preset correctly
+    if (presetId === "world") {
+      setCustomMapCountries(null);
+      setMicrostatesCustom([]);
+    } else {
+      const countryOnly = getCountryOnlyCodesInPreset(presetId);
+      setCustomMapCountries(countryOnly.length > 0 ? countryOnly : null);
+      setMicrostatesCustom([]);
+    }
+    // Fallback: if Map never calls onViewReady, show map after a while so skeleton doesn't load forever
+    mapPreviewReadyTimeoutRef.current = setTimeout(
+      () => setMapPreviewViewReady(true),
+      mapPreviewFallbackReadyMs
+    );
+  }
+
+  function handleCustomMapSave(codes, presetId, microstatesCodes) {
+    if (presetId === "usa") {
+      if (selected_map !== "usa") {
+        if (hasMeaningfulData(data)) {
+          pendingCustomMapSaveRef.current = { codes: null, presetId: "usa", microstatesCodes: null };
+          setShowCustomMapModal(false);
+          setShowChangePresetModal(true);
+          return;
+        }
+        setSelectedMap("usa");
+        setCustomMapCountries(codes);
+        setCustomMapPresetId("usa");
+        setMicrostatesCustom(null);
+        setShowCustomMapModal(false);
+        return;
+      }
+      setCustomMapCountries(codes);
+      setCustomMapPresetId(codes == null || codes.length === 0 ? "usa" : null);
+      setShowCustomMapModal(false);
+      return;
+    }
+    const selectionChanged =
+      !customMapSelectionEqual(customMapCountries, codes) ||
+      customMapPresetId !== (presetId ?? null) ||
+      (microstatesCodes !== undefined && !customMapSelectionEqual(microstatesCustom, microstatesCodes));
+    if (selectionChanged && hasMeaningfulData(data)) {
+      pendingCustomMapSaveRef.current = { codes, presetId: presetId ?? null, microstatesCodes: microstatesCodes ?? null };
+      setShowCustomMapModal(false);
+      setShowChangePresetModal(true);
+      return;
+    }
+    setCustomMapCountries(codes);
+    setCustomMapPresetId(presetId ?? null);
+    setMicrostatesCustom(microstatesCodes === undefined ? microstatesCustom : microstatesCodes);
+    setShowCustomMapModal(false);
+  }
+
+  function confirmChangePreset() {
+    const pending = pendingCustomMapSaveRef.current;
+    pendingCustomMapSaveRef.current = null;
+    setShowChangePresetModal(false);
+    if (!pending) return;
+    if (pending.presetId === "usa") {
+      setSelectedMap("usa");
+      setCustomMapCountries(null);
+      setCustomMapPresetId("usa");
+      setMicrostatesCustom(null);
+    } else {
+      setCustomMapCountries(pending.codes);
+      setCustomMapPresetId(pending.presetId);
+      setMicrostatesCustom(pending.microstatesCodes);
+    }
+    setData([]);
+    setFileStats(defaultFileStats);
+    setPlaceholders({});
+    setCustomRanges([{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
+    setGroups([normalizeGroup({ id: Date.now(), name: "", color: "#c0c0c0" })]);
+    clearPlaygroundDraft();
+  }
+
+  function cancelChangePreset() {
+    pendingCustomMapSaveRef.current = null;
+    setShowChangePresetModal(false);
+  }
 
   // Upload modal
   const handleOpenUploadModal = () => setShowUploadModal(true);
@@ -2161,9 +2356,8 @@ const rangeCountryLabel = (d) =>
     customMapPresetId,
   ]);
 
-  // Minimal map object for the custom map button thumbnail in DataSidebar (world map only)
+  // Minimal map object for the custom map button thumbnail in DataSidebar (world or USA)
   const mapForThumbnail = useMemo(() => {
-    if (selected_map !== 'world') return null;
     return {
       title: mapTitle || '',
       ocean_color: ocean_color ?? '#ffffff',
@@ -2171,14 +2365,15 @@ const rangeCountryLabel = (d) =>
       font_color: font_color ?? 'black',
       is_title_hidden: !!is_title_hidden,
       show_no_data_legend: !!showNoDataLegend,
-      show_microstates: !(Array.isArray(microstatesCustom) && microstatesCustom.length === 0),
+      show_microstates: selected_map === 'world' && !(Array.isArray(microstatesCustom) && microstatesCustom.length === 0),
       microstates_custom: microstatesCustom,
       custom_map_countries: customMapCountries,
+      custom_map_preset_id: customMapPresetId,
       title_font_size: titleFontSize,
       legend_font_size: legendFontSize,
       groups: groups || [],
       data: mapDataNormalized || [],
-      selected_map: 'world',
+      selected_map: selected_map,
       custom_ranges: custom_ranges || [],
       mapDataType: mapDataType,
     };
@@ -2192,6 +2387,7 @@ const rangeCountryLabel = (d) =>
     showNoDataLegend,
     microstatesCustom,
     customMapCountries,
+    customMapPresetId,
     titleFontSize,
     legendFontSize,
     groups,
@@ -2463,8 +2659,12 @@ try {
             placeholders={placeholders}
             onChangePlaceholder={handleChangePlaceholder}
             customMapCountries={customMapCountries}
+            microstatesCustom={microstatesCustom}
+            customMapPresetId={customMapPresetId}
             onOpenCustomMapModal={() => setShowCustomMapModal(true)}
             mapForThumbnail={mapForThumbnail}
+            regionCountOverride={undefined}
+            onSelectMapPreset={handleSelectMapPreset}
           />
         </div>
 
@@ -2474,49 +2674,113 @@ try {
             <div className={styles.mapBox}>
               <h4>Map Preview</h4>
               <div className={styles.mapPreviewWrap}>
-                <div className={styles.mapPreview}>
-                  <MapPreview
-                    groups={groups}
-                    mapTitleValue={mapTitle}
-                    custom_ranges={custom_ranges}
-                    mapDataType={mapDataType}
-                    ocean_color={ocean_color}
-                    unassigned_color={unassigned_color}
-                    data={mapDataNormalized}
-                    selected_map="world"
-                    font_color={font_color}
-                    showNoDataLegend={showNoDataLegend}
-                    show_microstates={!(Array.isArray(microstatesCustom) && microstatesCustom.length === 0)}
-                    microstates_custom={microstatesCustom}
-                    custom_map_countries={customMapCountries}
-                    is_title_hidden={is_title_hidden}
-                    titleFontSize={titleFontSize}
-                    legendFontSize={legendFontSize}
-                    hoveredCode={hoveredCode}
-                    selectedCode={selectedCode}
-                    onHoverCode={(code) => setHoveredCode(normCode(code))}
-                    onSelectCode={(code) => {
-                      setSelectedCode(normCode(code));
-                      setActiveLegendKey(null);
-                      setHoverLegendKey(null);
-                    }}
-                    placeholders={placeholders}
-                    strokeMode="thick"
-                    groupHoveredCodes={hoveredLegendCodes}
-                    groupActiveCodes={activeLegendCodes}
-                    activeLegendModel={activeLegendModel}
-                    suppressInfoBox={!!activeLegendKey}
-                    onCloseActiveLegend={() => {
-                      setActiveLegendKey(null);
-                      setHoverLegendKey(null);
-                    }}
-                    compactUi={true}
-                    compactUiShowInfoBoxes={true}
-                    codeToName={codeToName}
-                    theme={mapPreviewTheme}
-                    staticView={true}
-                  />
-                </div>
+                <div className={styles.mapPreviewStage}>
+                  <div className={styles.mapPreviewOuter}>
+                    <div
+                      className={`${styles.mapPreview} ${!mapPreviewViewReady ? styles.mapPreviewHidden : ""}`}
+                      aria-hidden={!mapPreviewViewReady}
+                    >
+                      {selected_map === "usa" ? (
+                        <MapUS
+                      groups={groups}
+                      mapTitleValue={mapTitle}
+                      custom_ranges={custom_ranges}
+                      mapDataType={mapDataType}
+                      ocean_color={ocean_color}
+                      unassigned_color={unassigned_color}
+                      data={mapDataNormalized}
+                      font_color={font_color}
+                      is_title_hidden={is_title_hidden}
+                      titleFontSize={titleFontSize}
+                      legendFontSize={legendFontSize}
+                      hoveredCode={hoveredCode}
+                      selectedCode={selectedCode}
+                      onHoverCode={(code) => setHoveredCode(normCode(code))}
+                      onSelectCode={(code) => {
+                        setSelectedCode(normCode(code));
+                        setActiveLegendKey(null);
+                        setHoverLegendKey(null);
+                      }}
+                      placeholders={placeholders}
+                      strokeMode="thick"
+                      compactUi={true}
+                      compactUiShowInfoBoxes={true}
+                      activeLegendModel={activeLegendModel}
+                      onCloseActiveLegend={() => {
+                        setActiveLegendKey(null);
+                        setHoverLegendKey(null);
+                      }}
+                      codeToName={codeToName}
+                      theme={mapPreviewTheme}
+                      staticView={true}
+                      suppressInfoBox={!!activeLegendKey}
+                      custom_map_countries={customMapCountries}
+                    />
+                      ) : (
+                        <MapPreview
+                          groups={groups}
+                          mapTitleValue={mapTitle}
+                          custom_ranges={custom_ranges}
+                          mapDataType={mapDataType}
+                          ocean_color={ocean_color}
+                          unassigned_color={unassigned_color}
+                          data={mapDataNormalized}
+                          selected_map={selected_map}
+                          font_color={font_color}
+                          showNoDataLegend={showNoDataLegend}
+                          show_microstates={!(Array.isArray(microstatesCustom) && microstatesCustom.length === 0)}
+                          microstates_custom={microstatesCustom}
+                          custom_map_countries={customMapCountries}
+                          custom_map_preset_id={customMapPresetId}
+                          is_title_hidden={is_title_hidden}
+                          titleFontSize={titleFontSize}
+                          legendFontSize={legendFontSize}
+                          hoveredCode={hoveredCode}
+                          selectedCode={selectedCode}
+                          onHoverCode={(code) => setHoveredCode(normCode(code))}
+                          onSelectCode={(code) => {
+                            setSelectedCode(normCode(code));
+                            setActiveLegendKey(null);
+                            setHoverLegendKey(null);
+                          }}
+                          placeholders={placeholders}
+                          strokeMode="thick"
+                          groupHoveredCodes={hoveredLegendCodes}
+                          groupActiveCodes={activeLegendCodes}
+                          activeLegendModel={activeLegendModel}
+                          suppressInfoBox={!!activeLegendKey}
+                          onCloseActiveLegend={() => {
+                            setActiveLegendKey(null);
+                            setHoverLegendKey(null);
+                          }}
+                          compactUi={true}
+                          compactUiShowInfoBoxes={true}
+                          codeToName={codeToName}
+                          theme={mapPreviewTheme}
+                          staticView={true}
+                          onViewReady={() => {
+                            if (mapPreviewReadyTimeoutRef.current) {
+                              clearTimeout(mapPreviewReadyTimeoutRef.current);
+                              mapPreviewReadyTimeoutRef.current = null;
+                            }
+                            const elapsed = Date.now() - mapPreviewSkeletonShownAtRef.current;
+                            const delay = Math.max(0, mapPreviewMinSkeletonMs - elapsed);
+                            if (delay > 0) {
+                              mapPreviewReadyTimeoutRef.current = setTimeout(() => {
+                                mapPreviewReadyTimeoutRef.current = null;
+                                setMapPreviewViewReady(true);
+                              }, delay);
+                            } else {
+                              requestAnimationFrame(() => setMapPreviewViewReady(true));
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                    {!mapPreviewViewReady && (
+                      <div className={styles.mapPreviewSkeleton} aria-hidden="true" />
+                    )}
+                  </div>
                 <MapLegendOverlay
                   title={mapTitle || "Untitled Map"}
                   legendModels={legendModels}
@@ -2531,21 +2795,18 @@ try {
                   interactive={true}
                   compact={true}
                 />
+                </div>
               </div>
               <CustomMapModal
                 isOpen={showCustomMapModal}
+                selectedMap={selected_map}
                 selectedCodes={customMapCountries}
                 savedPresetId={customMapPresetId}
-                onSave={(codes, presetId) => {
-                  setCustomMapCountries(codes);
-                  setCustomMapPresetId(presetId ?? null);
-                }}
+                onSave={handleCustomMapSave}
                 onCancel={() => setShowCustomMapModal(false)}
                 microstatesList={MICROSTATES_LIST}
                 microstatesSelectedCodes={microstatesCustom}
-                onMicrostatesSave={(codes) => {
-                  setMicrostatesCustom(codes == null || codes.length === MICROSTATES_LIST.length ? null : codes);
-                }}
+                customizeOnly={true}
               />
             </div>
           </div>
@@ -3259,6 +3520,17 @@ try {
   danger
   onCancel={() => setShowClearDataModal(false)}
   onConfirm={confirmClearData}
+/>
+
+<ConfirmModal
+  isOpen={showChangePresetModal}
+  title="Change preset?"
+  message="Are you sure you want to change the preset? Your current data will be lost."
+  cancelText="Cancel"
+  confirmText="Change preset"
+  danger
+  onCancel={cancelChangePreset}
+  onConfirm={confirmChangePreset}
 />
 
 <ConfirmModal

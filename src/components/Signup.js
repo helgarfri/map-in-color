@@ -37,8 +37,7 @@ export default function Signup() {
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
-  const [gender, setGender] = useState("");
-  const [location, setLocation] = useState("");
+  const [country, setCountry] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -117,8 +116,7 @@ export default function Signup() {
       }
     }
 
-    if (!gender) newErrors.gender = "Gender is required.";
-    if (!location) newErrors.location = "Location is required.";
+    if (!country) newErrors.country = "Country is required.";
 
     if (!email.trim()) {
       newErrors.email = "Email is required.";
@@ -168,8 +166,8 @@ export default function Signup() {
           first_name,
           last_name,
           date_of_birth,
-          gender,
-          location,
+          location: country,
+          country,
           email,
           username,
           password,
@@ -394,29 +392,11 @@ export default function Signup() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="gender">Gender</label>
+                  <label htmlFor="country">Country</label>
                   <select
-                    id="gender"
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                  >
-                    <option value="">Select your gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
-                  </select>
-
-                  {errors.gender && (
-                    <div className={styles.errorMessage}>{errors.gender}</div>
-                  )}
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="location">Location</label>
-                  <select
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+                    id="country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
                   >
                     <option value="">Select a country</option>
                     {countries.map((country) => (
@@ -426,8 +406,8 @@ export default function Signup() {
                     ))}
                   </select>
 
-                  {errors.location && (
-                    <div className={styles.errorMessage}>{errors.location}</div>
+                  {errors.country && (
+                    <div className={styles.errorMessage}>{errors.country}</div>
                   )}
                 </div>
               </div>

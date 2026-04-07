@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import MapView from "../components/Map";
+import MapUS from "../components/MapUS";
+import { inferPresetIdFromCodes } from "../constants/regionPresets";
+import { getMapVerticalOffsetPx } from "../utils/mapPreviewUtils";
 import MapLegendOverlay from "../components/MapLegendOverlay";
 import useWindowSize from "../hooks/useWindowSize";
 import { fetchMapById } from "../api";
@@ -251,10 +254,22 @@ export default function MapEmbed() {
   }, [activeLegendKey, legendModels]);
 
   const suppressInfoBox = !!activeLegendKey;
+  const parsedCustomMapCountries = parseJsonArray(mapData?.custom_map_countries);
+  const parsedMicrostatesCustom = parseJsonArray(mapData?.microstates_custom);
+  const selectedMapType = mapData?.selected_map ?? mapData?.selectedMap ?? "world";
+  const mapVerticalOffsetPx = getMapVerticalOffsetPx({
+    selectedMapType,
+    customMapPresetId:
+      mapData?.custom_map_preset_id ??
+      mapData?.customMapPresetId ??
+      inferPresetIdFromCodes(parsedCustomMapCountries),
+  });
 
-  function mapDataProps() {
+  const resolvedMapDataProps = useMemo(() => {
     if (!mapData) return {};
     return {
+      selected_map: mapData.selected_map ?? mapData.selectedMap ?? "world",
+      selectedMap: mapData.selected_map ?? mapData.selectedMap ?? "world",
       mapDataType: mapData.mapDataType ?? mapData.map_data_type ?? mapData.map_type ?? mapData.type ?? null,
       data: parseJsonArray(mapData.data),
       custom_ranges: parseJsonArray(mapData.custom_ranges ?? mapData.customRanges),
@@ -278,13 +293,18 @@ export default function MapEmbed() {
       show_top_low_values: toBool(mapData.show_top_low_values),
       showNoDataLegend: toBool(mapData.show_no_data_legend),
       show_microstates: mapData.show_microstates !== false,
-      microstates_custom: mapData.microstates_custom ?? null,
-      custom_map_countries: mapData.custom_map_countries ?? null,
+      microstates_custom: parsedMicrostatesCustom.length ? parsedMicrostatesCustom : null,
+      custom_map_countries: parsedCustomMapCountries.length ? parsedCustomMapCountries : null,
+      custom_map_preset_id:
+        mapData.custom_map_preset_id ??
+        mapData.customMapPresetId ??
+        inferPresetIdFromCodes(parsedCustomMapCountries) ??
+        null,
       top_low_values: parseJsonArray(mapData.top_low_values),
 
       strokeMode: "thick",
     };
-  }
+  }, [mapData, parsedCustomMapCountries, parsedMicrostatesCustom]);
 
   // ── render gates ─────────────────
   const rootBase = `${styles.embedRoot} ${embedTheme === "dark" ? styles.embedRootDark : ""}`;
@@ -328,40 +348,78 @@ export default function MapEmbed() {
   return (
     <div className={rootBase}>
       <div className={mapWrapClassName}>
-        <MapView
-          {...mapDataProps()}
-          isLargeMap={true}
-          theme={embedTheme}
-          staticView={!isInteractive}
-          compactUi={isSmallEmbed}
-          hoveredCode={isInteractive ? hoveredCode : null}
-          selectedCode={isInteractive ? selectedCode : null}
-          selectedCodeZoom={selectedCodeZoom}
-          selectedCodeNonce={selectedCodeNonce}
-          groupHoveredCodes={isInteractive ? hoveredLegendCodes : []}
-          groupActiveCodes={isInteractive ? activeLegendCodes : []}
-          suppressInfoBox={suppressInfoBox}
-          activeLegendModel={activeLegendModel}
-          codeToName={countryCodeToName}
-          onCloseActiveLegend={() => {
-            setActiveLegendKey(null);
-            setHoverLegendKey(null);
-          }}
-          onHoverCode={isInteractive ? (code) => setHoveredCode(code) : () => {}}
-          onSelectCode={
-            isInteractive
-              ? (code) => {
-                  if (code) {
-                    setActiveLegendKey(null);
-                    setHoverLegendKey(null);
+        {selectedMapType === "usa" ? (
+          <MapUS
+            {...resolvedMapDataProps}
+            isLargeMap={false}
+            theme={embedTheme}
+            staticView={!isInteractive}
+            compactUi={isSmallEmbed}
+            verticalOffsetPx={mapVerticalOffsetPx}
+            horizontalOffsetPx={-110}
+            hoveredCode={isInteractive ? hoveredCode : null}
+            selectedCode={isInteractive ? selectedCode : null}
+            groupHoveredCodes={isInteractive ? hoveredLegendCodes : []}
+            groupActiveCodes={isInteractive ? activeLegendCodes : []}
+            suppressInfoBox={suppressInfoBox}
+            activeLegendModel={activeLegendModel}
+            onCloseActiveLegend={() => {
+              setActiveLegendKey(null);
+              setHoverLegendKey(null);
+            }}
+            codeToName={countryCodeToName}
+            onHoverCode={isInteractive ? (code) => setHoveredCode(code) : () => {}}
+            onSelectCode={
+              isInteractive
+                ? (code) => {
+                    if (code) {
+                      setActiveLegendKey(null);
+                      setHoverLegendKey(null);
+                    }
+                    setSelectedCode(code);
+                    setSelectedCodeZoom(false);
+                    setSelectedCodeNonce((n) => n + 1);
                   }
-                  setSelectedCode(code);
-                  setSelectedCodeZoom(false);
-                  setSelectedCodeNonce((n) => n + 1);
-                }
-              : () => {}
-          }
-        />
+                : () => {}
+            }
+          />
+        ) : (
+          <MapView
+            {...resolvedMapDataProps}
+            isLargeMap={false}
+            theme={embedTheme}
+            staticView={!isInteractive}
+            compactUi={isSmallEmbed}
+            verticalOffsetPx={mapVerticalOffsetPx}
+            hoveredCode={isInteractive ? hoveredCode : null}
+            selectedCode={isInteractive ? selectedCode : null}
+            selectedCodeZoom={selectedCodeZoom}
+            selectedCodeNonce={selectedCodeNonce}
+            groupHoveredCodes={isInteractive ? hoveredLegendCodes : []}
+            groupActiveCodes={isInteractive ? activeLegendCodes : []}
+            suppressInfoBox={suppressInfoBox}
+            activeLegendModel={activeLegendModel}
+            codeToName={countryCodeToName}
+            onCloseActiveLegend={() => {
+              setActiveLegendKey(null);
+              setHoverLegendKey(null);
+            }}
+            onHoverCode={isInteractive ? (code) => setHoveredCode(code) : () => {}}
+            onSelectCode={
+              isInteractive
+                ? (code) => {
+                    if (code) {
+                      setActiveLegendKey(null);
+                      setHoverLegendKey(null);
+                    }
+                    setSelectedCode(code);
+                    setSelectedCodeZoom(false);
+                    setSelectedCodeNonce((n) => n + 1);
+                  }
+                : () => {}
+            }
+          />
+        )}
 
         {!isInteractive && (
           <div className={styles.mapNonInteractiveOverlay} aria-hidden="true" />
