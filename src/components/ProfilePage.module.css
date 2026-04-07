@@ -354,6 +354,7 @@
 
 .mapThumb {
   width: 100%;
+  height: 140px; /* fixed height so StaticMapThumbnail has a defined area to fill */
   background: var(--thumbnail-bg);
   display: flex;
   align-items: center;

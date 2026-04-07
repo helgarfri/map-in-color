@@ -1,9 +1,23 @@
 // src/components/StaticMapThumbnail.js
 import React from 'react';
 import Map from './Map';
+import MapUS from './MapUS';
+import { inferPresetIdFromCodes } from '../constants/regionPresets';
 import styles from './StaticMapThumbnail.module.css';
 
 const DEFAULT_THUMB_BG = '#dddddd';
+const toArrayMaybeJson = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
 
 export default function StaticMapThumbnail({
   map,
@@ -30,6 +44,12 @@ export default function StaticMapThumbnail({
 
   const is_title_hidden = !!map.is_title_hidden;
   const showNoDataLegend = !!map.show_no_data_legend;
+  const show_microstates = map.show_microstates !== false;
+  const microstatesCustomArray = toArrayMaybeJson(map.microstates_custom);
+  const customMapCountriesArray = toArrayMaybeJson(map.custom_map_countries);
+  const microstates_custom = microstatesCustomArray.length ? microstatesCustomArray : null;
+  const custom_map_countries = customMapCountriesArray.length ? customMapCountriesArray : null;
+  const custom_map_preset_id = map.custom_map_preset_id ?? map.customMapPresetId ?? inferPresetIdFromCodes(customMapCountriesArray);
 
   const titleFontSize = map.title_font_size ?? map.titleFontSize ?? null;
   const legendFontSize = map.legend_font_size ?? map.legendFontSize ?? null;
@@ -62,27 +82,51 @@ const mapDataType =
   undefined;
 
 
+  const isUsa = selectedMap === 'usa';
+
   return (
     <div className={`${styles.container} ${className}`} style={inlineBg}>
       <div className={styles.stage}>
-     <Map
-  groups={groups}
-  custom_ranges={custom_ranges}
-  mapDataType={mapDataType}
-  mapTitleValue={title}
-  ocean_color={ocean_color}
-  unassigned_color={unassigned_color}
-  data={data}
-  selected_map={selectedMap}
-  font_color={font_color}
-  is_title_hidden={is_title_hidden}
-  isThumbnail={true}
-  showNoDataLegend={showNoDataLegend}
-  titleFontSize={titleFontSize}
-  legendFontSize={legendFontSize}
-  strokeMode='thin'
-/>
-
+        {isUsa ? (
+          <MapUS
+            groups={groups}
+            custom_ranges={custom_ranges}
+            mapDataType={mapDataType}
+            mapTitleValue={title}
+            ocean_color={ocean_color}
+            unassigned_color={unassigned_color}
+            data={data}
+            font_color={font_color}
+            is_title_hidden={is_title_hidden}
+            titleFontSize={titleFontSize}
+            legendFontSize={legendFontSize}
+            strokeMode="thin"
+            staticView={true}
+            suppressInfoBox={true}
+          />
+        ) : (
+          <Map
+            groups={groups}
+            custom_ranges={custom_ranges}
+            mapDataType={mapDataType}
+            mapTitleValue={title}
+            ocean_color={ocean_color}
+            unassigned_color={unassigned_color}
+            data={data}
+            selected_map={selectedMap}
+            font_color={font_color}
+            is_title_hidden={is_title_hidden}
+            isThumbnail={true}
+            showNoDataLegend={showNoDataLegend}
+            show_microstates={show_microstates}
+            microstates_custom={microstates_custom}
+            custom_map_countries={custom_map_countries}
+            custom_map_preset_id={custom_map_preset_id}
+            titleFontSize={titleFontSize}
+            legendFontSize={legendFontSize}
+            strokeMode="thin"
+          />
+        )}
       </div>
 
       {/* ✅ Hard block ALL hover/zoom/pan/tooltips */}

@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import './UsMap.css'
 import html2canvas from 'html2canvas';
 import Download from '../../Download';
@@ -36,6 +37,26 @@ function UsMap({
     
   
 }) {
+  const [isViewReady, setIsViewReady] = useState(false);
+
+  useEffect(() => {
+    setIsViewReady(false);
+    const rafId = window.requestAnimationFrame(() => {
+      setIsViewReady(true);
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [
+    mapTitleValue,
+    numItems,
+    group1ColorValue,
+    group2ColorValue,
+    group3ColorValue,
+    group4ColorValue,
+    group5ColorValue,
+    group6ColorValue,
+    group7ColorValue,
+    group8ColorValue,
+  ]);
 
 
 	
@@ -167,8 +188,15 @@ function UsMap({
 			</div>
 
 <div className='map-background'>
-
-
+<div className='us-map-stage'>
+  {!isViewReady && <div className='us-map-skeleton' aria-hidden='true' />}
+  <div
+    className='us-map-inner'
+    style={{
+      opacity: isViewReady ? 1 : 0,
+      pointerEvents: isViewReady ? 'auto' : 'none',
+    }}
+  >
 <div id='usMap' >
 
 <svg xmlns="http://www.w3.org/2000/svg"  className='svg-us' viewBox='0 0 1100 593' width="100%" height="auto"><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-custom-link"/><link xmlns="" type="text/css" rel="stylesheet" id="dark-mode-general-link"/><style xmlns="" lang="en" type="text/css" id="dark-mode-custom-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-style"/><style xmlns="" lang="en" type="text/css" id="dark-mode-native-sheet"/>
@@ -457,6 +485,8 @@ function UsMap({
 
 
 </svg>
+</div>
+</div>
 </div>
 </div>
         </div>

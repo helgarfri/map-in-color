@@ -56,9 +56,19 @@ router.post(
       last_name,
       date_of_birth,
       location,
+      country,
       gender,
       subscribe_promos  // <-- this should come from your frontend checkbox
     } = req.body;
+
+    const resolvedLocation = location || country || null;
+
+    if (!date_of_birth) {
+      return res.status(400).json({ msg: 'Date of birth is required' });
+    }
+    if (!resolvedLocation) {
+      return res.status(400).json({ msg: 'Country is required' });
+    }
 
     try {
       // 1) Check if user with the same email already exists
@@ -103,8 +113,8 @@ router.post(
             first_name,
             last_name,
             date_of_birth,
-            location,
-            gender,
+            location: resolvedLocation,
+            gender: gender || null,
             profile_picture: DEFAULT_PROFILE_PIC,
             status: 'pending', // <--- user is initially pending
             created_at: new Date().toISOString(),

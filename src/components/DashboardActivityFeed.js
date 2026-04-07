@@ -16,7 +16,8 @@ import {
 } from 'react-icons/fa';
 
 
-import Map from './Map';
+import { inferPresetIdFromCodes } from '../constants/regionPresets';
+import StaticMapThumbnail from './StaticMapThumbnail';
 import SkeletonActivityRow from './SkeletonActivityRow';
 import dashFeedStyles from './DashboardActivityFeed.module.css';
 
@@ -98,6 +99,14 @@ function normalizeMapForPreview(mapObj) {
     mapObj.type ??
     (customRanges.length ? "choropleth" : "categorical");
 
+  // Custom map countries (show only these on the map; used for region/custom maps)
+  const custom_map_countries = toArrayMaybeJson(
+    mapObj.custom_map_countries ?? mapObj.customMapCountries
+  );
+  const custom_map_preset_id = mapObj.custom_map_preset_id ?? mapObj.customMapPresetId ?? inferPresetIdFromCodes(custom_map_countries) ?? null;
+  const show_microstates = mapObj.show_microstates !== false;
+  const microstates_custom = toArrayMaybeJson(mapObj.microstates_custom ?? mapObj.microstatesCustom) || null;
+
   return {
     title,
     ocean_color,
@@ -112,6 +121,10 @@ function normalizeMapForPreview(mapObj) {
     selectedMap,
     customRanges,
     mapDataType,
+    custom_map_countries: custom_map_countries.length ? custom_map_countries : null,
+    custom_map_preset_id,
+    show_microstates,
+    microstates_custom,
   };
 }
 
@@ -136,8 +149,6 @@ export default function DashboardActivityFeed({ userProfile }) {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const [mapCache, setMapCache] = useState({});
-
-
 
   // sentinel for infinite scroll
   const sentinelRef = useRef(null);
@@ -278,20 +289,8 @@ export default function DashboardActivityFeed({ userProfile }) {
     }
   }
 
-
-
-  function mapNeedsHydration(map) {
-  if (!map?.id) return false;
-
-  // thumbnail coloring needs real payload:
-  // data + (custom_ranges OR groups)
-  const hasData = map.data != null;
-  const hasGroups = map.groups != null;
-  const hasRanges = map.custom_ranges != null || map.customRanges != null;
-
-  return !(hasData && (hasGroups || hasRanges));
-}
-
+  // Fetch full map for any activity map not yet in cache, so we have custom_map_countries
+  // (and full groups/ranges) for correct thumbnail region display (e.g. Africa-only maps).
 useEffect(() => {
   const idsToFetch = [];
 
@@ -299,7 +298,7 @@ useEffect(() => {
     const m = act?.map;
     if (!m?.id) continue;
     if (mapCache[m.id]) continue;
-    if (mapNeedsHydration(m)) idsToFetch.push(m.id);
+    idsToFetch.push(m.id);
   }
 
   if (idsToFetch.length === 0) return;
@@ -346,28 +345,31 @@ const normalized = normalizeMapForPreview(mapToRender);
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
 
-
 return (
   <div className={dashFeedStyles.thumbContainer}>
-    <div className={dashFeedStyles.thumbMapStage}>
-      <Map
-        groups={normalized.groups}
-        data={normalized.data}
-        selected_map={normalized.selectedMap}
-        mapDataType={normalized.mapDataType}
-        custom_ranges={normalized.customRanges}
-        mapTitleValue={normalized.title}
-        ocean_color={normalized.ocean_color}
-        unassigned_color={normalized.unassigned_color}
-        font_color={normalized.font_color}
-        is_title_hidden={normalized.is_title_hidden}
-        isThumbnail={true}
-        showNoDataLegend={normalized.showNoDataLegend}
-        titleFontSize={normalized.titleFontSize}
-        legendFontSize={normalized.legendFontSize}
-        strokeMode='thin'
-      />
-    </div>
+    <StaticMapThumbnail
+      map={{
+        title: normalized.title,
+        ocean_color: normalized.ocean_color,
+        unassigned_color: normalized.unassigned_color,
+        font_color: normalized.font_color,
+        is_title_hidden: normalized.is_title_hidden,
+        show_no_data_legend: normalized.showNoDataLegend,
+        titleFontSize: normalized.titleFontSize,
+        legendFontSize: normalized.legendFontSize,
+        groups: normalized.groups,
+        data: normalized.data,
+        selected_map: normalized.selectedMap,
+        custom_ranges: normalized.customRanges,
+        mapDataType: normalized.mapDataType,
+        custom_map_countries: normalized.custom_map_countries,
+        custom_map_preset_id: normalized.custom_map_preset_id,
+        show_microstates: normalized.show_microstates,
+        microstates_custom: normalized.microstates_custom,
+      }}
+      className={dashFeedStyles.thumbMapStage}
+      background="#dddddd"
+    />
 
     {/* Blocks hover/zoom/pan/tooltips; row click still works */}
     <div className={dashFeedStyles.interactionBlocker} aria-hidden="true" />

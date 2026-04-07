@@ -4,13 +4,34 @@ import { FaUpload, FaPlus } from 'react-icons/fa';
 // Data sources
 import countryCodes from '../world-countries.json';
 import usStatesCodes from '../united-states.json';
-import euCodes from '../european-countries.json';
+import { MICROSTATES_LIST } from '../constants/microstates';
+import { CUSTOM_MAP_MODAL_PRESETS } from '../constants/regionPresets';
+import { getUsStateFlagUrl } from "../utils/usStateFlags";
 
 import ConfirmModal from "./ConfirmModal";
+import StaticMapThumbnail from "./StaticMapThumbnail";
+import styles from "./DataSidebar.module.css";
 
-
-// CSS
-import styles from './DataSidebar.module.css';
+/** Minimal map object for a preset thumbnail (dropdown + current display) */
+function minimalMapForPreset(preset) {
+  const isUsa = preset.id === "usa";
+  return {
+    title: "",
+    ocean_color: "#c0c0c0",
+    unassigned_color: "#c0c0c0",
+    font_color: "black",
+    is_title_hidden: true,
+    show_no_data_legend: false,
+    show_microstates: true,
+    microstates_custom: null,
+    custom_map_countries: isUsa ? null : preset.codes,
+    custom_map_preset_id: isUsa ? null : preset.id,
+    selected_map: isUsa ? "usa" : "world",
+    groups: [],
+    data: [],
+    custom_ranges: [],
+  };
+}
 
 /**
  * Normalize any "value" to a safe trimmed string for comparisons.
@@ -52,6 +73,20 @@ export default function DataSidebar({
   categoryOptions = [], 
   placeholders = {},
   onChangePlaceholder,
+  /** When set, only these country codes are shown (custom map selection). */
+  customMapCountries = null,
+  /** When set (world + custom map), only these microstate codes are shown. null = all microstates, [] = none. */
+  microstatesCustom = null,
+  /** When set, the id of the selected region preset (e.g. 'europe') for the custom map button label. */
+  customMapPresetId = null,
+  /** When provided (and selectedMap === 'world'), show custom map button above Upload. Opens modal. */
+  onOpenCustomMapModal,
+  /** Minimal map object for the custom map button thumbnail (selected_map, custom_map_countries, etc.). */
+  mapForThumbnail = null,
+  /** When set, called when user selects a map preset (world, europe, northAmerica, ..., usa). */
+  onSelectMapPreset = null,
+  /** When provided (e.g. while custom map modal is open), use this for the region count instead of effectiveDataSource.length. */
+  regionCountOverride = undefined,
 }) {
   const [localData, setLocalData] = useState([]);
 
@@ -120,23 +155,52 @@ useEffect(() => {
 
 
 
-  // Decide which source to use
+  // Decide which source to use (world = countryCodes; usa = usStatesCodes)
   const dataSource = useMemo(() => {
-    return selectedMap === 'usa'
-      ? usStatesCodes
-      : selectedMap === 'europe'
-      ? euCodes
-      : countryCodes;
+    return selectedMap === "usa" ? usStatesCodes : countryCodes;
   }, [selectedMap]);
 
+  // Set of codes that exist in the main data source (world-countries); used so we never add microstates not in the list and inflate the count.
+  const dataSourceCodeSet = useMemo(
+    () => new Set(dataSource.map((r) => normCode(r?.code))),
+    [dataSource]
+  );
+
+  // When custom map is set, only show countries/states that are in the selection (+ microstates for world)
+  const effectiveDataSource = useMemo(() => {
+    if (selectedMap === 'usa') {
+      if (!customMapCountries?.length) return dataSource;
+      const stateSet = new Set(customMapCountries.map((c) => String(c).toUpperCase().trim()));
+      return dataSource.filter((item) => stateSet.has(normCode(item?.code)));
+    }
+    if (selectedMap !== 'world') return dataSource;
+    if (!customMapCountries?.length) return dataSource;
+    const countrySet = new Set(customMapCountries.map((c) => String(c).toUpperCase().trim()));
+    const countriesFromSource = dataSource.filter((item) => countrySet.has(normCode(item?.code)));
+    // Include selected microstates so they appear in the sidebar dataset (only those that exist in dataSource so count never exceeds 234)
+    const microstatesToShow =
+      microstatesCustom === null
+        ? MICROSTATES_LIST
+        : Array.isArray(microstatesCustom) && microstatesCustom.length > 0
+          ? MICROSTATES_LIST.filter((m) =>
+              microstatesCustom.some((c) => normCode(c) === normCode(m.code))
+            )
+          : [];
+    const existingCodes = new Set(countriesFromSource.map((r) => normCode(r?.code)));
+    const microstateRows = microstatesToShow
+      .filter((m) => !existingCodes.has(normCode(m.code)) && dataSourceCodeSet.has(normCode(m.code)))
+      .map((m) => ({ code: m.code, name: m.name }));
+    return [...countriesFromSource, ...microstateRows];
+  }, [dataSource, customMapCountries, selectedMap, microstatesCustom, dataSourceCodeSet]);
+
   /**
-   * Merge parent's data with dataSource on mount / map change
+   * Merge parent's data with effectiveDataSource on mount / map change
    * Also gather any distinct categories from the parent's data if we are in categorical mode.
    * Includes description from dataEntries (e.g. from CSV/XLS import) so it shows in the sidebar.
    * In categorical mode, push the full merged list to parent so unassigned count is correct from the start.
    */
   useEffect(() => {
-    const merged = dataSource.map((item) => {
+    const merged = effectiveDataSource.map((item) => {
       const existing = dataEntries.find((d) => normCode(d?.code) === normCode(item?.code));
       return {
         code: item.code,
@@ -148,10 +212,18 @@ useEffect(() => {
 
     setLocalData(merged);
 
-    if (mapDataType === 'categorical' && (dataEntries?.length ?? 0) < dataSource.length) {
-      setDataEntries(merged);
+    if (mapDataType === 'categorical' && (dataEntries?.length ?? 0) < effectiveDataSource.length) {
+      if (customMapCountries?.length) {
+        setDataEntries((prev) => {
+          const next = new Map(prev.map((d) => [normCode(d?.code), d]));
+          merged.forEach((row) => next.set(normCode(row?.code), row));
+          return Array.from(next.values());
+        });
+      } else {
+        setDataEntries(merged);
+      }
     }
-  }, [dataSource, dataEntries, mapDataType]);
+  }, [effectiveDataSource, dataEntries, mapDataType, customMapCountries]);
 
 
   useEffect(() => {
@@ -190,14 +262,22 @@ useEffect(() => {
    * Confirm switching => wipe data, switch type
    */
   const handleConfirmSwitch = () => {
-    const cleared = dataSource.map((item) => ({
+    const cleared = effectiveDataSource.map((item) => ({
       code: item.code,
       name: item.name,
       value: '',
     }));
 
     setLocalData(cleared);
-    setDataEntries(cleared);
+    if (customMapCountries?.length) {
+      setDataEntries((prev) => {
+        const next = new Map(prev.map((d) => [normCode(d?.code), d]));
+        cleared.forEach((row) => next.set(normCode(row?.code), row));
+        return Array.from(next.values());
+      });
+    } else {
+      setDataEntries(cleared);
+    }
 
     if (onChangeDataType && pendingType) {
       onChangeDataType(pendingType);
@@ -239,12 +319,20 @@ const handleValueChange = (code, newVal) => {
    * onBlur => push to parent
    * Choropleth: only rows with valid numeric value.
    * Categorical: all rows (including value "" for unassigned) so unassigned count is correct.
+   * When custom map is set, merge visible rows into existing data so we don't drop other countries.
    */
   const handleBlur = () => {
-    if (mapDataType === "choropleth") {
-      setDataEntries(localData.filter((row) => toNumOrNull(row.value) != null));
+    const toPush = mapDataType === "choropleth"
+      ? localData.filter((row) => toNumOrNull(row.value) != null)
+      : localData;
+    if (customMapCountries?.length) {
+      setDataEntries((prev) => {
+        const next = new Map(prev.map((d) => [normCode(d?.code), d]));
+        toPush.forEach((row) => next.set(normCode(row?.code), row));
+        return Array.from(next.values());
+      });
     } else {
-      setDataEntries(localData);
+      setDataEntries(toPush);
     }
   };
 
@@ -372,8 +460,99 @@ useLayoutEffect(() => {
 
 
 
+  /** Active preset id: usa when on US map, else customMapPresetId, or "custom" when we have a custom selection, else world */
+  const activePresetId = selectedMap === "usa"
+    ? "usa"
+    : (customMapPresetId || (customMapCountries?.length ? "custom" : "world"));
+  const activePreset = useMemo(
+    () => CUSTOM_MAP_MODAL_PRESETS.find((p) => p.id === activePresetId) ?? { id: "custom", label: "Custom" },
+    [activePresetId]
+  );
+
+  const [mapSelectOpen, setMapSelectOpen] = useState(false);
+  const mapSelectRef = useRef(null);
+  useEffect(() => {
+    if (!mapSelectOpen) return;
+    const onDocClick = (e) => {
+      if (mapSelectRef.current && !mapSelectRef.current.contains(e.target)) setMapSelectOpen(false);
+    };
+    window.addEventListener("click", onDocClick);
+    return () => window.removeEventListener("click", onDocClick);
+  }, [mapSelectOpen]);
+
+  const regionCount = regionCountOverride !== undefined && regionCountOverride !== null ? regionCountOverride : effectiveDataSource.length;
+  const regionLabel = selectedMap === "usa" ? "states" : "countries";
+
   return (
     <div className={styles.sidebarContainer}>
+      {/* Map select: dropdown of presets (thumbnail+label) + count that opens customize modal */}
+      {(onSelectMapPreset || onOpenCustomMapModal) && (
+        <div className={styles.mapSelectWrap} ref={mapSelectRef}>
+          <div className={styles.mapSelectRow}>
+            <button
+              type="button"
+              className={styles.mapSelectTrigger}
+              onClick={() => onSelectMapPreset && setMapSelectOpen((o) => !o)}
+              aria-expanded={mapSelectOpen}
+              aria-haspopup="listbox"
+              aria-label="Choose map type"
+            >
+              <div className={styles.customMapThumb}>
+                {mapForThumbnail ? (
+                  <StaticMapThumbnail map={mapForThumbnail} className={styles.customMapThumbImg} />
+                ) : (
+                  <div className={styles.customMapThumbFallback} aria-hidden="true" />
+                )}
+              </div>
+              <span className={styles.customMapLabel}>
+                {activePreset?.label ?? "Custom"}
+              </span>
+              {onSelectMapPreset && (
+                <span className={styles.mapSelectChevron} aria-hidden="true">
+                  {mapSelectOpen ? "▴" : "▾"}
+                </span>
+              )}
+            </button>
+            {onOpenCustomMapModal && (
+              <button
+                type="button"
+                className={styles.mapSelectCount}
+                onClick={(e) => { e.stopPropagation(); onOpenCustomMapModal(); }}
+                title={`${regionCount} ${regionLabel} — click to choose which to show`}
+                aria-label={`${regionCount} ${regionLabel}. Click to choose which ${regionLabel} to show`}
+              >
+                {regionCount}
+              </button>
+            )}
+          </div>
+          {onSelectMapPreset && mapSelectOpen && (
+            <div className={styles.mapSelectDropdown} role="listbox">
+              {CUSTOM_MAP_MODAL_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  role="option"
+                  aria-selected={activePresetId === preset.id}
+                  className={`${styles.mapSelectOption} ${activePresetId === preset.id ? styles.mapSelectOptionActive : ""}`}
+                  onClick={() => {
+                    onSelectMapPreset(preset.id);
+                    setMapSelectOpen(false);
+                  }}
+                >
+                  <span className={styles.mapSelectOptionThumb}>
+                    <StaticMapThumbnail
+                      map={minimalMapForPreset(preset)}
+                      className={styles.presetThumbImg}
+                    />
+                  </span>
+                  <span className={styles.mapSelectOptionLabel}>{preset.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* TAB ROW */}
 <div className={styles.tabRow}>
   <button
@@ -394,7 +573,6 @@ useLayoutEffect(() => {
     <span>Categorical</span>
   </button>
 </div>
-
 
   {/* UPLOAD BUTTON */}
 <div className={styles.uploadButtonWrap}>
@@ -445,8 +623,6 @@ useLayoutEffect(() => {
       placeholder={
         selectedMap === "usa"
           ? "Search states…"
-          : selectedMap === "europe"
-          ? "Search countries…"
           : "Search countries…"
       }
       type="text"
@@ -499,7 +675,11 @@ useLayoutEffect(() => {
       <div className={styles.countryLeft} onClick={() => onSelectCode?.(code)}>
         <img
           className={styles.flag}
-          src={`https://flagcdn.com/w20/${region.code.toLowerCase()}.png`}
+          src={
+            selectedMap === "usa"
+              ? getUsStateFlagUrl(region.code, 20)
+              : `https://flagcdn.com/w20/${region.code.toLowerCase()}.png`
+          }
           alt=""
           loading="lazy"
           onError={(e) => {

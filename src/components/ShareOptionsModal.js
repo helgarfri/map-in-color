@@ -5,6 +5,8 @@ import { BiCopy, BiLinkExternal, BiLink, BiKey, BiSun, BiMoon } from "react-icon
 import { FaXTwitter, FaFacebookF, FaLinkedinIn } from "react-icons/fa6";
 import UpgradeProModal from "./UpgradeProModal";
 import Map from "./Map";
+import MapUS from "./MapUS";
+import { inferPresetIdFromCodes } from "../constants/regionPresets";
 import { normalizeMapForPreview } from "../utils/mapPreviewUtils";
 import { generateEmbedToken } from "../api";
 import styles from "./ShareOptionsModal.module.css";
@@ -89,28 +91,58 @@ export default function ShareOptionsModal({
   const previewMapProps = useMemo(() => (normalizedMap ? { ...normalizedMap } : null), [normalizedMap]);
 
   function renderEmbedPreview(openUrl) {
+    const previewSelectedMap = String(previewMapProps?.selectedMap ?? "world").toLowerCase();
+    const isUsaPreview = previewSelectedMap === "usa";
+
     return (
       <>
         <div className={styles.embedPreviewMapStage}>
           {previewMapProps ? (
             <div className={styles.embedPreviewMapCenter}>
-              <Map
-              groups={previewMapProps.groups}
-              data={previewMapProps.data}
-              selected_map={previewMapProps.selectedMap}
-              mapDataType={previewMapProps.mapDataType}
-              custom_ranges={previewMapProps.customRanges}
-              mapTitleValue={previewMapProps.title}
-              ocean_color={previewMapProps.ocean_color}
-              unassigned_color={previewMapProps.unassigned_color}
-              font_color={previewMapProps.font_color}
-              is_title_hidden={previewMapProps.is_title_hidden}
-              showNoDataLegend={false}
-              titleFontSize={previewMapProps.titleFontSize}
-              legendFontSize={previewMapProps.legendFontSize}
-              strokeMode="thin"
-              theme={embedTheme}
-              />
+              {isUsaPreview ? (
+                <MapUS
+                  groups={previewMapProps.groups}
+                  data={previewMapProps.data}
+                  mapDataType={previewMapProps.mapDataType}
+                  custom_ranges={previewMapProps.customRanges}
+                  mapTitleValue={previewMapProps.title}
+                  ocean_color={previewMapProps.ocean_color}
+                  unassigned_color={previewMapProps.unassigned_color}
+                  font_color={previewMapProps.font_color}
+                  is_title_hidden={previewMapProps.is_title_hidden}
+                  titleFontSize={previewMapProps.titleFontSize}
+                  legendFontSize={previewMapProps.legendFontSize}
+                  show_microstates={previewMapProps.show_microstates !== false}
+                  microstates_custom={previewMapProps.microstates_custom ?? null}
+                  custom_map_countries={previewMapProps.custom_map_countries ?? null}
+                  suppressInfoBox
+                  staticView
+                  strokeMode="thin"
+                  theme={embedTheme}
+                />
+              ) : (
+                <Map
+                  groups={previewMapProps.groups}
+                  data={previewMapProps.data}
+                  selected_map={previewMapProps.selectedMap}
+                  mapDataType={previewMapProps.mapDataType}
+                  custom_ranges={previewMapProps.customRanges}
+                  mapTitleValue={previewMapProps.title}
+                  ocean_color={previewMapProps.ocean_color}
+                  unassigned_color={previewMapProps.unassigned_color}
+                  font_color={previewMapProps.font_color}
+                  is_title_hidden={previewMapProps.is_title_hidden}
+                  showNoDataLegend={false}
+                  show_microstates={previewMapProps.show_microstates !== false}
+                  microstates_custom={previewMapProps.microstates_custom ?? null}
+                  custom_map_countries={previewMapProps.custom_map_countries ?? null}
+                  custom_map_preset_id={previewMapProps.custom_map_preset_id ?? previewMapProps.customMapPresetId ?? inferPresetIdFromCodes(Array.isArray(previewMapProps.custom_map_countries) ? previewMapProps.custom_map_countries : []) ?? null}
+                  titleFontSize={previewMapProps.titleFontSize}
+                  legendFontSize={previewMapProps.legendFontSize}
+                  strokeMode="thin"
+                  theme={embedTheme}
+                />
+              )}
             </div>
           ) : (
             <span className={styles.embedPreviewPlaceholder}>Preview</span>
