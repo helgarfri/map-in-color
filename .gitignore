@@ -27,7 +27,10 @@ node_modules/
 .env
 profile_pictures/
 app-backend/SECURITY_AUDIT.md
+app-backend/emails/new-maps-announcement.html
 
+# sample / local datasets (not versioned)
+src/datasets/
 
 # env files
 .env
