@@ -12,7 +12,8 @@ const MAP_UPDATE_ALLOWED = [
   'unassigned_color', 'font_color', 'is_title_hidden', 'groups', 'custom_ranges',
   'data', 'map_data_type', 'show_no_data_legend', 'title_font_size', 'legend_font_size',
   'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom', 'custom_map_countries',
-  'selected_palette', 'selected_map_theme',
+  'selected_palette', 'selected_map_theme', 'region_category_caption',
+  'show_region_category_labels',
 ];
 
 function stripEmptyUpdateFields(obj) {
