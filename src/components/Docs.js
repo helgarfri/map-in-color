@@ -863,7 +863,7 @@ export function DocsLanding() {
     <div className={styles.docsLandingWrap}>
       <div className={styles.docsLandingInner}>
         <h1 className={styles.docsLandingTitle}>Documentation</h1>
-        <p className={styles.docsLandingLead}>MIC v3.0.0 — choose a topic to get started.</p>
+        <p className={styles.docsLandingLead}>MIC v3.1.0 — choose a topic to get started.</p>
         <div className={styles.docsCardGrid}>
           {DOC_CARDS.map((card) => (
             <Link key={card.slug} to={`/docs/${card.slug}`} className={styles.docCard}>
