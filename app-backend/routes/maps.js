@@ -14,6 +14,8 @@ const MAP_UPDATE_ALLOWED = [
   'placeholders', 'file_stats', 'sources', 'show_microstates', 'microstates_custom', 'custom_map_countries',
   'selected_palette', 'selected_map_theme', 'region_category_caption',
   'show_region_category_labels',
+  'region_map_labels_mode',
+  'region_category_label_color',
 ];
 
 function stripEmptyUpdateFields(obj) {
