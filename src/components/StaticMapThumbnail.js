@@ -1,8 +1,10 @@
 // src/components/StaticMapThumbnail.js
-import React from 'react';
+import React, { useContext } from 'react';
 import Map from './Map';
 import MapUS from './MapUS';
 import { inferPresetIdFromCodes } from '../constants/regionPresets';
+import { readRegionMapLabelsMode, readShowRegionCategoryLabels } from '../utils/mapPreviewUtils';
+import { ThemeContext } from '../context/ThemeContext';
 import styles from './StaticMapThumbnail.module.css';
 
 const DEFAULT_THUMB_BG = '#dddddd';
@@ -25,6 +27,8 @@ export default function StaticMapThumbnail({
   background = DEFAULT_THUMB_BG,
   children,
 }) {
+  const { darkMode } = useContext(ThemeContext) ?? {};
+  const mapTheme = darkMode ? 'dark' : 'light';
   /* When background is the default, use CSS (var(--thumbnail-bg)) so dark mode applies */
   const inlineBg = background !== DEFAULT_THUMB_BG ? { background } : undefined;
 
@@ -53,6 +57,8 @@ export default function StaticMapThumbnail({
 
   const titleFontSize = map.title_font_size ?? map.titleFontSize ?? null;
   const legendFontSize = map.legend_font_size ?? map.legendFontSize ?? null;
+  const show_region_category_labels = readShowRegionCategoryLabels(map);
+  const region_map_labels_mode = readRegionMapLabelsMode(map);
 
   const groups = Array.isArray(map.groups) ? map.groups : [];
   const data = Array.isArray(map.data) ? map.data : [];
@@ -100,7 +106,11 @@ const mapDataType =
             is_title_hidden={is_title_hidden}
             titleFontSize={titleFontSize}
             legendFontSize={legendFontSize}
+            region_map_labels_mode={region_map_labels_mode}
+            show_region_category_labels={show_region_category_labels}
+            theme={mapTheme}
             strokeMode="thin"
+            isThumbnail={true}
             staticView={true}
             suppressInfoBox={true}
           />
@@ -124,6 +134,9 @@ const mapDataType =
             custom_map_preset_id={custom_map_preset_id}
             titleFontSize={titleFontSize}
             legendFontSize={legendFontSize}
+            region_map_labels_mode={region_map_labels_mode}
+            show_region_category_labels={show_region_category_labels}
+            theme={mapTheme}
             strokeMode="thin"
           />
         )}

@@ -121,6 +121,7 @@ function GettingStartedContent() {
 
 // ——— 3. Creating Maps ———
 const creatingMapsSections = [
+  { id: 'geography-and-regions', title: 'Geography & region selection', level: 2 },
   { id: 'map-types', title: 'Map Types', level: 2 },
   { id: 'choropleth-maps', title: 'Choropleth', level: 3 },
   { id: 'automatic-range-generation', title: 'Automatic Range Generation', level: 4 },
@@ -130,14 +131,31 @@ const creatingMapsSections = [
   { id: 'creating-categories', title: 'Creating Categories', level: 4 },
   { id: 'handling-unassigned', title: 'Handling Unassigned Countries', level: 4 },
   { id: 'visual-control', title: 'Visual Control', level: 4 },
+  { id: 'map-types-summary', title: 'Summary', level: 3 },
+  { id: 'on-map-labels', title: 'On-map labels', level: 2 },
 ];
 
 function CreatingMapsContent() {
   return (
     <>
+      <h2 id="geography-and-regions">Geography & region selection</h2>
+      <p>
+        On the Data Integration page, the sidebar includes the Choose map type control, shown as a thumbnail, the current region name, and a chevron. Open it to pick which geography your project uses. The menu includes World with all countries and microstates when those are enabled, Europe, US States for state level choropleth or categorical work, North America, South America, Latin America, Africa, Asia, and Oceania as continental and regional groupings, and Custom when your visible countries or states no longer match a preset exactly, such as after you hide regions.
+      </p>
+      <p>
+        Next to that control, the number badge shows how many countries or states are currently included. Click it to open the custom map dialog and change exactly which areas appear.
+      </p>
+      <img
+        src="/assets/3-0/custom_map_button.png"
+        alt="Map type control with World selected and the region count badge"
+        className={styles.docImage}
+      />
+      <p>
+        The dialog is titled Custom map: choose countries and microstates for world style maps, or Choose which states to show when you are on US States. You can start from preset buttons such as World, Europe, or a region, then refine with checkboxes and search. For world maps, countries and microstates are in separate columns so you can turn small areas on or off independently, using Select all or Deselect all in each column as needed. Anything you leave unchecked is hidden on the map and excluded from counts that depend on the visible set. Switching to a different preset from the dropdown may reset your data if the editor warns you, so confirm only when you intend to replace the current dataset.
+      </p>
       <h2 id="map-types">Map Types</h2>
       <p>
-        Map in Color supports two types of maps: <strong>Choropleth</strong> and <strong>Categorical</strong>. The system automatically detects the appropriate type based on your data, but you can manually switch between them at any time.
+        Map in Color supports two types of maps: choropleth and categorical. The system automatically detects the appropriate type based on your data, but you can manually switch between them at any time using the tabs in Data Integration.
       </p>
       <h3 id="choropleth-maps">Choropleth</h3>
       <p>Choropleth maps are used for numerical data. Examples:</p>
@@ -166,7 +184,7 @@ function CreatingMapsContent() {
       </p>
       <p>If all values are identical, a single range is generated.</p>
       <h4 id="manual-range-control">Manual Range Control</h4>
-      <p>Users can add new ranges, remove ranges, edit lower and upper bounds manually, rename ranges, and adjust colors for each range. Countries are assigned to ranges based on their numerical value—if a value falls within a defined lower and upper bound, it will automatically appear in that range. By default, range labels are numeric (e.g., 0.1 – 0.5), but users can define custom range names.</p>
+      <p>Users can add new ranges, remove ranges, edit lower and upper bounds manually, rename ranges, and adjust colors for each range. Countries are assigned to ranges based on their numerical value; if a value falls within a defined lower and upper bound, it will automatically appear in that range. By default, range labels are numeric (e.g., 0.1 – 0.5), but users can define custom range names.</p>
       <h4 id="color-customization">Color Customization</h4>
       <p>
         For choropleth maps, users can choose a base color (which automatically generates a light-to-dark gradient), select from predefined Map in Color themes, or manually set custom colors for each range. The gradient system ensures that lower values appear lighter and higher values appear darker, creating a clear visual hierarchy.
@@ -196,7 +214,21 @@ function CreatingMapsContent() {
       </p>
       <h4 id="visual-control">Visual Control</h4>
       <p>
-        Each category has a fixed color. Unlike choropleth maps, categorical maps do not use gradients—they use distinct color blocks to represent discrete groups. This makes categorical maps ideal for binary or multi-group classifications.
+        Each category has a fixed color. Unlike choropleth maps, categorical maps do not use gradients; they use distinct color blocks to represent discrete groups. This makes categorical maps ideal for binary or multi-group classifications.
+      </p>
+      <h3 id="map-types-summary">Summary</h3>
+      <p>
+        Choropleth maps suit numerical data and continuous values. Categorical maps suit classification and grouped data. Map in Color picks a default interpretation from your upload, and you can change it at any time using the tabs in Data Integration.
+      </p>
+      <h2 id="on-map-labels">On-map labels</h2>
+      <p>
+        In Data Integration, the On-map labels setting next to range or category controls sets short labels drawn on regions in the map preview, separate from the legend title, as text on the shapes themselves.
+      </p>
+      <p>
+        For choropleth maps you can leave labels off entirely, show each region&apos;s range name including any custom names you typed, or show the numeric value for each region.
+      </p>
+      <p>
+        For categorical maps you can hide labels or show the category name on each region. Per region value labels are not used on categorical maps; only the category name appears when labels are on.
       </p>
     </>
   );
@@ -312,6 +344,7 @@ const ownershipSharingSections = [
   { id: 'map-ownership', title: 'Map Ownership', level: 2 },
   { id: 'public-vs-private', title: 'Public vs Private', level: 2 },
   { id: 'embedding-maps', title: 'Embedding Maps', level: 2 },
+  { id: 'download-export-appearance', title: 'Download and export appearance', level: 2 },
   { id: 'profile-privacy-settings', title: 'Profile Privacy Settings', level: 2 },
 ];
 
@@ -332,6 +365,10 @@ function OwnershipSharingContent() {
         className={styles.docImage}
       />
       <p className={styles.docCaption}>Example of a Map in Color embed in a fake website layout.</p>
+      <h2 id="download-export-appearance">Download and export appearance</h2>
+      <p>
+        When you are signed in and open the download options modal, you can export the map as PNG, JPG, PDF, or SVG depending on your plan and which export options are available to you. Regardless of whether the site is in light or dark mode, you can choose a light or dark export theme for the generated file so the background, legend card styling, and label colors match how you want the image to look for screenshots or print.
+      </p>
       <h2 id="profile-privacy-settings">Profile Privacy Settings</h2>
       <p>Users can control what appears on their public profile under Privacy Settings:</p>
       <ul>

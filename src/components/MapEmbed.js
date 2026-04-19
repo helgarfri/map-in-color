@@ -3,8 +3,15 @@ import { useParams, useSearchParams } from "react-router-dom";
 import MapView from "../components/Map";
 import MapUS from "../components/MapUS";
 import { inferPresetIdFromCodes } from "../constants/regionPresets";
-import { getMapVerticalOffsetPx } from "../utils/mapPreviewUtils";
-import MapLegendOverlay from "../components/MapLegendOverlay";
+import {
+  getMapVerticalOffsetPx,
+  readRegionMapLabelsMode,
+  readShowRegionCategoryLabels,
+} from "../utils/mapPreviewUtils";
+import MapLegendOverlay, {
+  MAP_LEGEND_MOBILE_MAX_WIDTH_PX,
+  isNarrowPortraitLegendOverlap,
+} from "../components/MapLegendOverlay";
 import useWindowSize from "../hooks/useWindowSize";
 import { fetchMapById } from "../api";
 import countries from "../world-countries.json";
@@ -72,7 +79,10 @@ export default function MapEmbed() {
   const { width: embedWidth, height: embedHeight } = useWindowSize();
   const isSmallEmbed =
     embedWidth < EMBED_COMPACT_WIDTH || embedHeight < EMBED_COMPACT_HEIGHT;
-  const isNarrowPortrait = embedWidth < embedHeight && embedWidth < 700;
+  const isNarrowPortrait = isNarrowPortraitLegendOverlap(
+    embedWidth,
+    embedHeight
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -288,6 +298,8 @@ export default function MapEmbed() {
       is_title_hidden: toBool(mapData.is_title_hidden),
       titleFontSize: Number(mapData.title_font_size) || 28,
       legendFontSize: Number(mapData.legend_font_size) || 18,
+      show_region_category_labels: readShowRegionCategoryLabels(mapData),
+      region_map_labels_mode: readRegionMapLabelsMode(mapData),
 
       show_top_high_values: toBool(mapData.show_top_high_values),
       show_top_low_values: toBool(mapData.show_top_low_values),
@@ -355,6 +367,7 @@ export default function MapEmbed() {
             theme={embedTheme}
             staticView={!isInteractive}
             compactUi={isSmallEmbed}
+            isThumbnail={!isInteractive && isSmallEmbed}
             verticalOffsetPx={mapVerticalOffsetPx}
             horizontalOffsetPx={-110}
             hoveredCode={isInteractive ? hoveredCode : null}
@@ -425,22 +438,9 @@ export default function MapEmbed() {
           <div className={styles.mapNonInteractiveOverlay} aria-hidden="true" />
         )}
 
-        {loadState === "ready" && isNarrowPortrait && (
-          <div
-            className={`${styles.turnScreenPrompt} ${embedTheme === "dark" ? styles.turnScreenPromptDark : ""}`}
-            role="status"
-            aria-live="polite"
-          >
-            <svg className={styles.turnScreenIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 12a9 9 0 1 1-6.22-8.56" />
-              <path d="M21 3v6h-6" />
-            </svg>
-            <span>Turn your screen for a better experience</span>
-          </div>
-        )}
-
         {showLegend && (
           <MapLegendOverlay
+            key={id}
             title={mapData?.title}
             legendModels={legendModels}
             activeLegendKey={activeLegendKey}
@@ -456,6 +456,11 @@ export default function MapEmbed() {
             theme={embedTheme}
             interactive={isInteractive}
             compact={isSmallEmbed}
+            defaultCollapsed={embedWidth <= MAP_LEGEND_MOBILE_MAX_WIDTH_PX}
+            hideForMobileMapPanel={
+              isNarrowPortrait &&
+              (!!activeLegendKey || !!selectedCode)
+            }
           />
         )}
 

@@ -30,6 +30,7 @@ import { getAnonId } from "../utils/annonId";
 import HomeHeader from "./HomeHeader";
 import SignupRequiredModal from "./SignupRequiredModal";
 import { getPlaygroundDraft, setPlaygroundDraft, clearPlaygroundDraft } from "../utils/playgroundStorage";
+import { readRegionMapLabelsMode } from "../utils/mapPreviewUtils";
 
 
 // Icons, contexts, etc.
@@ -51,7 +52,10 @@ import { API, updateMap, createMap } from "../api";
 // Map preview
 import MapPreview from "./Map";
 import MapUS from "./MapUS";
-import MapLegendOverlay from "./MapLegendOverlay";
+import MapLegendOverlay, {
+  MAP_LEGEND_MOBILE_MAX_WIDTH_PX,
+  isNarrowPortraitLegendOverlap,
+} from "./MapLegendOverlay";
 
 /** Example Color Palettes **/
 const themes = [
@@ -362,6 +366,22 @@ function ColorCell({ color, onChange, styles, onFocus, onBlur }) {
   );
 }
 
+/** True if any row has a non-empty value (choropleth or categorical). */
+function dataEntriesHaveValues(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return false;
+  return entries.some((row) => String(row?.value ?? "").trim() !== "");
+}
+
+function placeholdersHaveText(ph) {
+  if (!ph || typeof ph !== "object") return false;
+  return Object.values(ph).some((v) => String(v ?? "").trim() !== "");
+}
+
+/** Matches DataSidebar’s active preset id for the map dropdown. */
+function getActiveMapPresetId(selectedMap, customMapPresetId, customMapCountries) {
+  if (selectedMap === "usa") return "usa";
+  return customMapPresetId || (customMapCountries?.length ? "custom" : "world");
+}
 
 export default function DataIntegration({ existingMapData = null, isEditing = false, externalLoading = false, isPlayground = false, hideHeader = false }) {
   const location = useLocation();
@@ -369,7 +389,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { darkMode } = useContext(ThemeContext);
   const mapPreviewTheme = isPlayground ? "light" : (darkMode ? "dark" : "light");
-  const { width } = useWindowSize();
+  const { width, height } = useWindowSize();
   const hasHydratedFromPlaygroundRef = useRef(false);
   const persistTimeoutRef = useRef(null);
 
@@ -450,6 +470,9 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
   const mapPreviewFallbackReadyMs = 1500;
   const [titleFontSize, setTitleFontSize] = useState(existingMapData?.title_font_size ?? null);
   const [legendFontSize, setLegendFontSize] = useState(existingMapData?.legend_font_size ?? null);
+  const [regionMapLabelsMode, setRegionMapLabelsMode] = useState(() =>
+    readRegionMapLabelsMode(existingMapData || {})
+  );
 
   // references
   const [references, setReferences] = useState(existingMapData?.sources || []);
@@ -510,6 +533,8 @@ const [deleteMapError, setDeleteMapError] = useState(null);
 const [showDeleteReferenceModal, setShowDeleteReferenceModal] = useState(false);
 const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [showChangePresetModal, setShowChangePresetModal] = useState(false);
+  const [showSwitchMapPresetModal, setShowSwitchMapPresetModal] = useState(false);
+  const [pendingMapPresetId, setPendingMapPresetId] = useState(null);
   const pendingCustomMapSaveRef = useRef(null);
   const [showSignupRequiredModal, setShowSignupRequiredModal] = useState(false);
 
@@ -595,6 +620,13 @@ useEffect(() => {
     setMapDataType(existingMapData.map_data_type || existingMapData.mapDataType || "choropleth");
   }, [existingMapData]);
 
+  // Categorical maps only support hidden vs category names (not per-cell value labels).
+  useEffect(() => {
+    if (mapDataType !== "categorical") return;
+    if (regionMapLabelsMode !== "value") return;
+    setRegionMapLabelsMode("name");
+  }, [mapDataType, regionMapLabelsMode]);
+
   // ✅ SINGLE source of truth: hydrate state from existingMapData (ONE effect)
   useEffect(() => {
     if (!existingMapData) {
@@ -618,6 +650,7 @@ useEffect(() => {
       setMicrostatesCustom(null);
       setTitleFontSize(null);
       setLegendFontSize(null);
+      setRegionMapLabelsMode("off");
       setReferences([]);
       setFileStats(defaultFileStats);
       setPlaceholders({});
@@ -692,12 +725,22 @@ setData(migratedData);
     setCustomMapPresetId(presetId);
     setTitleFontSize(existingMapData.title_font_size ?? null);
     setLegendFontSize(existingMapData.legend_font_size ?? null);
+    setRegionMapLabelsMode(readRegionMapLabelsMode(existingMapData));
     setSelectedMap(existingMapData.selected_map || "world");
 
     setReferences(existingMapData.sources || []);
     setFileStats(existingMapData.file_stats || defaultFileStats);
     setPlaceholders(existingMapData.placeholders || {});
-  }, [existingMapData?.id, isPlayground]); // important: use .id to avoid re-running on identity noise
+  }, [
+    existingMapData?.id,
+    existingMapData?.region_map_labels_mode,
+    existingMapData?.regionMapLabelsMode,
+    existingMapData?.show_region_category_labels,
+    existingMapData?.showRegionCategoryLabels,
+    existingMapData?.region_category_caption,
+    existingMapData?.regionCategoryCaption,
+    isPlayground,
+  ]); // include label flags so refetch / same-id updates re-hydrate the checkbox
 
   // ✅ Playground / logged-in create: hydrate from localStorage draft once so user's work isn't lost
   useEffect(() => {
@@ -764,6 +807,7 @@ setData(migratedData);
     setCustomMapPresetId(draftPresetId ?? p.custom_map_preset_id ?? null);
     setTitleFontSize(p.titleFontSize ?? null);
     setLegendFontSize(p.legendFontSize ?? null);
+    setRegionMapLabelsMode(readRegionMapLabelsMode(p));
     setSelectedMap(p.selected_map ?? "world");
     setReferences(Array.isArray(p.sources) ? p.sources : []);
     setPlaceholders(p.placeholders && typeof p.placeholders === "object" ? p.placeholders : {});
@@ -802,6 +846,7 @@ setData(migratedData);
     references,
     titleFontSize,
     legendFontSize,
+    regionMapLabelsMode,
     placeholders,
     isPlayground,
   ]);
@@ -873,11 +918,20 @@ function confirmClearData() {
   setPlaceholders({});
   setCustomRanges([{ id: Date.now(), color: "#c0c0c0", name: "", lowerBound: "", upperBound: "" }]);
   setGroups([normalizeGroup({ id: Date.now(), name: "", color: "#c0c0c0" })]);
+  setMapTitle("");
+  setDescription("");
+  setTags([]);
+  setTagInput("");
+  setIsPublic(true);
+  setReferences([]);
+  setSelectedReference(null);
+  setIsReferenceModalOpen(false);
+  setShowVisibilityOptions(false);
   setShowClearDataModal(false);
   clearPlaygroundDraft();
 }
 
-  function handleSelectMapPreset(presetId) {
+  function applyMapPreset(presetId) {
     const preset = CUSTOM_MAP_MODAL_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
     // Show skeleton immediately when user picks a preset (don't wait for effect)
@@ -914,6 +968,35 @@ function confirmClearData() {
       () => setMapPreviewViewReady(true),
       mapPreviewFallbackReadyMs
     );
+  }
+
+  function handleSelectMapPreset(presetId) {
+    const activeId = getActiveMapPresetId(selected_map, customMapPresetId, customMapCountries);
+    if (presetId === activeId) return;
+    if (dataEntriesHaveValues(data) || placeholdersHaveText(placeholders)) {
+      setPendingMapPresetId(presetId);
+      setShowSwitchMapPresetModal(true);
+      return;
+    }
+    applyMapPreset(presetId);
+  }
+
+  function confirmSwitchMapPreset() {
+    const id = pendingMapPresetId;
+    setPendingMapPresetId(null);
+    setShowSwitchMapPresetModal(false);
+    if (!id) return;
+    setData([]);
+    setFileStats(defaultFileStats);
+    setPlaceholders({});
+    setSelectedCode(null);
+    setHoveredCode(null);
+    applyMapPreset(id);
+  }
+
+  function cancelSwitchMapPreset() {
+    setPendingMapPresetId(null);
+    setShowSwitchMapPresetModal(false);
   }
 
   function handleCustomMapSave(codes, presetId, microstatesCodes) {
@@ -1782,6 +1865,14 @@ const unassignedCountryCount = useMemo(() => {
   return list.length;
 }, [mapDataType, groups, mapDataNormalized, customMapCountries]);
 
+  const regionTableLabels = useMemo(() => {
+    const isUs = selected_map === "usa";
+    return {
+      pluralCap: isUs ? "States" : "Countries",
+      pluralLower: isUs ? "states" : "countries",
+    };
+  }, [selected_map]);
+
   const categoryOptions = useMemo(() => {
   const arr = Array.isArray(groups) ? groups : [];
   return arr.map((g) => ({ id: g.id, name: String(g?.name ?? "").trim() || "(Unnamed)" }));
@@ -1851,7 +1942,7 @@ const renderCategoriesTable = () => {
 
           <thead>
             <tr>
-              <th>Countries</th>
+              <th>{regionTableLabels.pluralCap}</th>
               <th>Name</th>
               <th>Color</th>
               <th>Actions</th>
@@ -1871,10 +1962,10 @@ const renderCategoriesTable = () => {
   {row.count ? (
     <>
       <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
-        {row.count} countries
+        {row.count} {regionTableLabels.pluralLower}
       </div>
 
-<div className={styles.countriesChips} aria-label="Countries">
+<div className={styles.countriesChips} aria-label={regionTableLabels.pluralCap}>
   {row.countries.map((c) => {
     const code = normCode(c);
     const isHovered = hoveredCode && normCode(hoveredCode) === code;
@@ -1907,8 +1998,8 @@ const renderCategoriesTable = () => {
           onClick={() => assignUnassignedToCategory(row.id)}
           title={
             row.name?.trim()
-              ? `Assign all ${unassignedCountryCount} unassigned countries to "${row.name}"`
-              : `Assign all ${unassignedCountryCount} unassigned countries to this category`
+              ? `Assign all ${unassignedCountryCount} unassigned ${regionTableLabels.pluralLower} to "${row.name}"`
+              : `Assign all ${unassignedCountryCount} unassigned ${regionTableLabels.pluralLower} to this category`
           }
         >
           Assign all unassigned
@@ -1918,7 +2009,7 @@ const renderCategoriesTable = () => {
     </>
   ) : (
     <div className={styles.emptyCountriesBlock}>
-      <span className={styles.mutedText}>No countries assigned yet.</span>
+      <span className={styles.mutedText}>No {regionTableLabels.pluralLower} assigned yet.</span>
       {canEdit && (
         <button
           type="button"
@@ -1928,9 +2019,9 @@ const renderCategoriesTable = () => {
           title={
             unassignedCountryCount > 0
               ? (row.name?.trim()
-                  ? `Assign all ${unassignedCountryCount} unassigned countries to "${row.name}"`
-                  : `Assign all ${unassignedCountryCount} unassigned countries to this category`)
-              : "No unassigned countries"
+                  ? `Assign all ${unassignedCountryCount} unassigned ${regionTableLabels.pluralLower} to "${row.name}"`
+                  : `Assign all ${unassignedCountryCount} unassigned ${regionTableLabels.pluralLower} to this category`)
+              : `No unassigned ${regionTableLabels.pluralLower}`
           }
         >
           Assign all unassigned
@@ -1990,10 +2081,21 @@ const renderCategoriesTable = () => {
 
       <div className={styles.rangeControls}>
         <button className={styles.addRangeButton} onClick={addCategory} type="button">
-                      <FontAwesomeIcon icon={faPlus} />
-
+          <FontAwesomeIcon icon={faPlus} />
           Add category
         </button>
+        <div className={styles.mapLabelsSelectRow}>
+          <label htmlFor="show-region-labels-cat">On-map labels</label>
+          <select
+            id="show-region-labels-cat"
+            className={styles.mapLabelsSelect}
+            value={regionMapLabelsMode === "value" ? "name" : regionMapLabelsMode}
+            onChange={(e) => setRegionMapLabelsMode(e.target.value)}
+          >
+            <option value="off">Hidden</option>
+            <option value="name">Category names</option>
+          </select>
+        </div>
       </div>
     </>
   );
@@ -2185,6 +2287,11 @@ const rangeCountryLabel = (d) =>
       }
     }
 
+    const regionLabelsModeForSave =
+      mapDataType === "categorical" && regionMapLabelsMode === "value"
+        ? "name"
+        : regionMapLabelsMode;
+
     return {
       title: mapTitle,
       description,
@@ -2216,6 +2323,8 @@ const rangeCountryLabel = (d) =>
       titleFontSize: titleFontSize ?? null,
       legendFontSize: legendFontSize ?? null,
       placeholders: mergedPlaceholders,
+      region_map_labels_mode: regionLabelsModeForSave,
+      show_region_category_labels: regionLabelsModeForSave !== "off",
     };
   };
 
@@ -2284,6 +2393,8 @@ const rangeCountryLabel = (d) =>
         ? null
         : [...p.custom_map_countries].map((c) => String(c).toUpperCase().trim()).sort((a, b) => a.localeCompare(b)),
       custom_map_preset_id: p.custom_map_preset_id ?? null,
+      region_map_labels_mode: p.region_map_labels_mode ?? "off",
+      show_region_category_labels: !!p.show_region_category_labels,
     };
   };
 
@@ -2312,6 +2423,7 @@ const rangeCountryLabel = (d) =>
     references,
     titleFontSize,
     legendFontSize,
+    regionMapLabelsMode,
     placeholders,
     microstatesCustom,
     customMapCountries,
@@ -2338,6 +2450,8 @@ const rangeCountryLabel = (d) =>
       selected_map: selected_map,
       custom_ranges: custom_ranges || [],
       mapDataType: mapDataType,
+      region_map_labels_mode: regionMapLabelsMode,
+      show_region_category_labels: regionMapLabelsMode !== "off",
     };
   }, [
     selected_map,
@@ -2356,6 +2470,7 @@ const rangeCountryLabel = (d) =>
     mapDataNormalized,
     custom_ranges,
     mapDataType,
+    regionMapLabelsMode,
   ]);
 
   // Allow 0 categories in categorical mode; no longer force at least one group
@@ -2479,6 +2594,18 @@ try {
   clearInterval(timer);
   setSaveProgress(100);
   setSaveSuccess(true);
+
+  const savedRow = res?.data;
+  if (savedRow) {
+    if (
+      "region_map_labels_mode" in savedRow ||
+      "regionMapLabelsMode" in savedRow ||
+      "show_region_category_labels" in savedRow ||
+      "showRegionCategoryLabels" in savedRow
+    ) {
+      setRegionMapLabelsMode(readRegionMapLabelsMode(savedRow));
+    }
+  }
 
   initialSnapshotRef.current = currentSnapshot;
   clearPlaygroundDraft(); /* draft is now saved to account; don’t reload it next time */
@@ -2655,6 +2782,8 @@ try {
                       is_title_hidden={is_title_hidden}
                       titleFontSize={titleFontSize}
                       legendFontSize={legendFontSize}
+                      region_map_labels_mode={regionMapLabelsMode}
+                      show_region_category_labels={regionMapLabelsMode !== "off"}
                       hoveredCode={hoveredCode}
                       selectedCode={selectedCode}
                       onHoverCode={(code) => setHoveredCode(normCode(code))}
@@ -2667,6 +2796,9 @@ try {
                       strokeMode="thick"
                       compactUi={true}
                       compactUiShowInfoBoxes={true}
+                      isThumbnail={true}
+                      groupHoveredCodes={hoveredLegendCodes}
+                      groupActiveCodes={activeLegendCodes}
                       activeLegendModel={activeLegendModel}
                       onCloseActiveLegend={() => {
                         setActiveLegendKey(null);
@@ -2697,6 +2829,8 @@ try {
                           is_title_hidden={is_title_hidden}
                           titleFontSize={titleFontSize}
                           legendFontSize={legendFontSize}
+                          region_map_labels_mode={regionMapLabelsMode}
+                          show_region_category_labels={regionMapLabelsMode !== "off"}
                           hoveredCode={hoveredCode}
                           selectedCode={selectedCode}
                           onHoverCode={(code) => setHoveredCode(normCode(code))}
@@ -2756,6 +2890,11 @@ try {
                   theme={mapPreviewTheme}
                   interactive={true}
                   compact={true}
+                  defaultCollapsed={width <= MAP_LEGEND_MOBILE_MAX_WIDTH_PX}
+                  hideForMobileMapPanel={
+                    isNarrowPortraitLegendOverlap(width, height) &&
+                    (!!activeLegendKey || !!selectedCode)
+                  }
                 />
                 </div>
               </div>
@@ -2792,7 +2931,7 @@ try {
 
           <thead>
             <tr>
-              <th>Countries</th>
+              <th>{regionTableLabels.pluralCap}</th>
               <th>Lower</th>
               <th>Upper</th>
               <th>Name</th>
@@ -2812,10 +2951,10 @@ try {
           {range.isValidRange ? (
             <>
               <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
-                {range.count} countries
+                {range.count} {regionTableLabels.pluralLower}
               </div>
 
-       <div className={styles.countriesChips} aria-label="Countries">
+       <div className={styles.countriesChips} aria-label={regionTableLabels.pluralCap}>
   {range.countries.map((c) => {
     const code = normCode(c);
     const isHovered = hoveredCode && normCode(hoveredCode) === code;
@@ -2851,7 +2990,7 @@ try {
 
             </>
           ) : (
-            <span className={styles.mutedText}>Add lower/upper to see countries.</span>
+            <span className={styles.mutedText}>Add lower/upper to see {regionTableLabels.pluralLower}.</span>
           )}
         </td>
 
@@ -2977,35 +3116,50 @@ try {
   Generate ranges
 </button>
 
-
-  {/* ✅ Base palette strip */}
-  <div className={styles.basePaletteStrip} aria-label="Base palette">
-    <span className={styles.basePaletteLabel}>Base</span>
-
-    {BASE_SWATCHES.map((s) => (
-      <button
-        key={s.key}
-        type="button"
-        className={styles.baseSwatchBtn}
-        title={`${s.name} (${s.hex})`}
-        onClick={() => applyBaseColorPalette(s.hex)}
+  <div className={styles.paletteCluster}>
+    <div className={styles.mapLabelsSelectRow}>
+      <label htmlFor="show-region-labels-choro">On-map labels</label>
+      <select
+        id="show-region-labels-choro"
+        className={styles.mapLabelsSelect}
+        value={regionMapLabelsMode}
+        onChange={(e) => setRegionMapLabelsMode(e.target.value)}
       >
-        <span className={styles.baseSwatchDot} style={{ background: s.hex }} />
-      </button>
-    ))}
+        <option value="off">Hidden</option>
+        <option value="name">Range names</option>
+        <option value="value">Values</option>
+      </select>
+    </div>
 
-    <button
-      type="button"
-      className={styles.baseCustomBtn}
-      onClick={() => {
-        setCustomBaseColor("#14a9af");
-        setCustomReverse(false);
-        setIsBasePaletteModalOpen(true);
-      }}
-      title="Choose a custom base color"
-    >
-      Custom…
-    </button>
+    {/* ✅ Base palette strip */}
+    <div className={styles.basePaletteStrip} aria-label="Base palette">
+      <span className={styles.basePaletteLabel}>Base</span>
+
+      {BASE_SWATCHES.map((s) => (
+        <button
+          key={s.key}
+          type="button"
+          className={styles.baseSwatchBtn}
+          title={`${s.name} (${s.hex})`}
+          onClick={() => applyBaseColorPalette(s.hex)}
+        >
+          <span className={styles.baseSwatchDot} style={{ background: s.hex }} />
+        </button>
+      ))}
+
+      <button
+        type="button"
+        className={styles.baseCustomBtn}
+        onClick={() => {
+          setCustomBaseColor("#14a9af");
+          setCustomReverse(false);
+          setIsBasePaletteModalOpen(true);
+        }}
+        title="Choose a custom base color"
+      >
+        Custom…
+      </button>
+    </div>
   </div>
 </div>
 
@@ -3249,7 +3403,7 @@ try {
       className={`${styles.actionPill} ${styles.dangerPill}`}
       onClick={() => setShowClearDataModal(true)}
       disabled={!isEditing && !savedMapId && !isPlayground && existingMapData != null}
-      title="Remove all data from the map (keeps title and settings)"
+      title="Remove all map data, map info, and references"
     >
       <FontAwesomeIcon icon={faEraser} />
       Clear data
@@ -3476,12 +3630,33 @@ try {
 <ConfirmModal
   isOpen={showClearDataModal}
   title="Clear all data?"
-  message="This will remove all data from the map. The map title and settings will be kept. This can't be undone."
+  message="This will remove all region data from the map and clear Map Info (title, description, visibility, tags, and references). Visual style settings (colors, legend, map type) are kept. This can't be undone."
   cancelText="Cancel"
   confirmText="Clear data"
   danger
   onCancel={() => setShowClearDataModal(false)}
   onConfirm={confirmClearData}
+/>
+
+<ConfirmModal
+  isOpen={showSwitchMapPresetModal}
+  title="Switch map?"
+  message={
+    <>
+      Are you sure you want to switch to{" "}
+      <strong>
+        {CUSTOM_MAP_MODAL_PRESETS.find((p) => p.id === pendingMapPresetId)?.label ?? "another map"}
+      </strong>
+      ?
+      <br />
+      This will remove all data currently on the map. Your title and style settings are kept.
+    </>
+  }
+  cancelText="Cancel"
+  confirmText="Switch map"
+  danger
+  onCancel={cancelSwitchMapPreset}
+  onConfirm={confirmSwitchMapPreset}
 />
 
 <ConfirmModal

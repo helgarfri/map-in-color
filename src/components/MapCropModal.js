@@ -295,6 +295,7 @@ export default function MapCropModal({
                   staticView={true}
                   strokeMode="thick"
                   isLargeMap={false}
+                  isThumbnail={true}
                   hoveredCode={null}
                   selectedCode={null}
                   groupHoveredCodes={[]}

@@ -30,13 +30,20 @@ import { SidebarContext } from '../context/SidebarContext';
 import { ThemeContext } from '../context/ThemeContext';
 import useWindowSize from '../hooks/useWindowSize';
 import { FaEye, FaEyeSlash, FaStar } from 'react-icons/fa';
-import MapLegendOverlay from './MapLegendOverlay';
+import MapLegendOverlay, {
+  MAP_LEGEND_MOBILE_MAX_WIDTH_PX,
+  isNarrowPortraitLegendOverlap,
+} from './MapLegendOverlay';
 import { reportComment } from '../api'; // import at top
 import { FaLock } from 'react-icons/fa';
 import MapView from './Map';
 import MapUS from './MapUS';
 import { inferPresetIdFromCodes } from '../constants/regionPresets';
-import { getMapVerticalOffsetPx } from "../utils/mapPreviewUtils";
+import {
+  getMapVerticalOffsetPx,
+  readRegionMapLabelsMode,
+  readShowRegionCategoryLabels,
+} from "../utils/mapPreviewUtils";
 import MapDetailValueTable from "./MapDetailValueTable";
 import { getAnonId } from "../utils/annonId"; // add at top
 import DownloadOptionsModal from "./DownloadOptionsModal";
@@ -72,7 +79,7 @@ export default function MapDetailContent({ isFullScreen, toggleFullScreen, force
   const [isPostingReply, setIsPostingReply] = useState(false);
   const { isCollapsed, setIsCollapsed } = useContext(SidebarContext);
   const { width, height } = useWindowSize();
-  const isNarrowPortrait = width < height && width < 700;
+  const isNarrowPortrait = isNarrowPortraitLegendOverlap(width, height);
 
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginModalAction, setLoginModalAction] = useState('default');
@@ -1001,6 +1008,9 @@ const resolvedMapDataProps = useMemo(() => {
     is_title_hidden: toBool(mapData.is_title_hidden),
     titleFontSize: Number(mapData.title_font_size) || 28,
     legendFontSize: Number(mapData.legend_font_size) || 18,
+    show_region_category_labels: readShowRegionCategoryLabels(mapData),
+    region_map_labels_mode: readRegionMapLabelsMode(mapData),
+    theme: mapTheme,
     show_top_high_values: toBool(mapData.show_top_high_values),
     show_top_low_values: toBool(mapData.show_top_low_values),
     showNoDataLegend: toBool(mapData.show_no_data_legend),
@@ -1015,7 +1025,7 @@ const resolvedMapDataProps = useMemo(() => {
     top_low_values: parseJsonArray(mapData.top_low_values),
     strokeMode: "thick",
   };
-}, [mapData, parsedCustomMapCountries, parsedMicrostatesCustom]);
+}, [mapData, parsedCustomMapCountries, parsedMicrostatesCustom, mapTheme]);
 
 function mapDataProps() {
   return resolvedMapDataProps;
@@ -1344,17 +1354,8 @@ if (!mapData) {
   {isFullScreen ? <FaEyeSlash /> : <FaEye />}
 </button>
 
-{isFullScreen && isNarrowPortrait && (
-  <div className={styles.turnScreenPrompt} role="status" aria-live="polite">
-    <svg className={styles.turnScreenIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 12a9 9 0 1 1-6.22-8.56" />
-      <path d="M21 3v6h-6" />
-    </svg>
-    <span>Turn your screen for a better experience</span>
-  </div>
-)}
-
 <MapLegendOverlay
+    key={id}
     title={mapData?.title || 'Untitled Map'}
     legendModels={legendModels}
     activeLegendKey={activeLegendKey}
@@ -1367,6 +1368,10 @@ if (!mapData) {
     setHoverLegendKey={setHoverLegendKey}
     theme={mapTheme}
     interactive
+    defaultCollapsed={width <= MAP_LEGEND_MOBILE_MAX_WIDTH_PX}
+    hideForMobileMapPanel={
+      isNarrowPortrait && (!!activeLegendKey || !!selectedCode)
+    }
   />
 
 

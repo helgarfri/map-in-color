@@ -9,6 +9,11 @@ import React, {
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import cls from "./Map.module.css";
 import { MICROSTATE_CODES } from "../constants/microstates";
+import { EUROPE_CODES } from "../constants/regionPresets";
+import {
+  readRegionMapLabelsMode,
+  regionCategoryLabelPaint,
+} from "../utils/mapPreviewUtils";
 
 const JSMap = window.Map;
 
@@ -83,8 +88,14 @@ function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
 
 const norm = (c = "") => String(c || "").trim().toUpperCase();
 
-/** ViewBox is "0 0 2000 857". When fitting a region that includes Russia (RU), cap its eastern extent so Europe-focused maps show only up to ~Moscow. Russia's bbox is limited to this x. */
-const EUROPE_EAST_X = 300;
+/** ViewBox is "0 0 2000 857". Europe map preset: cap Russia's eastern extent for viewport union and RU region labels (lower = less Russia visible eastward). */
+const RUSSIA_EUROPE_MAX_X = 1200;
+
+/** Europe preset only: extra scale for Russia region/category label (cropped bbox is still wide). */
+const RUSSIA_EUROPE_REGION_LABEL_FS_SCALE = 0.9;
+
+/** Europe preset: nudge Russia label from European-Russia bbox centroid (+x = right, +y = down). */
+const RUSSIA_EUROPE_LABEL_ANCHOR_OFFSET = { dx: 26, dy: 9 };
 
 /** When fitting Europe, crop the top so we don't show too much ocean above the continent. The view's top (minY) is at least this value. Skip this crop when Svalbard (SJ) is selected so it stays visible. */
 const EUROPE_NORTH_Y = 50;
@@ -135,16 +146,178 @@ function getBBoxUnionForCountry(svg, code) {
   const els = getCountryEls(svg, code);
   if (!els?.length) return null;
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let any = false;
   els.forEach((el) => {
     try {
+      if (el.style.display === "none") return;
       const b = el.getBBox();
+      // Hidden paths (e.g. Canary duplicates id="ES") often report a 0×0 box at the origin;
+      // including that pulls centroids toward x≈0 (mid-map / Americas) for Spain etc.
+      if (b.width <= 0 || b.height <= 0) return;
+      any = true;
       minX = Math.min(minX, b.x);
       minY = Math.min(minY, b.y);
       maxX = Math.max(maxX, b.x + b.width);
       maxY = Math.max(maxY, b.y + b.height);
     } catch {}
   });
+  if (!any) return null;
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+/**
+ * US paths include Alaska (left) and small Pacific fragments; union bbox pulls
+ * labels up/left. For on-map labels only, drop those pieces so the anchor
+ * matches the lower 48 + nearby non-Alaska parts.
+ */
+function shouldIncludeUsPathForLabel(b) {
+  const maxX = b.x + b.width;
+  const maxY = b.y + b.height;
+  const cx = b.x + b.width / 2;
+  const cy = b.y + b.height / 2;
+  if (maxX < 265) return false;
+  if (cx < 310 && cy > 285) return false;
+  // Alaska / Aleutian sheets (not the big contiguous lower-48 polygon)
+  if (b.width < 260 && b.height < 130 && maxY < 195 && maxX < 520) return false;
+  // Hawaii-style inset (small, south Pacific on this projection)
+  if (cy > 395 && b.width < 200 && b.height < 120 && maxX < 450) return false;
+  return true;
+}
+
+/** Bbox union for region labels; US mainland-only; RU on Europe preset uses European-Russia-only extent; others unchanged. */
+function getBBoxUnionForCountryLabel(svg, code, { europeRussiaLabel = false } = {}) {
+  const C = norm(code);
+  if (C === "RU" && europeRussiaLabel) {
+    const els = getCountryEls(svg, "RU");
+    if (!els?.length) return null;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    let any = false;
+    els.forEach((el) => {
+      try {
+        if (el.style.display === "none") return;
+        const b = el.getBBox();
+        if (b.width <= 0 || b.height <= 0) return;
+        const right = Math.min(b.x + b.width, RUSSIA_EUROPE_MAX_X);
+        if (right <= b.x) return;
+        any = true;
+        minX = Math.min(minX, b.x);
+        minY = Math.min(minY, b.y);
+        maxX = Math.max(maxX, right);
+        maxY = Math.max(maxY, b.y + b.height);
+      } catch {}
+    });
+    if (!any) return getBBoxUnionForCountry(svg, "RU");
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  }
+  if (C !== "US") return getBBoxUnionForCountry(svg, code);
+
+  const els = getCountryEls(svg, "US");
+  if (!els?.length) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let any = false;
+  els.forEach((el) => {
+    try {
+      if (el.style.display === "none") return;
+      const b = el.getBBox();
+      if (b.width <= 0 || b.height <= 0) return;
+      if (!shouldIncludeUsPathForLabel(b)) return;
+      any = true;
+      minX = Math.min(minX, b.x);
+      minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.width);
+      maxY = Math.max(maxY, b.y + b.height);
+    } catch {}
+  });
+  if (!any) return getBBoxUnionForCountry(svg, "US");
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+/** Fine-tune label anchor (viewBox units) after geometric centroid — long / multi-part countries. */
+const REGION_LABEL_ANCHOR_OFFSET = {
+  US: { dx: -16, dy: -12 },
+  BR: { dx: 10, dy: -18 },
+  CL: { dx: -34, dy: -6 },
+  NO: { dx: -32, dy: 20 },
+  VA: { dx: 0, dy: 4 },
+  XK: { dx: 0, dy: 2 },
+  ES: { dx: 0, dy: -2 },
+  PT: { dx: 0, dy: 2 },
+  /** Northern South America stack: separate on-map labels (+y = down). */
+  GY: { dx: 0, dy: -3 },
+  SR: { dx: 0, dy: -2.5 },
+  GF: { dx: 0, dy: 3 },
+};
+
+/**
+ * Western Balkans: after bbox + text-width cap, multiply by {@link REGION_LABEL_SLIGHT_FS_FACTOR}.
+ * The factor is applied *after* {@link capRegionLabelFsByTextWidth}: when the cap binds (narrow
+ * country + label length), scaling only the pre-cap `fs` had no effect because min(fs·k, W, H) stayed W.
+ */
+const REGION_LABEL_SLIGHT_FS_CODES = new Set([
+  "ME",
+  "BA",
+  "HR",
+  "AL",
+  "MK",
+  "RS",
+  "XK",
+]);
+const REGION_LABEL_SLIGHT_FS_FACTOR = 0.72;
+
+/**
+ * On-map labels: extra-tight fitting for true microstates and a few slivers.
+ * Balkans use {@link REGION_LABEL_SLIGHT_FS_CODES} instead of this path.
+ */
+const VERY_SMALL_REGION_LABEL_CODES = new Set([
+  ...MICROSTATE_CODES,
+  "LU", // Luxembourg (not in microstate list; still tiny on world map)
+  "PS", // Palestine
+  "AM", // Armenia
+  "AZ", // Azerbaijan
+  "BI", // Burundi
+  "LB", // Lebanon
+  "IL", // Israel
+  "JO", // Jordan
+]);
+
+const EUROPE_LABEL_CODES = new Set(EUROPE_CODES.map((c) => String(c).trim().toUpperCase()));
+
+/** Baseline world label sizing (same as before Europe-specific tuning). */
+function regionLabelFsLegacy(bbox) {
+  const w = bbox.width;
+  const h = bbox.height;
+  let fs = Math.sqrt(w * h) / 9;
+  fs = Math.max(7, Math.min(24, fs));
+  fs = Math.min(fs, w / 3.2, h / 3.2);
+  return fs;
+}
+
+/**
+ * Europe: combine sqrt(area) with min(width,height) so elongated / compact states
+ * size more honestly. Capped by legacy so labels never grow vs the old formula.
+ */
+function regionLabelFsEurope(bbox, legacyFs) {
+  const w = bbox.width;
+  const h = bbox.height;
+  const minSide = Math.min(w, h);
+  const sqrtA = Math.sqrt(w * h);
+  let fs = Math.min(sqrtA / 9.55, minSide / 6.92);
+  fs = Math.max(7, Math.min(24, fs));
+  fs = Math.min(fs, w / 3.42, h / 3.42);
+  return Math.min(fs, legacyFs);
+}
+
+/** Keep single-line labels inside the country bbox (~0.52em average glyph width at middle anchor). */
+function capRegionLabelFsByTextWidth(fs, bbox, labelText) {
+  const len = Math.max(2, String(labelText ?? "").trim().length);
+  const w = bbox.width;
+  const h = bbox.height;
+  const byWidth = w / (0.52 * len);
+  const byHeight = h / 2.35;
+  return Math.min(fs, byWidth, byHeight);
 }
 
 /* ───────────────── component ───────────────────────────────────────── */
@@ -203,10 +376,33 @@ onCloseActiveLegend,
   /** Called when the map view is ready (e.g. cropped to custom countries). Use in activity feed to hide skeleton. */
   onViewReady,
   verticalOffsetPx = null,
+  /** Legacy: prefer `region_map_labels_mode`. When true, treated as mode "name". */
+  show_region_category_labels = null,
+  showRegionCategoryLabels = null,
+  /** @type {'off'|'name'|'value'|null|undefined} */
+  region_map_labels_mode = null,
+  regionMapLabelsMode: regionMapLabelsModeProp = null,
+  region_category_caption = null,
+  regionCategoryCaption = null,
+  /** @deprecated Ignored: label fill follows `theme` (light → black, dark → white). */
+  region_category_label_color = null,
+  /** @deprecated Ignored: label fill follows `theme`. */
+  regionCategoryLabelColor = null,
 
 } = {}) {
   const staticView = propStaticView || isThumbnail;
   const isDarkTheme = theme === "dark";
+  const regionMapLabelsMode = readRegionMapLabelsMode({
+    show_region_category_labels,
+    showRegionCategoryLabels,
+    region_category_caption,
+    regionCategoryCaption,
+    region_map_labels_mode,
+    regionMapLabelsMode: regionMapLabelsModeProp,
+    map_data_type: mapDataType,
+    mapDataType,
+  });
+  const regionCategoryLabelColorMode = isDarkTheme ? "white" : "black";
 
   const WORLD_VIEWBOX = "0 0 2000 857";
   const [croppedViewBox, setCroppedViewBox] = useState(null);
@@ -1101,7 +1297,7 @@ function getBBoxUnionForCodesInner(svg, codes) {
         const top = isGreenland ? Math.max(b.y, GREENLAND_NORTH_Y) : b.y;
         minX = Math.min(minX, left);
         minY = Math.min(minY, top);
-        const right = isRussia ? Math.min(b.x + b.width, EUROPE_EAST_X) : b.x + b.width;
+        const right = isRussia ? Math.min(b.x + b.width, RUSSIA_EUROPE_MAX_X) : b.x + b.width;
         maxX = Math.max(maxX, right);
         maxY = Math.max(maxY, b.y + b.height);
         found++;
@@ -1775,6 +1971,135 @@ useLayoutEffect(() => {
     el.style.display = "";
   });
 }, [show_microstates, microstates_custom]);
+
+useLayoutEffect(() => {
+  const svg = svgRef.current;
+  if (!svg) return;
+  const old = svg.querySelector("#mic-region-category-layer");
+  if (old) old.remove();
+  if (regionMapLabelsMode === "off") return;
+
+  const NS = "http://www.w3.org/2000/svg";
+  const layer = document.createElementNS(NS, "g");
+  layer.setAttribute("id", "mic-region-category-layer");
+  layer.setAttribute("class", cls.regionCategoryLabelLayer);
+  layer.setAttribute("pointer-events", "none");
+
+  const codeToLabel = new JSMap();
+  if (regionMapLabelsMode === "value" && effectiveMapType === "choropleth") {
+    for (const d of data) {
+      const code = norm(d?.code);
+      if (!code) continue;
+      if (typeof d.value !== "number" || !Number.isFinite(d.value)) continue;
+      const lab = formatValue(d.value);
+      if (lab && lab !== "No data") codeToLabel.set(code, lab);
+    }
+  } else {
+    for (const grp of derivedGroups) {
+      const lab = String(grp?.label ?? grp?.name ?? "").trim();
+      if (!lab) continue;
+      for (const c of grp.countries || []) {
+        const code = norm(c?.code ?? c);
+        if (code) codeToLabel.set(code, lab);
+      }
+    }
+  }
+
+  const { fill: labelFill, stroke: strokeCol } = regionCategoryLabelPaint({
+    mode: regionCategoryLabelColorMode,
+    font_color,
+  });
+  const customMapAllowed =
+    Array.isArray(custom_map_countries) && custom_map_countries.length > 0
+      ? new Set(custom_map_countries.map((c) => norm(String(c))).filter(Boolean))
+      : null;
+  const microCustomSet =
+    Array.isArray(microstates_custom) && microstates_custom.length > 0
+      ? new Set(microstates_custom.map((c) => norm(String(c))).filter(Boolean))
+      : null;
+  /** Match map visibility: main list OR microstate paths toggled by show_microstates / microstates_custom. */
+  const isAllowedRegionLabelCode = (c) => {
+    if (!customMapAllowed) return true;
+    if (customMapAllowed.has(c)) return true;
+    if (!MICROSTATE_CODES.has(c)) return false;
+    if (!show_microstates) return false;
+    if (microCustomSet) return microCustomSet.has(c);
+    return true;
+  };
+
+  for (const [code, text] of codeToLabel) {
+    if (!isAllowedRegionLabelCode(code)) continue;
+    const els = getCountryEls(svg, code);
+    if (!els?.length) continue;
+    if (Array.from(els).every((el) => el.style.display === "none")) continue;
+    const bbox = getBBoxUnionForCountryLabel(svg, code, {
+      europeRussiaLabel: custom_map_preset_id === "europe",
+    });
+    if (!bbox || bbox.width < 1 || bbox.height < 1) continue;
+    const europeRuLabel = code === "RU" && custom_map_preset_id === "europe";
+    const off = REGION_LABEL_ANCHOR_OFFSET[code] || { dx: 0, dy: 0 };
+    let cx = bbox.x + bbox.width / 2 + off.dx;
+    let cy = bbox.y + bbox.height / 2 + off.dy;
+    if (europeRuLabel) {
+      cx += RUSSIA_EUROPE_LABEL_ANCHOR_OFFSET.dx;
+      cy += RUSSIA_EUROPE_LABEL_ANCHOR_OFFSET.dy;
+    }
+    let display = text;
+    if (display.length > 22) display = `${display.slice(0, 20)}…`;
+    const tinyLabel = VERY_SMALL_REGION_LABEL_CODES.has(code);
+    const slightRegionLabel = REGION_LABEL_SLIGHT_FS_CODES.has(code);
+    let fs;
+    if (tinyLabel) {
+      fs = Math.sqrt(bbox.width * bbox.height) / 9;
+      fs = Math.max(3, Math.min(24, fs));
+      fs = Math.min(fs, bbox.width / 3.2, bbox.height / 3.2);
+      fs = Math.min(fs, 6.25, bbox.width / 2.4, bbox.height / 2.4);
+      fs = Math.max(3.25, fs);
+    } else {
+      const legacyFs = regionLabelFsLegacy(bbox);
+      fs = EUROPE_LABEL_CODES.has(code)
+        ? regionLabelFsEurope(bbox, legacyFs)
+        : legacyFs;
+    }
+    if (europeRuLabel) fs *= RUSSIA_EUROPE_REGION_LABEL_FS_SCALE;
+    fs = capRegionLabelFsByTextWidth(fs, bbox, display);
+    if (slightRegionLabel) fs *= REGION_LABEL_SLIGHT_FS_FACTOR;
+    const minLabelFs = tinyLabel ? 3 : slightRegionLabel ? 3.5 : 6;
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("x", String(cx));
+    t.setAttribute("y", String(cy));
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("dominant-baseline", "middle");
+    t.setAttribute("font-size", String(Math.max(minLabelFs, fs)));
+    t.setAttribute("fill", labelFill);
+    t.setAttribute("stroke", strokeCol);
+    t.setAttribute("stroke-width", String(Math.max(0.15, fs / (tinyLabel ? 26 : 22))));
+    t.setAttribute("paint-order", "stroke fill");
+    t.textContent = display;
+    layer.appendChild(t);
+  }
+
+  svg.appendChild(layer);
+}, [
+  derivedGroups,
+  regionMapLabelsMode,
+  effectiveMapType,
+  data,
+  regionCategoryLabelColorMode,
+  font_color,
+  custom_map_preset_id,
+  custom_map_countries,
+  show_microstates,
+  microstates_custom,
+  /* Label tuning lives in module-level constants; include so edits re-run this effect (HMR / Fast Refresh). */
+  REGION_LABEL_ANCHOR_OFFSET,
+  REGION_LABEL_SLIGHT_FS_FACTOR,
+  REGION_LABEL_SLIGHT_FS_CODES,
+  VERY_SMALL_REGION_LABEL_CODES,
+  EUROPE_LABEL_CODES,
+  RUSSIA_EUROPE_REGION_LABEL_FS_SCALE,
+  RUSSIA_EUROPE_LABEL_ANCHOR_OFFSET,
+]);
 
 const handleResetViewClick = useCallback(() => {
   resetToDataView(220);

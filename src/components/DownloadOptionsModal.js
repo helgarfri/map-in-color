@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { BiDownload, BiImage, BiFile, BiCodeBlock, BiCrop } from "react-icons/bi";
+import { BiDownload, BiImage, BiFile, BiCodeBlock, BiCrop, BiSun, BiMoon } from "react-icons/bi";
 import MapView from "./Map";
 import MapUS from "./MapUS";
 import MapCropModal from "./MapCropModal";
@@ -25,6 +25,36 @@ const LEGEND_POSITION_PRESETS = [
   { id: "bottom-left", label: "Bottom left", x: 0.02, y: 0.92 },
   { id: "bottom-right", label: "Bottom right", x: 0.98, y: 0.92 },
 ];
+
+/** Solid fill matching app `html[data-theme="dark"]` `--bg` in index.css. */
+const EXPORT_DARK_BG = "rgb(15, 23, 42)";
+
+function getExportLegendPalette(isDark) {
+  if (isDark) {
+    return {
+      cardFill: "rgba(30, 41, 59, 0.88)",
+      cardStroke: "rgba(248, 250, 252, 0.12)",
+      titleFill: "rgba(248, 250, 252, 0.92)",
+      itemFill: "rgba(248, 250, 252, 0.90)",
+      metaFill: "rgba(248, 250, 252, 0.55)",
+      dividerStroke: "rgba(248, 250, 252, 0.10)",
+      dotStroke: "rgba(248, 250, 252, 0.22)",
+      canvasShadow: "rgba(0,0,0,0.45)",
+      svgShadowFlood: "rgba(0,0,0,0.50)",
+    };
+  }
+  return {
+    cardFill: "rgba(255,255,255,0.82)",
+    cardStroke: "rgba(15,23,42,0.10)",
+    titleFill: "rgba(15,23,42,0.92)",
+    itemFill: "rgba(15,23,42,0.90)",
+    metaFill: "rgba(15,23,42,0.55)",
+    dividerStroke: "rgba(15,23,42,0.08)",
+    dotStroke: "rgba(15,23,42,0.18)",
+    canvasShadow: "rgba(0,0,0,0.18)",
+    svgShadowFlood: "rgba(0,0,0,0.18)",
+  };
+}
 
 function useDebouncedValue(value, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -114,6 +144,9 @@ const [watermarkOff, setWatermarkOff] = useState(false);   // pro
 const [pdfPaper, setPdfPaper] = useState("a4"); // "a4" | "letter"
 const [pdfOrientation, setPdfOrientation] = useState("landscape"); // "landscape" | "portrait"
 
+/** Raster/SVG map chrome for export only (default light: white + dark labels). */
+const [exportTheme, setExportTheme] = useState("light"); // "light" | "dark"
+
 const [legendOn, setLegendOn] = useState(true); // ✅ default ON
 
 
@@ -132,13 +165,14 @@ const renderParams = useMemo(() => {
     watermarkOff,
     pdfPaper,
     pdfOrientation,
+    exportTheme,
   };
 }, [
   format,
   legendOn,                  // ✅ add
   legendPos, legendWidthPx, legendSize, crop,
   jpgPreset, transparentBg, watermarkOff,
-  mapData?.id, mapData?.title, pdfPaper, pdfOrientation
+  mapData?.id, mapData?.title, pdfPaper, pdfOrientation, exportTheme
 ]);
 
 const debouncedRenderParams = useDebouncedValue(renderParams, 350);
@@ -243,6 +277,7 @@ useEffect(() => {
 
   setPdfPaper("a4");
   setPdfOrientation("landscape");
+  setExportTheme("light");
   setLegendOn(true);
   setWatermarkOff(!!isPro); // Pro: default to watermark off
 
@@ -1021,9 +1056,12 @@ function addExportLegendToSvg(
     widthPx = null, // raster px, convert via scaleFactor
     size = 1,
     scaleFactor = 3,
-  }
+    exportTheme = "light",
+  } = {}
 ) {
   if (!items?.length) return;
+
+  const pal = getExportLegendPalette(exportTheme === "dark");
 
   const ns = "http://www.w3.org/2000/svg";
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -1256,7 +1294,7 @@ function addExportLegendToSvg(
   fe.setAttribute("dx", "0");
   fe.setAttribute("dy", String(Math.round(base * 0.7)));
   fe.setAttribute("stdDeviation", String(Math.round(base * 0.95)));
-  fe.setAttribute("flood-color", "rgba(0,0,0,0.18)");
+  fe.setAttribute("flood-color", pal.svgShadowFlood);
   fe.setAttribute("flood-opacity", "1");
   filter.appendChild(fe);
   defs.appendChild(filter);
@@ -1274,8 +1312,8 @@ function addExportLegendToSvg(
   card.setAttribute("height", String(boxH));
   card.setAttribute("rx", String(radius));
   card.setAttribute("ry", String(radius));
-  card.setAttribute("fill", "rgba(255,255,255,0.82)");
-  card.setAttribute("stroke", "rgba(15,23,42,0.10)");
+  card.setAttribute("fill", pal.cardFill);
+  card.setAttribute("stroke", pal.cardStroke);
   card.setAttribute("stroke-width", "1");
   g.appendChild(card);
 
@@ -1289,7 +1327,7 @@ function addExportLegendToSvg(
   if (titleLines.length) {
     const { ascent, descent } = measureMetrics(titleSize, 700);
     const t = document.createElementNS(ns, "text");
-    t.setAttribute("fill", "rgba(15,23,42,0.92)");
+    t.setAttribute("fill", pal.titleFill);
     t.setAttribute("font-family", fontFamily);
     t.setAttribute("font-weight", "700");
     t.setAttribute("font-size", String(titleSize));
@@ -1318,7 +1356,7 @@ function addExportLegendToSvg(
     div.setAttribute("x2", String(x + boxW - padX));
     div.setAttribute("y1", String(cy));
     div.setAttribute("y2", String(cy));
-    div.setAttribute("stroke", "rgba(15,23,42,0.08)");
+    div.setAttribute("stroke", pal.dividerStroke);
     div.setAttribute("stroke-width", "1");
     inner.appendChild(div);
 
@@ -1348,7 +1386,7 @@ function addExportLegendToSvg(
     c.setAttribute("cy", String(cyDot));
     c.setAttribute("r", String(dot / 2));
     c.setAttribute("fill", r.color || "#e5e7eb");
-    c.setAttribute("stroke", "rgba(15,23,42,0.18)");
+    c.setAttribute("stroke", pal.dotStroke);
     c.setAttribute("stroke-width", "1");
     inner.appendChild(c);
 
@@ -1356,7 +1394,7 @@ function addExportLegendToSvg(
     const tx = x + padX + dot + gap;
 
     const text = document.createElementNS(ns, "text");
-    text.setAttribute("fill", "rgba(15,23,42,0.90)");
+    text.setAttribute("fill", pal.itemFill);
     text.setAttribute("font-family", fontFamily);
     text.setAttribute("font-weight", "700");
     text.setAttribute("font-size", String(itemSize));
@@ -1389,7 +1427,7 @@ function addExportLegendToSvg(
     const { ascent, descent } = measureMetrics(metaSize, 650);
     const more = document.createElementNS(ns, "text");
     more.setAttribute("x", String(x + padX));
-    more.setAttribute("fill", "rgba(15,23,42,0.55)");
+    more.setAttribute("fill", pal.metaFill);
     more.setAttribute("font-family", fontFamily);
     more.setAttribute("font-weight", "650");
     more.setAttribute("font-size", String(metaSize));
@@ -1417,9 +1455,12 @@ function drawLegendBoxOnCanvas(
     pos, // {x:0..1, y:0..1}
     widthPx = null,
     size = 1,
+    exportTheme = "light",
   }
 ) {
   if (!items?.length) return;
+
+  const pal = getExportLegendPalette(exportTheme === "dark");
 
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const s = clamp(Number(size) || 1, 0.5, 1.8);
@@ -1608,12 +1649,12 @@ function drawLegendBoxOnCanvas(
 
   // card
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.18)";
+  ctx.shadowColor = pal.canvasShadow;
   ctx.shadowBlur = Math.round(base * 2.0);
   ctx.shadowOffsetY = Math.round(base * 0.7);
 
   roundRect(x, y, boxW, boxH, radius);
-  ctx.fillStyle = "rgba(255,255,255,0.82)";
+  ctx.fillStyle = pal.cardFill;
   ctx.fill();
 
   ctx.shadowColor = "transparent";
@@ -1621,7 +1662,7 @@ function drawLegendBoxOnCanvas(
   ctx.shadowOffsetY = 0;
 
   roundRect(x, y, boxW, boxH, radius);
-  ctx.strokeStyle = "rgba(15,23,42,0.10)";
+  ctx.strokeStyle = pal.cardStroke;
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
@@ -1633,7 +1674,7 @@ function drawLegendBoxOnCanvas(
     const titleMetrics = measureMetrics(titleSize, 700);
 
     ctx.save();
-    ctx.fillStyle = "rgba(15,23,42,0.92)";
+    ctx.fillStyle = pal.titleFill;
     setFont(titleSize, 700);
     ctx.textBaseline = "alphabetic";
 
@@ -1650,7 +1691,7 @@ function drawLegendBoxOnCanvas(
     ctx.beginPath();
     ctx.moveTo(x + padX, cy);
     ctx.lineTo(x + boxW - padX, cy);
-    ctx.strokeStyle = "rgba(15,23,42,0.08)";
+    ctx.strokeStyle = pal.dividerStroke;
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -1682,7 +1723,7 @@ function drawLegendBoxOnCanvas(
     ctx.arc(dotX + dot / 2, dotY + dot / 2, dot / 2, 0, Math.PI * 2);
     ctx.fillStyle = r.color || "#e5e7eb";
     ctx.fill();
-    ctx.strokeStyle = "rgba(15,23,42,0.18)";
+    ctx.strokeStyle = pal.dotStroke;
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.restore();
@@ -1692,7 +1733,7 @@ function drawLegendBoxOnCanvas(
     const blockTop = centerY - textBlockH / 2 + textNudge;
 
     ctx.save();
-    ctx.fillStyle = "rgba(15,23,42,0.90)";
+    ctx.fillStyle = pal.itemFill;
     setFont(itemSize, 700);
     ctx.textBaseline = "alphabetic";
 
@@ -1718,7 +1759,7 @@ function drawLegendBoxOnCanvas(
     const baselineY = lineCenterY + (metaMetrics.ascent - metaMetrics.descent) / 2;
 
     ctx.save();
-    ctx.fillStyle = "rgba(15,23,42,0.55)";
+    ctx.fillStyle = pal.metaFill;
     setFont(metaSize, 650);
     ctx.textBaseline = "alphabetic";
     ctx.fillText(`+${hiddenCount} more`, x + padX, baselineY);
@@ -1897,13 +1938,11 @@ const exportFromSvg = useCallback(
     const legendOnLocal = params.legendOn ?? legendOn;
     const effectiveLegendOn = !!legendOnLocal; // no pro gating
 
+    const exportThemeLocal = (params.exportTheme ?? exportTheme) === "dark" ? "dark" : "light";
 
     // ✅ crop (same as you already do)
     const vb = viewBoxFromInsetsForBase(cropLocal, baseViewBox);
     svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-
-    // ✅ your foreignObject => text conversion (same as you already do)
-    // ... keep your existing section ...
 
     // ✅ remove junk labels (same as you already do)
     svgClone.querySelectorAll(".circlexx, .subxx, .noxx, .unxx").forEach((el) => el.remove());
@@ -1929,6 +1968,48 @@ const exportFromSvg = useCallback(
       }
     });
 
+    // Title: foreignObject → real <text> (runs for SVG + raster so export theme applies to both)
+    const foreignObjectEarly = svgClone.querySelector("foreignObject");
+    if (foreignObjectEarly) {
+      const div = foreignObjectEarly.querySelector("div");
+      const titleText = div ? div.textContent.trim() : "";
+
+      const x = parseFloat(foreignObjectEarly.getAttribute("x") || "170");
+      const y = parseFloat(foreignObjectEarly.getAttribute("y") || "100");
+      const width = parseFloat(foreignObjectEarly.getAttribute("width") || "250");
+      const dbFontSize = mapData?.title_font_size || 28;
+
+      foreignObjectEarly.remove();
+
+      const lines = wrapTextIntoLines(titleText, dbFontSize, width, "bold");
+
+      const textElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      textElement.setAttribute("x", String(x));
+      textElement.setAttribute("y", String(y));
+      textElement.setAttribute("dominant-baseline", "hanging");
+      textElement.setAttribute(
+        "fill",
+        exportThemeLocal === "dark" ? "#f8fafc" : (mapData?.font_color || "#333")
+      );
+      textElement.setAttribute("font-weight", "700");
+      textElement.setAttribute("font-size", String(dbFontSize));
+      textElement.setAttribute(
+        "font-family",
+        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen','Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans', 'Helvetica Neue', sans-serif"
+      );
+
+      lines.forEach((line, index) => {
+        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        tspan.setAttribute("x", String(x));
+        const lineHeight = dbFontSize * 1.2;
+        tspan.setAttribute("y", String(y + index * lineHeight));
+        tspan.textContent = line;
+        textElement.appendChild(tspan);
+      });
+
+      svgClone.appendChild(textElement);
+    }
+
     // ✅ transparent background for SVG export (if pro)
     if (fmt === "svg" && effectiveTransparent) {
       // remove big background rect fills (heuristic)
@@ -1953,7 +2034,8 @@ if (fmt === "svg") {
         widthPx: legendWidthPxLocal,
         size: legendSizeLocal,
         scaleFactor: 3,
-        textNudgePx: 8
+        textNudgePx: 8,
+        exportTheme: exportThemeLocal,
       });
     } catch (e) {
       console.warn("SVG legend render failed:", e);
@@ -1980,45 +2062,6 @@ if (fmt === "svg") {
 
 
     svgClone.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-
-    // 1) foreignObject title => real <text> (your logic)
-    const foreignObject = svgClone.querySelector("foreignObject");
-    if (foreignObject) {
-      const div = foreignObject.querySelector("div");
-      const titleText = div ? div.textContent.trim() : "";
-
-      const x = parseFloat(foreignObject.getAttribute("x") || "170");
-      const y = parseFloat(foreignObject.getAttribute("y") || "100");
-      const width = parseFloat(foreignObject.getAttribute("width") || "250");
-      const dbFontSize = mapData?.title_font_size || 28;
-
-      foreignObject.remove();
-
-      const lines = wrapTextIntoLines(titleText, dbFontSize, width, "bold");
-
-      const textElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      textElement.setAttribute("x", String(x));
-      textElement.setAttribute("y", String(y));
-      textElement.setAttribute("dominant-baseline", "hanging");
-      textElement.setAttribute("fill", mapData?.font_color || "#333");
-      textElement.setAttribute("font-weight", "700");
-      textElement.setAttribute("font-size", String(dbFontSize));
-      textElement.setAttribute(
-        "font-family",
-        "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen','Ubuntu', 'Cantarell', 'Fira Sans','Droid Sans','Helvetica Neue', sans-serif"
-      );
-
-      lines.forEach((line, index) => {
-        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        tspan.setAttribute("x", String(x));
-        const lineHeight = dbFontSize * 1.2;
-        tspan.setAttribute("y", String(y + index * lineHeight));
-        tspan.textContent = line;
-        textElement.appendChild(tspan);
-      });
-
-      svgClone.appendChild(textElement);
-    }
 
     // 3) remove labels you don’t want
     svgClone.querySelectorAll(".circlexx, .subxx, .noxx, .unxx").forEach((el) => el.remove());
@@ -2082,10 +2125,10 @@ if (fmt === "svg") {
 
   // Background fill:
 // - JPG must be opaque
-// - PNG should be white unless "Transparent background" is enabled (pro)
+// - PNG: solid fill unless transparent (pro); light = white, dark = app dark canvas
 if (fmt === "jpg" || (fmt === "png" && !effectiveTransparent)) {
   ctx.save();
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = exportThemeLocal === "dark" ? EXPORT_DARK_BG : "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.restore();
 }
@@ -2106,6 +2149,7 @@ if (fmt === "jpg" || (fmt === "png" && !effectiveTransparent)) {
       widthPx: legendWidthPxLocal,
       size: legendSizeLocal,
       textNudgePx: 8,
+      exportTheme: exportThemeLocal,
     });
   } catch {
     // ignore
@@ -2152,7 +2196,7 @@ if (fmt === "jpg" || (fmt === "png" && !effectiveTransparent)) {
     return { blob, url, fmt };
   },
   // ✅ only depends on mapData (and helpers already in closure)
-  [crop, legendPos, legendWidthPx, legendSize, jpgPreset, transparentBg, watermarkOff, mapData]
+  [crop, legendPos, legendWidthPx, legendSize, jpgPreset, transparentBg, watermarkOff, exportTheme, mapData]
 );
 
   // ✅ Build the raster preview whenever modal opens / format changes / map changes
@@ -2530,6 +2574,8 @@ const handleDownload = async () => {
                   {isUsDownloadMap ? (
                     <MapUS
                       {...resolvedMapProps}
+                      theme={exportTheme}
+                      strokeMode="thin"
                       staticView={true}
                       isLargeMap={false}
                       hoveredCode={null}
@@ -2545,6 +2591,8 @@ const handleDownload = async () => {
                   ) : (
                     <MapView
                       {...resolvedMapProps}
+                      theme={exportTheme}
+                      strokeMode="thin"
                       staticView={true}
                       isLargeMap={false}
                       hoveredCode={null}
@@ -2564,10 +2612,18 @@ const handleDownload = async () => {
                 </div>
               </div>
             </div>
-            {/* Single row: Position | Size | Crop map (all same box style) */}
+            {/* Legend | Map appearance | Crop — one row, box width follows content */}
             <div className={styles.previewSettingsRow}>
-              <div className={styles.previewSettingsLegendGroup}>
-                <div className={`${styles.previewSettingsLegendInner} ${!legendOn ? styles.controlsCardDisabled : ""}`} aria-disabled={!legendOn}>
+              <div
+                className={`${styles.previewSettingsCluster} ${styles.previewSettingsClusterLegend}`}
+                role="group"
+                aria-labelledby="download-preview-legend-heading"
+              >
+                <div id="download-preview-legend-heading" className={styles.previewSettingsClusterTitle}>
+                  Legend
+                </div>
+                <div className={styles.previewSettingsClusterBody}>
+                <div className={`${styles.previewSettingsControlCell} ${!legendOn ? styles.controlsCardDisabled : ""}`} aria-disabled={!legendOn}>
                   <label className={styles.previewLegendPositionLabel}>Position</label>
                   <select
                       value={(() => {
@@ -2594,7 +2650,7 @@ const handleDownload = async () => {
                       ))}
                     </select>
                 </div>
-                <div className={`${styles.previewSettingsLegendInner} ${!legendOn ? styles.controlsCardDisabled : ""}`} aria-disabled={!legendOn}>
+                <div className={`${styles.previewSettingsControlCell} ${!legendOn ? styles.controlsCardDisabled : ""}`} aria-disabled={!legendOn}>
                   <label className={styles.previewLegendPositionLabel}>Size</label>
                   <div className={styles.stepper}>
                       <button
@@ -2628,20 +2684,76 @@ const handleDownload = async () => {
                       </button>
                     </div>
                 </div>
+                </div>
               </div>
+
               <div className={styles.previewSettingsDivider} aria-hidden="true" />
-              <div className={styles.previewSettingsCropWrap}>
-                <div className={styles.previewSettingsLegendInner}>
-                  <button
-                    type="button"
-                    className={styles.previewSettingsCropBtn}
-                    onClick={() => setCropModalOpen(true)}
-                    disabled={isDownloading}
-                    aria-label="Crop map"
+
+              <div
+                className={styles.previewSettingsCluster}
+                role="group"
+                aria-labelledby="download-preview-appearance-heading"
+              >
+                <div id="download-preview-appearance-heading" className={styles.previewSettingsClusterTitle}>
+                  Map appearance
+                </div>
+                <div className={styles.previewSettingsClusterBody}>
+                  <div
+                    className={`${styles.previewSettingsControlCell} ${styles.previewSettingsControlCellCenter}`}
+                    role="group"
+                    aria-label="Export map theme"
                   >
-                    <BiCrop className={styles.previewSettingsCropBtnIcon} aria-hidden="true" />
-                    Crop map
-                  </button>
+                    <div className={styles.exportRowToggle}>
+                      <button
+                        type="button"
+                        className={`${styles.exportRowToggleBtn} ${exportTheme === "light" ? styles.exportRowToggleBtnActive : ""}`}
+                        onClick={() => setExportTheme("light")}
+                        disabled={isDownloading}
+                        aria-pressed={exportTheme === "light"}
+                        aria-label="Light export"
+                      >
+                        <BiSun className={styles.exportRowToggleIcon} aria-hidden="true" />
+                        <span>Light</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.exportRowToggleBtn} ${exportTheme === "dark" ? styles.exportRowToggleBtnActive : ""}`}
+                        onClick={() => setExportTheme("dark")}
+                        disabled={isDownloading}
+                        aria-pressed={exportTheme === "dark"}
+                        aria-label="Dark export"
+                      >
+                        <BiMoon className={styles.exportRowToggleIcon} aria-hidden="true" />
+                        <span>Dark</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.previewSettingsDivider} aria-hidden="true" />
+
+              <div
+                className={styles.previewSettingsCluster}
+                role="group"
+                aria-labelledby="download-preview-crop-heading"
+              >
+                <div id="download-preview-crop-heading" className={styles.previewSettingsClusterTitle}>
+                  Crop
+                </div>
+                <div className={styles.previewSettingsClusterBody}>
+                  <div className={styles.previewSettingsControlCell}>
+                    <button
+                      type="button"
+                      className={styles.previewSettingsCropBtnInCell}
+                      onClick={() => setCropModalOpen(true)}
+                      disabled={isDownloading}
+                      aria-label="Crop map"
+                    >
+                      <BiCrop className={styles.previewSettingsCropBtnIcon} aria-hidden="true" />
+                      Crop map
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

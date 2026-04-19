@@ -1,6 +1,20 @@
 import React, { useState } from "react";
 import styles from "./MapLegendOverlay.module.css";
 
+/** Match `Map.module.css` mobile dock breakpoint — used by parents for `defaultCollapsed`. */
+export const MAP_LEGEND_MOBILE_MAX_WIDTH_PX = 700;
+
+/** Small-width portrait: legend overlaps docked info/group panels; parents hide legend while those are open. */
+export function isNarrowPortraitLegendOverlap(w, h) {
+  return (
+    typeof w === "number" &&
+    typeof h === "number" &&
+    w > 0 &&
+    w < h &&
+    w < MAP_LEGEND_MOBILE_MAX_WIDTH_PX
+  );
+}
+
 export default function MapLegendOverlay({
   title,
   legendModels,
@@ -11,14 +25,26 @@ export default function MapLegendOverlay({
   theme = "light",
   interactive = true,
   compact = false,
+  /** When true, legend rows start hidden (header + expand chevron only). Typical on narrow viewports. */
+  defaultCollapsed = false,
+  /** Narrow portrait + map info/group panel open: hide legend so the panel is readable. */
+  hideForMobileMapPanel = false,
 }) {
-  const [legendCollapsed, setLegendCollapsed] = useState(false);
+  const [legendCollapsed, setLegendCollapsed] = useState(
+    interactive ? defaultCollapsed : false
+  );
   const isDark = theme === "dark";
 
   return (
     <div
-      className={styles.mapLegendBox}
+      className={[
+        styles.mapLegendBox,
+        hideForMobileMapPanel ? styles.mapLegendBoxHidden : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-label="Legend"
+      aria-hidden={hideForMobileMapPanel ? true : undefined}
       data-embed={isEmbed ? "1" : "0"}
       data-theme={isDark ? "dark" : "light"}
       data-interactive={interactive ? "1" : "0"}

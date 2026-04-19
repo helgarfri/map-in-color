@@ -112,11 +112,14 @@ export default function ShareOptionsModal({
                   is_title_hidden={previewMapProps.is_title_hidden}
                   titleFontSize={previewMapProps.titleFontSize}
                   legendFontSize={previewMapProps.legendFontSize}
+                  region_map_labels_mode={previewMapProps.regionMapLabelsMode}
+                  show_region_category_labels={!!previewMapProps.showRegionCategoryLabels}
                   show_microstates={previewMapProps.show_microstates !== false}
                   microstates_custom={previewMapProps.microstates_custom ?? null}
                   custom_map_countries={previewMapProps.custom_map_countries ?? null}
                   suppressInfoBox
                   staticView
+                  isThumbnail={true}
                   strokeMode="thin"
                   theme={embedTheme}
                 />
@@ -139,6 +142,8 @@ export default function ShareOptionsModal({
                   custom_map_preset_id={previewMapProps.custom_map_preset_id ?? previewMapProps.customMapPresetId ?? inferPresetIdFromCodes(Array.isArray(previewMapProps.custom_map_countries) ? previewMapProps.custom_map_countries : []) ?? null}
                   titleFontSize={previewMapProps.titleFontSize}
                   legendFontSize={previewMapProps.legendFontSize}
+                  region_map_labels_mode={previewMapProps.regionMapLabelsMode}
+                  show_region_category_labels={!!previewMapProps.showRegionCategoryLabels}
                   strokeMode="thin"
                   theme={embedTheme}
                 />

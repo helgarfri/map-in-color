@@ -25,6 +25,7 @@ function MapSelectionModal({ show, onClose, onCreateMap }) {
   // Some minimal default preview props
   const previewProps = {
     // Minimal or “default” values, just so something appears:
+    strokeMode: 'thin',
     ocean_color: '#ffffff',
     unassigned_color: '#c0c0c0',
     data: [],            // If your SVG needs data

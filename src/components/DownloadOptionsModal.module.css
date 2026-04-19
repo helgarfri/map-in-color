@@ -13,7 +13,7 @@
 }
 
 .modal {
-  width: min(1140px, 100%);
+  width: min(1240px, 100%);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -81,7 +81,8 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  /* Slightly more preview than format (gentle split — not 50/50, not preview-heavy) */
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   grid-template-rows: 1fr;
   gap: 16px;
   padding: 16px;
@@ -91,8 +92,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 0;
+  /* Let preview column honor min-width of settings bar (avoid min-width:0 shrink + overflow) */
+  min-width: auto;
   min-height: 0;
+  overflow-x: visible;
   overflow-y: auto;
 }
 
@@ -102,9 +105,10 @@
   background: radial-gradient(1000px 400px at 30% 0%, rgba(40,168,225,0.10), transparent 60%),
               radial-gradient(900px 350px at 85% 20%, rgba(20,169,175,0.10), transparent 55%),
               var(--card);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
+  min-width: auto;
 }
 
 .previewTitle {
@@ -117,25 +121,188 @@
   margin: 0;
 }
 
+/* Light / Dark export theme toggle (same pattern as ShareOptionsModal) */
+.exportRowToggle {
+  display: inline-flex;
+  gap: 2px;
+  border-radius: 6px;
+  padding: 2px;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.exportRowToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.exportRowToggleBtn:hover:not(:disabled) {
+  background: var(--card2);
+  color: var(--text);
+}
+
+.exportRowToggleBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.exportRowToggleBtnActive {
+  background: rgba(20, 169, 175, 0.18);
+  color: var(--text);
+  border: 1px solid rgba(20, 169, 175, 0.35);
+}
+
+.exportRowToggleIcon {
+  font-size: 12px;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
 .previewFrame {
   padding: 10px;
 }
 
-/* Single row below preview: Legend box | Size stepper | Crop button */
+/* Below preview: Legend | Map appearance | Crop — one row; width follows content (no horizontal scroll) */
 .previewSettingsRow {
   display: flex;
-  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 12px;
   padding: 10px 12px 12px;
-  flex-wrap: wrap;
+  width: max-content;
+  max-width: none;
+  box-sizing: border-box;
+  overflow-x: visible;
+}
+
+.previewSettingsCluster {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  gap: 8px;
+  align-self: stretch;
   min-width: 0;
+}
+
+.previewSettingsClusterTitle {
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.2;
+  flex-shrink: 0;
+  width: max-content;
+  max-width: 100%;
+}
+
+.previewSettingsClusterBody {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 10px;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  min-height: 44px;
+  min-width: 0;
+}
+
+/* Control cells hug their contents (no equal flex stretch) */
+.previewSettingsClusterBody > .previewSettingsControlCell {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+}
+
+.previewSettingsControlCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-sizing: border-box;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.previewSettingsClusterLegend .previewSettingsControlCell {
+  flex-shrink: 0;
+}
+
+.previewSettingsControlCellCenter {
+  justify-content: center;
+}
+
+/* Single outer box: inner toggle strip has no second frame */
+.previewSettingsControlCell > .exportRowToggle {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  gap: 4px;
+}
+
+.previewSettingsControlCell .stepper {
+  flex-shrink: 0;
+}
+
+.previewSettingsCropBtnInCell {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.previewSettingsCropBtnInCell:hover:not(:disabled) {
+  background: rgba(40, 168, 225, 0.08);
+}
+
+.previewSettingsCropBtnInCell:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .previewSettingsLegendGroup {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   min-width: 0;
 }
 
@@ -170,6 +337,24 @@
 .previewLegendPositionSelect:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* In preview bar: keep dropdown readable (do not shrink below intrinsic width) */
+.previewSettingsClusterLegend .previewSettingsControlCell .previewLegendPositionLabel {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.previewSettingsClusterLegend .previewSettingsControlCell .previewLegendPositionLabel + .stepper,
+.previewSettingsClusterLegend .previewSettingsControlCell .previewLegendPositionLabel + select {
+  flex-shrink: 0;
+}
+
+.previewSettingsClusterLegend .previewSettingsControlCell .previewLegendPositionSelect {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 128px;
+  max-width: 220px;
 }
 
 .previewSettingsDivider {
@@ -313,7 +498,7 @@
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--card);
-  height:470px;
+  height: 440px;
   pointer-events: none; /* makes it feel like a preview */
 }
 
@@ -326,6 +511,7 @@
 
 .options {
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
@@ -740,7 +926,7 @@
     grid-template-columns: 1fr;
   }
   .previewInner {
-    height: 320px;
+    height: 300px;
   }
 }
 /* ===== Left controls (tiny + safe) ===== */

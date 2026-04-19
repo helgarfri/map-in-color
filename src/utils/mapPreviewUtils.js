@@ -28,6 +28,80 @@ export function toArrayMaybeJson(value) {
   return [];
 }
 
+const REGION_MAP_LABELS_MODES = new Set(["off", "name", "value"]);
+
+/**
+ * How region labels are shown on the map: off | name (bucket/category) | value (choropleth numbers only).
+ * Falls back from legacy boolean `show_region_category_labels` and caption text.
+ * Categorical maps never use `value`; stored `value` is treated as `name`.
+ */
+export function readRegionMapLabelsMode(mapObj) {
+  if (!mapObj || typeof mapObj !== "object") return "off";
+  const raw =
+    mapObj.region_map_labels_mode ??
+    mapObj.regionMapLabelsMode ??
+    null;
+  let mode = null;
+  if (typeof raw === "string") {
+    const m = raw.trim().toLowerCase();
+    if (REGION_MAP_LABELS_MODES.has(m)) mode = m;
+  }
+  if (mode == null) {
+    const v =
+      mapObj.show_region_category_labels ?? mapObj.showRegionCategoryLabels;
+    if (typeof v === "boolean") mode = v ? "name" : "off";
+    else if (v === true || v === 1 || v === "1" || v === "true") mode = "name";
+    else if (v === false || v === 0 || v === "0" || v === "false") mode = "off";
+    else {
+      const cap = String(
+        mapObj.region_category_caption ?? mapObj.regionCategoryCaption ?? ""
+      ).trim();
+      mode = cap.length > 0 ? "name" : "off";
+    }
+  }
+  const mapType = String(
+    mapObj.map_data_type ??
+      mapObj.mapDataType ??
+      mapObj.map_type ??
+      mapObj.type ??
+      ""
+  )
+    .trim()
+    .toLowerCase();
+  if (mapType === "categorical" && mode === "value") return "name";
+  return mode;
+}
+
+/** True when any on-map region labels should be drawn (non-off mode). */
+export function readShowRegionCategoryLabels(mapObj) {
+  return readRegionMapLabelsMode(mapObj) !== "off";
+}
+
+/** Legacy stored preference; renderers use app/embed `theme` for label fill instead. */
+export function readRegionCategoryLabelColor(mapObj) {
+  if (!mapObj || typeof mapObj !== "object") return "auto";
+  const v = mapObj.region_category_label_color ?? mapObj.regionCategoryLabelColor;
+  const s = String(v ?? "auto").trim().toLowerCase();
+  if (s === "black") return "black";
+  if (s === "white") return "white";
+  return "auto";
+}
+
+/**
+ * SVG text paint for on-map region category/range labels.
+ * @param {{ mode: string, font_color?: string | null }} opts
+ */
+export function regionCategoryLabelPaint({ mode, font_color }) {
+  const m = mode === "black" || mode === "white" ? mode : "auto";
+  if (m === "black") return { fill: "#000000", stroke: "rgba(255,255,255,0.92)" };
+  if (m === "white") return { fill: "#ffffff", stroke: "rgba(0,0,0,0.55)" };
+  const fc = font_color ?? "black";
+  const s = String(fc).trim().toLowerCase();
+  const stroke =
+    s === "white" || s === "#fff" || s === "#ffffff" ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.92)";
+  return { fill: fc, stroke };
+}
+
 export function normalizeMapForPreview(mapObj) {
   if (!mapObj) return null;
 
@@ -47,6 +121,8 @@ export function normalizeMapForPreview(mapObj) {
     null;
   const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
   const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+  const showRegionCategoryLabels = readShowRegionCategoryLabels(mapObj);
+  const regionMapLabelsMode = readRegionMapLabelsMode(mapObj);
 
   const data = toArrayMaybeJson(mapObj.data);
   const selectedMap =
@@ -96,6 +172,8 @@ export function normalizeMapForPreview(mapObj) {
     custom_map_preset_id,
     titleFontSize,
     legendFontSize,
+    showRegionCategoryLabels,
+    regionMapLabelsMode,
     groups,
     data,
     selectedMap,

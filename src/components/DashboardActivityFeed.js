@@ -17,6 +17,7 @@ import {
 
 
 import { inferPresetIdFromCodes } from '../constants/regionPresets';
+import { readShowRegionCategoryLabels } from '../utils/mapPreviewUtils';
 import StaticMapThumbnail from './StaticMapThumbnail';
 import SkeletonActivityRow from './SkeletonActivityRow';
 import dashFeedStyles from './DashboardActivityFeed.module.css';
@@ -39,6 +40,13 @@ function toArrayMaybeJson(value) {
   return [];
 }
 
+/** Feed payloads often omit `custom_map_countries`; Map then fits the full world until hydration. */
+function hasCustomMapCountriesForPreview(mapObj) {
+  if (!mapObj) return false;
+  const codes = toArrayMaybeJson(mapObj.custom_map_countries ?? mapObj.customMapCountries);
+  return codes.length > 0;
+}
+
 function normalizeMapForPreview(mapObj) {
   if (!mapObj) return null;
 
@@ -53,6 +61,7 @@ function normalizeMapForPreview(mapObj) {
 
   const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
   const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+  const showRegionCategoryLabels = readShowRegionCategoryLabels(mapObj);
 
   // ✅ these were missing in your version (caused eslint no-undef)
   const data = toArrayMaybeJson(mapObj.data);
@@ -116,6 +125,7 @@ function normalizeMapForPreview(mapObj) {
     showNoDataLegend,
     titleFontSize,
     legendFontSize,
+    showRegionCategoryLabels,
     groups,
     data,
     selectedMap,
@@ -292,16 +302,21 @@ export default function DashboardActivityFeed({ userProfile }) {
   // Fetch full map for any activity map not yet in cache, so we have custom_map_countries
   // (and full groups/ranges) for correct thumbnail region display (e.g. Africa-only maps).
 useEffect(() => {
-  const idsToFetch = [];
-
-  for (const act of activities) {
-    const m = act?.map;
-    if (!m?.id) continue;
-    if (mapCache[m.id]) continue;
-    idsToFetch.push(m.id);
-  }
+  const idsToFetch = [
+    ...new Set(
+      activities
+        .map((act) => act?.map?.id)
+        .filter((id) => id != null && mapCache[id] == null)
+    ),
+  ];
 
   if (idsToFetch.length === 0) return;
+
+  const partialById = {};
+  for (const act of activities) {
+    const m = act?.map;
+    if (m?.id && idsToFetch.includes(m.id)) partialById[m.id] = m;
+  }
 
   let cancelled = false;
 
@@ -315,11 +330,16 @@ useEffect(() => {
 
       setMapCache((prev) => {
         const next = { ...prev };
-        for (const r of results) {
-          if (r.status !== 'fulfilled') continue;
-          const fullMap = r.value?.data;
-          if (fullMap?.id) next[fullMap.id] = fullMap;
-        }
+        idsToFetch.forEach((id, i) => {
+          const r = results[i];
+          if (r.status === 'fulfilled') {
+            const fullMap = r.value?.data;
+            if (fullMap?.id) next[fullMap.id] = fullMap;
+            else if (partialById[id]) next[id] = partialById[id];
+          } else if (partialById[id]) {
+            next[id] = partialById[id];
+          }
+        });
         return next;
       });
     } catch (e) {
@@ -339,13 +359,29 @@ useEffect(() => {
    * - Fully normalized props
    */
   function renderMapThumbnail(mapObj, act) {
-const mapToRender = mapObj?.id && mapCache[mapObj.id] ? mapCache[mapObj.id] : mapObj;
-const normalized = normalizeMapForPreview(mapToRender);
+    if (!mapObj) {
+      return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
+    }
+
+    const id = mapObj.id;
+    const hydrated = id != null && mapCache[id];
+    const canPreviewWithoutFetch = hasCustomMapCountriesForPreview(mapObj);
+
+    if (id != null && !hydrated && !canPreviewWithoutFetch) {
+      return (
+        <div className={dashFeedStyles.thumbContainer} aria-busy="true" aria-label="Loading map preview">
+          <div className={dashFeedStyles.thumbMapSkeleton} />
+        </div>
+      );
+    }
+
+    const mapToRender = hydrated ? mapCache[id] : mapObj;
+    const normalized = normalizeMapForPreview(mapToRender);
     if (!normalized) {
       return <div className={dashFeedStyles.defaultThumbnail}>No Map</div>;
     }
 
-return (
+    return (
   <div className={dashFeedStyles.thumbContainer}>
     <StaticMapThumbnail
       map={{
@@ -357,6 +393,8 @@ return (
         show_no_data_legend: normalized.showNoDataLegend,
         titleFontSize: normalized.titleFontSize,
         legendFontSize: normalized.legendFontSize,
+        region_map_labels_mode: normalized.regionMapLabelsMode,
+        show_region_category_labels: !!normalized.showRegionCategoryLabels,
         groups: normalized.groups,
         data: normalized.data,
         selected_map: normalized.selectedMap,

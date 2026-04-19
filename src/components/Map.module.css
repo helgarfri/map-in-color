@@ -92,6 +92,18 @@
   display: block;
 }
 
+/* Region/category labels on SVG — same stack as body / info box (src/index.css). */
+.regionCategoryLabelLayer {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.regionCategoryLabelLayer text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-weight: 700;
+}
+
 /* =========================
    BASE GEOMETRY
    ========================= */
@@ -120,6 +132,16 @@
   --stroke-w: 1.0;
   --stroke-hover-w: 1.0;
   --stroke-active-w: 1.2;
+}
+
+/* US states (MapUS): selection ring reads faint at default widths on large paths */
+.mapCanvas[data-map="us"][data-stroke="thin"] {
+  --stroke-active-w: 1.85;
+}
+.mapCanvas[data-map="us"][data-stroke="thick"] {
+  --stroke-w: 1.05;
+  --stroke-hover-w: 1.2;
+  --stroke-active-w: 2.45;
 }
 
 /* anti-flash fill ONLY while painting */
@@ -294,7 +316,7 @@
 
   width: 280px;
   max-width: min(300px, calc(100% - 28px));
-  max-height: min(78vh, calc(100vh - 120px));
+  max-height: min(78vh, calc(100dvh - 120px), calc(100% - 120px));
 
   z-index: 10;
   animation: popInSoft 140ms ease-out;
@@ -350,7 +372,7 @@
   right: 8px;
   width: 180px;
   max-width: min(200px, calc(100% - 20px));
-  max-height: min(60vh, calc(100vh - 80px));
+  max-height: min(60vh, calc(100dvh - 80px), calc(100% - 80px));
 }
 
 .mapRoot[data-compact-ui="1"] .infoBoxHeader img {
@@ -410,7 +432,7 @@
   right: 8px;
   width: 200px;
   max-width: min(220px, calc(100% - 20px));
-  max-height: min(55vh, calc(100vh - 80px));
+  max-height: min(55vh, calc(100dvh - 80px), calc(100% - 80px));
   overflow-x: hidden;
   min-width: 0;
 }
@@ -789,7 +811,7 @@
 
   width: 320px;
   max-width: min(360px, calc(100vw - 24px));
-  max-height: min(78vh, calc(100vh - 120px));
+  max-height: min(78vh, calc(100dvh - 120px), calc(100% - 120px));
 
   z-index: 11;
   animation: popInSoft 140ms ease-out;
@@ -897,7 +919,7 @@
     right: 12px;
     transform: none;
     width: auto;
-    max-height: 45vh;
+    max-height: min(45vh, calc(100% - 24px));
   }
   .groupBox::before{ display: none; }
 }
@@ -1006,7 +1028,7 @@
     right: 12px;
     transform: none;
     width: auto;
-    max-height: 45vh;
+    max-height: min(45vh, calc(100% - 24px));
   }
 
   .infoBox::before {

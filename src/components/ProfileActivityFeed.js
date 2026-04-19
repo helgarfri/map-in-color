@@ -1,5 +1,5 @@
 // src/components/ProfileActivityFeed.js
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -11,6 +11,8 @@ import {
 
 import { fetchUserActivity, fetchMapById } from '../api';
 import { inferPresetIdFromCodes } from '../constants/regionPresets';
+import { readShowRegionCategoryLabels } from '../utils/mapPreviewUtils';
+import { ThemeContext } from '../context/ThemeContext';
 import Map from './Map';
 import SkeletonActivityRow from './SkeletonActivityRow';
 
@@ -59,6 +61,7 @@ function normalizeMapForPreview(mapObj) {
 
   const titleFontSize = mapObj.title_font_size ?? mapObj.titleFontSize ?? null;
   const legendFontSize = mapObj.legend_font_size ?? mapObj.legendFontSize ?? null;
+  const showRegionCategoryLabels = readShowRegionCategoryLabels(mapObj);
 
   const data = toArrayMaybeJson(mapObj.data);
 
@@ -102,6 +105,7 @@ function normalizeMapForPreview(mapObj) {
     showNoDataLegend,
     titleFontSize,
     legendFontSize,
+    showRegionCategoryLabels,
     groups,
     data,
     selectedMap,
@@ -117,6 +121,8 @@ function normalizeMapForPreview(mapObj) {
 /* ---------- component ---------- */
 export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
   const navigate = useNavigate();
+  const { darkMode } = useContext(ThemeContext) ?? {};
+  const mapTheme = darkMode ? 'dark' : 'light';
 
   // Pagination
   const [activities, setActivities] = useState([]);
@@ -353,6 +359,9 @@ export default function ProfileActivityFeed({ username, profile_pictureUrl }) {
             custom_map_preset_id={normalized.custom_map_preset_id}
             titleFontSize={normalized.titleFontSize}
             legendFontSize={normalized.legendFontSize}
+            region_map_labels_mode={normalized.regionMapLabelsMode}
+            show_region_category_labels={!!normalized.showRegionCategoryLabels}
+            theme={mapTheme}
             strokeMode='thin'
             onViewReady={() => {
               if (!isFromCache) return;
