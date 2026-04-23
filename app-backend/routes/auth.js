@@ -9,14 +9,13 @@ const { resend } = require('../config/resend');
 const crypto = require("crypto");
 const { passwordRuleFailures } = require('../utils/password');
 const { wrapEmailBody, emailCtaButton, P } = require('../utils/emailLayout');
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 // Base URL for the API (where this Express app is reachable). Use for verify/password links in emails.
 // On Render, RENDER_EXTERNAL_URL is set automatically (e.g. https://your-service.onrender.com).
 const API_BASE_URL = (process.env.API_URL || process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:5000").replace(/\/$/, "");
 
 const saltRounds = 10;
-// Base URL for verification links and redirects (production should use https://mapincolor.com)
-const FRONTEND_BASE = process.env.FRONTEND_URL || 'https://mapincolor.com';
+// Base URL for verification, password reset, and redirects. Set FRONTEND_URL in env (e.g. http://localhost:3000 for local dev).
+const FRONTEND_BASE = (process.env.FRONTEND_URL || 'https://mapincolor.com').replace(/\/$/, '');
 // Full public URL from Supabase
 const DEFAULT_PROFILE_PIC =
   `${process.env.SUPABASE_URL}/storage/v1/object/public/profile-pictures/default-pic.jpg`;
@@ -453,7 +452,7 @@ router.post("/request-password-reset", async (req, res) => {
       return res.status(500).json({ msg: "Could not create reset link. Please try again." });
     }
 
-    const resetLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
+    const resetLink = `${FRONTEND_BASE}/reset-password?token=${rawToken}`;
 
     try {
       const content =

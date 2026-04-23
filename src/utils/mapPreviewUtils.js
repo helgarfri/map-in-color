@@ -9,6 +9,7 @@ const CONTINENT_PRESET_IDS = new Set([
   "europe",
   "northAmerica",
   "southAmerica",
+  "americas",
   "latinAmerica",
   "africa",
   "asia",

@@ -31,6 +31,16 @@ export const CARIBBEAN_CODES = [
   "KN", "KY", "LC", "MF", "MQ", "MS", "PR", "SX", "TC", "TT", "VC", "VG", "VI",
 ];
 
+// Americas = North + Central + Caribbean + South (Western Hemisphere; Mexico stays in North list only once)
+export const AMERICAS_CODES = [
+  ...new Set([
+    ...NORTH_AMERICA_CODES,
+    ...CENTRAL_AMERICA_CODES,
+    ...CARIBBEAN_CODES,
+    ...SOUTH_AMERICA_CODES,
+  ]),
+];
+
 // Latin America = Mexico + Central America + South America + Caribbean
 export const LATIN_AMERICA_CODES = [
   "MX",
@@ -74,6 +84,7 @@ export const REGION_PRESETS = [
   { id: "europe", label: "Europe", codes: EUROPE_CODES },
   { id: "northAmerica", label: "North America", codes: NORTH_AMERICA_CODES },
   { id: "southAmerica", label: "South America", codes: SOUTH_AMERICA_CODES },
+  { id: "americas", label: "Americas", codes: AMERICAS_CODES },
   { id: "latinAmerica", label: "Latin America", codes: LATIN_AMERICA_CODES },
   { id: "africa", label: "Africa", codes: AFRICA_CODES },
   { id: "asia", label: "Asia", codes: ASIA_CODES },
@@ -87,10 +98,11 @@ export const CUSTOM_MAP_MODAL_PRESETS = [
   { id: "usa", label: "US States", codes: null, isMapType: true },
   REGION_PRESETS[2], // North America
   REGION_PRESETS[3], // South America
-  REGION_PRESETS[4], // Latin America
-  REGION_PRESETS[5], // Africa
-  REGION_PRESETS[6], // Asia
-  REGION_PRESETS[7], // Oceania
+  REGION_PRESETS[4], // Americas (North + Central + Caribbean + South)
+  REGION_PRESETS[5], // Latin America
+  REGION_PRESETS[6], // Africa
+  REGION_PRESETS[7], // Asia
+  REGION_PRESETS[8], // Oceania
 ];
 
 /** All countries for the custom map list (code + name). */

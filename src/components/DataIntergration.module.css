@@ -550,29 +550,45 @@
   background: var(--card2);
 }
 
-/* choropleth (6 columns) */
+/* choropleth (7 columns) */
 .rangeTableChoro th:nth-child(1),
-.rangeTableChoro td:nth-child(1) { width: 42%; text-align: left; }
+.rangeTableChoro td:nth-child(1) { width: 34%; text-align: left; }
 .rangeTableChoro th:nth-child(2),
-.rangeTableChoro td:nth-child(2) { width: 10%; }
+.rangeTableChoro td:nth-child(2) { width: 9%; }
 .rangeTableChoro th:nth-child(3),
-.rangeTableChoro td:nth-child(3) { width: 10%; }
+.rangeTableChoro td:nth-child(3) { width: 9%; }
 .rangeTableChoro th:nth-child(4),
-.rangeTableChoro td:nth-child(4) { width: 20%; }
+.rangeTableChoro td:nth-child(4) { width: 17%; }
 .rangeTableChoro th:nth-child(5),
-.rangeTableChoro td:nth-child(5) { width: 12%; }
+.rangeTableChoro td:nth-child(5) { width: 11%; }
 .rangeTableChoro th:nth-child(6),
-.rangeTableChoro td:nth-child(6) { width: 6%; }
+.rangeTableChoro td:nth-child(6) { width: 10%; text-align: center; }
+.rangeTableChoro th:nth-child(7),
+.rangeTableChoro td:nth-child(7) { width: 6%; }
 
-/* categorical (4 columns) */
+.rangeHideMapLabelCheckbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.rangeHideMapLabelCheckbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* categorical (5 columns) */
 .rangeTableCat th:nth-child(1),
-.rangeTableCat td:nth-child(1) { width: 55%; text-align: left; }
+.rangeTableCat td:nth-child(1) { width: 48%; text-align: left; }
 .rangeTableCat th:nth-child(2),
-.rangeTableCat td:nth-child(2) { width: 20%; }
+.rangeTableCat td:nth-child(2) { width: 18%; }
 .rangeTableCat th:nth-child(3),
-.rangeTableCat td:nth-child(3) { width: 15%; }
+.rangeTableCat td:nth-child(3) { width: 12%; }
 .rangeTableCat th:nth-child(4),
-.rangeTableCat td:nth-child(4) { width: 10%; }
+.rangeTableCat td:nth-child(4) { width: 10%; text-align: center; }
+.rangeTableCat th:nth-child(5),
+.rangeTableCat td:nth-child(5) { width: 8%; }
 
 .countriesCell {
   text-align: left;

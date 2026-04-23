@@ -88,6 +88,12 @@ function formatLocaleNumber(n, maxDecimals = 5, locale = "en-US") {
 
 const norm = (c = "") => String(c || "").trim().toUpperCase();
 
+/** Per-range flag from Data Integration: hide on-map labels for countries in this bucket. */
+function rangeHidesMapLabels(r) {
+  if (!r || typeof r !== "object") return false;
+  return !!(r.hideMapLabels ?? r.hide_map_labels);
+}
+
 /** ViewBox is "0 0 2000 857". Europe map preset: cap Russia's eastern extent for viewport union and RU region labels (lower = less Russia visible eastward). */
 const RUSSIA_EUROPE_MAX_X = 1200;
 
@@ -540,6 +546,7 @@ onCloseActiveLegend,
         return ranges.map((r) => ({
           label: (r.label ?? r.name ?? `${r.lower}–${r.upper}`).toString(),
           color: r.color,
+          hideMapLabels: rangeHidesMapLabels(r),
           countries: data
             .filter(
               (d) =>
@@ -600,12 +607,29 @@ onCloseActiveLegend,
       return {
         name,
         color: color || "#c0c0c0",
+        hideMapLabels: rangeHidesMapLabels(g),
         countries: data
           .filter((d) => String(d.value).trim() === catId)
           .map((d) => ({ code: d.code })),
       };
     });
   }, [effectiveMapType, parsedRanges, parsedGroups, data, normalizeGroups]);
+
+  /** Choropleth: ISO codes whose on-map labels should be hidden (first matching range wins, same as fill). */
+  const choroplethMapLabelHiddenCodes = useMemo(() => {
+    if (effectiveMapType !== "choropleth") return null;
+    const hidden = new Set();
+    for (const d of data) {
+      const code = norm(d?.code);
+      if (!code) continue;
+      for (const g of derivedGroups) {
+        if (!g.countries?.some((c) => norm(c?.code ?? c) === code)) continue;
+        if (g.hideMapLabels) hidden.add(code);
+        break;
+      }
+    }
+    return hidden;
+  }, [effectiveMapType, derivedGroups, data]);
 
   
 
@@ -1257,7 +1281,7 @@ const codesWithData = useMemo(() => {
 }, [data, effectiveMapType]);
 
 // Preset ids for which we fit/crop the view to the region (continent fills the map). World, usa, custom = full world view.
-const REGION_FIT_PRESET_IDS = ["europe", "northAmerica", "southAmerica", "africa", "asia", "oceania", "latinAmerica"];
+const REGION_FIT_PRESET_IDS = ["europe", "northAmerica", "southAmerica", "americas", "africa", "asia", "oceania", "latinAmerica"];
 
 // Fit viewport to selected custom countries whenever we are on the world map.
 // This keeps continent/custom selections framed correctly even if preset id is null/non-region.
@@ -1990,12 +2014,14 @@ useLayoutEffect(() => {
     for (const d of data) {
       const code = norm(d?.code);
       if (!code) continue;
+      if (choroplethMapLabelHiddenCodes?.has(code)) continue;
       if (typeof d.value !== "number" || !Number.isFinite(d.value)) continue;
       const lab = formatValue(d.value);
       if (lab && lab !== "No data") codeToLabel.set(code, lab);
     }
   } else {
     for (const grp of derivedGroups) {
+      if (grp.hideMapLabels) continue;
       const lab = String(grp?.label ?? grp?.name ?? "").trim();
       if (!lab) continue;
       for (const c of grp.countries || []) {
@@ -2082,6 +2108,7 @@ useLayoutEffect(() => {
   svg.appendChild(layer);
 }, [
   derivedGroups,
+  choroplethMapLabelHiddenCodes,
   regionMapLabelsMode,
   effectiveMapType,
   data,

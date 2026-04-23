@@ -569,6 +569,7 @@ const normalizeGroup = (g) => ({
   // ✅ DO NOT trim while editing (controlled input needs raw text)
   name: String(g?.name ?? ""),
   color: (g?.color ?? "#c0c0c0").toLowerCase(),
+  hideMapLabels: !!(g?.hideMapLabels ?? g?.hide_map_labels),
 });
 
 
@@ -1844,6 +1845,7 @@ const categoryRows = useMemo(() => {
       id: g.id,
       name: g.name,
       color: g.color || "#c0c0c0",
+      hideMapLabels: !!(g.hideMapLabels ?? g.hide_map_labels),
       countries,
       count: countries.length,
       isDefined: true,
@@ -1945,6 +1947,7 @@ const renderCategoriesTable = () => {
               <th>{regionTableLabels.pluralCap}</th>
               <th>Name</th>
               <th>Color</th>
+              <th title="Hide on-map label for regions in this category (when On-map labels is not Hidden)">Hide label</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -2054,6 +2057,24 @@ const renderCategoriesTable = () => {
                       onChange={(next) => updateCategory(row.id, "color", next)}
                       onFocus={() => setFocusedCategoryRowId(row.id)}
                       onBlur={handleCategoryRowBlur}
+                    />
+                  </td>
+
+                  <td>
+                    <input
+                      type="checkbox"
+                      className={styles.rangeHideMapLabelCheckbox}
+                      checked={!!row.hideMapLabels}
+                      disabled={regionMapLabelsMode === "off"}
+                      onChange={(e) => updateCategory(row.id, "hideMapLabels", e.target.checked)}
+                      onFocus={() => setFocusedCategoryRowId(row.id)}
+                      onBlur={handleCategoryRowBlur}
+                      title={
+                        regionMapLabelsMode === "off"
+                          ? "Turn on On-map labels below to hide labels per category"
+                          : "Hide on-map label for regions in this category"
+                      }
+                      aria-label={`Hide on-map label for category ${row.name?.trim() || row.id}`}
                     />
                   </td>
 
@@ -2352,6 +2373,7 @@ const rangeCountryLabel = (d) =>
           color: normStr(r.color).toLowerCase(),
           lowerBound: normNum(r.lowerBound),
           upperBound: normNum(r.upperBound),
+          hideMapLabels: !!(r.hideMapLabels ?? r.hide_map_labels),
         }))
         .sort((a, b) => {
           const al = a.lowerBound ?? Number.POSITIVE_INFINITY;
@@ -2367,6 +2389,7 @@ const rangeCountryLabel = (d) =>
         .map((g) => ({
           name: normStr(g?.name ?? g?.category ?? g?.label),
           color: (normStr(g?.color ?? g?.hex ?? g?.fill) || "#c0c0c0").toLowerCase(),
+          hideMapLabels: !!(g?.hideMapLabels ?? g?.hide_map_labels),
         }))
         .filter((g) => g.name)
         .sort((a, b) => a.name.localeCompare(b.name)),
@@ -2936,6 +2959,7 @@ try {
               <th>Upper</th>
               <th>Name</th>
               <th>Color</th>
+              <th title="Hide on-map label for countries in this range (when On-map labels is not Hidden)">Hide label</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -3069,6 +3093,28 @@ try {
               setFocusedRangeRowId(range.id);
             }}
             onBlur={handleRangeRowBlur}
+          />
+        </td>
+
+        <td>
+          <input
+            type="checkbox"
+            className={styles.rangeHideMapLabelCheckbox}
+            checked={!!(range.hideMapLabels ?? range.hide_map_labels)}
+            disabled={regionMapLabelsMode === "off"}
+            onChange={(e) => handleRangeChange(range.id, "hideMapLabels", e.target.checked)}
+            onFocus={() => {
+              if (postSortHighlightTimeoutRef.current) clearTimeout(postSortHighlightTimeoutRef.current);
+              postSortHighlightTimeoutRef.current = null;
+              setFocusedRangeRowId(range.id);
+            }}
+            onBlur={handleRangeRowBlur}
+            title={
+              regionMapLabelsMode === "off"
+                ? "Turn on On-map labels below to hide labels per range"
+                : "Hide on-map label for countries in this range"
+            }
+            aria-label={`Hide on-map label for range ${range.name || `${range.lowerBound}–${range.upperBound}`}`}
           />
         </td>
 

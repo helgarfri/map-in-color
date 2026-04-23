@@ -23,6 +23,11 @@ const US_VIEWBOX = "0 0 1000 589";
 
 const norm = (c = "") => String(c || "").trim().toUpperCase();
 
+function rangeHidesMapLabels(r) {
+  if (!r || typeof r !== "object") return false;
+  return !!(r.hideMapLabels ?? r.hide_map_labels);
+}
+
 /** simplemaps us.svg paths ship inline stroke-width; it overrides CSS and looks heavy when scaled down. */
 const ORIG_STROKE_WIDTH_ATTR = "data-mic-orig-stroke-w";
 
@@ -281,6 +286,7 @@ export default function MapUS({
         return ranges.map((r) => ({
           label: (r.label ?? r.name ?? `${r.lower}–${r.upper}`).toString(),
           color: r.color,
+          hideMapLabels: rangeHidesMapLabels(r),
           countries: data
             .filter((d) => typeof d.value === "number" && d.value >= r.lower && d.value <= r.upper)
             .map((d) => ({ code: d.code })),
@@ -318,12 +324,29 @@ export default function MapUS({
       return {
         name,
         color: color || "#c0c0c0",
+        hideMapLabels: rangeHidesMapLabels(g),
         countries: data
           .filter((d) => String(d.value).trim() === catId)
           .map((d) => ({ code: d.code })),
       };
     });
   }, [effectiveMapType, parsedRanges, parsedGroups, data, normalizeGroups]);
+
+  const choroplethMapLabelHiddenCodes = useMemo(() => {
+    if (effectiveMapType !== "choropleth") return null;
+    const hidden = new Set();
+    for (const d of data) {
+      const code = norm(d?.code);
+      if (!code) continue;
+      for (const g of derivedGroups) {
+        if (!g.countries?.some((c) => norm(c?.code ?? c) === code)) continue;
+        if (g.hideMapLabels) hidden.add(code);
+        break;
+      }
+    }
+    return hidden;
+  }, [effectiveMapType, derivedGroups, data]);
+
   const isChoropleth = effectiveMapType === "choropleth";
 
   const activeLegendCodes = useMemo(() => {
@@ -456,12 +479,14 @@ export default function MapUS({
       for (const d of data) {
         const code = norm(d?.code);
         if (!code) continue;
+        if (choroplethMapLabelHiddenCodes?.has(code)) continue;
         if (typeof d.value !== "number" || !Number.isFinite(d.value)) continue;
         const lab = formatValue(d.value);
         if (lab && lab !== "No data") codeToLabel.set(code, lab);
       }
     } else {
       for (const grp of derivedGroups) {
+        if (grp.hideMapLabels) continue;
         const lab = String(grp?.label ?? grp?.name ?? "").trim();
         if (!lab) continue;
         for (const c of grp.countries || []) {
@@ -512,6 +537,7 @@ export default function MapUS({
     svg.appendChild(layer);
   }, [
     derivedGroups,
+    choroplethMapLabelHiddenCodes,
     regionMapLabelsMode,
     effectiveMapType,
     data,

@@ -214,10 +214,20 @@ export default function UploadDataModal({
   // Parsing entrypoints
   // --------------------------
   const parseTextFile = (content, fileExt) => {
-    const lines = content
-      .split("\n")
-      .map((l) => l.replace(/\r$/, ""))
-      .filter((l) => l && !l.trim().startsWith("#"));
+    const rawLines = content.split("\n").map((l) => l.replace(/\r$/, ""));
+    const lines = [];
+    rawLines.forEach((l, idx) => {
+      const lineNum = idx + 1;
+      if (!l) {
+        log(`Ignored line ${lineNum}: blank line`, "warn");
+        return;
+      }
+      if (l.trim().startsWith("#")) {
+        log(`Ignored line ${lineNum}: comment line (starts with #)`, "warn");
+        return;
+      }
+      lines.push(l);
+    });
 
     let rows;
     if (fileExt === "tsv") {
@@ -315,9 +325,21 @@ export default function UploadDataModal({
     let numericCount = 0;
     let totalDataRows = 0;
 
-    const cleanedRows = (Array.isArray(rows) ? rows : [])
-      .map((r) => (Array.isArray(r) ? r.map(normCell) : []))
-      .filter((r) => r.length && !r.every((c) => !c));
+    const logIgnoredLine = (line, reason) => {
+      log(`Ignored line ${line}: ${reason}`, "warn");
+    };
+
+    const mappedRows = (Array.isArray(rows) ? rows : []).map((r) =>
+      Array.isArray(r) ? r.map(normCell) : []
+    );
+    const cleanedRows = [];
+    mappedRows.forEach((r, i) => {
+      if (!r.length || r.every((c) => !c)) {
+        logIgnoredLine(i + 1, "empty row (no cells or every cell is empty)");
+        return;
+      }
+      cleanedRows.push(r);
+    });
 
     const { byCode, byName } = buildDataSourceIndex(dataSource);
 
@@ -367,11 +389,13 @@ export default function UploadDataModal({
           (rawCode && byCode.get(rawCode)) || (rawName && byName.get(normKey(rawName)));
 
         if (!found) {
+          const msg = `No match for "${rawName || rawCode}"`;
           errorList.push({
             line: r + 1,
             type: "Invalid Name",
-            message: `No match for "${rawName || rawCode}"`,
+            message: msg,
           });
+          logIgnoredLine(r + 1, msg);
           continue;
         }
 
@@ -401,11 +425,13 @@ export default function UploadDataModal({
         }
 
         if (pickedValue == null) {
+          const msg = `No numeric values found for ${found.name} (${found.code})`;
           errorList.push({
             line: r + 1,
             type: "Missing Value",
-            message: `No numeric values found for ${found.name} (${found.code})`,
+            message: msg,
           });
+          logIgnoredLine(r + 1, msg);
           continue;
         }
 
@@ -447,12 +473,6 @@ export default function UploadDataModal({
             ? "No valid rows found in wide table. (Countries might not match your map's dataset.)"
             : "File has no valid rows.";
         const errorLogLines = [
-          ...errorList.map((err) => ({
-            id: `err-${err.line}-${Date.now()}-${Math.random()}`,
-            ts: new Date(),
-            level: "error",
-            msg: `Line ${err.line}: ${err.message}`,
-          })),
           { id: `no-data-${Date.now()}`, ts: new Date(), level: "error", msg: `❌ ${msg}` },
         ];
         setSession((prev) => ({
@@ -522,11 +542,13 @@ export default function UploadDataModal({
       for (let index = 1; index < cleanedRows.length; index++) {
         const row = cleanedRows[index];
         if (row.length < 2) {
+          const msg = `Need at least 2 columns`;
           errorList.push({
             line: index + 1,
             type: "Missing Value",
-            message: `Need at least 2 columns on line ${index + 1}`,
+            message: `${msg} on line ${index + 1}`,
           });
+          logIgnoredLine(index + 1, msg);
           continue;
         }
 
@@ -538,19 +560,23 @@ export default function UploadDataModal({
             : "";
 
         if (!nameRaw) {
+          const msg = `No state/country name in the name column`;
           errorList.push({
             line: index + 1,
             type: "Missing Name",
-            message: `No state/country name on line ${index + 1}`,
+            message: `${msg} on line ${index + 1}`,
           });
+          logIgnoredLine(index + 1, msg);
           continue;
         }
         if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
+          const msg = `No value in the value column`;
           errorList.push({
             line: index + 1,
             type: "Missing Value",
-            message: `No value provided on line ${index + 1}`,
+            message: `${msg} on line ${index + 1}`,
           });
+          logIgnoredLine(index + 1, msg);
           continue;
         }
 
@@ -559,11 +585,13 @@ export default function UploadDataModal({
           byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
 
         if (!found) {
+          const msg = `No match for "${nameRaw}"`;
           errorList.push({
             line: index + 1,
             type: "Invalid Name",
-            message: `No match for "${nameRaw}"`,
+            message: msg,
           });
+          logIgnoredLine(index + 1, msg);
           continue;
         }
 
@@ -583,11 +611,13 @@ export default function UploadDataModal({
     } else {
       cleanedRows.forEach((row, index) => {
         if (row.length < 2) {
+          const msg = `Need at least 2 columns`;
           errorList.push({
             line: index + 1,
             type: "Missing Value",
-            message: `Need at least 2 columns on line ${index + 1}`,
+            message: `${msg} on line ${index + 1}`,
           });
+          logIgnoredLine(index + 1, msg);
           return;
         }
 
@@ -596,19 +626,23 @@ export default function UploadDataModal({
         const descriptionRaw = row.length >= 3 && row[2] != null ? normCell(row[2]) : "";
 
         if (!nameRaw) {
+          const msg = `No state/country name in the first column`;
           errorList.push({
             line: index + 1,
             type: "Missing Name",
-            message: `No state/country name on line ${index + 1}`,
+            message: `${msg} on line ${index + 1}`,
           });
+          logIgnoredLine(index + 1, msg);
           return;
         }
         if (secondRaw === null || secondRaw === undefined || String(secondRaw).trim() === "") {
+          const msg = `No value in the second column`;
           errorList.push({
             line: index + 1,
             type: "Missing Value",
-            message: `No value provided on line ${index + 1}`,
+            message: `${msg} on line ${index + 1}`,
           });
+          logIgnoredLine(index + 1, msg);
           return;
         }
 
@@ -617,11 +651,13 @@ export default function UploadDataModal({
           byCode.get(String(nameRaw).trim().toUpperCase()) || byName.get(needleKey);
 
         if (!found) {
+          const msg = `No match for "${nameRaw}"`;
           errorList.push({
             line: index + 1,
             type: "Invalid Name",
-            message: `No match for "${nameRaw}"`,
+            message: msg,
           });
+          logIgnoredLine(index + 1, msg);
           return;
         }
 
@@ -647,12 +683,6 @@ export default function UploadDataModal({
           ? "No valid rows found. Fix the lines shown above."
           : "File has no valid rows.";
       const errorLogLines = [
-        ...errorList.map((err) => ({
-          id: `err-${err.line}-${Date.now()}-${Math.random()}`,
-          ts: new Date(),
-          level: "error",
-          msg: `Line ${err.line}: ${err.message}`,
-        })),
         { id: `no-data-${Date.now()}`, ts: new Date(), level: "error", msg: `❌ ${msg}` },
       ];
       setSession((prev) => ({

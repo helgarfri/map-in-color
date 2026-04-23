@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaGithub, FaInstagram, FaEnvelope, FaFacebook } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaTiktok, FaEnvelope } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
 import styles from './HomeFooter.module.css';
@@ -24,11 +24,11 @@ export default function HomeFooter() {
           <FaInstagram size={24} />
         </a>
         <a
-          href="https://www.facebook.com/profile.php?id=61588570286962"
+          href="https://www.tiktok.com/@map.in.color"
           target="_blank"
           rel="noreferrer"
         >
-          <FaFacebook size={24} />
+          <FaTiktok size={24} />
         </a>
         <a
           href="https://twitter.com/map_in_color"
