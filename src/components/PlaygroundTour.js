@@ -223,15 +223,17 @@ export default function PlaygroundTour({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, blocked]);
 
-  // Manual replay via Take tour
+  // Manual replay via Take tour — always allowed after first visit
   useEffect(() => {
     if (!enabled || blocked) return;
     if (!startNonce) return;
     if (startedForNonceRef.current === startNonce) return;
     startedForNonceRef.current = startNonce;
+    // Closing signup/download modals can leave us blocked briefly; start on next tick.
     const t = window.setTimeout(() => {
+      if (blockedRef.current) return;
       startTour();
-    }, 50);
+    }, 80);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startNonce, enabled, blocked]);

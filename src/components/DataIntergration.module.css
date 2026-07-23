@@ -239,19 +239,21 @@
 
 .takeTourBtn {
   flex: 0 0 auto;
-  border: 1px solid rgba(40, 168, 225, 0.35);
-  background: rgba(40, 168, 225, 0.1);
+  border: 1px solid rgba(40, 168, 225, 0.4);
+  background: rgba(40, 168, 225, 0.12);
   color: #1a7eab;
   border-radius: 999px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   line-height: 1.2;
+  position: relative;
+  z-index: 2;
 }
 
 .takeTourBtn:hover {
-  background: rgba(40, 168, 225, 0.18);
+  background: rgba(40, 168, 225, 0.2);
 }
 
 .mapPreviewWrap {

@@ -2820,7 +2820,7 @@ try {
         <div className={styles.rightPanel}>
           {/* Map preview */}
           <div className={styles.mapSection}>
-            <div className={styles.mapBox} data-tour="map-preview">
+            <div className={styles.mapBox}>
               <div className={styles.mapPreviewHeader}>
                 <h4>Map Preview</h4>
                 {isPlayground && !isUserLoggedIn && (
@@ -2833,7 +2833,7 @@ try {
                   </button>
                 )}
               </div>
-              <div className={styles.mapPreviewWrap}>
+              <div className={styles.mapPreviewWrap} data-tour="map-preview">
                 <div className={styles.mapPreviewStage}>
                   <div className={styles.mapPreviewOuter}>
                     <div
