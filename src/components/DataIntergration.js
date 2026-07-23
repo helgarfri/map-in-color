@@ -29,8 +29,10 @@ import { UserContext } from "../context/UserContext";
 import { getAnonId } from "../utils/annonId";
 import HomeHeader from "./HomeHeader";
 import SignupRequiredModal from "./SignupRequiredModal";
+import PlaygroundTour from "./PlaygroundTour";
 import { getPlaygroundDraft, setPlaygroundDraft, clearPlaygroundDraft } from "../utils/playgroundStorage";
 import { readRegionMapLabelsMode } from "../utils/mapPreviewUtils";
+import mapDetailStyles from "./MapDetail.module.css";
 
 
 // Icons, contexts, etc.
@@ -47,7 +49,7 @@ import { ThemeContext } from "../context/ThemeContext";
 import useWindowSize from "../hooks/useWindowSize";
 
 // API calls
-import { API, updateMap, createMap } from "../api";
+import { API, updateMap, createMap, fetchUserProfile } from "../api";
 
 // Map preview
 import MapPreview from "./Map";
@@ -519,7 +521,7 @@ export default function DataIntegration({ existingMapData = null, isEditing = fa
 
 const [loading, setLoading] = useState(true);
 
-const { authToken, profile, isPro } = useContext(UserContext);
+const { authToken, profile, isPro, setProfile } = useContext(UserContext);
 const isUserLoggedIn = !!authToken && !!profile;
 
 // download modal
@@ -537,6 +539,7 @@ const [showClearDataModal, setShowClearDataModal] = useState(false);
   const [pendingMapPresetId, setPendingMapPresetId] = useState(null);
   const pendingCustomMapSaveRef = useRef(null);
   const [showSignupRequiredModal, setShowSignupRequiredModal] = useState(false);
+  const [tourStartNonce, setTourStartNonce] = useState(0);
 
 // custom base-color modal
 const [isBasePaletteModalOpen, setIsBasePaletteModalOpen] = useState(false);
@@ -2349,6 +2352,39 @@ const rangeCountryLabel = (d) =>
     };
   };
 
+  /** Props for DownloadOptionsModal map render (same shape as MapDetailContent). */
+  const getDownloadMapDataProps = () => {
+    const payload = buildSavePayload();
+    return {
+      selected_map: payload.selected_map ?? "world",
+      selectedMap: payload.selected_map ?? "world",
+      mapDataType: payload.map_data_type,
+      data: payload.data || [],
+      custom_ranges: payload.custom_ranges || [],
+      groups: payload.groups || [],
+      placeholders: payload.placeholders || {},
+      customDescriptions: payload.placeholders || {},
+      ocean_color: payload.ocean_color,
+      unassigned_color: payload.unassigned_color,
+      font_color: payload.font_color,
+      mapTitleValue: payload.title,
+      title: payload.title,
+      mapTitle: payload.title,
+      is_title_hidden: !!payload.is_title_hidden,
+      titleFontSize: Number(payload.titleFontSize) || 28,
+      legendFontSize: Number(payload.legendFontSize) || 18,
+      show_region_category_labels: payload.show_region_category_labels,
+      region_map_labels_mode: payload.region_map_labels_mode,
+      theme: "light",
+      showNoDataLegend: !!payload.show_no_data_legend,
+      show_microstates: payload.show_microstates !== false,
+      microstates_custom: payload.microstates_custom,
+      custom_map_countries: payload.custom_map_countries,
+      custom_map_preset_id: payload.custom_map_preset_id,
+      strokeMode: "thick",
+    };
+  };
+
   const buildComparablePayload = () => {
     const p = buildSavePayload();
 
@@ -2777,14 +2813,26 @@ try {
             mapForThumbnail={mapForThumbnail}
             regionCountOverride={undefined}
             onSelectMapPreset={handleSelectMapPreset}
+            isPlayground={isPlayground}
           />
         </div>
 
         <div className={styles.rightPanel}>
           {/* Map preview */}
           <div className={styles.mapSection}>
-            <div className={styles.mapBox}>
-              <h4>Map Preview</h4>
+            <div className={styles.mapBox} data-tour="map-preview">
+              <div className={styles.mapPreviewHeader}>
+                <h4>Map Preview</h4>
+                {isPlayground && !isUserLoggedIn && (
+                  <button
+                    type="button"
+                    className={styles.takeTourBtn}
+                    onClick={() => setTourStartNonce((n) => n + 1)}
+                  >
+                    Take tour
+                  </button>
+                )}
+              </div>
               <div className={styles.mapPreviewWrap}>
                 <div className={styles.mapPreviewStage}>
                   <div className={styles.mapPreviewOuter}>
@@ -2942,7 +2990,7 @@ try {
             )}
 
 {/* Data & Ranges */}
-<div className={styles.section}>
+<div className={styles.section} data-tour="ranges">
   {mapDataType === "choropleth" ? (
     <>
       {/* header OUTSIDE the table box */}
@@ -3226,7 +3274,7 @@ try {
 
 
 {/* Map Info */}
-<div className={styles.section}>
+<div className={styles.section} data-tour="map-info">
   <div className={styles.sectionHeader}>
     <h2 className={styles.sectionTitle} style={{ marginTop: 0 }}>
       Map Info
@@ -3478,11 +3526,22 @@ try {
     <button
       className={`${styles.actionPill} ${styles.savePill}`}
       type="button"
+      data-tour="save"
       onClick={handleSaveMap}
       disabled={isSaving}
     >
       <FontAwesomeIcon icon={faSave} />
       Save Map
+    </button>
+
+    <button
+      className={[mapDetailStyles.statActionBtn, mapDetailStyles.downloadBtn].join(" ")}
+      type="button"
+      title="Download map"
+      onClick={() => setShowDownloadModal(true)}
+    >
+      <span className={mapDetailStyles.statActionIcon}><BiDownload /></span>
+      <span className={mapDetailStyles.statActionLabel}>Download</span>
     </button>
   </div>
 
@@ -4037,6 +4096,38 @@ try {
             setShowSignupRequiredModal(false);
             navigate("/signup", { state: { returnTo: "/create" } });
           }}
+        />
+      )}
+      <DownloadOptionsModal
+        isOpen={showDownloadModal}
+        onClose={() => setShowDownloadModal(false)}
+        mapData={{
+          ...buildSavePayload(),
+          id: isPlayground ? undefined : (existingMapData?.id ?? savedMapId ?? undefined),
+        }}
+        mapDataProps={getDownloadMapDataProps}
+        downloadCount={0}
+        isPublic={!!is_public}
+        isUserLoggedIn={isPlayground ? false : isUserLoggedIn}
+        anonId={getAnonId()}
+        isPro={isPlayground ? false : !!isPro}
+        passthroughUserId={isPlayground ? undefined : profile?.id}
+        passthroughEmail={isPlayground ? undefined : profile?.email}
+        onProfileRefresh={
+          isPlayground
+            ? undefined
+            : async () => {
+                const res = await fetchUserProfile();
+                setProfile(res.data);
+              }
+        }
+      />
+      {isPlayground && !isUserLoggedIn && !loading && !showDesktopOnly && (
+        <PlaygroundTour
+          enabled
+          blocked={showSignupRequiredModal || showDownloadModal}
+          startNonce={tourStartNonce}
+          onRequestSignup={() => setShowSignupRequiredModal(true)}
         />
       )}
     </>

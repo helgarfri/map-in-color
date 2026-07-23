@@ -28,57 +28,15 @@
   overflow: hidden; /* keep scroll inside panels */
 }
 
-/* Playground: no top padding; horizontal margin matches header; no card look so gutters match */
+/* Playground: full-bleed (no side gutters); fills viewport below header */
 .layoutContainerPlayground {
   padding-top: 0;
   height: calc(100vh - 64px);
-  margin-left: 80px;
-  margin-right: 80px;
-  width: auto;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
   max-width: none;
   overflow: hidden;
-}
-
-@media (max-width: 1269px) {
-  .layoutContainerPlayground {
-    margin-left: 48px;
-    margin-right: 48px;
-  }
-}
-
-@media (max-width: 1120px) {
-  .layoutContainerPlayground {
-    margin-left: 40px;
-    margin-right: 40px;
-  }
-}
-
-@media (max-width: 960px) {
-  .layoutContainerPlayground {
-    margin-left: 32px;
-    margin-right: 32px;
-  }
-}
-
-@media (max-width: 900px) {
-  .layoutContainerPlayground {
-    margin-left: 24px;
-    margin-right: 24px;
-  }
-}
-
-@media (max-width: 520px) {
-  .layoutContainerPlayground {
-    margin-left: 20px;
-    margin-right: 20px;
-  }
-}
-
-@media (min-width: 1920px) {
-  .layoutContainerPlayground {
-    margin-left: 96px;
-    margin-right: 96px;
-  }
 }
 
 .layoutContainerPlayground .contentRow {
@@ -88,11 +46,12 @@
 .layoutContainerPlayground .leftSidebar {
   padding-top: 0;
   background: var(--card);
+  box-shadow: none;
 }
 
 .layoutContainerPlayground .rightPanel {
   padding-bottom: 32px; /* breathing room so Save button isn’t flush at bottom */
-  background: var(--bg); /* match gutter so right side blends */
+  background: var(--bg);
 }
 
 .layoutContainerPlayground .mapSection,
@@ -261,12 +220,38 @@
   height: 100%;
 }
 
-.mapBox h4 {
+.mapPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin: 0 0 10px;
+}
+
+.mapBox h4,
+.mapPreviewHeader h4 {
+  margin: 0;
   font-size: 14px;
   font-weight: 800;
   color: var(--text);
   letter-spacing: 0.2px;
+}
+
+.takeTourBtn {
+  flex: 0 0 auto;
+  border: 1px solid rgba(40, 168, 225, 0.35);
+  background: rgba(40, 168, 225, 0.1);
+  color: #1a7eab;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.takeTourBtn:hover {
+  background: rgba(40, 168, 225, 0.18);
 }
 
 .mapPreviewWrap {

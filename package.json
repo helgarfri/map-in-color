@@ -17,6 +17,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "date-fns": "^4.1.0",
+    "driver.js": "^1.8.0",
     "express-rate-limit": "^7.4.1",
     "express-validator": "^7.2.0",
     "helmet": "^8.0.0",

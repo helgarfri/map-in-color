@@ -1,0 +1,82 @@
+/* Theme driver.js popover to match Map in Color playground chrome */
+
+.tourPopover {
+  background: #fff;
+  color: #222;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  max-width: 320px;
+}
+
+.tourPopover :global(.driver-popover-title) {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.tourPopover :global(.driver-popover-description) {
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.68);
+}
+
+.tourPopover :global(.driver-popover-progress-text) {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.tourPopover :global(.driver-popover-navigation-btns) {
+  gap: 8px;
+}
+
+.tourPopover :global(.driver-popover-prev-btn),
+.tourPopover :global(.driver-popover-next-btn) {
+  border-radius: 999px;
+  text-shadow: none;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+}
+
+.tourPopover :global(.driver-popover-prev-btn) {
+  background: #f3f4f6;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tourPopover :global(.driver-popover-next-btn) {
+  background: #28a8e1;
+  color: #fff;
+  border: 1px solid #28a8e1;
+  text-shadow: none;
+}
+
+.tourPopover :global(.driver-popover-close-btn) {
+  position: static !important;
+  inset: auto !important;
+  width: auto;
+  height: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+  background: transparent;
+  border: none;
+  padding: 7px 10px;
+  margin-right: auto;
+  order: -1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tourPopover :global(.driver-popover-footer) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tourPopover :global(.driver-popover-footer button) {
+  text-align: center;
+}

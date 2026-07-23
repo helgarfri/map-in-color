@@ -11,7 +11,7 @@ export default function PublicExplore() {
     <div className={`forceLightMode ${styles.publicExploreContainer}`}>
       <HomeHeader />
 
-      {/* Content width matches HomeHeader horizontal padding */}
+      {/* Full-bleed content; inset matches HomeHeader */}
       <div className={styles.exploreContentWrap}>
         <ExploreContent />
       </div>

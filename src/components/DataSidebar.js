@@ -87,6 +87,8 @@ export default function DataSidebar({
   onSelectMapPreset = null,
   /** When provided (e.g. while custom map modal is open), use this for the region count instead of effectiveDataSource.length. */
   regionCountOverride = undefined,
+  /** Flat, no-elevation look for the public playground. */
+  isPlayground = false,
 }) {
   const [localData, setLocalData] = useState([]);
 
@@ -484,7 +486,7 @@ useLayoutEffect(() => {
   const regionLabel = selectedMap === "usa" ? "states" : "countries";
 
   return (
-    <div className={styles.sidebarContainer}>
+    <div className={`${styles.sidebarContainer} ${isPlayground ? styles.sidebarFlat : ""}`}>
       {/* Map select: dropdown of presets (thumbnail+label) + count that opens customize modal */}
       {(onSelectMapPreset || onOpenCustomMapModal) && (
         <div className={styles.mapSelectWrap} ref={mapSelectRef}>
@@ -492,6 +494,7 @@ useLayoutEffect(() => {
             <button
               type="button"
               className={styles.mapSelectTrigger}
+              data-tour="map-type"
               onClick={() => onSelectMapPreset && setMapSelectOpen((o) => !o)}
               aria-expanded={mapSelectOpen}
               aria-haspopup="listbox"
@@ -517,6 +520,7 @@ useLayoutEffect(() => {
               <button
                 type="button"
                 className={styles.mapSelectCount}
+                data-tour="region-picker"
                 onClick={(e) => { e.stopPropagation(); onOpenCustomMapModal(); }}
                 title={`${regionCount} ${regionLabel} — click to choose which to show`}
                 aria-label={`${regionCount} ${regionLabel}. Click to choose which ${regionLabel} to show`}
@@ -554,7 +558,7 @@ useLayoutEffect(() => {
       )}
 
       {/* TAB ROW */}
-<div className={styles.tabRow}>
+<div className={styles.tabRow} data-tour="map-mode">
   <button
     type="button"
     className={`${styles.tabBtn} ${mapDataType === "choropleth" ? styles.tabActive : ""}`}
@@ -574,6 +578,7 @@ useLayoutEffect(() => {
   </button>
 </div>
 
+<div className={styles.dataEntriesTour} data-tour="data-entries">
   {/* UPLOAD BUTTON */}
 <div className={styles.uploadButtonWrap}>
   <button className={styles.uploadCta} onClick={handleOpenUploadClick} type="button">
@@ -804,6 +809,7 @@ useLayoutEffect(() => {
   </div>
 );
   })}
+</div>
 </div>
 
 

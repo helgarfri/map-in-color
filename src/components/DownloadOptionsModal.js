@@ -2291,15 +2291,17 @@ const handleDownload = async () => {
 }
 
 
-    // increment download count (unchanged)
-    try {
-      const payload = isUserLoggedIn ? {} : { anon_id: anonId };
-      const res = await incrementMapDownloadCount(mapData.id, payload);
-      if (res?.data?.download_count != null) {
-        onDownloadCountUpdate?.(res.data.download_count);
+    // increment download count (unchanged) — skip for unsaved / playground drafts
+    if (mapData?.id) {
+      try {
+        const payload = isUserLoggedIn ? {} : { anon_id: anonId };
+        const res = await incrementMapDownloadCount(mapData.id, payload);
+        if (res?.data?.download_count != null) {
+          onDownloadCountUpdate?.(res.data.download_count);
+        }
+      } catch (err) {
+        console.error("Error incrementing download:", err);
       }
-    } catch (err) {
-      console.error("Error incrementing download:", err);
     }
 
     

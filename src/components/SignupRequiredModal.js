@@ -61,7 +61,7 @@ export default function SignupRequiredModal({ isOpen, onClose, onNavigateToLogin
               Sign up to save your map
             </h2>
             <p className={styles.subtitle}>
-              Your work is saved on this device. Sign up or log in, then come back to Create to save it to your account.
+              Create an account to save this map, edit it later, and share it with the world. Your work stays on this device until you sign up.
             </p>
           </div>
           <button

@@ -21,6 +21,12 @@
   border-left: 1px solid var(--border);
 }
 
+/* Playground: no elevation shadows on sidebar chrome / list items */
+.sidebarFlat,
+.sidebarFlat * {
+  box-shadow: none !important;
+}
+
 /* ===== Tabs (segmented control) ===== */
 .tabRow {
   display: grid;
@@ -260,6 +266,15 @@
 }
 
 /* ===== Upload CTA (more premium) ===== */
+/* Tour target wrapper: keep flex chain so .scrollableList can shrink + scroll */
+.dataEntriesTour {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .uploadButtonWrap {
   display: flex;
   justify-content: center;
